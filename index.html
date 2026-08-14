@@ -1474,36 +1474,45 @@ function renderTab(tab){
  if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
-  try{m.innerHTML=FL27_renderNews();}catch(e){m.innerHTML=""}
   const md=Number(S.nextMatchDay||7), diff=md-S.day;
   const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
   const taskHtml=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
-  m.innerHTML+=`
-   <div class="card hero"><div class="kicker">⚽ ŻYCIE PIŁKARSKIE</div>
-     <h1>${esc(S.name||"Moja kariera")}</h1>
-     <p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos||"—")} • ${esc(S.club||"—")}</p>
-     <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill||0)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health||0)}</span><span class="pill">💶 ${Math.floor(S.money||0)}</span></div>
-   </div>
-   <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
-     <div class="kicker">📍 TERAZ</div>
-     <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
-     <p>${diff<=0?"Możesz wejść w mecz i podejmować decyzje boiskowe.":`Najbliższy mecz ${nextMatch}. W międzyczasie możesz wykonywać aktywności i reagować na wydarzenia.`}</p>
-   </div>
-   <div class="section-title"><b>Co możesz zrobić teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
-   <div class="card"><div class="actions">
-     <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • rozwój</small></button>
-     <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • decyzje meczowe</small></button>
-     <button class="action" onclick="sleep()"><b>😴 Sen</b><small>regeneracja • nowy dzień</small></button>
-     <button class="action" onclick="go('day')"><b>🕐 Otwórz Dzień</b><small>plan, czas i wydarzenia</small></button>
-   </div></div>
-   <div class="card"><div class="section-title"><b>Stan teraz</b><span>szczegóły w zakładkach</span></div>
-     <div class="row"><span>Energia</span><b>${Math.round(S.energy||0)}/100</b></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,S.energy||0))}%"></i></div>
-     <div class="row"><span>Forma</span><b>${Math.round(S.form||0)}/100</b></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,S.form||0))}%"></i></div>
-   </div>
-   ${taskHtml}
-   <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs?.[0]?S.logs[0].day+". dzień":"—"}</span></div>
-     <div class="log">${S.logs?.[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div>
-   </div>`;
+  const event=S.logs?.[0]?.text||"Brak nowych wydarzeń.";
+  const age=Number(S.age||15);
+  const status=S.injury>0?"⚠️ Uraz":"🟢 Dostępny/a";
+
+  m.innerHTML=`
+    <div class="card hero">
+      <div class="kicker">📅 DZISIAJ</div>
+      <h1>${esc(S.name||"Moja kariera")}</h1>
+      <p>${status} • ${age} lat • ${esc(S.club||"—")}</p>
+    </div>
+
+    <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
+      <div class="kicker">⚡ CO TERAZ?</div>
+      <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
+      <p>${diff<=0?"Mecz jest gotowy. Otwórz go, aby podejmować decyzje boiskowe."
+        :`Najbliższy mecz: <b>${nextMatch}</b>. W zakładce <b>Dzień</b> zaplanujesz pozostały czas.`}</p>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><b>🎲 Najnowsze wydarzenie</b><span>Historia → szczegóły</span></div>
+      <div class="log">${esc(event)}</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><b>🎓 Samouczek</b><span>💎 uczysz się gry</span></div>
+      ${taskHtml}
+    </div>
+
+    <div class="card">
+      <div class="section-title"><b>⚡ Szybki dostęp</b><span>tylko najważniejsze</span></div>
+      <div class="actions">
+        <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch}</small></button>
+        <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>plan i czas</small></button>
+      </div>
+    </div>
+  `;
 }
 function renderDay(m){
  m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
@@ -10070,5 +10079,27 @@ window.FL27_tutorialRoute=function(tab){
     S.rel=S.rel||{};
     S.rel.Rodzice=Number.isFinite(Number(S.rel.Rodzice))?Number(S.rel.Rodzice):50;
   }
+})();
+</script>
+
+
+<style id="fl27-v61-today-clean">
+/* DZIŚ is intentionally a summary. Detailed data lives in its own tab. */
+#main .hero p{font-size:9px}
+#main .card .section-title span{white-space:nowrap}
+</style>
+<script id="fl27-v61-today-contract">
+(function(){
+  window.FL27_TABS_CONTRACT={
+    today:"aktualności + bieżące wydarzenie + samouczek",
+    day:"czas + plan dnia + aktywności + koszty",
+    career:"pozycja + OVR + rozwój + klub + mecze + kontrakty",
+    life:"znajomi + relacje + social media + wydarzenia życia",
+    family:"rodzice + rodzeństwo + majątek + zawody + wsparcie + genetyka",
+    history:"decyzje + konsekwencje + historia wydarzeń",
+    stats:"pełne statystyki zawodnika i kariery",
+    store:"wydawanie pieniędzy + rzeczy + luksusy",
+    settings:"ustawienia + reset + avatar/płeć + drzewo genealogiczne"
+  };
 })();
 </script>
