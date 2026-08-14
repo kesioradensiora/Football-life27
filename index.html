@@ -685,8 +685,8 @@ function makeFamily(){
   const cityPool=cities[residenceCountry]||cities["Polska"];
   const residenceCity=cityPool[Math.floor(Math.random()*cityPool.length)];
   const income=["niski","stabilny","średni","dobrze zarabiający"][Math.floor(Math.random()*4)];
-  const namesF=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
-  const namesM=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
+  const namesF=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
+  const namesM=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
   return {
     father:{name:namesF[Math.floor(Math.random()*namesF.length)],age:fatherAge,job:pair[0],country:fatherCountry},
     mother:{name:namesM[Math.floor(Math.random()*namesM.length)],age:motherAge,job:pair[1],country:motherCountry},
@@ -699,7 +699,7 @@ function makeFamily(){
 }
 function ensureFamily(){
   if(!S.familyProfile || !S.familyProfile.father || !S.familyProfile.father.name){
-    S.familyProfile=makeFamily();
+    S.familyProfile=window.__FL27_AUTO_FAMILY || makeFamily();
     S.birthCountry=S.familyProfile.homeCountry;
     S.residenceCountry=S.familyProfile.residenceCountry||S.familyProfile.homeCountry;
     S.nationalities=[S.familyProfile.father.country];
@@ -10100,6 +10100,571 @@ window.FL27_tutorialRoute=function(tab){
     stats:"pełne statystyki zawodnika i kariery",
     store:"wydawanie pieniędzy + rzeczy + luksusy",
     settings:"ustawienia + reset + avatar/płeć + drzewo genealogiczne"
+  };
+})();
+</script>
+
+
+<script id="fl27-v62-final-home">
+(function(){
+  function cleanHome(m){
+    const md=Number(S?.nextMatchDay||7), diff=md-Number(S?.day||1);
+    const next=diff<=0?"DZIŚ":`za ${diff} ${diff===1?"dzień":"dni"}`;
+    const task=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
+    const last=S?.logs?.[0]?.text||"Brak nowych wydarzeń.";
+    const age=Number(S?.age||15);
+    const status=Number(S?.injury||0)>0?"⚠️ Uraz":"🟢 Dostępny/a";
+
+    m.innerHTML=`
+      <div class="card hero">
+        <div class="kicker">📅 DZISIAJ</div>
+        <h1>${esc(S?.name||"Moja kariera")}</h1>
+        <p>${status} • ${age} lat • dzień ${Number(S?.day||1)}</p>
+      </div>
+
+      <div class="card v62-now">
+        <div class="section-title"><b>⚡ TERAZ</b><span>${next}</span></div>
+        <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
+        <p>${diff<=0
+          ?"Najbliższy mecz jest dostępny. Kliknij, żeby wejść w interaktywny mecz."
+          :"Sprawdź zakładkę <b>Dzień</b>, aby zobaczyć dokładnie, co możesz zrobić w pozostałym czasie."}</p>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><b>🎲 Ostatnie wydarzenie</b><span>szczegóły → Historia</span></div>
+        <div class="log">${esc(last)}</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><b>🎓 Samouczek</b><span>💎</span></div>
+        ${task}
+      </div>
+
+      <div class="card">
+        <div class="section-title"><b>⚡ Szybki dostęp</b><span>bez duplikowania zakładek</span></div>
+        <div class="actions">
+          <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${next}</small></button>
+          <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>czas i aktywności</small></button>
+        </div>
+      </div>`;
+  }
+
+  window.renderHome=cleanHome;
+  window.FL27_RENDER_HOME_FINAL=cleanHome;
+})();
+</script>
+<style id="fl27-v62-home">
+.v62-now{border:1px solid rgba(118,169,255,.22)!important;background:linear-gradient(135deg,rgba(20,37,68,.96),rgba(13,23,40,.96))!important}
+#main .v37-tasks{margin-top:0}
+</style>
+
+
+<style id="fl27-v63-single-ui">
+/* V63 — one UI layer only. Legacy inline navigation remains in DOM for
+   compatibility, but is not rendered. The side drawer is the only nav. */
+body:not(.creator-screen) > .fl27-v35-bottom,
+body:not(.creator-screen) #nav,
+body:not(.creator-screen) .v17-bottom,
+body:not(.creator-screen) .v19-settings-btn{display:none!important}
+
+/* Keep only the persistent V35 header; hide the original app header to avoid
+   duplicated player/status information. */
+body:not(.creator-screen) > .app > header{display:none!important}
+body:not(.creator-screen){padding-top:0!important;padding-bottom:18px!important}
+body:not(.creator-screen) #main{padding-top:76px!important;padding-bottom:24px!important}
+</style>
+<script id="fl27-v63-consolidation">
+(function(){
+  /* ---- SINGLE SOURCE OF TRUTH FOR NAVIGATION ---- */
+  const ROUTES={
+    home:"home",day:"day",career:"career",life:"life",family:"family",
+    history:"history",careerStats:"careerStats",store:"store",settings:"settings"
+  };
+
+  window.FL27_ROUTE=function(tab){
+    const key=ROUTES[tab]||"home";
+    if(key==="settings"){
+      if(typeof window.renderSettings==="function")window.renderSettings();
+      return false;
+    }
+    window.__FL27_ACTIVE_TAB=key;
+    if(typeof window.go==="function"){
+      /* legacy go() is used only as the router; its old nav is hidden */
+      window.go(key);
+    }else{
+      currentTab=key;render();
+    }
+    return false;
+  };
+  window.FL27_GET_TAB=function(){return window.__FL27_ACTIVE_TAB||currentTab||"home"};
+
+  /* ---- RESET PLAYER: ALWAYS RETURN TO THE MODE CHOOSER ---- */
+  window.FL27_resetPlayer=function(){
+    if(!confirm(
+      "RESETUJ TYLKO ZAWODNIKA?\\n\\n"+
+      "Usunięta zostanie obecna kariera, zawodnik, rodzina, relacje, pieniądze, "+
+      "FLgram, historia i decyzje.\\n\\n"+
+      "Ustawienia gry pozostaną. Po resecie wrócisz do wyboru NOWA GRA."
+    ))return false;
+
+    try{
+      if(typeof window.clearPlayerOnly==="function")window.clearPlayerOnly();
+      else{
+        const keys=[
+          "footballLife27_v6","FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL",
+          "FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION","FL27_V16_TIME",
+          "FL27_V17_ACTIVITY","FL27_V19_SETTINGS","FL27_FAMILY_ARC_V9",
+          "FL27_NEW_GAME"
+        ];
+        keys.forEach(k=>localStorage.removeItem(k));
+      }
+    }catch(e){console.error(e)}
+
+    /* Clear only runtime player state; preserve theme/vibration/settings. */
+    try{
+      if(window.H){window.H={mode:null,ready:false,player:null};localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.H))}
+      if(window.P){
+        P.panelTasks={};P.panelTaskSet=[];P.panelTutorialVersion=0;
+        P.tutorialSeen=[];P.tutorialChoiceCount=0;P.tutorialFlags={};
+        P.tutorialBranch=[];P.lifeGraph={seen:[],flags:{},links:{},routes:[],chains:[]};
+        P.lifeEventSeen=[];P.flags={};
+      }
+    }catch(e){}
+
+    document.querySelectorAll(
+      ".v19-settings-overlay,.v20-hub-overlay,.fl27-v53-drawer-backdrop,.fl27-v53-drawer"
+    ).forEach(x=>x.remove());
+    document.body.classList.remove("fl27-settings-open");
+
+    /* IMPORTANT: no direct creator launch here. Always show the two-mode hub. */
+    if(typeof window.FL27_showNewGame==="function"){
+      window.FL27_showNewGame();
+    }else{
+      location.reload();
+    }
+    return false;
+  };
+
+  /* ---- Ensure settings can never silently send Reset Player to creator ---- */
+  window.FL27_SETTINGS_RESET_PLAYER=window.FL27_resetPlayer;
+
+  /* ---- First tutorial task routes to Family, then the panel stays focused. ---- */
+  window.FL27_tutorialRoute=function(tab){
+    const key=ROUTES[tab]||"home";
+    window.FL27_ROUTE(key);
+  };
+
+  /* ---- Do not let old render wrappers re-add hidden navigation. ---- */
+  const observer=new MutationObserver(()=>{
+    if(document.body.classList.contains("creator-screen"))return;
+    document.querySelectorAll("#nav,.v17-bottom,.fl27-v35-bottom").forEach(el=>{
+      el.style.display="none";
+    });
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>document.querySelectorAll("#nav,.v17-bottom,.fl27-v35-bottom").forEach(el=>el.style.display="none"),50);
+})();
+</script>
+
+
+<style id="fl27-v64-new-game-modes">
+.v64-mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
+.v64-mode-grid button{text-align:left;padding:15px 16px;border-radius:15px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#fff;cursor:pointer}
+.v64-mode-grid button:hover{border-color:rgba(118,169,255,.45);transform:translateY(-1px)}
+.v64-mode-grid strong{display:block;font-size:13px}.v64-mode-grid span{display:block;margin-top:5px;color:#9ba8b9;font-size:9px;line-height:1.45}
+.v64-mode-grid .manual{border-color:rgba(118,169,255,.28);background:rgba(118,169,255,.07)}
+.v64-mode-grid .same{border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.045)}
+</style>
+<script id="fl27-v64-new-game-modes">
+(function(){
+  const START_KEY="FL27_V64_START_PROFILE";
+  const namesM=["Jan","Antoni","Jakub","Leon","Kacper","Mikołaj","Mateusz","Szymon","Adam","Filip","Oskar","Maksymilian"];
+  const namesF=["Zuzanna","Julia","Maja","Lena","Oliwia","Amelia","Natalia","Laura","Hanna","Pola","Wiktoria","Alicja"];
+  const surnames=["Nowak","Kowalski","Wiśniewski","Wójcik","Kowalczyk","Kamiński","Lewandowski","Zieliński","Szymański","Woźniak","Dąbrowski","Mazur"];
+
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const randomAnswers=()=>{
+    const answers=QUESTIONS.map(q=>pick(q[1]));
+    return answers;
+  };
+  const randomName=(gender)=>{
+    const first=pick(gender==="K"?namesF:namesM);
+    return first+" "+pick(surnames);
+  };
+
+  /* Save the exact starting profile. "Nowa gra" can therefore recreate the
+     same person/family without resurrecting any football history. */
+  window.FL27_SAVE_START_PROFILE=function(){
+    try{
+      if(!window.S||!S.started)return;
+      const keep=[
+        "name","gender","orientation","pos","position","foot","style","inspiration","dream","risk","priority","goal",
+        "familyProfile","birthCountry","residenceCountry","nationalities","birthMonth","birthDay","age",
+        "money","allowance","school","social","avatar","origin"
+      ];
+      const profile={};
+      keep.forEach(k=>{if(S[k]!==undefined)profile[k]=JSON.parse(JSON.stringify(S[k]))});
+      localStorage.setItem(START_KEY,JSON.stringify(profile));
+    }catch(e){console.error("START_PROFILE",e)}
+  };
+
+  /* Hook once, after the existing startCareer has initialized the full game. */
+  if(typeof window.startCareer==="function"&&!window.__FL27_V64_START_HOOK){
+    window.__FL27_V64_START_HOOK=true;
+    const original=window.startCareer;
+    window.startCareer=function(){
+      const result=original.apply(this,arguments);
+      try{window.FL27_SAVE_START_PROFILE()}catch(e){}
+      return result;
+    };
+  }
+
+  function clearForNew(){
+    try{
+      const keys=[
+        "FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION",
+        "FL27_V16_TIME","FL27_V17_ACTIVITY","FL27_V20_NEW_GAME","FL27_V21_PROFILE",
+        "FL27_V22_CAREER","FL27_V23_GLOBAL","FL27_FAMILY_ARC_V9"
+      ];
+      keys.forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+  }
+
+  function openRandomCreator(mode){
+    clearForNew();
+    const gender=Math.random()<.5?"K":"M";
+    window.__FL27_V64_MODE=mode;
+    selectedAnswers=[];
+    playerName=randomName(gender);
+    creatorStarted=false;
+    window.FL27_showCreator();
+    setTimeout(()=>{
+      const first=document.getElementById("creatorName"),last=document.getElementById("creatorSurname");
+      if(first)first.value=playerName.split(" ")[0];
+      if(last)last.value=playerName.split(" ").slice(1).join(" ");
+      window.FL27_beginV52();
+      setTimeout(()=>{
+        const answers=mode==="randomPlayer"
+          ? QUESTIONS.map((q,i)=>i===0?(gender==="K"?"Kobieta":"Mężczyzna")
+            :i===2?pick(q[1])
+            :q[1][0])
+          :randomAnswers();
+        let i=0;
+        const next=()=>{
+          if(i<answers.length){
+            answer(answers[i++]);
+            setTimeout(next,0);
+            return;
+          }
+          setTimeout(()=>{
+            if(typeof window.FL27_randomAvatar==="function")window.FL27_randomAvatar();
+            setTimeout(()=>{
+              if(typeof window.FL27_confirmPlus==="function")window.FL27_confirmPlus();
+            },20);
+          },20);
+        };
+        next();
+      },20);
+    },20);
+  }
+
+  /* Random player = random identity/position; other starting answers use the
+     first/default option. Random everything = every starting answer + avatar. */
+  window.FL27_startRandomPlayer=function(){openRandomCreator("randomPlayer")};
+  window.FL27_startRandomEverything=function(){openRandomCreator("randomEverything")};
+
+  /* Auto is a fully automatic, balanced setup — different from pure random:
+     it uses a plausible profile rather than independently randomizing every field. */
+  window.FL27_startAutoV64=function(){
+    clearForNew();
+    const gender=Math.random()<.5?"K":"M";
+    window.__FL27_V64_MODE="auto";
+    selectedAnswers=[];
+    playerName=randomName(gender);
+    creatorStarted=false;
+    window.FL27_showCreator();
+    setTimeout(()=>{
+      const first=document.getElementById("creatorName"),last=document.getElementById("creatorSurname");
+      if(first)first.value=playerName.split(" ")[0];
+      if(last)last.value=playerName.split(" ").slice(1).join(" ");
+      window.FL27_beginV52();
+      setTimeout(()=>{
+        /* Balanced profile: not every field is random independently. */
+        const pos=pick(QUESTIONS[2][1]);
+        const style=pick(["Techniczny — drybling i kontrola","Szybki — sprint i gra za plecy obrony","Fizyczny — siła i pojedynki","Kreatywny — podania i wizja","Uniwersalny — potrafię robić wszystko po trochu"]);
+        const answers=[
+          gender==="K"?"Kobieta":"Mężczyzna",
+          pick(QUESTIONS[1][1]),pos,
+          pick(QUESTIONS[3][1]),pick(QUESTIONS[4][1]),pick(QUESTIONS[5][1]),
+          pick(QUESTIONS[6][1]),pick(QUESTIONS[7][1]),pick(QUESTIONS[8][1]),pick(QUESTIONS[9][1])
+        ];
+        /* force coherent style rather than independent chaos */
+        answers[3]=style;
+        let i=0;const next=()=>{if(i<answers.length){answer(answers[i++]);setTimeout(next,0);return}
+          setTimeout(()=>{FL27_randomAvatar();setTimeout(()=>FL27_confirmPlus(),20)},20)};
+        next();
+      },20);
+    },20);
+  };
+
+  /* Same current starting data, football history only reset. It uses the saved
+     starting profile, not the current mid-career state, so age/family/identity
+     remain coherent. */
+  window.FL27_startSameData=function(){
+    let profile=null;
+    try{profile=JSON.parse(localStorage.getItem(START_KEY)||"null")}catch(e){}
+    if(!profile){
+      alert("Nie ma jeszcze zapisanego zestawu danych startowych. Najpierw rozpocznij karierę.");
+      return;
+    }
+    clearForNew();
+    try{
+      /* Rebuild S from a clean game, then restore the exact non-football data. */
+      S=fresh();
+      Object.keys(profile).forEach(k=>{S[k]=profile[k]});
+      S.started=true;
+      S.club="";
+      S.skill=50;S.form=70;S.health=100;S.pr=50;S.mental=70;S.energy=100;
+      S.money=Number(profile.money??35);
+      S.allowance=Number(profile.allowance??14);
+      S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;
+      S.nextMatchDay=7;S.lastJobWeekKey="";S.eventHistory={};S.logs=[];S.usedEvents=[];
+      S.social=JSON.parse(JSON.stringify(profile.social||{unlocked:true,handle:"FL27_"+Math.floor(1000+Math.random()*9000),followers:0,posts:[],lastPostDay:0}));
+      save();
+      try{localStorage.setItem("FL27_V64_MODE","same")}catch(e){}
+      location.reload();
+    }catch(e){console.error(e);alert("Nie udało się odtworzyć danych startowych.")}
+  };
+
+  /* Replace the hub LAST, so all earlier hub versions are superseded rather
+     than stacked. */
+  window.FL27_showNewGame=function(){
+    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+    const d=document.createElement("div");d.className="v20-hub-overlay";
+    const hasSaved=!!localStorage.getItem(START_KEY);
+    d.innerHTML=`<div class="v20-hub">
+      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
+      <div class="v20-kicker">NOWA KARIERA</div>
+      <h1>Jak chcesz rozpocząć?</h1>
+      <p>Każda opcja tworzy inną historię. Wybierz dokładnie, ile chcesz losowości, a ile kontroli.</p>
+      <div class="v64-mode-grid">
+        <button onclick="FL27_startRandomPlayer()">
+          <strong>🎲 LOSOWY ZAWODNIK</strong>
+          <span>Losowe imię, nazwisko, płeć, avatar i pozycja. Pozostałe podstawowe cechy są ustawione spójnie, a rodzina i świat zostają wygenerowane przez grę.</span>
+        </button>
+        <button onclick="FL27_startRandomEverything()">
+          <strong>🎰 LOSOWE WSZYSTKO</strong>
+          <span>Losowany jest cały start: zawodnik, 10 odpowiedzi, avatar, rodzina, kraj, miejsce życia, sytuacja finansowa i początkowe warunki.</span>
+        </button>
+        <button onclick="FL27_startAutoV64()">
+          <strong>🤖 NOWA GRA AUTO</strong>
+          <span>Gra sama tworzy spójnego zawodnika i jego startową historię. To automatyczny, bardziej logiczny profil, a nie czyste losowanie każdej wartości osobno.</span>
+        </button>
+        <button class="same" onclick="FL27_startSameData()" ${hasSaved?"":"disabled"}>
+          <strong>🔄 NOWA GRA — TE SAME DANE</strong>
+          <span>Twoje zapisane dane startowe pozostają takie same. Resetowana jest wyłącznie historia piłkarska, żeby rozpocząć karierę od początku z tym samym zawodnikiem i rodziną.</span>
+        </button>
+        <button class="manual" onclick="FL27_startPlus()">
+          <strong>✨ NOWA GRA +</strong>
+          <span>Wszystko wpisujesz i wybierasz sam/a: imię, nazwisko, 10 pytań, pozycję, avatar itd. Rodzina i świat są następnie generowane na podstawie Twoich decyzji.</span>
+        </button>
+      </div>
+      <small>Ustawienia gry, np. motyw i wibracje, nie są resetowane.</small>
+    </div>`;
+    document.body.appendChild(d);
+  };
+})();
+</script>
+
+
+<style id="fl27-v65-three-modes">
+.v65-mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
+.v65-mode-grid button{display:block;width:100%;text-align:left;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#fff;cursor:pointer;touch-action:manipulation}
+.v65-mode-grid button:hover{border-color:rgba(118,169,255,.42);transform:translateY(-1px)}
+.v65-mode-grid strong{display:block;font-size:13px}.v65-mode-grid span{display:block;margin-top:5px;color:#9ba8b9;font-size:9px;line-height:1.5}
+.v65-mode-grid .auto{border-color:rgba(85,216,138,.25);background:rgba(85,216,138,.045)}
+.v65-mode-grid .plus{border-color:rgba(118,169,255,.28);background:rgba(118,169,255,.06)}
+.v65-mode-grid .same{border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.045)}
+</style>
+<script id="fl27-v65-three-modes">
+(function(){
+  const START_KEY="FL27_V64_START_PROFILE";
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+  /* Country-specific starter database. These are common/popular first names
+     and surnames used as a gameplay database, not a claim of a live ranking. */
+  const DB={
+    "Polska":{
+      M:["Jakub","Antoni","Jan","Szymon","Franciszek","Aleksander","Mikołaj","Leon","Wojciech","Kacper"],
+      K:["Zofia","Zuzanna","Laura","Hanna","Maja","Julia","Oliwia","Alicja","Maria","Lena"],
+      S:["Nowak","Kowalski","Wiśniewski","Wójcik","Kowalczyk","Kamiński","Lewandowski","Zieliński","Szymański","Woźniak"]},
+    "Hiszpania":{
+      M:["Mateo","Hugo","Martín","Lucas","Leo","Daniel","Alejandro","Pablo","Álvaro","Adrián"],
+      K:["Sofía","Lucía","Martina","María","Valeria","Julia","Paula","Emma","Daniela","Carla"],
+      S:["García","Rodríguez","González","Fernández","López","Martínez","Sánchez","Pérez","Gómez","Martín"]},
+    "Niemcy":{
+      M:["Emil","Noah","Matteo","Paul","Leon","Theo","Ben","Elias","Finn","Felix"],
+      K:["Emma","Mia","Sophia","Hanna","Emilia","Lina","Mila","Ella","Clara","Lea"],
+      S:["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann"]},
+    "Francja":{
+      M:["Gabriel","Léo","Raphaël","Louis","Arthur","Jules","Adam","Maël","Lucas","Hugo"],
+      K:["Louise","Jade","Ambre","Alba","Emma","Rose","Alice","Anna","Mia","Chloé"],
+      S:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau"]},
+    "Anglia":{
+      M:["Oliver","George","Arthur","Noah","Muhammad","Leo","Oscar","Henry","Archie","Harry"],
+      K:["Olivia","Amelia","Isla","Ava","Lily","Ivy","Freya","Florence","Isabella","Sophia"],
+      S:["Smith","Jones","Taylor","Brown","Williams","Wilson","Johnson","Davies","Patel","Robinson"]},
+    "Włochy":{
+      M:["Leonardo","Francesco","Alessandro","Lorenzo","Andrea","Mattia","Gabriele","Tommaso","Riccardo","Edoardo"],
+      K:["Sofia","Aurora","Ginevra","Vittoria","Giulia","Beatrice","Ludovica","Alice","Emma","Matilde"],
+      S:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco"]},
+    "Portugalia":{
+      M:["João","Afonso","Francisco","Martim","Tomás","Duarte","Miguel","Gabriel","Guilherme","Rodrigo"],
+      K:["Maria","Leonor","Matilde","Beatriz","Carolina","Madalena","Alice","Benedita","Inês","Sofia"],
+      S:["Silva","Santos","Ferreira","Pereira","Oliveira","Costa","Rodrigues","Martins","Jesus","Sousa"]},
+    "Brazylia":{
+      M:["Miguel","Arthur","Heitor","Gael","Bernardo","Theo","Davi","Gabriel","Ravi","Samuel"],
+      K:["Helena","Alice","Laura","Maria","Valentina","Heloísa","Cecília","Maitê","Sophia","Aurora"],
+      S:["Silva","Santos","Oliveira","Souza","Pereira","Costa","Rodrigues","Almeida","Nascimento","Lima"]},
+    "USA":{
+      M:["Liam","Noah","Oliver","James","Elijah","Mateo","Theodore","Henry","Lucas","William"],
+      K:["Olivia","Emma","Amelia","Charlotte","Mia","Sophia","Isabella","Ava","Evelyn","Luna"],
+      S:["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"]},
+    "Czechy":{
+      M:["Jakub","Jan","Matyáš","Tomáš","Adam","Filip","Matěj","Vojtěch","Lukáš","David"],
+      K:["Eliška","Viktorie","Anna","Sofie","Tereza","Natálie","Karolína","Amálie","Adéla","Ema"],
+      S:["Novák","Svoboda","Novotný","Dvořák","Černý","Procházka","Kučera","Veselý","Horák","Němec"]},
+    "Holandia":{
+      M:["Noah","Liam","Lucas","Daan","Finn","Levi","Sem","Mees","James","Milan"],
+      K:["Emma","Olivia","Sophie","Julia","Mila","Nora","Tess","Sofie","Yara","Lotte"],
+      S:["De Jong","Jansen","De Vries","Van den Berg","Van Dijk","Bakker","Janssen","Visser","Smit","Meijer"]},
+    "Belgia":{
+      M:["Arthur","Louis","Noah","Jules","Victor","Lucas","Liam","Milan","Adam","Gabriel"],
+      K:["Olivia","Emma","Louise","Alice","Camille","Juliette","Marie","Lina","Mila","Nora"],
+      S:["Peeters","Janssens","Maes","Jacobs","Mertens","Willems","Claes","Goossens","De Smet","Vermeulen"]},
+    "Argentyna":{
+      M:["Mateo","Benjamín","Thiago","Santino","Valentino","Tomás","Joaquín","Bautista","Dante","Franco"],
+      K:["Sofía","Valentina","Martina","Emma","Catalina","Julieta","Mía","Renata","Josefina","Alma"],
+      S:["González","Rodríguez","Gómez","Fernández","López","Martínez","Díaz","Pérez","Sánchez","Romero"]},
+    "Chorwacja":{
+      M:["Luka","Jakov","Ivan","Marko","Petar","Mateo","Josip","David","Fran","Leon"],
+      K:["Lucija","Mia","Ema","Nika","Ana","Petra","Lana","Marta","Sara","Iva"],
+      S:["Horvat","Kovačević","Babić","Marić","Jurić","Novak","Knežević","Radić","Vuković","Perić"]},
+    "Szwecja":{
+      M:["William","Liam","Noah","Hugo","Oliver","Lucas","Elias","Oscar","Leo","Viggo"],
+      K:["Alice","Elsa","Maja","Astrid","Wilma","Alma","Freja","Selma","Ebba","Signe"],
+      S:["Johansson","Andersson","Karlsson","Nilsson","Eriksson","Larsson","Olsson","Persson","Svensson","Gustafsson"]}
+  };
+
+  const countryPool=c=>DB[c]||DB["Polska"];
+  function mixedPool(c1,c2,key){
+    const a=countryPool(c1)[key]||[],b=countryPool(c2)[key]||[];
+    return [...new Set([...a,...b])];
+  }
+  function autoName(family,gender){
+    const fc=family?.father?.country||family?.homeCountry||"Polska";
+    const mc=family?.mother?.country||fc;
+    const bc=family?.homeCountry||fc;
+    /* Birth country gets priority, but parents' countries expand the pool. */
+    const first=mixedPool(bc,fc,gender==="K"?"K":"M").concat(countryPool(mc)[gender==="K"?"K":"M"]||[]);
+    const surn=mixedPool(fc,mc,"S").concat(countryPool(bc).S||[]);
+    return pick([...new Set(first)])+" "+pick([...new Set(surn)]);
+  }
+
+  function clearFootballHistory(){
+    const keys=["FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION",
+      "FL27_V16_TIME","FL27_V17_ACTIVITY","FL27_V20_NEW_GAME","FL27_V21_PROFILE","FL27_V22_CAREER","FL27_V23_GLOBAL","FL27_FAMILY_ARC_V9"];
+    keys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+  }
+
+  window.FL27_startNewGame=function(){
+    let p=null;try{p=JSON.parse(localStorage.getItem(START_KEY)||"null")}catch(e){}
+    if(!p){alert("Najpierw rozpocznij karierę, żeby zapisać dane zawodnika.");return}
+    clearFootballHistory();
+    try{
+      S=fresh();Object.assign(S,JSON.parse(JSON.stringify(p)));
+      S.started=true;
+      /* Reset football progression, NOT identity/origin/family/position. */
+      S.club=pickRealLocalClub(S.familyProfile?.residenceCity||"");
+      S.skill=50;S.form=70;S.health=100;S.pr=50;S.mental=70;S.energy=100;
+      S.money=Number(p.money??35);S.allowance=Number(p.allowance??14);
+      S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;
+      S.nextMatchDay=7;S.lastJobWeekKey="";S.eventHistory={};S.logs=[];S.usedEvents=[];
+      S.social=JSON.parse(JSON.stringify(p.social||S.social||{unlocked:true,followers:0,posts:[],lastPostDay:0}));
+      S.transferHistory=[];S.contract=null;S.trophies=[];S.season={};S.matchHistory=[];
+      S.injury=0;S.geneticsResearch=null;
+      save();location.reload();
+    }catch(e){console.error(e);alert("Nie udało się rozpocząć nowej gry.")}
+  };
+
+  window.FL27_startAutoV65=function(){
+    clearFootballHistory();
+    try{
+      /* Generate family FIRST; name is then generated from birth + parent countries. */
+      const family=makeFamily();
+      const gender=Math.random()<.5?"K":"M";
+      const answers=QUESTIONS.map(q=>pick(q[1]));
+      answers[0]=gender==="K"?"Kobieta":"Mężczyzna";
+      const name=autoName(family,gender);
+      window.__FL27_AUTO_FAMILY=family;
+      selectedAnswers=answers;playerName=name;creatorStarted=true;
+      /* Auto avatar, but always coherent with generated gender. */
+      window.__FL27_AUTO_AVATAR={
+        skin:pick(AVATAR_OPTIONS.skin),hair:pick(AVATAR_OPTIONS.hair),
+        hairColor:pick(AVATAR_OPTIONS.hairColor),eyes:pick(AVATAR_OPTIONS.eyes),
+        jersey:pick(AVATAR_OPTIONS.jersey),gender
+      };
+      window.FL27_showCreator();
+      /* Start directly after creator is built; no manual fields are shown. */
+      setTimeout(()=>{
+        try{
+          if(typeof window.FL27_confirmPlus==="function")window.FL27_confirmPlus();
+        }catch(e){console.error(e)}
+      },30);
+    }catch(e){console.error(e);alert("Nie udało się wygenerować automatycznej gry.")}
+  };
+
+  /* Ensure auto uses the generated avatar instead of the editor defaults. */
+  const oldSaveAvatar=window.FL27_saveAvatar;
+  if(typeof oldSaveAvatar==="function"&&!window.__FL27_V65_AVATAR_HOOK){
+    window.__FL27_V65_AVATAR_HOOK=true;
+    window.FL27_saveAvatar=function(){
+      if(window.__FL27_AUTO_AVATAR){
+        const a=window.__FL27_AUTO_AVATAR;
+        const box=document.getElementById("v20-avatar-preview");
+        if(box)box.innerHTML=window.FL27_avatarSvg(a);
+        return a;
+      }
+      return oldSaveAvatar.apply(this,arguments);
+    };
+  }
+
+  window.FL27_showNewGame=function(){
+    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+    const d=document.createElement("div");d.className="v20-hub-overlay";
+    const hasSaved=!!localStorage.getItem(START_KEY);
+    d.innerHTML=`<div class="v20-hub">
+      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
+      <div class="v20-kicker">NOWA KARIERA</div>
+      <h1>Jak chcesz rozpocząć?</h1>
+      <p>Wybierz jeden z trzech sposobów rozpoczęcia gry.</p>
+      <div class="v65-mode-grid">
+        <button class="same" onclick="FL27_startNewGame()" ${hasSaved?"":"disabled"}>
+          <strong>🔄 NOWA GRA</strong>
+          <span>Wyzerowanie całej postaci i historii piłkarskiej. Zachowujesz pochodzenie, imię i nazwisko, płeć, pozycję, nogę, styl, rodzinę i pozostałe dane startowe. Zaczynasz od pierwszego dnia kariery.</span>
+        </button>
+        <button class="auto" onclick="FL27_startAutoV65()">
+          <strong>🤖 NOWA GRA AUTO</strong>
+          <span>Wszystko generuje się od nowa. Kraj urodzenia i rodzice są losowani jako pierwsze, a imię i nazwisko powstają z baz popularnych imion i nazwisk tych krajów. Przy rodzicach z różnych krajów pula się łączy. Losowane są też 10 odpowiedzi, pozycja, avatar i cała sytuacja startowa.</span>
+        </button>
+        <button class="plus" onclick="FL27_startPlus()">
+          <strong>✨ NOWA GRA +</strong>
+          <span>Ty wpisujesz imię i nazwisko oraz sam/a wybierasz 10 odpowiedzi, pozycję i avatar. Rodzina, pochodzenie i świat gry zostają wygenerowane na podstawie Twoich wyborów i losowości.</span>
+        </button>
+      </div>
+      <small>Ustawienia gry, np. motyw i wibracje, pozostają bez zmian.</small>
+    </div>`;
+    document.body.appendChild(d);
   };
 })();
 </script>
