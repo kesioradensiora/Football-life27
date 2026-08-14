@@ -6688,10 +6688,10 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
 
 
  const AVATAR_OPTIONS={
-   skin:["#f6d1b1","#e7b58f","#c98f68","#9a6345","#6b402d"],
-   hair:["short","long","curly","fade","buzz","ponytail"],
-   hairColor:["#17151a","#3b2417","#70452b","#a66b35","#d7b36a","#d33f3f"],
-   eyes:["#3b2a20","#3d6b91","#5a7b4c","#6d4d3c"],
+   skin:["#f8dcc3","#f1c9a8","#e7b58f","#d7a07a","#c98f68","#a97452","#9a6345","#6b402d","#4b2b1e"],
+   hair:["short","long","curly","fade","buzz","ponytail","bob","braids","wavy","undercut"],
+   hairColor:["#17151a","#2a211c","#3b2417","#70452b","#a66b35","#c98b4b","#d7b36a","#eee0b5","#9b4a2f","#6b4aa1"],
+   eyes:["#241812","#3b2a20","#3d6b91","#5a7b4c","#6d4d3c","#6f8e9e"],
    jersey:["#d9364a","#2467d1","#24915b","#f0b429","#7b4fd6","#e9edf3"]
  };
  window.FL27_avatarSvg=function(a){
@@ -6705,7 +6705,11 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
      curly:`<path fill="${hc}" d="M48 66c-4-28 18-53 52-53s56 25 52 53l-10 13H58z"/>`,
      fade:`<path fill="${hc}" d="M54 62c0-26 17-42 46-42s46 16 46 42v8H54z"/>`,
      buzz:`<path fill="${hc}" d="M55 57c2-21 18-34 45-34s43 13 45 34H55z"/>`,
-     ponytail:`<path fill="${hc}" d="M51 64c0-30 19-49 49-49s49 19 49 49v14h-18V69H69v9H51z"/><circle fill="${hc}" cx="156" cy="69" r="14"/>`
+     ponytail:`<path fill="${hc}" d="M51 64c0-30 19-49 49-49s49 19 49 49v14h-18V69H69v9H51z"/><circle fill="${hc}" cx="156" cy="69" r="14"/>`,
+     bob:`<path fill="${hc}" d="M48 66c0-31 20-49 52-49s52 18 52 49v47h-18V72H66v41H48z"/>`,
+     braids:`<path fill="${hc}" d="M50 65c0-30 19-48 50-48s50 18 50 48v54h-13V72H63v47H50z"/><path fill="${hc}" d="M54 73h12v65H52zM134 73h12v65h-14z"/>`,
+     wavy:`<path fill="${hc}" d="M48 66c0-30 20-50 52-50s52 20 52 50v54h-17V73H65v47H48z"/><path d="M55 57q12 12 0 24M145 57q-12 12 0 24" fill="none" stroke="${hc}" stroke-width="9" stroke-linecap="round"/>`,
+     undercut:`<path fill="${hc}" d="M55 61c0-26 16-43 45-43s45 17 45 43v11h-17V59H72v13H55z"/>`
    }[hair]||"";
    const neck=gender==="K"?`<path fill="${skin}" d="M91 113h18v18H91z"/>`:`<path fill="${skin}" d="M91 113h18v18H91z"/>`;
    return `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
@@ -6752,7 +6756,8 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
     <label>Imię<input id="v20-first" maxlength="24" placeholder="np. Alex"></label>
     <label>Nazwisko<input id="v20-last" maxlength="30" placeholder="np. Silva"></label>
     <div class="v20-grid">
-      <label>Płeć<select id="v20-gender"><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+      <label>Płeć<select id="v20-gender" onchange="FL27_saveAvatar()">
+        <option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
       <label>Płeć osób, które Cię interesują<select id="v20-orientation">
         <option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na tym etapie nie określam</option>
       </select></label>
@@ -6760,19 +6765,19 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
     <section class="v20-avatar-editor">
       <div class="v20-avatar-preview" id="v20-avatar-preview"></div>
       <div class="v20-avatar-controls">
-        <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">LOSOWY</button></div>
+        <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">LOSOWY</button></div><div class="v20-avatar-help">Wybierz płeć, cerę, fryzurę, kolor włosów, oczy i strój. Możesz też wylosować cały wygląd.</div>
         <div class="v20-grid">
           <label>Cera<select id="v20-skin" onchange="FL27_saveAvatar()">
             <option value="#f6d1b1">Jasna</option><option value="#e7b58f" selected>Średnia</option><option value="#c98f68">Oliwkowa</option><option value="#9a6345">Brązowa</option><option value="#6b402d">Ciemna</option>
           </select></label>
           <label>Fryzura<select id="v20-hair" onchange="FL27_saveAvatar()">
-            <option value="short">Krótka</option><option value="long">Długa</option><option value="curly">Kręcona</option><option value="fade">Fade</option><option value="buzz">Bardzo krótka</option><option value="ponytail">Kucyk</option>
+            <option value="short">Krótka</option><option value="long">Długa</option><option value="curly">Kręcona</option><option value="fade">Fade</option><option value="buzz">Bardzo krótka</option><option value="ponytail">Kucyk</option><option value="bob">Bob</option><option value="braids">Warkoczyki</option><option value="wavy">Falowane</option><option value="undercut">Undercut</option>
           </select></label>
           <label>Kolor włosów<select id="v20-hairColor" onchange="FL27_saveAvatar()">
-            <option value="#17151a">Czarne</option><option value="#3b2417">Brązowe</option><option value="#70452b">Ciemny brąz</option><option value="#a66b35">Rude</option><option value="#d7b36a">Blond</option><option value="#d33f3f">Czerwone</option>
+            <option value="#17151a">Czarne</option><option value="#2a211c">Bardzo ciemny brąz</option><option value="#3b2417">Brązowe</option><option value="#70452b">Ciemny brąz</option><option value="#a66b35">Rudo-brązowe</option><option value="#c98b4b">Miedziane</option><option value="#d7b36a">Blond</option><option value="#eee0b5">Bardzo jasny blond</option><option value="#9b4a2f">Rude</option><option value="#6b4aa1">Fioletowe</option>
           </select></label>
           <label>Oczy<select id="v20-eyes" onchange="FL27_saveAvatar()">
-            <option value="#3b2a20">Brązowe</option><option value="#3d6b91">Niebieskie</option><option value="#5a7b4c">Zielone</option><option value="#6d4d3c">Piwne</option>
+            <option value="#241812">Bardzo ciemnobrązowe</option><option value="#3b2a20">Brązowe</option><option value="#3d6b91">Niebieskie</option><option value="#5a7b4c">Zielone</option><option value="#6d4d3c">Piwne</option><option value="#6f8e9e">Szaroniebieskie</option>
           </select></label>
           <label>Stroje<select id="v20-jersey" onchange="FL27_saveAvatar()">
             <option value="#d9364a">Czerwony</option><option value="#2467d1">Niebieski</option><option value="#24915b">Zielony</option><option value="#f0b429">Żółty</option><option value="#7b4fd6">Fioletowy</option><option value="#e9edf3">Biały</option>
@@ -6785,6 +6790,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
     <button class="v20-back" onclick="FL27_showNewGame()">← Wróć</button>
    </div>`;
    document.body.appendChild(d);
+   FL27_saveAvatar();
  };
 
  window.FL27_confirmPlus=function(){
@@ -8458,6 +8464,27 @@ body:not(.creator-screen) .v9-action-grid button small{
   .v35-brand{min-width:54px!important}
   .v35-stats div{min-width:34px!important}
 }
+
+/* V44 — richer avatar creator, same existing V20 panel */
+.v20-avatar-editor{grid-template-columns:145px 1fr!important}
+.v20-avatar-preview{
+  min-height:165px!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;overflow:hidden!important
+}
+.v20-avatar-preview svg{width:100%;height:auto;max-height:205px}
+.v20-avatar-controls label{font-size:9px!important}
+.v20-avatar-controls select{width:100%;box-sizing:border-box}
+.v20-avatar-title button{
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+  color:#fff;border-radius:8px;padding:6px 8px;font-size:8px;font-weight:900
+}
+.v20-avatar-help{
+  margin-top:7px;font-size:8px;line-height:12px;color:rgba(255,255,255,.5)
+}
+@media(max-width:600px){
+  .v20-avatar-editor{grid-template-columns:1fr!important}
+  .v20-avatar-preview{max-width:180px;margin:0 auto;width:100%}
+}
 </style>
 <script>
 /* V43: re-mount only the one approved chrome after every render. */
@@ -8482,5 +8509,202 @@ body:not(.creator-screen) .v9-action-grid button small{
       };
     }
   }
+})();
+</script>
+
+
+<style id="fl27-v45-active-nav">
+/* V45 — ALWAYS SHOW WHICH BOTTOM TAB IS ACTIVE */
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
+  position:relative!important;
+  opacity:.58;
+  transition:opacity .15s ease,transform .15s ease,background .15s ease,box-shadow .15s ease;
+}
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab{
+  opacity:1!important;
+  background:rgba(118,169,255,.13)!important;
+  box-shadow:inset 0 2px 0 var(--fl-accent,#76a9ff), inset 0 0 0 1px rgba(118,169,255,.16)!important;
+  transform:translateY(-1px);
+}
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::after{
+  content:"";
+  position:absolute;
+  left:28%;
+  right:28%;
+  bottom:4px;
+  height:3px;
+  border-radius:99px;
+  background:var(--fl-accent,#76a9ff);
+}
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button:active{
+  transform:translateY(0)!important;
+}
+@media(max-width:390px){
+  body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::after{
+    left:22%;right:22%;height:2px;bottom:3px;
+  }
+}
+</style>
+<script id="fl27-v45-active-nav-js">
+(function(){
+  const TAB_WORDS={
+    today:["dziś","dzien","dzień","today","główna","glowna","głównej","glownej"],
+    day:["dzień","dzien"],
+    career:["kariera","career"],
+    life:["życie","zycie","life"],
+    family:["rodzina","family"],
+    history:["historia","history"],
+    stats:["statystyki","statystyka","stats"],
+    shop:["sklep","shop"],
+    settings:["ustawienia","settings"]
+  };
+
+  function cleanText(el){
+    return (el?.textContent||"").trim().toLowerCase().replace(/\s+/g," ");
+  }
+
+  function setActive(key){
+    const nav=document.querySelector(".fl27-v35-bottom .v35-nav");
+    if(!nav)return;
+    const buttons=[...nav.querySelectorAll("button")];
+    buttons.forEach(b=>{
+      const active=b.dataset.fl27Tab===key;
+      b.classList.toggle("fl27-active-tab",active);
+      if(active)b.setAttribute("aria-current","page");
+      else b.removeAttribute("aria-current");
+    });
+  }
+
+  function inferFromButton(btn){
+    const t=cleanText(btn);
+    for(const [key,words] of Object.entries(TAB_WORDS)){
+      if(words.some(w=>t===w || t.includes(w)))return key;
+    }
+    return null;
+  }
+
+  function wire(){
+    const nav=document.querySelector(".fl27-v35-bottom .v35-nav");
+    if(!nav)return false;
+    const buttons=[...nav.querySelectorAll("button")];
+    buttons.forEach(btn=>{
+      const key=inferFromButton(btn);
+      if(key)btn.dataset.fl27Tab=key;
+      if(!btn.dataset.fl27ActiveWired){
+        btn.addEventListener("click",()=>{
+          const k=btn.dataset.fl27Tab||inferFromButton(btn);
+          if(k)setActive(k);
+        },true);
+        btn.dataset.fl27ActiveWired="1";
+      }
+    });
+
+    // If the existing navigation already marks a page in its own state,
+    // use that; otherwise default to Dziś.
+    const existing=buttons.find(b=>b.classList.contains("active")||b.getAttribute("aria-current")==="page");
+    setActive(existing?.dataset.fl27Tab||"today");
+    return true;
+  }
+
+  function sync(){
+    if(document.body.classList.contains("creator-screen"))return;
+    if(wire()){
+      // Navigation may be re-rendered by the game. Re-apply active state
+      // without creating another bar.
+      const current=document.querySelector(".fl27-v35-bottom .v35-nav button.fl27-active-tab");
+      if(current)return;
+    }
+  }
+
+  // Observe only the existing nav area; no new DOM navigation is created.
+  const mo=new MutationObserver(()=>requestAnimationFrame(sync));
+  mo.observe(document.body,{childList:true,subtree:true});
+
+  // Expose a tiny API so existing page handlers can explicitly switch tabs.
+  window.FL27_V45_SET_ACTIVE_TAB=setActive;
+
+  document.addEventListener("DOMContentLoaded",sync);
+  setTimeout(sync,60);
+  setTimeout(sync,300);
+  setTimeout(sync,900);
+})();
+</script>
+
+
+<script id="fl27-v46-reset-player">
+(function(){
+  /*
+   * V46 — Reset player means NEW PLAYER CREATION.
+   * Settings stay. The whole character/save state is removed.
+   * After confirmation we go directly to the existing New Game chooser,
+   * not straight into a loaded/blank game.
+   */
+  const PLAYER_PREFIXES=[
+    "FL27_V17_","FL27_V20_NEW_GAME","FL27_V21_PROFILE","FL27_V22_CAREER",
+    "FL27_V23_GLOBAL","FL27_V12","FL27_PLAYER","FL27_SAVE","FL27_GAME",
+    "FL27_STATE","FL27_LIFE","FL27_SOCIAL","FL27_REL","FL27_FLGRAM",
+    "FL27_FAMILY","FL27_HISTORY"
+  ];
+
+  function clearPlayerOnly(){
+    try{
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(!k)continue;
+        if(PLAYER_PREFIXES.some(p=>k===p || k.startsWith(p)))keys.push(k);
+      }
+      keys.forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+    /* Keep these game settings by design:
+       vibration, theme, language/creator preferences and similar UI settings. */
+  }
+
+  window.FL27_resetPlayer=function(){
+    const ok=confirm(
+      "RESETUJ TYLKO ZAWODNIKA?\\n\\n"+
+      "Zostanie usunięta obecna postać, jej rodzina, relacje, pieniądze, kariera, "+
+      "FLgram, historia i wszystkie decyzje.\\n\\n"+
+      "Ustawienia gry pozostaną. Po resecie wrócisz do wyboru NOWA GRA."
+    );
+    if(!ok)return;
+
+    clearPlayerOnly();
+
+    /* Clear in-memory state used by the creator/game without touching settings. */
+    try{
+      if(window.H)window.H={mode:null,ready:false,player:null};
+      if(window.P){
+        window.P.tutorialSeen=[];
+        window.P.tutorialChoiceCount=0;
+        window.P.tutorialFlags={};
+        window.P.tutorialBranch=[];
+        window.P.lifeGraph={seen:[],flags:{},links:{},routes:[],chains:[]};
+        window.P.lifeEventSeen=[];
+        window.P.flags={};
+        window.P.panelTasks={};
+        window.P.panelTaskSet=[];
+        window.P.panelTutorialVersion=0;
+      }
+    }catch(e){}
+
+    /* Go through the existing creator entry point, not a second creator. */
+    document.querySelectorAll(".v19-settings-overlay").forEach(x=>x.remove());
+    document.body.classList.remove("fl27-settings-open");
+
+    if(typeof window.FL27_showNewGame==="function"){
+      window.FL27_showNewGame();
+      return;
+    }
+    if(typeof window.FL27_showCreator==="function"){
+      window.FL27_showCreator();
+      return;
+    }
+    /* Last fallback: reload; the existing boot logic will see no player. */
+    location.reload();
+  };
+
+  /* If the settings modal was already rendered before this override, its
+     existing onclick="FL27_resetPlayer()" automatically uses this function. */
 })();
 </script>
