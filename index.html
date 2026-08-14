@@ -1,30 +1,361 @@
-<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Football Life 27</title>
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<title>Football Life 27</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#07111f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.a{max-width:520px;margin:auto;padding-bottom:80px}.top{position:sticky;top:0;background:#091629ee;padding:14px;z-index:2;border-bottom:1px solid #29415d}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.s,.c{background:#102139;border:1px solid #29415d;border-radius:15px;padding:12px;margin:9px 0}.s{text-align:center;font-size:10px}.s b{display:block;font-size:15px}.hero{background:linear-gradient(135deg,#174466,#102139)}button{width:100%;padding:12px;margin:5px 0;border:1px solid #355473;border-radius:12px;background:#19304b;color:#fff;font-weight:700;text-align:left}.g{background:#20bd69;color:#03160b}.y{background:#dba936;color:#211702}.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:#071321;padding:6px}.nav button{background:none;border:0;font-size:10px;text-align:center}.hide{display:none}.muted{color:#94a8bd;font-size:12px}.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #253a52;font-size:12px}
-</style><div class=a><header class=top><b>⚽ FOOTBALL LIFE 27</b><div class=muted id=date>Nowa kariera</div><div class=stats><div class=s><b id=en>82</b>⚡</div><div class=s><b id=mo>35€</b>💶</div><div class=s><b id=fo>58</b>📈</div><div class=s><b id=pr>5</b>📣</div></div></header><main id=main></main><nav class=nav id=nav></nav></div>
+:root{
+ --bg:#07111f;--panel:#0e1b2e;--panel2:#13243c;--line:#263d5c;
+ --text:#f5f7fb;--muted:#9db0c8;--green:#20c878;--gold:#f3bd3f;
+ --blue:#4da3ff;--red:#ff5f6d;--purple:#9b7cff;
+}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(circle at 50% -10%,#183557 0,#07111f 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{max-width:560px;margin:auto;min-height:100vh;padding-bottom:92px}
+header{position:sticky;top:0;z-index:10;background:rgba(7,17,31,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:14px 14px 12px}
+.brand{display:flex;align-items:center;justify-content:space-between}.brand b{font-size:18px;letter-spacing:.3px}.save{font-size:11px;color:#79e6ae}
+.sub{color:var(--muted);font-size:12px;margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
+.stat{background:linear-gradient(145deg,#142642,#0d1a2d);border:1px solid var(--line);border-radius:14px;padding:9px 5px;text-align:center}
+.stat b{display:block;font-size:16px}.stat span{font-size:10px;color:var(--muted)}
+main{padding:14px}
+.card{background:linear-gradient(145deg,rgba(19,36,60,.98),rgba(10,24,41,.98));border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 10px 30px rgba(0,0,0,.16)}
+.hero{background:linear-gradient(135deg,#173e5d,#172348 55%,#241b4a);overflow:hidden}
+.kicker{color:#8fb8df;text-transform:uppercase;font-size:10px;letter-spacing:1.2px;font-weight:800}
+h1,h2,h3{margin:5px 0 8px}.hero h1{font-size:26px}.hero p{margin:5px 0;color:#bfd0e3;font-size:13px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.pill{padding:6px 9px;border-radius:99px;background:#0b182a;border:1px solid #315174;color:#cfe1f5;font-size:11px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 8px}.section-title b{font-size:14px}.section-title span{font-size:11px;color:var(--muted)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions.three{grid-template-columns:repeat(3,1fr)}
+.action{border:1px solid #315174;background:linear-gradient(145deg,#19314e,#12243b);border-radius:14px;padding:12px;text-align:left;min-height:66px}
+.action b{display:block;font-size:13px}.action small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.action.green{border-color:#267b56;background:linear-gradient(145deg,#164b38,#123427)}.action.gold{border-color:#7c6324;background:linear-gradient(145deg,#4a3912,#2b2411)}
+.action.red{border-color:#74323d;background:linear-gradient(145deg,#48202a,#2b1720)}
+.action:active{transform:scale(.985)}
+.progress{height:7px;background:#071321;border-radius:99px;overflow:hidden;border:1px solid #233852}.progress i{display:block;height:100%;background:linear-gradient(90deg,#42d99a,#4da3ff);border-radius:99px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #203650;font-size:12px}.row:last-child{border-bottom:0}.row span{color:var(--muted)}.row b{text-align:right}
+.log{padding:10px 0;border-bottom:1px solid #203650;font-size:12px;line-height:1.4}.log:last-child{border:0}.log em{font-style:normal;color:#80a8d0;font-size:10px;display:block;margin-bottom:3px}
+.notice{padding:11px;border-radius:13px;background:#0b1c2f;border:1px solid #294866;color:#c9d9ea;font-size:12px}
+.choice{width:100%;border:1px solid #365b7d;background:#142b45;border-radius:13px;padding:12px;margin:6px 0;text-align:left}.choice b{display:block}.choice span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));background:rgba(5,13,24,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:20}
+nav button{border:0;background:transparent;padding:7px 2px;border-radius:12px;color:#8fa3ba;font-size:10px}nav button.active{background:#152943;color:#fff}nav i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:30;display:flex;align-items:flex-end;justify-content:center}.modal{width:min(560px,100%);max-height:88vh;overflow:auto;background:#0c1a2d;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 15px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,.45)}
+.toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,15px);background:#eaf8f1;color:#062114;border-radius:99px;padding:10px 15px;font-size:12px;font-weight:800;z-index:50;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 8px 30px #0008}.toast.show{opacity:1;transform:translate(-50%,0)}
+.empty{color:var(--muted);font-size:12px;padding:8px 0}
+.danger{color:#ff8f99}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><b>⚽ FOOTBALL LIFE 27</b><span class="save" id="saveState">● Zapisano</span></div>
+  <div class="sub" id="dateLine">—</div>
+  <div class="stats">
+    <div class="stat"><b id="money">€0</b><span>💶 Pieniądze</span></div>
+    <div class="stat"><b id="energy">0</b><span>⚡ Energia</span></div>
+    <div class="stat"><b id="form">0</b><span>🔥 Forma</span></div>
+    <div class="stat"><b id="pr">0</b><span>📣 PR</span></div>
+  </div>
+</header>
+<main id="main"></main>
+<nav id="nav"></nav>
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+</div>
+
 <script>
-let K='FL27',s=JSON.parse(localStorage.getItem(K)||'null'),q=0,A=[],names=['Maja','Ola','Emma','Kuba','Michał','Nina','Lena','Bartek','Zosia','Igor','Sara','Antek','Julia','Filip','Natalia','Oskar'];
-let Q=[['Płeć','Kobieta','Mężczyzna'],['Pozycja','BR','OB','PO','LP','ŚP','PP','LS','N','PS'],['Noga','Lewa','Prawa'],['Styl','Techniczna','Szybka','Fizyczna','Kreatywna'],['Klub','Lech Poznań','Barcelona','Real Madryt','Arsenal','Bayern'],['Wzór','Messi','Ronaldo','Bellingham','Mbappé','Alexia Putellas'],['Klub marzeń','Barcelona','Real Madryt','Manchester City','Bayern','Arsenal'],['Charakter','Ambitny/a','Spokojny/a','Towarzyski/a','Uparty/a'],['Ryzyko','Ostrożnie','Z głową','Ryzykuję'],['Cel','Kariera','Rodzina','Pieniądze','Sława']];
-let r=x=>x[Math.floor(Math.random()*x.length)],save=()=>localStorage.setItem(K,JSON.stringify(s)),log=x=>(s.logs.unshift(s.day+'. dzień • '+x),s.logs=s.logs.slice(0,80));
-function creator(){let x=Q[q];main.innerHTML='<div class=c><div class=muted>PYTANIE '+(q+1)+'/10</div><h2>'+x[0]+'</h2>'+x.slice(1).map(v=>'<button onclick="pick(this.innerText)">'+v+'</button>').join('')+'</div>'}
-function pick(v){A[q++]=v;q<Q.length?creator():start()}
-function start(){let z={tech:60,speed:60,pass:60,shoot:60,def:55,phys:55};if(A[3]=='Techniczna')z.tech+=12;if(A[3]=='Szybka')z.speed+=12;if(A[3]=='Fizyczna')z.phys+=12;if(A[3]=='Kreatywna')z.pass+=12;s={age:15,year:2015,day:1,hour:8,week:1,en:82,money:35,form:58,pr:5,skill:60,stats:z,gender:A[0],pos:A[1],foot:A[2],style:A[3],dream:A[6],club:'Akademia lokalna',school:'Szkoła sportowa',friends:['Rodzice','Trener'],rel:{Rodzice:55,Trener:35},matches:0,wins:0,draws:0,goals:0,assists:0,logs:[],training:false};log('Start kariery w wieku 15 lat.');save();show('home')}
-function day(){s.day++;s.en=Math.min(100,s.en+8);s.money=Math.max(0,s.money-2);if(s.day%7==0)match(1);if(Math.random()<.55)event()}
-function next(){s.hour=8;day();log('Następny dzień.');save();render()}
-function sleep(){s.en=Math.min(100,s.en+50);s.form=Math.min(100,s.form+2);next()}
-function train(sim){let cost=sim?8:18;if(s.en<cost)return alert('Za mało energii');if(sim&&!s.training)return alert('Najpierw wykonaj trening samodzielnie');s.en-=cost;s.skill=Math.min(99,s.skill+(sim?1:2));s.form=Math.min(100,s.form+5);s.training=true;s.hour=(s.hour+(sim?1:2))%24;log((sim?'Symulacja':'Trening')+' • rozwój +');save();render()}
-function match(auto){if(!auto&&s.en<25)return alert('Za mało energii');if(!auto)s.en-=25;let x=s.skill+s.form/3+Math.random()*20-10,y=50+Math.random()*35,g=Math.max(0,Math.floor(x/35+Math.random()*2)),ga=Math.max(0,Math.floor(y/35+Math.random()*2));s.matches++;if(g>ga)s.wins++;else if(g==ga)s.draws++;s.goals+=Math.random()<.5?1:0;s.assists+=Math.random()<.3?1:0;s.form=Math.max(0,Math.min(100,s.form+(g>=ga?5:-5)));s.pr+=g>ga?2:1;log('Mecz '+g+':'+ga+' • '+(g>ga?'WYGRANA 🟢':g==ga?'REMIS 🟡':'PORAŻKA 🔴'));save();render()}
-function event(){let E=[['Trener Cię chwali',()=>s.rel.Trener+=5],['Rodzice dają 20€',()=>s.money+=20],['Poznajesz nową osobę',()=>{let n=r(names.filter(x=>!s.friends.includes(x)));if(n){s.friends.push(n);s.rel[n]=15}}],['Dostajesz drobną pracę +30€',()=>s.money+=30],['Przeciążenie — tracisz energię',()=>s.en=Math.max(0,s.en-12)]];let e=r(E);e[1]();log('Wydarzenie: '+e[0]);save();render()}
-function parents(){if(Math.random()<.5){s.money+=25;log('Rodzice dali 25€')}else{s.money+=60;log('Rodzice dali stałe kieszonkowe 60€')}save();render()}
-function job(){s.money+=30;s.en=Math.max(0,s.en-15);log('Dorywcza praca +30€');save();render()}
-function city(k){let c=k=='kino'?12:10;if(s.money<c)return alert('Za mało pieniędzy');s.money-=c;s.en=Math.max(0,s.en-6);if(Math.random()<.6){let n=r(names.filter(x=>!s.friends.includes(x)));if(n){s.friends.push(n);s.rel[n]=12;log('Poznajesz '+n+' na mieście')}}log(k=='kino'?'Kino -12€':'Wyjście na miasto -10€');save();render()}
-function interview(){let x=prompt('Wywiad: jak odpowiadasz? PRACA / NAJLEPSZY / SPOKO');if(!x)return;x=x.toUpperCase();s.pr+=x.includes('NAJLEPSZY')?5:3;s.rel.Trener+=x.includes('PRACA')?4:2;log('Wywiad — odpowiedź zmieniła PR i relację z trenerem.');save();render()}
-function show(id){main.innerHTML='';let d=document.createElement('div');d.id=id;d.className='c';main.appendChild(d);if(id=='home')home();if(id=='life')life();if(id=='city')cityPage();if(id=='career')career();if(id=='history')history();nav.innerHTML=['home','life','city','career','history'].map(x=>'<button onclick="show(\''+x+'\')">'+({'home':'🏠 Dziś','life':'❤️ Życie','city':'🌆 Miasto','career':'⚽ Kariera','history':'📖 Historia'}[x])+'</button>').join('')}
-function home(){main.innerHTML='<div class="c"><div class=muted>'+s.year+' • '+s.age+' lat • '+s.club+'</div><h2>'+(s.gender=='Kobieta'?'Piłkarka':'Piłkarz')+' • '+s.pos+'</h2><p class=muted>'+s.style+' • klub marzeń: '+s.dream+'</p><div class=row><span>Forma</span><b>'+s.form+'</b></div></div><div class=c><div class=grid><button class=g onclick="train(0)">🏋️ Trening</button><button onclick="train(1)">⏩ Symuluj</button><button class=y onclick="match(0)">🏟️ Mecz</button><button onclick="sleep()">😴 Sen</button></div><button onclick="next()">➡️ Następny dzień</button><button onclick="interview()">🎙️ Wywiad</button><button onclick="event()">🎲 Losowe wydarzenie</button></div><div class=c><div class=row><span>OVR</span><b>'+s.skill+'</b></div><div class=row><span>Mecze</span><b>'+s.matches+'</b></div><div class=row><span>W / R</span><b>'+s.wins+' / '+s.draws+'</b></div><div class=row><span>Gole / asysty</span><b>'+s.goals+' / '+s.assists+'</b></div></div>'}
-function life(){main.innerHTML='<div class=c><h2>❤️ Życie</h2><p class=muted>Znajomi pojawiają się i mieszają. Relacje pamiętają historię.</p><button onclick="parents()">👨‍👩‍👧 Poproś rodziców o pieniądze</button><button onclick="job()">💼 Dorywcza praca</button></div><div class=c><h3>Znajomi i rodzina</h3>'+s.friends.map(n=>'<div class=row><span>'+n+'</span><b>'+Math.round(s.rel[n]||10)+'</b></div>').join('')+'</div>'}
-function cityPage(){main.innerHTML='<div class=c><h2>🌆 Miasto</h2><p class=muted>Wydajesz pieniądze i czas. Możesz poznawać nowych ludzi.</p><button onclick="city(\'miasto\')">🌃 Wyjście • 10€</button><button onclick="city(\'kino\')">🎬 Kino • 12€</button></div>'}
-function career(){main.innerHTML='<div class=c><h2>⚽ Kariera</h2><div class=row><span>Klub</span><b>'+s.club+'</b></div><div class=row><span>Szkoła</span><b>'+s.school+'</b></div><div class=row><span>PR</span><b>'+s.pr+'</b></div><div class=row><span>Pieniądze</span><b>'+Math.floor(s.money)+'€</b></div><div class=row><span>Klub marzeń</span><b>'+s.dream+'</b></div></div>'}
-function history(){main.innerHTML='<div class=c><h2>📖 Historia decyzji</h2>'+s.logs.map(x=>'<div class=row><span>'+x+'</span></div>').join('')+'</div><button onclick="if(confirm(\'Usunąć zapis?\')){localStorage.removeItem(K);location.reload()}">♻️ Nowa kariera</button>'}
-function render(){if(!s){creator();return}date.textContent=s.day+'. dzień • '+s.year+' • tydzień '+s.week;energy.textContent=Math.round(s.en);money.textContent=Math.floor(s.money)+'€';form.textContent=Math.round(s.form);pr.textContent=Math.round(s.pr);show('home')}
+"use strict";
+
+const KEY="footballLife27_v4";
+let state=load();
+let currentTab="home";
+let selectedAnswers=[];
+
+const QUESTIONS=[
+ ["Płeć",["Kobieta","Mężczyzna"]],
+ ["Pozycja",["BR","LO","PO","ŚO","LP","ŚP","PP","LS","N","PS"]],
+ ["Noga",["Lewa","Prawa"]],
+ ["Styl gry",["Techniczna","Szybka","Fizyczna","Kreatywna","Uniwersalna"]],
+ ["Pierwszy klub",["Lech Poznań","Legia Warszawa","Barcelona","Arsenal","Bayern","Lokalna akademia"]],
+ ["Piłkarski wzór",["Messi","Ronaldo","Bellingham","Mbappé","Alexia Putellas","Salah"]],
+ ["Klub marzeń",["Barcelona","Real Madryt","Manchester City","Bayern","Arsenal","Lech Poznań"]],
+ ["Charakter",["Ambitny/a","Spokojny/a","Towarzyski/a","Uparty/a","Pracowity/a"]],
+ ["Ryzyko",["Ostrożnie","Z głową","Ryzykuję"]],
+ ["Najważniejszy cel",["Kariera","Rodzina","Pieniądze","Sława"]]
+];
+
+const NAMES=["Maja","Ola","Emma","Kuba","Michał","Nina","Lena","Bartek","Zosia","Igor","Sara","Antek","Julia","Filip","Oskar","Kacper","Laura","Tomek"];
+const EVENT_POOL=[
+ {title:"Trener widzi postęp",text:"Po treningu trener zatrzymuje Cię na chwilę. Mówi, że masz coraz lepszą technikę.",choices:[
+  ["Zapytaj, co poprawić",()=>{S.skill+=2;S.rel.Trener+=6;log("Trener wskazał Ci konkretny element do poprawy.")}],
+  ["Podziękuj i wróć do domu",()=>{S.form+=2;log("Spokojnie zakończyłeś/aś trening.")}]
+ ]},
+ {title:"Rodzice proponują układ",text:"Rodzice mówią, że mogą dać Ci szansę na dodatkowy zarobek zamiast zwykłego kieszonkowego.",choices:[
+  ["Wezmę stałe kieszonkowe +20€ / tydzień",()=>{S.allowance=20;log("Rodzice ustawili stałe kieszonkowe: 20€ tygodniowo.")}],
+  ["Wolę zarabiać sam/a",()=>{S.independent=true;log("Postanawiasz samodzielnie szukać pieniędzy.")}]
+ ]},
+ {title:"Nowa osoba w akademii",text:"Na treningu pojawia się nowa zawodniczka/zawodnik. Możecie się lepiej poznać.",choices:[
+  ["Porozmawiaj",()=>{addFriend()}],
+  ["Skup się na treningu",()=>{S.skill+=1;S.form+=2;log("Nie rozpraszasz się i robisz dobry trening.")}]
+ ]},
+ {title:"Drobna kontuzja",text:"Czujesz lekki ból po treningu. Możesz odpocząć albo zaryzykować.",choices:[
+  ["Odpocznij",()=>{S.energy=Math.max(0,S.energy-4);S.form+=3;log("Odpoczynek zmniejszył ryzyko większego problemu.")}],
+  ["Gram dalej",()=>{S.form-=5;if(Math.random()<.25){S.injury=2;log("Niestety przeciążenie wyłącza Cię na kilka dni.")}else log("Udało się uniknąć poważniejszego problemu.")}]
+ ]},
+ {title:"Dorywcza praca",text:"Znajomy rodziny proponuje Ci prostą pracę na kilka godzin.",choices:[
+  ["Biorę 30€",()=>{S.money+=30;S.energy-=12;log("Dorywcza praca: +30€ i -12 energii.")}],
+  ["Odmów — mam trening",()=>{S.form+=2;log("Wybierasz trening zamiast pracy.")}]
+ ]},
+ {title:"Oferta medialna",text:"Lokalna telewizja chce krótkiej wypowiedzi po meczu.",choices:[
+  ["Mówię szczerze",()=>{S.pr+=4;log("Wywiad wypada naturalnie. PR +4.")}],
+  ["Odpowiadam bardzo pewnie",()=>{S.pr+=6;S.rel.Trener-=1;log("Odważna wypowiedź daje PR +6, ale trener nie jest zachwycony tonem.")}]
+ ]},
+ {title:"Weekend z rodziną",text:"Rodzina proponuje wspólny dzień bez piłki.",choices:[
+  ["Jadę z nimi",()=>{S.family+=7;S.form+=3;S.energy+=10;log("Spędzasz czas z rodziną. Relacje rosną.")}],
+  ["Zostaję i trenuję",()=>{S.skill+=2;S.family-=2;S.energy-=8;log("Wybierasz dodatkową pracę nad sobą.")}]
+ ]}
+];
+
+function fresh(){
+ return {
+  started:false,day:1,year:2015,age:15,hour:8,week:1,
+  money:0,energy:82,form:62,pr:5,skill:60,allowance:0,independent:false,
+  gender:"",pos:"",foot:"",style:"",club:"Akademia lokalna",dream:"",
+  school:"Szkoła",family:60,mental:60,health:90,injury:0,
+  friends:["Rodzice","Trener"],rel:{Rodzice:60,Trener:35},
+  matches:0,wins:0,draws:0,losses:0,goals:0,assists:0,
+  trainingLevel:0,trainingUnlocked:false,logs:[]
+ };
+}
+let S=state||fresh();
+
+function load(){
+ try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}
+}
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(S));
+ const el=document.getElementById("saveState");
+ if(el){el.textContent="● Zapisano";el.style.color="#79e6ae";}
+}
+function saveSoon(){
+ save();
+ const el=document.getElementById("saveState");
+ if(el){el.textContent="● Zapisuję…";setTimeout(()=>{el.textContent="● Zapisano"},350)}
+}
+function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function clamp(v,a=0,b=100){return Math.max(a,Math.min(b,v))}
+function toast(t){
+ const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");
+ clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove("show"),1800)
+}
+function log(text){
+ S.logs.unshift({day:S.day,year:S.year,text});
+ S.logs=S.logs.slice(0,120);
+}
+function fmtDate(){return `${S.day}. dzień • ${S.year} • ${S.age} lat • ${String(S.hour).padStart(2,"0")}:00`}
+function updateHeader(){
+ document.getElementById("dateLine").textContent=S.started?fmtDate():"Nowa kariera";
+ document.getElementById("money").textContent="€"+Math.floor(S.money);
+ document.getElementById("energy").textContent=Math.round(S.energy);
+ document.getElementById("form").textContent=Math.round(S.form);
+ document.getElementById("pr").textContent=Math.round(S.pr);
+}
+function render(){
+ updateHeader();
+ if(!S.started){renderCreator();return}
+ renderTab(currentTab);
+ renderNav();
+}
+function renderNav(){
+ const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["history","📖","Historia"]];
+ document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
+}
+function go(tab){currentTab=tab;render()}
+function renderCreator(){
+ document.getElementById("nav").innerHTML="";
+ const q=QUESTIONS[selectedAnswers.length];
+ if(!q){
+   document.getElementById("main").innerHTML=`<div class="card hero"><div class="kicker">Gotowe</div><h1>Twój zawodnik</h1><p>Wszystkie odpowiedzi są zapisane. Możesz rozpocząć życie piłkarskie.</p>
+   <div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${QUESTIONS[i][0]}: ${esc(x)}</span>`).join("")}</div>
+   <button class="action green" style="width:100%;margin-top:12px;text-align:center" onclick="startCareer()">⚽ ROZPOCZNIJ KARIERĘ</button></div>`;
+   return;
+ }
+ document.getElementById("main").innerHTML=`<div class="card"><div class="kicker">Tworzenie zawodnika • ${selectedAnswers.length+1}/10</div><h2>${q[0]}</h2><p class="sub">Wybierz odpowiedź. Później część wyborów będzie wpływać na karierę.</p>
+ ${q[1].map(v=>`<button class="choice" onclick="answer('${esc(v)}')"><b>${esc(v)}</b><span>Wpływ zostanie zapamiętany.</span></button>`).join("")}</div>`;
+}
+function answer(v){selectedAnswers.push(v);renderCreator()}
+function startCareer(){
+ const a=selectedAnswers;
+ S=fresh();S.started=true;
+ [S.gender,S.pos,S.foot,S.style,S.club,S.wildcard,S.dream,S.character,S.risk,S.goal]=a;
+ S.money=S.gender==="Kobieta"?35:35;
+ S.school=S.club==="Lokalna akademia"?"Szkoła sportowa":"Szkoła";
+ if(S.style==="Techniczna")S.skill+=7;if(S.style==="Szybka")S.form+=4;
+ if(S.style==="Fizyczna")S.health+=4;if(S.style==="Kreatywna")S.pr+=2;
+ if(S.character==="Pracowity/a")S.trainingLevel=1;
+ log(`Start kariery. ${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${S.pos} • ${S.club}.`);
+ saveSoon();currentTab="home";render();toast("Kariera rozpoczęta!"); 
+}
+function spend(cost,label){
+ if(S.money<cost){toast("Nie masz na to pieniędzy 💸");return false}
+ S.money-=cost;log(`${label}: -${cost}€`);return true
+}
+function advance(hours){
+ let old=S.day;
+ S.hour+=hours;
+ while(S.hour>=24){S.hour-=24;S.day++;S.week=Math.floor((S.day-1)/7)+1;
+   if(S.day%7===1 && S.allowance>0){S.money+=S.allowance;log(`Kieszonkowe od rodziców: +${S.allowance}€`)}
+   if(S.day%365===1){S.year++;S.age++;log(`Urodziny! Masz teraz ${S.age} lat.`)}
+ }
+ if(old!==S.day){S.energy=clamp(S.energy+8);S.form=clamp(S.form+2);randomEventChance()}
+ saveSoon();
+}
+function sleep(){
+ if(S.injury>0)S.injury--;
+ S.energy=100;S.health=clamp(S.health+5);S.form=clamp(S.form+4);
+ log("Sen i regeneracja. Energia wraca do 100.");
+ advance(16);toast("Nowy dzień 🌅");render()
+}
+function train(real=true){
+ if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
+ const cost=real?18:10;
+ if(S.energy<cost){toast("Za mało energii ⚡");return}
+ if(!real && !S.trainingUnlocked){toast("Najpierw wykonaj trening samodzielnie.");return}
+ S.energy-=cost;S.form=clamp(S.form+ (real?6:3));S.skill=clamp(S.skill+(real?2:1));
+ if(real){S.trainingUnlocked=true;S.trainingLevel=Math.min(10,S.trainingLevel+1);log(`Trening wykonany. Poziom treningu: ${S.trainingLevel}/10.`)}
+ else log("Trening zasymulowany. Rozwój jest mniejszy niż przy ręcznym treningu.");
+ advance(real?2:1);toast(real?"Trening wykonany 💪":"Trening zasymulowany ⏩");render()
+}
+function playMatch(){
+ if(S.injury>0){toast("Nie możesz zagrać z urazem.");return}
+ if(S.energy<28){toast("Za mało energii na mecz.");return}
+ S.energy-=28;
+ const rating=S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12);
+ const opp=55+Math.random()*30;
+ let gf=Math.max(0,Math.round((rating/42)+Math.random()*1.4-0.5));
+ let ga=Math.max(0,Math.round((opp/42)+Math.random()*1.4-0.5));
+ S.matches++;
+ let result=gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴";
+ if(gf>ga){S.wins++;S.form=clamp(S.form+7);S.pr+=3}else if(gf===ga){S.draws++;S.form=clamp(S.form+2);S.pr+=1}else{S.losses++;S.form=clamp(S.form-5)}
+ const personal=Math.random();
+ if(personal<.45){S.goals++;S.pr+=2;log(`Mecz ${gf}:${ga} — ${result}. Strzelasz gola! ⚽`)}
+ else if(personal<.72){S.assists++;S.pr+=1;log(`Mecz ${gf}:${ga} — ${result}. Notujesz asystę.`)}
+ else log(`Mecz ${gf}:${ga} — ${result}.`);
+ advance(2);toast(result);render()
+}
+function city(kind){
+ const data=kind==="cafe"?[8,"Kawiarnia"]:kind==="cinema"?[15,"Kino"]:kind==="shop"?[25,"Sklep"];
+ if(!spend(data[0],data[1]))return;
+ S.energy=Math.max(0,S.energy-6);
+ if(Math.random()<.65)addFriend();
+ else{S.pr+=1;log(`Wyjście do: ${data[1]}.`)}
+ advance(2);render()
+}
+function askParents(){
+ const options=[
+ ["Poproś o 20€",()=>{S.money+=20;S.rel.Rodzice+=3;log("Rodzice dali Ci 20€.");toast("Rodzice dali Ci 20€ 💶")}],
+ ["Poproś o 50€ na konkretny cel",()=>{S.money+=50;S.rel.Rodzice-=1;log("Rodzice dali Ci 50€, ale zaznaczyli, że to pomoc na konkretny cel.");toast("+50€ 💶")}],
+ ["Zapytaj o stałe kieszonkowe",()=>{S.allowance=Math.max(S.allowance,15);S.rel.Rodzice+=2;log("Ustalasz z rodzicami 15€ kieszonkowego tygodniowo.");toast("Ustalono kieszonkowe 📅")}]
+ ];
+ openModal("👨‍👩‍👧 Rodzice","Wybierz, jak chcesz rozwiązać sprawę pieniędzy:",options)
+}
+function job(){
+ openModal("💼 Dorywcza praca","Masz kilka możliwości zarobienia pieniędzy:",[
+  ["Praca po szkole • +25€ • 4h",()=>{S.money+=25;S.energy=Math.max(0,S.energy-12);log("Dorywcza praca po szkole: +25€.");advance(4);toast("+25€ 💶");render()}],
+  ["Weekendowa robota • +60€ • 8h",()=>{S.money+=60;S.energy=Math.max(0,S.energy-20);log("Weekendowa praca: +60€.");advance(8);toast("+60€ 💶");render()}],
+  ["Odmów — regeneracja",()=>{S.form=clamp(S.form+3);log("Odmówiłeś/aś pracy, wybierając regenerację.");advance(2);render()}]
+ ])
+}
+function addFriend(){
+ const available=NAMES.filter(n=>!S.friends.includes(n));
+ if(!available.length)return;
+ const n=available[Math.floor(Math.random()*available.length)];
+ S.friends.push(n);S.rel[n]=15;log(`Poznajesz ${n}. Relacja startuje od 15/100.`);toast(`Poznajesz ${n} 👋`)
+}
+function randomEventChance(){
+ if(Math.random()<0.55){const e=EVENT_POOL[Math.floor(Math.random()*EVENT_POOL.length)];openEvent(e)}
+}
+function openEvent(e){
+ openModal("🎲 "+e.title,e.text,e.choices)
+}
+function openModal(title,text,choices){
+ document.getElementById("modalRoot").innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="kicker">WYDARZENIE / DECYZJA</div><h2>${title}</h2><p class="sub">${text}</p>${choices.map((c,i)=>`<button class="choice" onclick="chooseModal(${i})"><b>${esc(c[0])}</b></button>`).join("")}<button class="choice" style="background:#0a1626" onclick="closeModal()">Nie teraz</button></div></div>`;
+ window.modalChoices=choices;
+}
+function chooseModal(i){const f=window.modalChoices[i][1];closeModal();f();S.form=clamp(S.form);S.mental=clamp(S.mental);S.family=clamp(S.family);saveSoon();render()}
+function closeModal(){document.getElementById("modalRoot").innerHTML="";window.modalChoices=null}
+function interview(){
+ openModal("🎙️ Wywiad","Dziennikarz pyta: „Masz dopiero 15 lat. Co jest teraz najważniejsze?”",[
+  ["„Chcę ciężko pracować i uczyć się od starszych.”",()=>{S.pr+=3;S.rel.Trener+=3;log("Wywiad: spokojna, pracowita odpowiedź. PR +3.")}],
+  ["„Chcę być najlepszy/a. Ten klub to dopiero początek.”",()=>{S.pr+=6;S.mental-=1;log("Wywiad: bardzo ambitna odpowiedź. PR +6.")}],
+  ["„Najważniejsi są ludzie wokół mnie.”",()=>{S.pr+=2;S.family+=3;log("Wywiad: odpowiedź podkreślająca rodzinę i ludzi.")}]
+ ])
+}
+function buyCare(){
+ openModal("🧑‍⚕️ Regeneracja","Nie każda regeneracja jest darmowa. Wybierz poziom.",[
+  ["Tani fizjo • 20€ • +12 zdrowia",()=>{if(!spend(20,"Tani fizjoterapeuta"))return;S.health=clamp(S.health+12);S.energy=clamp(S.energy+12);advance(2);render()}],
+  ["Dobry fizjo • 60€ • +25 zdrowia",()=>{if(!spend(60,"Dobry fizjoterapeuta"))return;S.health=clamp(S.health+25);S.energy=clamp(S.energy+18);advance(2);render()}],
+  ["Krioterapia • 90€ • +35 zdrowia",()=>{if(!spend(90,"Krioterapia"))return;S.health=clamp(S.health+35);S.form=clamp(S.form+5);S.energy=clamp(S.energy+20);advance(2);render()}]
+ ])
+}
+function renderTab(tab){
+ const m=document.getElementById("main");
+ if(tab==="home")renderHome(m);
+ if(tab==="day")renderDay(m);
+ if(tab==="career")renderCareer(m);
+ if(tab==="life")renderLife(m);
+ if(tab==="history")renderHistory(m);
+}
+function renderHome(m){
+ const nextMatch=(S.day%7===0)?"DZIŚ":"za "+(7-(S.day%7))+" dni";
+ m.innerHTML=`
+ <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)}</h1><p>${esc(S.style)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
+ <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill)}</span><span class="pill">🧠 Mental ${Math.round(S.mental)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health)}</span></div></div>
+ <div class="section-title"><b>Co robisz teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
+ <div class="card"><div class="actions">
+ <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • -18⚡ • rozwój większy</small></button>
+ <button class="action" onclick="train(false)"><b>⏩ Symuluj trening</b><small>1h • -10⚡ • tylko po odblokowaniu</small></button>
+ <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • wynik + statystyki</small></button>
+ <button class="action" onclick="sleep()"><b>😴 Idź spać</b><small>regeneracja • następny dzień</small></button>
+ </div></div>
+ <div class="card"><div class="section-title"><b>Twój stan</b><span>zapis automatyczny</span></div>
+ <div class="row"><span>Energia</span><b>${Math.round(S.energy)}/100</b></div><div class="progress"><i style="width:${S.energy}%"></i></div>
+ <div class="row"><span>Forma</span><b>${Math.round(S.form)}/100</b></div><div class="progress"><i style="width:${S.form}%"></i></div>
+ <div class="row"><span>Zdrowie</span><b>${Math.round(S.health)}/100</b></div><div class="progress"><i style="width:${S.health}%"></i></div>
+ </div>
+ <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs[0]?S.logs[0].day+". dzień":"—"}</span></div><div class="log">${S.logs[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div></div>`;
+}
+function renderDay(m){
+ m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
+ <div class="card"><div class="section-title"><b>Plan dnia</b><span>Nie musisz robić wszystkiego</span></div>
+ <div class="actions"><button class="action" onclick="city('cafe')"><b>☕ Miasto</b><small>2h • 8€ • relacje</small></button><button class="action" onclick="city('cinema')"><b>🎬 Kino</b><small>2h • 15€ • PR / znajomi</small></button><button class="action" onclick="city('shop')"><b>🛍️ Sklep</b><small>2h • 25€ • przedmioty / PR</small></button><button class="action" onclick="buyCare()"><b>🧑‍⚕️ Regeneracja</b><small>2h • wybierz cenę</small></button><button class="action" onclick="askParents()"><b>👨‍👩‍👧 Rodzice</b><small>pieniądze / kieszonkowe</small></button><button class="action" onclick="job()"><b>💼 Zarobek</b><small>czas za pieniądze</small></button><button class="action" onclick="interview()"><b>🎙️ Wywiad</b><small>wybór odpowiedzi • PR</small></button><button class="action" onclick="sleep()"><b>🌙 Koniec dnia</b><small>sen i nowy dzień</small></button></div></div>
+ <div class="card"><div class="row"><span>Aktualna godzina</span><b>${String(S.hour).padStart(2,"0")}:00</b></div><div class="row"><span>Pieniądze</span><b>€${Math.floor(S.money)}</b></div><div class="row"><span>Kieszonkowe</span><b>${S.allowance?S.allowance+"€ / tydzień":"brak"}</b></div></div>`;
+}
+function renderCareer(m){
+ m.innerHTML=`<div class="card hero"><div class="kicker">Kariera</div><h1>Sezon ${S.year}</h1><p>${esc(S.club)} • ${esc(S.school)}</p></div>
+ <div class="card"><div class="section-title"><b>Rozwój</b><span>trening ${S.trainingLevel}/10</span></div><div class="row"><span>OVR / umiejętności</span><b>${Math.round(S.skill)}</b></div><div class="row"><span>Forma</span><b>${Math.round(S.form)}</b></div><div class="row"><span>Zdrowie</span><b>${Math.round(S.health)}</b></div><div class="row"><span>PR</span><b>${Math.round(S.pr)}</b></div></div>
+ <div class="card"><div class="section-title"><b>Statystyki meczowe</b><span>${S.matches} spotkań</span></div><div class="row"><span>Wygrane</span><b>${S.wins}</b></div><div class="row"><span>Remisy</span><b>${S.draws}</b></div><div class="row"><span>Porażki</span><b>${S.losses}</b></div><div class="row"><span>Gole</span><b>${S.goals}</b></div><div class="row"><span>Asysty</span><b>${S.assists}</b></div></div>
+ <div class="card"><div class="section-title"><b>Droga kariery</b><span>na razie etap młodzieżowy</span></div><div class="notice">W dalszej wersji dojdą: transfery, negocjacje, agent, sponsorzy, media, studia, reprezentacja, trener po karierze i dziedziczenie historii przez dzieci.</div></div>`;
+}
+function renderLife(m){
+ const friendRows=S.friends.map(n=>`<div class="row"><span>${esc(n)}</span><b>${Math.round(S.rel[n]||10)}/100</b></div>`).join("");
+ m.innerHTML=`<div class="card hero"><div class="kicker">Życie poza boiskiem</div><h1>Twoi ludzie</h1><p>Relacje nie są wyborem „jednego przyjaciela”. Poznajesz kolejne osoby, a wcześniejsze decyzje zostają w historii.</p></div>
+ <div class="card"><div class="section-title"><b>Rodzina</b><span>${Math.round(S.family)}/100</span></div><div class="row"><span>Relacja z rodzicami</span><b>${Math.round(S.rel.Rodzice)}/100</b></div><div class="row"><span>Kieszonkowe</span><b>${S.allowance?S.allowance+"€ / tydzień":"nieustalone"}</b></div><button class="action" style="width:100%;margin-top:8px" onclick="askParents()"><b>👨‍👩‍👧 Porozmawiaj z rodzicami</b><small>pieniądze, praca albo kieszonkowe</small></button></div>
+ <div class="card"><div class="section-title"><b>Znajomi</b><span>${S.friends.length} osób</span></div>${friendRows||'<div class="empty">Jeszcze nikogo nowego nie poznałeś/aś.</div>'}</div>
+ <div class="card"><div class="section-title"><b>Psychika</b><span>${Math.round(S.mental)}/100</span></div><div class="progress"><i style="width:${S.mental}%"></i></div><p class="sub">W przyszłości decyzje życiowe, presja, relacje i sukces będą mocniej wpływać na ten parametr.</p></div>`;
+}
+function renderHistory(m){
+ m.innerHTML=`<div class="card hero"><div class="kicker">Pamięć kariery</div><h1>Historia decyzji</h1><p>Gra nie zapomina ważnych wyborów.</p></div>
+ <div class="card">${S.logs.length?S.logs.map(x=>`<div class="log"><em>${x.day}. dzień • ${x.year}</em>${esc(x.text)}</div>`).join(""):'<div class="empty">Historia jest jeszcze pusta.</div>'}</div>
+ <div class="card"><button class="action red" style="width:100%" onclick="newGame()">♻️ Rozpocznij nową karierę<small>Usunie obecny zapis z telefonu.</small></button></div>`;
+}
+function newGame(){
+ if(!confirm("Na pewno usunąć obecną karierę?"))return;
+ localStorage.removeItem(KEY);S=fresh();selectedAnswers=[];currentTab="home";toast("Zapis usunięty");render()
+}
+
 render();
-</script></html>
+</script>
+</body>
+</html>
