@@ -9986,3 +9986,370 @@ body.creator-screen #main > .fl27-v10-finance{
   cleanCreator();
 })();
 </script>
+
+
+<style id="fl27-v71-visual">
+/* ===== V71: premium visual layer ===== */
+:root{
+  --ui-bg:#070a10;--ui-card:#111722;--ui-card2:#151d2a;--ui-line:rgba(255,255,255,.085);
+  --ui-text:#f5f7fb;--ui-muted:#8f9aad;--ui-blue:#73a9ff;--ui-red:#ff5870;
+}
+.v35-header{
+  background:linear-gradient(180deg,rgba(8,11,17,.98),rgba(10,14,22,.97))!important;
+  border-bottom:1px solid rgba(115,169,255,.14)!important;
+  box-shadow:0 10px 35px rgba(0,0,0,.25)!important;
+}
+.v35-brand b{letter-spacing:1.1px!important}.v35-brand i{color:var(--ui-red)!important}
+.v35-avatar{
+  width:48px!important;height:48px!important;border-radius:16px!important;
+  overflow:hidden!important;border:1px solid rgba(115,169,255,.35)!important;
+  background:linear-gradient(145deg,#202b3e,#0d131d)!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.3)!important;
+}
+.v35-avatar svg{width:100%!important;height:100%!important;display:block!important}
+.v35-nav{
+  background:rgba(8,11,17,.97)!important;
+  backdrop-filter:blur(20px)!important;
+  border-top:1px solid rgba(255,255,255,.07)!important;
+  box-shadow:0 -12px 35px rgba(0,0,0,.28)!important;
+}
+.v35-nav button{
+  border:0!important;background:transparent!important;color:#7e899b!important;
+  transition:transform .16s ease,color .16s ease,background .16s ease!important;
+  border-radius:15px!important;
+}
+.v35-nav button span{
+  width:31px!important;height:31px!important;display:grid!important;place-items:center!important;
+  border-radius:11px!important;font-size:0!important;
+}
+.v35-nav button span svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v35-nav button b{font-size:8px!important;font-weight:800!important;letter-spacing:.15px!important}
+.v35-nav button.fl27-active-tab,.v35-nav button.active{
+  color:#fff!important;background:linear-gradient(145deg,rgba(115,169,255,.18),rgba(255,88,112,.08))!important;
+  box-shadow:inset 0 0 0 1px rgba(115,169,255,.13)!important;
+}
+.v35-nav button.fl27-active-tab span,.v35-nav button.active span{
+  color:var(--ui-blue)!important;background:rgba(115,169,255,.12)!important;
+  transform:translateY(-1px);
+}
+
+/* Cards: fewer visual borders, stronger hierarchy. */
+#main .card{
+  background:linear-gradient(145deg,rgba(18,24,35,.98),rgba(12,17,26,.98))!important;
+  border:1px solid var(--ui-line)!important;
+  border-radius:22px!important;
+  box-shadow:0 14px 35px rgba(0,0,0,.16)!important;
+}
+#main .card h1,#main .card h2,#main .card h3{letter-spacing:-.35px!important}
+#main .section-title{color:#dfe6f2!important}
+#main .action,.v52-choice,.choice{
+  border:1px solid rgba(255,255,255,.08)!important;
+  background:linear-gradient(145deg,#171f2d,#111722)!important;
+  border-radius:16px!important;
+}
+</style>
+
+<script id="fl27-v71-icon-avatar">
+(function(){
+  /* Clean SVG line icons instead of emoji/iPhone glyphs. */
+  const ICON={
+    home:`<svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8"/><path d="M5.5 9.5V21h13V9.5M9 21v-6h6v6"/></svg>`,
+    time:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>`,
+    career:`<svg viewBox="0 0 24 24"><path d="M4 18V8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V18"/><path d="M7 15.5h10M8 6.5V4h8v2.5M12 10v4M10 12h4"/></svg>`,
+    life:`<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.7 4 9.7a4 4 0 0 1 7.2-2.4L12 8.6l.8-1.3A4 4 0 0 1 20 9.7c0 6-8 10.8-8 10.8Z"/></svg>`,
+    family:`<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c.4-3.7 2.2-5.5 5.5-5.5s5.1 1.8 5.5 5.5M14 14.5c3.1-.5 5.2 1.1 6 4.5"/></svg>`,
+    history:`<svg viewBox="0 0 24 24"><path d="M4 5h16v15H4z"/><path d="M8 9h8M8 13h6M8 17h4"/></svg>`,
+    stats:`<svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-8"/><path d="M3 20h18"/></svg>`,
+    shop:`<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5L4 9Z"/><path d="M7 9V6a5 5 0 0 1 10 0v3M9 13h6"/></svg>`,
+    settings:`<svg viewBox="0 0 24 24"><path d="M9.8 3.5h4.4l.5 2.1 1.8 1.1 2-.8 2.2 3.8-1.6 1.5v2.1l1.6 1.5-2.2 3.8-2-.8-1.8 1.1-.5 2.1H9.8l-.5-2.1-1.8-1.1-2 .8-2.2-3.8 1.6-1.5v-2.1L3.3 9.7l2.2-3.8 2 .8 1.8-1.1.5-2.1Z"/><circle cx="12" cy="12" r="3"/></svg>`
+  };
+  window.FL27_PREMIUM_ICONS=ICON;
+
+  function upgradeNav(){
+    document.querySelectorAll(".v35-nav button").forEach(btn=>{
+      const txt=(btn.textContent||"").trim().toLowerCase();
+      const key=txt.includes("dziś")?"home":txt.includes("dzień")?"time":txt.includes("kariera")?"career":
+        txt.includes("życie")?"life":txt.includes("rodzina")?"family":txt.includes("historia")?"history":
+        txt.includes("statyst")?"stats":txt.includes("sklep")?"shop":txt.includes("ustaw")?"settings":null;
+      if(key&&ICON[key]){
+        const span=btn.querySelector("span");
+        if(span)span.innerHTML=ICON[key];
+      }
+    });
+  }
+
+  /* More expressive avatar: facial proportions, brows, nose, mouth, ears,
+     neck/shoulders, hair silhouette and jersey details. Still pure SVG,
+     therefore crisp at every phone resolution and cheap to render. */
+  window.FL27_avatarSvg=function(a){
+    a=a||{};
+    const skin=a.skin||"#e7b58f", hc=a.hairColor||"#241b18", eye=a.eyes||"#3d6b91";
+    const jersey=a.jersey||"#2467d1", hair=a.hair||"short", gender=a.gender||"M";
+    const uid="av"+Math.random().toString(36).slice(2,8);
+    const hairShapes={
+      short:`<path fill="${hc}" d="M45 80c0-39 27-61 75-61 41 0 69 22 69 61v16h-21V79c-10-10-24-16-48-16-26 0-43 6-54 16v17H45Z"/>`,
+      long:`<path fill="${hc}" d="M43 81c0-41 28-63 77-63 47 0 76 22 76 63v111h-29V91H72v101H43Z"/>`,
+      curly:`<path fill="${hc}" d="M42 83c-3-40 28-67 78-67 53 0 83 27 77 67l-11 26H51Z"/><g fill="${hc}"><circle cx="51" cy="63" r="16"/><circle cx="67" cy="43" r="17"/><circle cx="89" cy="31" r="17"/><circle cx="113" cy="28" r="17"/><circle cx="139" cy="32" r="17"/><circle cx="162" cy="45" r="17"/><circle cx="179" cy="64" r="16"/></g>`,
+      fade:`<path fill="${hc}" d="M50 75c4-35 27-56 70-56s66 21 70 56v19h-22V76H72v18H50Z"/><path d="M58 67h124" stroke="#fff" opacity=".08" stroke-width="4"/>`,
+      buzz:`<path fill="${hc}" d="M55 67c5-30 27-46 65-46s60 16 65 46H55Z"/>`,
+      ponytail:`<path fill="${hc}" d="M45 79c0-40 28-61 75-61s75 21 75 61v19h-25V80H70v18H45Z"/><path fill="${hc}" d="M184 68c34 3 38 36 16 51-7 5-13 5-18 2 9-16 10-32 2-53Z"/>`,
+      bob:`<path fill="${hc}" d="M44 81c0-40 28-62 76-62s76 22 76 62v80h-28V89H72v72H44Z"/>`,
+      braids:`<path fill="${hc}" d="M45 80c0-40 27-62 75-62s75 22 75 62v62h-20V87H65v55H45Z"/><path fill="${hc}" d="M48 88h19v104H48zM165 88h19v104h-19z"/>`,
+      wavy:`<path fill="${hc}" d="M44 82c0-42 28-64 76-64s76 22 76 64v73h-28V88H72v67H44Z"/><path d="M55 63q16 18 0 37M177 63q-16 18 0 37" fill="none" stroke="${hc}" stroke-width="12" stroke-linecap="round"/>`,
+      undercut:`<path fill="${hc}" d="M52 72c5-33 27-53 68-53s63 20 68 53v24h-25V71H77v25H52Z"/>`
+    };
+    const hairSvg=hairShapes[hair]||hairShapes.short;
+    const mouth=gender==="K"?`<path d="M105 139q15 10 30 0q-15 19-30 0Z" fill="#9e5261" opacity=".85"/>`:`<path d="M106 142q14 7 28 0" fill="none" stroke="#7b3f45" stroke-width="3" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg" aria-label="Avatar">
+      <defs>
+        <linearGradient id="${uid}bg" x2="1" y2="1"><stop stop-color="#202d43"/><stop offset=".55" stop-color="#101824"/><stop offset="1" stop-color="#090e16"/></linearGradient>
+        <linearGradient id="${uid}skin" x2=".8" y2="1"><stop stop-color="${skin}"/><stop offset="1" stop-color="${skin}" stop-opacity=".88"/></linearGradient>
+        <linearGradient id="${uid}shirt"><stop stop-color="${jersey}"/><stop offset="1" stop-color="${jersey}" stop-opacity=".62"/></linearGradient>
+      </defs>
+      <rect width="240" height="280" rx="30" fill="url(#${uid}bg)"/>
+      <circle cx="184" cy="42" r="58" fill="#73a9ff" opacity=".07"/>
+      <path d="M28 280v-43c0-32 37-56 92-56s92 24 92 56v43Z" fill="url(#${uid}shirt)"/>
+      <path d="M28 255q35-29 65-28l27 53H28ZM212 255q-35-29-65-28l-27 53h92Z" fill="${jersey}" opacity=".42"/>
+      <path d="M102 170h36v35h-36Z" fill="url(#${uid}skin)"/>
+      <path d="M98 173h44" stroke="${skin}" stroke-width="8" opacity=".7"/>
+      <ellipse cx="120" cy="103" rx="63" ry="73" fill="url(#${uid}skin)"/>
+      <ellipse cx="57" cy="108" rx="9" ry="15" fill="${skin}"/><ellipse cx="183" cy="108" rx="9" ry="15" fill="${skin}"/>
+      ${hairSvg}
+      <path d="M76 91q17-12 32-2M132 89q16-10 32 2" fill="none" stroke="${hc}" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="91" cy="103" rx="10" ry="7" fill="#fff" opacity=".9"/><ellipse cx="149" cy="103" rx="10" ry="7" fill="#fff" opacity=".9"/>
+      <circle cx="91" cy="103" r="4.5" fill="${eye}"/><circle cx="149" cy="103" r="4.5" fill="${eye}"/>
+      <circle cx="92.5" cy="101.5" r="1.4" fill="#fff"/><circle cx="150.5" cy="101.5" r="1.4" fill="#fff"/>
+      <path d="M118 106q-4 15 1 22q6 4 10 0" fill="none" stroke="#9b664f" stroke-width="3" stroke-linecap="round"/>
+      ${mouth}
+      <path d="M84 151q36 17 72 0" fill="none" stroke="${skin}" stroke-width="7" opacity=".55"/>
+      <path d="M78 196q42 18 84 0" fill="none" stroke="#fff" opacity=".12" stroke-width="2"/>
+      <text x="120" y="250" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="system-ui" font-weight="700" letter-spacing="2">FOOTBALL LIFE 27</text>
+    </svg>`;
+  };
+
+  upgradeNav();
+  new MutationObserver(upgradeNav).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+
+<style id="fl27-v72-start-career">
+.fl27-start-career{
+  margin:16px 0 20px;
+  padding:24px 20px 20px;
+  border-radius:26px;
+  border:1px solid rgba(115,169,255,.22);
+  background:
+    radial-gradient(circle at 85% 15%,rgba(255,88,112,.16),transparent 34%),
+    radial-gradient(circle at 15% 0%,rgba(115,169,255,.16),transparent 38%),
+    linear-gradient(145deg,#151e2d,#0c121c);
+  box-shadow:0 18px 45px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;overflow:hidden;
+}
+.fl27-start-career .eyebrow{
+  color:#73a9ff;font-size:10px;font-weight:900;letter-spacing:1.6px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.fl27-start-career h1{margin:0 0 8px;color:#fff;font-size:27px;line-height:1.05;letter-spacing:-.7px}
+.fl27-start-career p{margin:0 0 18px;color:#9da9bb;font-size:14px;line-height:1.45}
+.fl27-start-career .start-btn{
+  width:100%;min-height:54px;border:0;border-radius:17px;
+  color:#fff;font-size:15px;font-weight:900;letter-spacing:.2px;
+  background:linear-gradient(135deg,#e84761,#b72e47);
+  box-shadow:0 10px 25px rgba(232,71,97,.25);
+  cursor:pointer;
+}
+.fl27-start-career .sub{
+  display:flex;gap:8px;align-items:center;margin-top:11px;color:#707c8e;font-size:10px;
+}
+.fl27-start-career .sub b{color:#b9c5d6}
+</style>
+<script id="fl27-v72-start-career-js">
+(function(){
+  function hasPlayer(){
+    const st=window.S||{};
+    return !!(st.name && st.name!=="Zawodnik" && (st.ready||st.age||st.position||st.pos));
+  }
+  function openNewGame(){
+    if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function") return window.FL27_SHOW_NEW_GAME_FINAL();
+    if(typeof window.FL27_showNewGame==="function") return window.FL27_showNewGame();
+    if(typeof window.FL27_startPlus==="function") return window.FL27_startPlus();
+  }
+  function inject(){
+    if(document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main"); if(!main)return;
+    if(hasPlayer()) { main.querySelector(".fl27-start-career")?.remove(); return; }
+    if(main.querySelector(".fl27-start-career"))return;
+
+    const box=document.createElement("section");
+    box.className="fl27-start-career";
+    box.innerHTML=`
+      <div class="eyebrow">⚽ FOOTBALL LIFE 27</div>
+      <h1>Stwórz swoją karierę</h1>
+      <p>Wybierz zawodnika, rodzinę, pozycję i własną drogę. Każda decyzja może zmienić dalszą historię.</p>
+      <button type="button" class="start-btn">ROZPOCZNIJ KARIERĘ</button>
+      <div class="sub"><b>🎲 Losowość</b><span>•</span><b>10 decyzji</b><span>•</span><b>Twój zawodnik</b></div>`;
+    main.prepend(box);
+    box.querySelector(".start-btn").addEventListener("click",openNewGame);
+  }
+
+  window.FL27_INJECT_START_CAREER=inject;
+  new MutationObserver(()=>requestAnimationFrame(inject)).observe(document.body,{childList:true,subtree:true});
+  setTimeout(inject,80);setTimeout(inject,400);setTimeout(inject,1000);
+})();
+</script>
+
+
+<style id="fl27-v73-welcome">
+.fl27-welcome-backdrop{
+  position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  padding:22px;background:rgba(3,6,11,.78);backdrop-filter:blur(14px);
+}
+.fl27-welcome{
+  width:min(430px,100%);padding:27px 23px 22px;border-radius:28px;
+  border:1px solid rgba(115,169,255,.24);
+  background:
+    radial-gradient(circle at 90% 8%,rgba(255,88,112,.18),transparent 34%),
+    radial-gradient(circle at 5% 0%,rgba(115,169,255,.18),transparent 38%),
+    linear-gradient(150deg,#172131,#0b111b);
+  box-shadow:0 28px 70px rgba(0,0,0,.55);
+}
+.fl27-welcome .ball{font-size:34px;margin-bottom:9px}
+.fl27-welcome .eyebrow{font-size:9px;font-weight:900;letter-spacing:1.8px;color:#73a9ff}
+.fl27-welcome h1{font-size:27px;line-height:1.05;margin:7px 0 10px;color:#fff;letter-spacing:-.6px}
+.fl27-welcome p{font-size:13px;line-height:1.5;color:#a4afbf;margin:0 0 17px}
+.fl27-welcome .rules{display:grid;gap:8px;margin:0 0 20px}
+.fl27-welcome .rule{
+  display:flex;gap:10px;align-items:center;padding:10px 11px;border-radius:14px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);
+  color:#d9e1ec;font-size:11px;
+}
+.fl27-welcome .rule b{color:#fff}
+.fl27-welcome .go{
+  width:100%;height:52px;border:0;border-radius:16px;color:#fff;
+  background:linear-gradient(135deg,#e84761,#b72e47);font-weight:900;font-size:14px;
+  box-shadow:0 10px 25px rgba(232,71,97,.22);cursor:pointer;
+}
+.fl27-welcome .hint{margin-top:10px;text-align:center;color:#687588;font-size:9px}
+</style>
+<script id="fl27-v74-start-flow">
+(function(){
+  const KEY="FL27_WELCOME_SEEN_V74";
+
+  function hasStarted(){
+    const st=window.S||{};
+    return !!(st.started || st.ready || (st.name && st.name!=="Zawodnik"));
+  }
+
+  function showModeChooser(){
+    if(document.querySelector(".fl27-start-mode-backdrop"))return;
+    document.querySelector(".fl27-welcome-backdrop")?.remove();
+
+    const d=document.createElement("div");
+    d.className="fl27-start-mode-backdrop fl27-welcome-backdrop";
+    d.innerHTML=`
+      <section class="fl27-welcome fl27-start-mode" role="dialog" aria-label="Wybór rozpoczęcia życia">
+        <div class="ball">🎮</div>
+        <div class="eyebrow">FOOTBALL LIFE 27</div>
+        <h1>Jak chcesz rozpocząć swoje życie?</h1>
+        <p>Wybierz sposób, w jaki powstanie Twój zawodnik i jego świat. Każda opcja prowadzi do innej historii.</p>
+
+        <div class="fl27-mode-list">
+          <button class="fl27-mode same" data-mode="new">
+            <span class="mode-icon">🔄</span>
+            <span><b>NOWA GRA</b><small>Ta sama osoba, nowa historia piłkarska. Zostają dane startowe: imię, nazwisko, pochodzenie, rodzina, pozycja, avatar itd. Zerowana jest cała historia futbolowa.</small></span>
+          </button>
+
+          <button class="fl27-mode auto" data-mode="auto">
+            <span class="mode-icon">🤖</span>
+            <span><b>NOWA GRA AUTO</b><small>Całe życie jest generowane od nowa: kraj, rodzice, imię i nazwisko z baz krajowych, rodzina, sytuacja materialna, 10 odpowiedzi, pozycja, avatar i pozostałe warunki startowe.</small></span>
+          </button>
+
+          <button class="fl27-mode plus" data-mode="plus">
+            <span class="mode-icon">✨</span>
+            <span><b>NOWA GRA +</b><small>Ty tworzysz zawodnika: wpisujesz imię i nazwisko, wybierasz płeć, pozycję, avatar i odpowiadasz na 10 pytań. Reszta świata powstaje na podstawie Twoich decyzji i losowości.</small></span>
+          </button>
+        </div>
+      </section>`;
+
+    document.body.appendChild(d);
+
+    d.querySelectorAll(".fl27-mode").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const mode=btn.dataset.mode;
+        d.remove();
+        if(mode==="new" && typeof window.FL27_startNewGame==="function")
+          return window.FL27_startNewGame();
+        if(mode==="auto" && typeof window.FL27_startAutoV65==="function")
+          return window.FL27_startAutoV65();
+        if(mode==="plus" && typeof window.FL27_startPlus==="function")
+          return window.FL27_startPlus();
+
+        /* Safe fallback to the existing hub if a legacy function is unavailable. */
+        if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function")
+          window.FL27_SHOW_NEW_GAME_FINAL();
+        else if(typeof window.FL27_showNewGame==="function")
+          window.FL27_showNewGame();
+      });
+    });
+  }
+
+  function showWelcome(){
+    if(localStorage.getItem(KEY)==="1" || hasStarted())return;
+    if(document.querySelector(".fl27-welcome-backdrop"))return;
+
+    const d=document.createElement("div");
+    d.className="fl27-welcome-backdrop";
+    d.innerHTML=`
+      <section class="fl27-welcome" role="dialog" aria-label="Witaj w Football Life 27">
+        <div class="ball">⚽</div>
+        <div class="eyebrow">WITAJ W FOOTBALL LIFE 27</div>
+        <h1>Twoja kariera. Twoje decyzje.</h1>
+        <p>Żyjesz życiem młodego zawodnika — od szkoły i rodziny, przez pierwszy klub, aż po wielką piłkę. To, co wybierzesz po drodze, może zmienić przyszłość.</p>
+        <div class="rules">
+          <div class="rule">⏱️ <span><b>Czas ma znaczenie</b> — każda aktywność kosztuje czas i energię.</span></div>
+          <div class="rule">🎲 <span><b>Każda gra jest inna</b> — wydarzenia, ludzie i skutki decyzji mogą się zmieniać.</span></div>
+          <div class="rule">⚽ <span><b>Życie to nie tylko futbol</b> — rodzina, szkoła, pieniądze i relacje też wpływają na karierę.</span></div>
+        </div>
+        <button class="go">ZACZYNAMY</button>
+        <div class="hint">Najpierw wybierzesz, jak chcesz rozpocząć swoje życie.</div>
+      </section>`;
+
+    document.body.appendChild(d);
+    d.querySelector(".go").addEventListener("click",()=>{
+      localStorage.setItem(KEY,"1");
+      d.remove();
+      showModeChooser();
+    });
+  }
+
+  window.FL27_SHOW_START_FLOW=showWelcome;
+  window.FL27_SHOW_MODE_CHOOSER=showModeChooser;
+
+  /* First launch only. Existing players are never interrupted. */
+  setTimeout(showWelcome,250);
+})();
+</script>
+
+
+<style id="fl27-v74-start-flow-style">
+.fl27-start-mode{max-height:min(88vh,760px);overflow:auto}
+.fl27-start-mode h1{font-size:25px}
+.fl27-mode-list{display:grid;gap:10px;margin-top:16px}
+.fl27-mode{
+  width:100%;display:grid;grid-template-columns:45px 1fr;gap:12px;align-items:center;
+  text-align:left;padding:14px;border-radius:17px;color:#fff;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);
+  cursor:pointer;transition:transform .14s,border-color .14s,background .14s;
+}
+.fl27-mode:active{transform:scale(.985)}
+.fl27-mode.same{border-color:rgba(255,209,102,.22)}
+.fl27-mode.auto{border-color:rgba(85,216,138,.22)}
+.fl27-mode.plus{border-color:rgba(115,169,255,.28)}
+.fl27-mode .mode-icon{
+  width:45px;height:45px;border-radius:14px;display:grid;place-items:center;
+  font-size:22px;background:rgba(255,255,255,.055)
+}
+.fl27-mode b{display:block;font-size:12px;letter-spacing:.35px}
+.fl27-mode small{display:block;color:#9ba8b9;font-size:9px;line-height:1.42;margin-top:4px}
+</style>
