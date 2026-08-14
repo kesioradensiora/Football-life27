@@ -523,6 +523,8 @@ function renderNav(){
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
+window.FL27_ROUTE=function(tab){currentTab=tab;render();return false};
+window.FL27_GET_TAB=function(){return currentTab};
 
 function isFemale(){
   return S.gender==="Kobieta" || S.gender==="Dziewczyna";
@@ -8769,15 +8771,10 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::afte
           if(typeof window.renderSettings==="function")window.renderSettings();
           return false;
         }
-        if(typeof window.go==="function"){
+        if(typeof window.FL27_ROUTE==="function"){
+          window.FL27_ROUTE(KEYS[i]);
+        }else if(typeof window.go==="function"){
           window.go(KEYS[i]);
-        }else{
-          /* go() is normally global; this fallback uses the game's
-             existing currentTab/render variables when available. */
-          try{
-            currentTab=KEYS[i];
-            if(typeof render==="function")render();
-          }catch(e){}
         }
         requestAnimationFrame(()=>activate(i));
         return false;
@@ -8808,5 +8805,130 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::afte
   setTimeout(sync,80);
   setTimeout(sync,250);
   setTimeout(sync,700);
+})();
+</script>
+
+
+<style id="fl27-v48-routing">
+/* V48 — navigation is an actual router, not decorative buttons. */
+body:not(.creator-screen) .fl27-v35-bottom{
+  z-index:2147483647!important;
+  pointer-events:auto!important;
+}
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav,
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
+  pointer-events:auto!important;
+}
+body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
+  -webkit-tap-highlight-color:transparent!important;
+}
+</style>
+<script id="fl27-v48-routing-js">
+(function(){
+  const KEYS=["home","day","career","life","family","history","careerStats","store","settings"];
+
+  function refreshActive(){
+    const nav=document.querySelector(".fl27-v35-bottom .v35-nav");
+    if(!nav)return;
+    const active=typeof window.FL27_GET_TAB==="function"?window.FL27_GET_TAB():"home";
+    [...nav.querySelectorAll("button")].forEach((b,i)=>{
+      const on=KEYS[i]===active;
+      b.classList.toggle("fl27-active-tab",on);
+      b.classList.toggle("active",on);
+      if(on)b.setAttribute("aria-current","page");
+      else b.removeAttribute("aria-current");
+    });
+  }
+
+  function bind(){
+    const nav=document.querySelector(".fl27-v35-bottom .v35-nav");
+    if(!nav)return;
+    [...nav.querySelectorAll("button")].forEach((b,i)=>{
+      if(b.dataset.v48Bound==="1")return;
+      b.dataset.v48Bound="1";
+      b.onclick=function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(i===8){
+          window.renderSettings?.();
+        }else{
+          window.FL27_ROUTE?.(KEYS[i]);
+        }
+        setTimeout(refreshActive,0);
+        return false;
+      };
+    });
+    refreshActive();
+  }
+
+  const mo=new MutationObserver(()=>requestAnimationFrame(bind));
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(bind,50);
+  setTimeout(bind,200);
+  setTimeout(bind,600);
+})();
+</script>
+
+
+<style id="fl27-v49-beta-reset">
+.v49-beta-reset{
+  margin-top:18px!important;
+  padding:12px!important;
+  border-radius:14px!important;
+  border:1px dashed rgba(255,180,80,.28)!important;
+  background:rgba(255,180,80,.045)!important;
+}
+.v49-beta-reset summary{
+  cursor:pointer!important;
+  color:#c9a56a!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.5px!important;
+}
+.v49-beta-reset .beta-reset-btn{
+  width:100%!important;
+  margin-top:10px!important;
+  min-height:42px!important;
+  border:1px solid rgba(255,100,100,.28)!important;
+  border-radius:10px!important;
+  background:rgba(180,45,55,.12)!important;
+  color:#ffb0b5!important;
+  font-weight:900!important;
+}
+</style>
+<script id="fl27-v49-beta-reset-js">
+(function(){
+  function inject(){
+    if(document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main");
+    if(!main)return;
+    if(typeof window.FL27_GET_TAB==="function" && window.FL27_GET_TAB()!=="home")return;
+    if(main.querySelector(".v49-beta-reset"))return;
+
+    const box=document.createElement("details");
+    box.className="v49-beta-reset";
+    box.innerHTML=`
+      <summary>🧪 NARZĘDZIA BETA — RESET DO TESTÓW</summary>
+      <button class="beta-reset-btn" type="button">
+        ♻️ Resetuj wszystko i zacznij od początku
+      </button>
+    `;
+    box.querySelector("button").addEventListener("click",function(){
+      if(typeof window.FL27_resetPlayer==="function"){
+        window.FL27_resetPlayer();
+        return;
+      }
+      if(confirm("Resetować całą karierę testową?")){
+        localStorage.clear();
+        location.reload();
+      }
+    });
+    main.appendChild(box);
+  }
+
+  const mo=new MutationObserver(()=>requestAnimationFrame(inject));
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(inject,100);
+  setTimeout(inject,500);
 })();
 </script>
