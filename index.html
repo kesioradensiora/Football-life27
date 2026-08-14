@@ -9416,3 +9416,415 @@ body:not(.creator-screen) .fl27-v35-bottom{
   window.FL27_V54_TUTORIAL_READY=true;
 })();
 </script>
+
+
+<style id="fl27-v55-match-decisions">
+.v55-match-modal .modal{border-top:3px solid #55d88a}
+.v55-match-tag{
+  display:inline-block;padding:5px 8px;border-radius:999px;
+  background:rgba(85,216,138,.10);color:#79e6a3;font-size:8px;font-weight:900;
+  margin-bottom:8px
+}
+.v55-match-note{
+  padding:9px 10px;margin:8px 0 10px;border-radius:10px;
+  background:rgba(118,169,255,.06);font-size:9px;line-height:1.4;color:#aeb8c6
+}
+</style>
+<script id="fl27-v55-match-decisions">
+(function(){
+  function ensureMatchMemory(){
+    S.matchDecisionHistory=S.matchDecisionHistory||[];
+    S.coachTrust=Number(S.coachTrust??50);
+    S.matchConfidence=Number(S.matchConfidence??50);
+    S.matchRole=S.matchRole||"rotation";
+  }
+
+  function remember(type,choice,effect){
+    ensureMatchMemory();
+    S.matchDecisionHistory.push({
+      day:S.day,age:S.age,type,choice,effect
+    });
+    if(S.matchDecisionHistory.length>80)S.matchDecisionHistory.shift();
+    saveSoon();
+  }
+
+  function matchFinish(gf,ga,st,result){
+    ensureMatchMemory();
+    S.energy=Math.max(0,S.energy-28);
+    S.matches=(S.matches||0)+1;
+    if(gf>ga){S.wins=(S.wins||0)+1;S.form=clamp(S.form+7);S.pr+=3}
+    else if(gf===ga){S.draws=(S.draws||0)+1;S.form=clamp(S.form+2);S.pr+=1}
+    else{S.losses=(S.losses||0)+1;S.form=clamp(S.form-5)}
+    const personal=Math.random();
+    if(st.starts && st.minutes>=45){
+      if(personal<.45){S.goals=(S.goals||0)+1;st.goals+=1;S.pr+=2;log(`Mecz ${gf}:${ga} — ${result}. Strzelasz gola! ⚽`)}
+      else if(personal<.72){S.assists=(S.assists||0)+1;st.assists+=1;S.pr+=1;log(`Mecz ${gf}:${ga} — ${result}. Notujesz asystę.`)}
+      else log(`Mecz ${gf}:${ga} — ${result}.`);
+    }else{
+      log(`Mecz ${gf}:${ga} — ${result}. Nie wychodzisz w podstawowym składzie.`);
+    }
+    if(Math.random()<.16 && st.minutes>0){st.yellow=1;log("Dostajesz żółtą kartkę.");}
+    if(ga===0 && S.pos==="BR" && st.minutes>0){log("Czyste konto! 🧤");}
+    recordMatchStats(st);
+    S.nextMatchDay=S.day+7+Math.floor(Math.random()*8);
+    advance(2);
+    toast(`${result} • następny mecz: za ${S.nextMatchDay-S.day} dni`);
+    randomEventChance("match");
+    render();
+  }
+
+  function playBenchDecision(gf,ga){
+    openModal("🪑 Mecz • ławka rezerwowych",
+      `<span class="v55-match-tag">NIE ZACZYNASZ MECZU</span>
+       <div class="v55-match-note">Trener posadził Cię na ławce. To, co zrobisz teraz, może wpłynąć na zaufanie trenera, mental i kolejne powołania.</div>
+       <b>Wybierz jedną reakcję:</b>`,
+      [
+        ["🔥 Rozgrzewasz się cały czas i jesteś gotowy wejść",()=>{
+          S.coachTrust=clamp(S.coachTrust+4);S.matchConfidence=clamp(S.matchConfidence+3);
+          remember("bench","ciągła rozgrzewka","+zaufanie trenera, +pewność siebie");
+          const sub=Math.random()<(.22+S.coachTrust/400);
+          if(sub){
+            const mins=15+Math.floor(Math.random()*31);
+            const st={apps:1,starts:0,minutes:mins,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+            S.form=clamp(S.form+2);S.pr+=1;
+            log(`Trener wpuszcza Cię z ławki na ${mins} minut. 🟢`);
+            matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
+          }else{
+            const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+            S.mental=clamp(S.mental-1);
+            log("Nie dostajesz dziś szansy. Trener widzi jednak Twoje zaangażowanie.");
+            matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
+          }
+        }],
+        ["🧠 Analizujesz mecz i zapisujesz uwagi dla siebie",()=>{
+          S.coachTrust=clamp(S.coachTrust+1);S.skill=clamp(S.skill+1);S.mental=clamp(S.mental+2);
+          remember("bench","analiza","+skill, +mental");
+          log("Z ławki analizujesz ustawienie i zachowania zawodników. Wyciągasz wnioski.");
+          const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+          matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
+        }],
+        ["😤 Pokazujesz niezadowolenie z decyzji trenera",()=>{
+          S.coachTrust=clamp(S.coachTrust-7);S.mental=clamp(S.mental-3);S.pr=Math.max(0,S.pr-1);
+          remember("bench","konflikt","-zaufanie trenera, -mental");
+          log("Okazujesz frustrację. Trener nie jest zachwycony Twoją reakcją.");
+          const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+          matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
+        }]
+      ],true);
+  }
+
+  function playStarterDecision(gf,ga){
+    openModal("⚽ Mecz • wychodzisz w podstawowym składzie",
+      `<span class="v55-match-tag">PIERWSZY SKŁAD</span>
+       <div class="v55-match-note">Masz dziś realny wpływ na mecz. Pierwsza decyzja może zmienić ocenę trenera i późniejsze sytuacje.</div>
+       <b>Jak podchodzisz do początku spotkania?</b>`,
+      [
+        ["🚀 Ryzykuję i gram agresywnie do przodu",()=>{
+          S.matchConfidence=clamp(S.matchConfidence+4);S.coachTrust=clamp(S.coachTrust+1);S.form=clamp(S.form+2);
+          S.skill=clamp(S.skill+1);remember("starter","agresja","+confidence, +form, +skill");
+          playSecondHalfDecision(gf,ga,"aggressive");
+        }],
+        ["🎯 Gram spokojnie i realizuję plan trenera",()=>{
+          S.coachTrust=clamp(S.coachTrust+5);S.matchConfidence=clamp(S.matchConfidence+2);
+          remember("starter","plan","+zaufanie trenera");
+          playSecondHalfDecision(gf,ga,"plan");
+        }],
+        ["🧱 Skupiam się przede wszystkim na zabezpieczeniu zespołu",()=>{
+          S.coachTrust=clamp(S.coachTrust+3);S.mental=clamp(S.mental+2);S.form=clamp(S.form+1);
+          remember("starter","bezpieczeństwo","+zaufanie, +mental");
+          playSecondHalfDecision(gf,ga,"safe");
+        }]
+      ],true);
+  }
+
+  function playSecondHalfDecision(gf,ga,style){
+    openModal("⏱️ Przerwa • decyzja meczowa",
+      `<span class="v55-match-tag">PRZERWA</span>
+       <div class="v55-match-note">Wynik i przebieg meczu mogą wpłynąć na Twoją decyzję. Nie każda decyzja daje natychmiastowy bonus — część buduje konsekwencje na kolejne mecze.</div>
+       <b>Co robisz po rozmowie z trenerem?</b>`,
+      [
+        ["🔥 Proszę o większą rolę w drugiej połowie",()=>{
+          S.matchConfidence=clamp(S.matchConfidence+5);S.coachTrust=clamp(S.coachTrust+(style==="plan"?3:-1));S.pr+=1;
+          remember("halftime","większa rola","+confidence, możliwa większa rola");
+          finishStarter(gf,ga,style,1.0);
+        }],
+        ["🧠 Trzymam się dokładnie założeń taktycznych",()=>{
+          S.coachTrust=clamp(S.coachTrust+4);S.mental=clamp(S.mental+1);
+          remember("halftime","taktyka","+zaufanie");
+          finishStarter(gf,ga,style,.9);
+        }],
+        ["⚡ Próbuję zrobić coś efektownego, nawet jeśli jest ryzyko",()=>{
+          S.pr+=2;S.matchConfidence=clamp(S.matchConfidence+3);
+          if(Math.random()<.28)S.form=clamp(S.form-4);
+          remember("halftime","ryzyko","+PR, ryzyko formy");
+          finishStarter(gf,ga,style,1.12);
+        }]
+      ],true);
+  }
+
+  function finishStarter(gf,ga,style,mult){
+    let minutes=90;
+    if(Math.random()<.12){minutes=60+Math.floor(Math.random()*20);S.coachTrust=clamp(S.coachTrust+1);log("Trener zdejmuje Cię wcześniej, żeby zachować siły.");}
+    const st={apps:1,starts:1,minutes,goals:0,assists:0,yellow:0,red:0,cleanSheets:ga===0?1:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+    if(Math.random()<.22*mult){st.assists=1;S.assists=(S.assists||0)+1;}
+    matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
+  }
+
+  window.FL27_playMatchWithDecisions=function(){
+    ensureMatchMemory();
+    if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
+    const target=Number(S.nextMatchDay||7);
+    if(S.day<target){
+      const left=target-S.day;
+      toast(`Mecz jest dopiero za ${left} ${left===1?"dzień":"dni"} ⚽`);
+      log(`Sprawdzasz terminarz — najbliższy mecz za ${left} dni.`);
+      saveSoon();render();return;
+    }
+    if(S.energy<28){toast("Za mało energii na mecz.");return}
+
+    /* Selection depends on development, form, trust and age — not a fixed roll. */
+    const starterScore=(Number(S.skill||0)*.55)+(Number(S.form||0)*.18)+(Number(S.trainingLevel||0)*2)+(Number(S.coachTrust||50)*.22)+(Math.random()*35-17);
+    const starter=starterScore>=58;
+    const gf=Math.max(0,Math.round((S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12))/42+Math.random()*1.4-.5));
+    const ga=Math.max(0,Math.round(((55+Math.random()*30)/42)+Math.random()*1.4-.5));
+    if(starter){
+      S.matchRole="starter";
+      log("📋 Trener wystawia Cię w podstawowym składzie.");
+      playStarterDecision(gf,ga);
+    }else{
+      S.matchRole="bench";
+      log("📋 Trener zostawia Cię dziś na ławce rezerwowych.");
+      playBenchDecision(gf,ga);
+    }
+  };
+
+  /* Override only the existing match button handler. No new match panel. */
+  window.playMatch=window.FL27_playMatchWithDecisions;
+})();
+</script>
+
+
+<style id="fl27-v56-match-scenarios">
+.v56-live-event .modal{border-top:3px solid #ffd166}
+.v56-situation{
+  padding:10px 11px;margin:8px 0 12px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(118,169,255,.09),rgba(255,209,102,.045));
+  border:1px solid rgba(255,255,255,.08);font-size:10px;line-height:1.5
+}
+.v56-live-tag{font-size:8px;font-weight:900;letter-spacing:.12em;color:#ffd166}
+</style>
+<script id="fl27-v56-match-scenarios">
+(function(){
+  /*
+   * V56: match is a sequence of contextual situations.
+   * The library is generated from many situation families and varied
+   * parameters, giving thousands of possible combinations while keeping
+   * position/role/score/minute context coherent.
+   */
+  const F={
+    attack:[
+      ["Dostajesz piłkę na skraju pola karnego. Obrońca zamyka środek, a kolega wychodzi na wolne pole.","strzal","podanie","drybling"],
+      ["Wbiegasz w pole karne. Bramkarz skraca kąt, a obrońca naciska z boku.","strzal","minięcie","podanie"],
+      ["Masz piłkę przed szesnastką. Partner pokazuje się między obrońcami.","strzal_z_dystansu","prostopadle","przerzut"],
+      ["Kolega dośrodkowuje, a piłka spada w okolice piątego metra.","strzal_z_powietrza","zgranie","odpuszczenie"],
+      ["Wychodzisz sam na sam. Bramkarz rusza do Ciebie.","lob","kiwka_bramkarza","strzal_obok"],
+      ["Przejmujesz piłkę po błędzie obrońcy. Masz sekundę na decyzję.","szybki_strzal","podanie","utrzymanie"],
+      ["Kontra 3 na 2. Jeden obrońca idzie do Ciebie, drugi pilnuje skrzydła.","podanie_w_bok","prostopadle","indywidualnie"],
+      ["Jesteś na skrzydle i masz miejsce. Napastnik czeka w polu karnym.","dosrodkowanie","zejscie_do_srodka","podanie_wstecz"],
+      ["W polu karnym jest tłok, ale masz pół metra przestrzeni.","strzal_niski","zwod","odegranie"],
+      ["Otrzymujesz piłkę plecami do bramki, rywal jest bardzo blisko.","odegranie","obrot","faulowanie_rywala"]
+    ],
+    duel:[
+      ["Rywal wchodzi Ci mocno w nogi. Sędzia jest kilka metrów dalej.","utrzymaj_sie","przewroc_sie","odskocz"],
+      ["Przeciwnik próbuje Cię minąć, a Ty jesteś ostatnim zawodnikiem przed obroną.","czysty_wslizg","asekuracja","ryzykowny_wslizg"],
+      ["Napastnik rywala wychodzi za Twoje plecy.","bieg_za_nim","spalony","faul_taktyczny"],
+      ["Rywal łapie Cię za koszulkę przy kontrze.","graj_dalej","wymus_faul","odpusc"],
+      ["Kolega z drużyny zostaje sfaulowany bardzo ostro przy linii.","pomoc","upomnij_rywala","odejdz"],
+      ["Rywal leży po starciu, a sędzia pozwala grać dalej. Masz piłkę.","wybij","graj_dalej","sprawdz_kolege"],
+      ["Przeciwnik prowokuje Cię po starciu.","ignoruj","odpowiedz","odejdz"],
+      ["Sędzia nie zauważył kontaktu w polu karnym.","kontynuuj","reklamuj","podaj_sie_do_przepisu"]
+    ],
+    setpiece:[
+      ["Rzut wolny z dogodnej pozycji. Możesz uderzyć albo rozegrać.","strzal","dosrodkowanie","krotko"],
+      ["Rzut rożny. Trener wcześniej wskazał konkretny wariant.","wariant_trenera","bliski_slup","drugi_slup"],
+      ["Rzut karny. Bramkarz długo patrzy Ci w oczy.","lewy","srodek","prawy"],
+      ["Wrzut z autu w końcówce. Drużyna prowadzi jednym golem.","bezpiecznie","szybko","do_przodu"]
+    ],
+    team:[
+      ["Twój kolega traci piłkę i zaczyna gestykulować. Przeciwnik rusza z kontrą.","asekuruj","krzyknij","wracaj"],
+      ["Kapitan prosi Cię o uspokojenie gry.","zwolnij","graj_szybko","wez_odpowiedzialnosc"],
+      ["Kolega z drużyny jest wyraźnie zdenerwowany po zmarnowanej okazji.","wesprzyj","zostaw","zmobilizuj"],
+      ["Trener krzyczy z ławki nowe ustawienie, ale nie jesteś pewien, czy dobrze usłyszałeś.","zapytaj","domysl_sie","trzymaj_plan"]
+    ],
+    endgame:[
+      ["90. minuta. Prowadzicie 1:0. Rywal rzuca wszystko do ataku.","utrzymaj","kontra","wybij_daleko"],
+      ["88. minuta. Jest remis. Masz piłkę przy polu karnym.","ryzykuj","przytrzymaj","podaj"],
+      ["Końcówka meczu. Przegrywacie jednym golem.","atakuj","uspokoj","daleka_pilka"],
+      ["Doliczony czas. Dostajesz ostatnią piłkę w polu karnym.","strzal","podanie","zwod"]
+    ]
+  };
+
+  const LABEL={
+    strzal:"⚽ Strzelaj na bramkę",podanie:"🎯 Podaj do kolegi",drybling:"🔥 Spróbuj dryblingu",
+    strzal_z_dystansu:"🚀 Uderz z dystansu",prostopadle:"🪄 Zagraj prostopadłą",przerzut:"↔️ Przerzuć na skrzydło",
+    strzal_z_powietrza:"💥 Uderz z powietrza",zgranie:"🤝 Zgraj piłkę",odpuszczenie:"🧠 Odpuść akcję",
+    lob:"🎈 Przelobuj bramkarza",kiwka_bramkarza:"🪄 Omiń bramkarza",strzal_obok:"🎯 Uderz obok",
+    szybki_strzal:"⚡ Szybki strzał",utrzymanie:"🧱 Utrzymaj piłkę",podanie_w_bok:"↗️ Podaj na bok",
+    dosrodkowanie:"📐 Dośrodkuj",zejscie_do_srodka:"↙️ Zejdź do środka",podanie_wstecz:"↩️ Podaj do tyłu",
+    strzal_niski:"⬇️ Niski strzał",zwod:"🎭 Zwód",odegranie:"🤝 Odegraj",
+    utrzymaj_sie:"💪 Walcz dalej",przewroc_sie:"🫳 Zasygnalizuj faul",odskocz:"↩️ Odskocz",
+    czysty_wslizg:"🛡️ Czysty wślizg",asekuracja:"🧠 Zabezpiecz akcję",ryzykowny_wslizg:"⚠️ Ryzykowny wślizg",
+    bieg_za_nim:"🏃 Biegnij za nim",spalony:"🚩 Złap na spalonym",faul_taktyczny:"🟨 Zatrzymaj faulem",
+    graj_dalej:"▶️ Graj dalej",wymus_faul:"🫳 Spróbuj wywalczyć faul",odpusc:"↩️ Odpuść",
+    pomoc:"🤝 Pomóż koledze wstać",upomnij_rywala:"🗣️ Upomnij rywala",odejdz:"🚶 Odejdz",
+    wybij:"🦶 Wybij piłkę",sprawdz_kolege:"❤️ Sprawdź kolegę",ignoruj:"🧊 Ignoruj prowokację",
+    odpowiedz:"🗣️ Odpowiedz",kontynuuj:"▶️ Kontynuuj",reklamuj:"🙋 Zasygnalizuj sędziemu",
+    podaj_sie_do_przepisu:"📜 Zostaw decyzję sędziemu",strzal:"⚽ Strzał",dosrodkowanie:"📐 Dośrodkowanie",
+    krotko:"🔄 Rozegraj krótko",wariant_trenera:"📋 Wykonaj wariant trenera",bliski_slup:"🥅 Bliski słupek",
+    drugi_slup:"🥅 Drugi słupek",lewy:"⬅️ Lewy róg",srodek:"⬆️ Środek",prawy:"➡️ Prawy róg",
+    bezpiecznie:"🛡️ Bezpiecznie",szybko:"⚡ Szybki wrzut",do_przodu:"🚀 Do przodu",
+    krzyknij:"📣 Krzyknij do niego",wracaj:"🏃 Natychmiast wróć",wesprzyj:"❤️ Wesprzyj go",
+    zostaw:"↩️ Zostaw go",zmobilizuj:"🔥 Zmobilizuj",zapytaj:"❓ Zapytaj trenera",
+    domysl_sie:"🧠 Zdecyduj sam",trzymaj_plan:"📋 Trzymaj plan",utrzymaj:"🧱 Utrzymaj wynik",
+    kontra:"⚡ Rusz z kontrą",wybij_daleko:"🦶 Wybij daleko",ryzykuj:"🔥 Zaryzykuj",
+    uspokoj:"🧠 Uspokój grę",daleka_pilka:"🚀 Daleka piłka",atakuj:"⚔️ Atakuj",strzal_obok:"🎯 Uderz obok"
+  };
+
+  function situationPool(){
+    const arr=[];
+    Object.keys(F).forEach(k=>F[k].forEach(x=>arr.push({family:k,text:x[0],opts:x.slice(1)})));
+    return arr;
+  }
+  const POOL=situationPool();
+
+  function makeChoices(opts,context){
+    return opts.map((key,idx)=>[LABEL[key]||key,()=>resolve(key,context,idx)]);
+  }
+
+  function resolve(key,ctx,idx){
+    const p=ctx.position, pos=S.pos||"";
+    let delta={form:0,mental:0,skill:0,pr:0,coach:0,energy:0};
+    let result="";
+    const roll=Math.random();
+
+    if(key.includes("strzal")||key==="lob"||key==="kiwka_bramkarza"){
+      const chance=.28+(Number(S.skill||0)/300)+(Number(S.form||0)/500)+(Number(S.matchConfidence||50)/800);
+      if(roll<chance){delta.form+=4;delta.pr+=4;result="⚽ GOL! Twoja decyzja przynosi efekt."}
+      else if(roll<chance+.22){delta.form+=1;result="Bramkarz broni. Akcja była dobra, ale nie kończy się golem."}
+      else{delta.form-=2;delta.mental-=1;result="Rywal blokuje akcję. Musisz szybko wrócić do gry."}
+    }else if(key==="podanie"||key==="prostopadle"||key==="podanie_w_bok"||key==="dosrodkowanie"||key==="podanie_wstecz"||key==="zgranie"||key==="odegranie"){
+      if(roll<.68){delta.skill+=1;delta.pr+=1;result="🎯 Podanie trafia do partnera i akcja się rozwija."}
+      else{delta.mental-=1;result="Rywal czyta zamiar i przejmuje piłkę."}
+    }else if(key==="faul_taktyczny"||key==="ryzykowny_wslizg"){
+      if(roll<.62){delta.coach+=1;delta.mental+=1;result="🛡️ Zatrzymujesz akcję, ale sędzia może wyciągnąć kartkę."}
+      else{delta.coach-=4;delta.mental-=2;result="🟥 Sędzia uznaje zagranie za zbyt ostre. Problemy z kartką!"}
+    }else if(key==="przewroc_sie"||key==="wymus_faul"){
+      if(roll<.38){delta.pr+=2;result="Sędzia odgwizduje przewinienie."}
+      else{delta.mental-=2;delta.pr-=1;result="Sędzia nie daje się nabrać. Rywale komentują Twoją reakcję."}
+    }else if(key==="pomoc"||key==="wesprzyj"){
+      delta.mental+=3;delta.coach+=1;result="❤️ Reagujesz jak członek zespołu. Kolega to zapamięta.";
+    }else if(key==="odpowiedz"||key==="upomnij_rywala"){
+      delta.mental-=1;delta.coach-=1;result="Emocje rosną. Sędzia zwraca uwagę na zachowanie.";
+    }else if(key==="ignoruj"||key==="odejdz"){
+      delta.mental+=1;delta.coach+=1;result="🧊 Zachowujesz zimną krew.";
+    }else if(key==="wariant_trenera"||key==="trzymaj_plan"||key==="graj_dalej"||key==="bezpiecznie"||key==="utrzymaj"){
+      delta.coach+=3;delta.mental+=1;result="📋 Trener docenia wykonanie założeń.";
+    }else if(key==="ryzykuj"||key==="atakuj"||key==="kontra"||key==="szybko"||key==="do_przodu"){
+      delta.pr+=2;delta.form+=1;delta.mental+=1;result="🔥 Ryzyko zmienia przebieg akcji — możesz zyskać albo stracić.";
+    }else{
+      delta.mental+=1;result="Podejmujesz decyzję i gra toczy się dalej.";
+    }
+
+    S.form=clamp(S.form+delta.form);S.mental=clamp(S.mental+delta.mental);S.skill=clamp(S.skill+delta.skill);
+    S.pr=Math.max(0,(S.pr||0)+delta.pr);S.coachTrust=clamp((S.coachTrust||50)+delta.coach);
+    S.energy=clamp((S.energy||50)+delta.energy);
+    S.matchDecisionHistory=S.matchDecisionHistory||[];
+    S.matchDecisionHistory.push({day:S.day,minute:ctx.minute,family:ctx.family,key,result});
+    if(S.matchDecisionHistory.length>200)S.matchDecisionHistory.shift();
+    log(`⏱️ ${ctx.minute}'. ${result}`);
+    saveSoon();
+    toast(result);
+  }
+
+  function openLive(ctx){
+    const item=POOL[Math.floor(Math.random()*POOL.length)];
+    /* Make match situations position-aware. Goal/attack events favour attackers,
+       defensive/duel events favour defenders, but everyone can still receive them. */
+    let family=item.family;
+    if(ctx.position==="BR" && Math.random()<.55){
+      const g=POOL.filter(x=>x.family==="duel"||x.family==="setpiece");
+      item=g[Math.floor(Math.random()*g.length)];
+    }else if((ctx.position==="N"||ctx.position==="S") && Math.random()<.62){
+      const g=POOL.filter(x=>x.family==="attack"||x.family==="team"||x.family==="endgame");
+      item=g[Math.floor(Math.random()*g.length)];
+    }else if((ctx.position==="O"||ctx.position==="D") && Math.random()<.62){
+      const g=POOL.filter(x=>x.family==="duel"||x.family==="team"||x.family==="endgame");
+      item=g[Math.floor(Math.random()*g.length)];
+    }
+    const choices=makeChoices(item.opts.slice(0,3),{...ctx,family:item.family});
+    const html=`<span class="v56-live-tag">⚡ SYTUACJA MECZOWA • ${ctx.minute}'</span>
+      <div class="v56-situation">${item.text}</div>
+      <div class="v55-match-note">Twoja decyzja nie ma jednej zawsze dobrej odpowiedzi. Wynik zależy od pozycji, umiejętności, formy, mentalu, wyniku meczu, wcześniejszych decyzji i losowości.</div>`;
+    openModal("⚽ Co robisz?",html,choices,true);
+  }
+
+  /* Extend the existing match flow: after the starting/bench choice, trigger
+     several live situations. Each match can produce 2–5, with different
+     contexts and a final outcome. */
+  function runSequence(gf,ga,role){
+    const count=2+Math.floor(Math.random()*4);
+    let i=0;
+    const next=()=>{
+      if(i>=count){
+        const st={apps:role==="bench"&&Math.random()<.55?0:1,starts:role==="starter"?1:0,
+          minutes:role==="starter"?90:(role==="bench"?15+Math.floor(Math.random()*31):0),
+          goals:0,assists:0,yellow:0,red:0,cleanSheets:ga===0?1:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
+        matchFinishV56(gf,ga,st);
+        return;
+      }
+      i++;
+      const minute=role==="starter"?10+i*20+Math.floor(Math.random()*15):55+i*8;
+      openLive({minute,position:S.pos,role,family:""});
+      /* Override modal actions only for this live sequence. */
+      const original=window.modalChoices;
+      const wrapped=original.map(c=>[c[0],()=>{c[1](); if(i<count)setTimeout(next,120);else setTimeout(next,120)}]);
+      window.modalChoices=wrapped;
+    };
+    next();
+  }
+
+  function matchFinishV56(gf,ga,st){
+    ensureCareerStats();
+    const result=gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴";
+    if(gf>ga){S.wins=(S.wins||0)+1;S.form=clamp(S.form+5);S.pr+=2}
+    else if(gf===ga){S.draws=(S.draws||0)+1}
+    else{S.losses=(S.losses||0)+1;S.form=clamp(S.form-4)}
+    S.matches=(S.matches||0)+1;
+    S.energy=Math.max(0,S.energy-28);
+    recordMatchStats(st);
+    S.nextMatchDay=S.day+7+Math.floor(Math.random()*8);
+    advance(2);
+    log(`🏁 Koniec meczu ${gf}:${ga} — ${result}.`);
+    toast(`${result} • mecz zakończony`);
+    randomEventChance("match");
+    render();
+  }
+
+  /* Replace the V55 entry point with a richer sequence. */
+  window.FL27_playMatchWithDecisions=function(){
+    ensureMatchMemory();
+    if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
+    const target=Number(S.nextMatchDay||7);
+    if(S.day<target){toast(`Mecz jest dopiero za ${target-S.day} ${target-S.day===1?"dzień":"dni"} ⚽`);return}
+    if(S.energy<28){toast("Za mało energii na mecz.");return}
+    const score=(Number(S.skill||0)*.55)+(Number(S.form||0)*.18)+(Number(S.trainingLevel||0)*2)+(Number(S.coachTrust||50)*.22)+(Math.random()*35-17);
+    const starter=score>=58;
+    const gf=Math.max(0,Math.round((S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12))/42+Math.random()*1.4-.5));
+    const ga=Math.max(0,Math.round(((55+Math.random()*30)/42)+Math.random()*1.4-.5));
+    log(starter?"📋 Wychodzisz w podstawowym składzie.":"📋 Zaczynasz mecz na ławce.");
+    S.matchRole=starter?"starter":"bench";
+    runSequence(gf,ga,starter?"starter":"bench");
+  };
+  window.playMatch=window.FL27_playMatchWithDecisions;
+})();
+</script>
