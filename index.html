@@ -6388,5 +6388,95 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
 .v23-market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.v23-market{padding:7px;border-radius:8px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}.v23-market b{font-size:9px}.v23-market small{display:block;font-size:7px;opacity:.55;margin-top:2px}
 @media(max-width:650px){.v23-market-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
+
+<script>
+/* FL27 V24 — clean bottom activity bar + integer-only UI */
+(function(){
+  const int=v=>Math.round(Number(v)||0);
+  const fmtMoney=v=>`€${int(v).toLocaleString("pl-PL")}`;
+  const oldRender=window.FL27_V17_bar;
+  if(!window.__FL27_V24_BAR){
+    window.__FL27_V24_BAR=true;
+    window.FL27_V17_bar=function(){
+      const A=window.FL27_V17_ACTIONS||[];
+      const V=window.FL27_V17||{};
+      const hour=Math.floor(Number(window.S?.hour||0));
+      const day=int(window.S?.day||1);
+      const rem=Math.max(0,22-hour);
+      const selected=V.selected?A.find(a=>a.id===V.selected):null;
+      const preview=selected && window.FL27_V17_preview?window.FL27_V17_preview(selected):"";
+      return `<nav class="v24-bottom">
+        <div class="v24-time">
+          <b>${String(hour).padStart(2,"0")}:00</b>
+          <span>Dzień ${day}</span>
+          <span>⏳ ${rem} h do 22:00</span>
+        </div>
+        <div class="v24-actions">
+          ${A.map(a=>`<button type="button" onclick="FL27_V17_select('${a.id}')"><i>${a.icon}</i><b>${a.name}</b></button>`).join("")}
+          <button type="button" class="v24-settings" onclick="renderSettings()"><i>⚙️</i><b>Ustawienia</b></button>
+        </div>
+        <div class="v24-detail">
+          ${selected?`
+            <div class="v24-selected"><strong>${selected.icon} ${selected.name}</strong><span>${preview}</span></div>
+            <button class="v24-go" type="button" onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>
+          `:`<span class="v24-hint">Wybierz aktywność — przed wykonaniem zobaczysz pełny koszt czasu, pieniędzy, energii, zdrowia, formy i mentalu.</span>`}
+        </div>
+      </nav>`;
+    };
+  }
+
+  /* Replace the previous bottom bar after every render. */
+  if(window.render&&!window.__FL27_V24_RENDER){
+    const old=window.render;window.__FL27_V24_RENDER=true;
+    window.render=function(){
+      const r=old.apply(this,arguments);
+      requestAnimationFrame(()=>{
+        document.querySelectorAll(".v17-bottom,.v24-bottom,.fl27-v17-extra").forEach(x=>x.remove());
+        const wrap=document.createElement("div");
+        wrap.className="fl27-v24-extra";
+        wrap.innerHTML=window.FL27_V17_bar();
+        document.body.appendChild(wrap);
+      });
+      return r;
+    };
+  }
+
+  /* Integer display guard for common visible stats. */
+  window.FL27_intDisplay=int;
+  try{window.render?.()}catch(e){}
+})();
+</script>
+<style>
+html body .fl27-v24-extra,
+html body .v24-bottom{
+ position:fixed!important;left:0!important;right:0!important;bottom:0!important;
+ width:100vw!important;z-index:2147483000!important;box-sizing:border-box!important;
+}
+.v24-bottom{
+ padding:7px max(8px,calc((100vw - 1180px)/2)) calc(8px + env(safe-area-inset-bottom));
+ background:rgba(9,12,18,.985);border-top:1px solid rgba(230,57,70,.3);
+ box-shadow:0 -10px 30px rgba(0,0,0,.35);backdrop-filter:blur(14px);
+ color:#fff;font-variant-numeric:tabular-nums;
+}
+.v24-time{display:flex;align-items:center;gap:8px;height:19px;margin-bottom:5px}
+.v24-time b{font-size:14px}.v24-time span{font-size:9px;opacity:.55}
+.v24-actions{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.v24-actions::-webkit-scrollbar{display:none}
+.v24-actions button{flex:0 0 auto;min-width:58px;height:42px;padding:4px 7px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:#151b25;color:#fff;cursor:pointer}
+.v24-actions button:hover{border-color:rgba(230,57,70,.7)}
+.v24-actions i{display:block;font-style:normal;font-size:15px;line-height:16px}.v24-actions b{display:block;font-size:8px;font-weight:700;white-space:nowrap}
+.v24-actions .v24-settings{border-color:rgba(118,169,255,.25)}
+.v24-detail{display:flex;align-items:center;gap:8px;min-height:39px;margin-top:5px;padding:5px 7px;border-radius:8px;background:rgba(255,255,255,.045)}
+.v24-selected{min-width:0;display:grid;gap:2px;flex:1}.v24-selected strong{font-size:10px}.v24-selected span{font-size:8px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v24-go{flex:0 0 auto;border:0;border-radius:7px;padding:8px 12px;background:#d93445;color:#fff;font-size:9px;font-weight:900;cursor:pointer}
+.v24-hint{font-size:8px;opacity:.5;line-height:1.3}
+html body{padding-bottom:137px!important}
+@media(max-width:650px){
+ html body{padding-bottom:145px!important}
+ .v24-actions{margin-right:0}
+ .v24-time{gap:6px}.v24-time span{font-size:8px}
+ .v24-selected span{font-size:7px}
+}
+</style>
 </body>
 </html>
