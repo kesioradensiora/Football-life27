@@ -6479,8 +6479,13 @@ html body{padding-bottom:137px!important}
 }
 </style>
 
+
 <script>
-/* FL27 V25 — stable bottom bar + correct reset semantics */
+/* FL27 V26 — SINGLE BOTTOM UI
+   The activity action is contextual: "WYKONAJ" appears only after
+   the player actually selects an activity. The navigation and the
+   activity control never share the same row, so nothing can overlap.
+*/
 (function(){
   const PLAYER_KEYS=[
     "FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL",
@@ -6489,82 +6494,213 @@ html body{padding-bottom:137px!important}
   ];
   const ALL_KEYS=/^FL27_/i;
 
-  /* Reset PLAYER only: settings stay, but the whole current life/character
-     is removed. Family generator will run again on New Game. */
   window.FL27_resetPlayer=function(){
-    if(!confirm("Resetuj tylko zawodnika?\n\nPostać, jej kariera, rodzina wygenerowana dla tej postaci, relacje, pieniądze i historia zostaną usunięte.\n\nUstawienia gry pozostaną bez zmian."))return;
-    try{PLAYER_KEYS.forEach(k=>localStorage.removeItem(k))}catch(e){}
-    try{
-      const st=JSON.parse(localStorage.getItem("FL27_V19_SETTINGS")||"{}");
-      localStorage.setItem("FL27_V19_SETTINGS",JSON.stringify(st));
-    }catch(e){}
+    if(!confirm("Resetuj tylko zawodnika?\\n\\nPostać, kariera, rodzina tej postaci, relacje, pieniądze i historia zostaną usunięte.\\n\\nUstawienia gry pozostaną.")) return;
+    try{PLAYER_KEYS.forEach(k=>localStorage.removeItem(k));}catch(e){}
     location.reload();
   };
-
   window.FL27_resetGame=function(){
-    if(!confirm("RESETUJ CAŁĄ GRĘ?\n\nZostanie usunięty cały zapis gry ORAZ ustawienia (wibracje, kolorystyka itd.)."))return;
-    try{
-      Object.keys(localStorage).filter(k=>ALL_KEYS.test(k)).forEach(k=>localStorage.removeItem(k));
-    }catch(e){}
+    if(!confirm("RESETUJ CAŁĄ GRĘ?\\n\\nZostaną usunięte wszystkie zapisy i ustawienia.")) return;
+    try{Object.keys(localStorage).filter(k=>ALL_KEYS.test(k)).forEach(k=>localStorage.removeItem(k));}catch(e){}
     location.reload();
   };
 
-  /* One clean bottom bar. No duplicated V17/V24 bars. */
   function mount(){
-    document.querySelectorAll(".v17-bottom,.v24-bottom,.fl27-v17-extra,.fl27-v24-extra,.fl27-v25-extra").forEach(x=>x.remove());
+    document.querySelectorAll(
+      ".v17-bottom,.v24-bottom,.v25-bottom,.fl27-v17-extra,.fl27-v24-extra,.fl27-v25-extra,.fl27-v26-extra"
+    ).forEach(x=>x.remove());
+
     const A=window.FL27_V17_ACTIONS||[];
     const V=window.FL27_V17||{};
-    const hour=Math.floor(Number(S?.hour||0));
-    const day=Math.round(Number(S?.day||1));
+    const hour=Math.floor(Number(window.S?.hour||0));
+    const day=Math.round(Number(window.S?.day||1));
     const rem=Math.max(0,22-hour);
     const selected=V.selected?A.find(a=>a.id===V.selected):null;
-    const preview=selected&&window.FL27_V17_preview?window.FL27_V17_preview(selected):"";
+
     const wrap=document.createElement("div");
-    wrap.className="fl27-v25-extra";
-    wrap.innerHTML=`<nav class="v25-bottom">
-      <div class="v25-time"><strong>${String(hour).padStart(2,"0")}:00</strong><span>Dzień ${day}</span><span>⏳ ${rem} h do 22:00</span></div>
-      <div class="v25-scroll">
-        ${A.map(a=>`<button type="button" onclick="FL27_V17_select('${a.id}')"><i>${a.icon}</i><b>${a.name}</b></button>`).join("")}
-        <button class="settings" type="button" onclick="renderSettings()"><i>⚙️</i><b>Ustawienia</b></button>
+    wrap.className="fl27-v26-extra";
+
+    const actionHTML=selected ? `
+      <div class="v26-context">
+        <div class="v26-context-text">
+          <strong>${selected.icon||"📋"} ${selected.name||"Aktywność"}</strong>
+          <small>${window.FL27_V17_preview ? window.FL27_V17_preview(selected) : "Sprawdź koszt i efekt przed wykonaniem."}</small>
+        </div>
+        <button class="v26-execute" type="button"
+          onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>
+      </div>` :
+      `<div class="v26-empty">Wybierz aktywność, aby zobaczyć jej czas i konsekwencje.</div>`;
+
+    wrap.innerHTML=`<nav class="v26-bottom">
+      <div class="v26-main">
+        <div class="v26-clock">
+          <strong>${String(hour).padStart(2,"0")}:00</strong>
+          <span>Dzień ${day}</span>
+          <span>⏳ ${rem} h do 22:00</span>
+        </div>
+
+        <div class="v26-actions" aria-label="Aktywności">
+          ${A.map(a=>`
+            <button type="button" class="${selected&&selected.id===a.id?"selected":""}"
+              onclick="FL27_V17_select('${a.id}')">
+              <i>${a.icon||"•"}</i><b>${a.name||"Aktywność"}</b>
+            </button>`).join("")}
+        </div>
       </div>
-      <div class="v25-detail">
-        ${selected?`<div><strong>${selected.icon} ${selected.name}</strong><small>${preview}</small></div><button class="execute" onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>`:
-        `<span>Wybierz aktywność, aby zobaczyć jej koszt i efekt.</span>`}
-      </div>
+
+      <div class="v26-context-row">${actionHTML}</div>
     </nav>`;
+
     document.body.appendChild(wrap);
   }
 
-  if(window.render&&!window.__FL27_V25_RENDER){
-    const old=window.render;window.__FL27_V25_RENDER=true;
-    window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(mount);return r;};
+  if(window.render && !window.__FL27_V26_RENDER){
+    const old=window.render;
+    window.__FL27_V26_RENDER=true;
+    window.render=function(){
+      const r=old.apply(this,arguments);
+      requestAnimationFrame(mount);
+      return r;
+    };
   }
-  setTimeout(mount,100);
+  setTimeout(mount,120);
 })();
 </script>
 <style>
-html body .fl27-v25-extra,html body .v25-bottom{
- position:fixed!important;left:0!important;right:0!important;bottom:0!important;
- width:100%!important;max-width:none!important;z-index:2147483647!important;
- box-sizing:border-box!important;margin:0!important;transform:none!important;
+/* Kill accidental legacy bottom overlays */
+html body .fl27-v26-extra{
+  position:fixed!important;
+  left:0!important;right:0!important;bottom:0!important;
+  width:100%!important;
+  z-index:2147483647!important;
+  box-sizing:border-box!important;
+  margin:0!important;padding:0!important;
+  transform:none!important;
 }
-.v25-bottom{
- background:rgba(8,11,17,.99);border-top:1px solid rgba(230,57,70,.32);
- box-shadow:0 -10px 30px rgba(0,0,0,.4);padding:7px 8px calc(8px + env(safe-area-inset-bottom));
- color:#fff;
+.v26-bottom{
+  width:100%;
+  box-sizing:border-box;
+  background:rgba(8,11,17,.99);
+  border-top:1px solid rgba(230,57,70,.30);
+  box-shadow:0 -12px 32px rgba(0,0,0,.40);
+  color:#fff;
+  padding:7px 8px calc(8px + env(safe-area-inset-bottom));
+  font-variant-numeric:tabular-nums;
 }
-.v25-time{height:20px;display:flex;align-items:center;gap:8px;white-space:nowrap}
-.v25-time strong{font-size:14px}.v25-time span{font-size:8px;opacity:.55}
-.v25-scroll{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 0 5px}
-.v25-scroll::-webkit-scrollbar{display:none}
-.v25-scroll button{flex:0 0 66px;height:43px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:#151b25;color:#fff;padding:3px;cursor:pointer}
-.v25-scroll i{display:block;font-style:normal;font-size:15px;line-height:16px}.v25-scroll b{font-size:7px;white-space:nowrap}
-.v25-scroll .settings{border-color:rgba(118,169,255,.35)}
-.v25-detail{height:39px;display:flex;align-items:center;gap:8px;border-radius:8px;background:rgba(255,255,255,.045);padding:4px 7px;box-sizing:border-box}
-.v25-detail>div{min-width:0;flex:1}.v25-detail strong{display:block;font-size:9px}.v25-detail small{display:block;font-size:7px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v25-detail>span{font-size:8px;opacity:.5}
-.v25-detail .execute{flex:0 0 auto;border:0;border-radius:7px;background:#d93445;color:#fff;font-size:8px;font-weight:900;padding:8px 11px}
-html body{padding-bottom:125px!important}
-@media(max-width:650px){html body{padding-bottom:132px!important}.v25-scroll button{flex-basis:61px}.v25-time span{font-size:7px}}
+.v26-main{min-width:0}
+.v26-clock{
+  height:20px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+.v26-clock strong{font-size:14px}
+.v26-clock span{font-size:8px;opacity:.55}
+
+.v26-actions{
+  display:flex;
+  gap:5px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:3px 0 5px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.v26-actions::-webkit-scrollbar{display:none}
+.v26-actions button{
+  flex:0 0 64px;
+  height:41px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;
+  background:#151b25;
+  color:#fff;
+  padding:3px 4px;
+  box-sizing:border-box;
+}
+.v26-actions button.selected{
+  border-color:rgba(230,57,70,.85);
+  background:rgba(230,57,70,.12);
+}
+.v26-actions i{
+  display:block;
+  font-style:normal;
+  font-size:14px;
+  line-height:15px;
+}
+.v26-actions b{
+  display:block;
+  font-size:7px;
+  line-height:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.v26-context-row{
+  min-height:40px;
+  margin-top:2px;
+}
+.v26-context{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:4px 6px;
+  box-sizing:border-box;
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+}
+.v26-context-text{
+  min-width:0;
+  flex:1;
+}
+.v26-context-text strong{
+  display:block;
+  font-size:9px;
+  line-height:12px;
+}
+.v26-context-text small{
+  display:block;
+  font-size:7px;
+  line-height:9px;
+  color:rgba(255,255,255,.60);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.v26-execute{
+  flex:0 0 auto;
+  border:0;
+  border-radius:7px;
+  background:#d93445;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+  padding:8px 12px;
+}
+.v26-empty{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  border-radius:8px;
+  background:rgba(255,255,255,.035);
+  color:rgba(255,255,255,.50);
+  font-size:8px;
+  text-align:center;
+  padding:5px 10px;
+}
+
+/* Reserve space so page content is never hidden behind the fixed panel. */
+html body{padding-bottom:122px!important}
+@media(max-width:650px){
+  html body{padding-bottom:128px!important}
+  .v26-clock{gap:6px}
+  .v26-clock span{font-size:7px}
+  .v26-actions button{flex-basis:61px}
+}
 </style>
 </body>
 </html>
