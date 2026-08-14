@@ -5538,5 +5538,855 @@ try{if(window.S?.started)render()}catch(e){}
 body{padding-bottom:145px!important}
 @media(max-width:650px){.v17-actions{grid-template-columns:repeat(5,1fr)}.v17-detail{grid-template-columns:1fr auto}.v17-detail small{grid-column:1/-1}.v17-detail button{grid-column:2}.v17-bottom{padding-bottom:calc(8px + env(safe-area-inset-bottom))}}
 </style>
+
+<script>
+/* FL27 V18 — bottom bar locked to viewport, not page/document */
+(function(){
+  function lockBottomBar(){
+    const bars=document.querySelectorAll(".v17-bottom");
+    bars.forEach(bar=>{
+      bar.style.setProperty("position","fixed","important");
+      bar.style.setProperty("left","0","important");
+      bar.style.setProperty("right","0","important");
+      bar.style.setProperty("bottom","0","important");
+      bar.style.setProperty("top","auto","important");
+      bar.style.setProperty("width","100%","important");
+      bar.style.setProperty("margin","0","important");
+      bar.style.setProperty("transform","none","important");
+      bar.style.setProperty("overflow","visible","important");
+      bar.style.setProperty("touch-action","none","important");
+    });
+  }
+
+  const oldRender=window.render;
+  if(oldRender && !window.__FL27_V18_RENDER){
+    window.__FL27_V18_RENDER=true;
+    window.render=function(){
+      const r=oldRender.apply(this,arguments);
+      requestAnimationFrame(lockBottomBar);
+      return r;
+    };
+  }
+
+  /* Re-lock after scrolling, resizing and mobile browser UI changes. */
+  window.addEventListener("scroll",lockBottomBar,{passive:true});
+  window.addEventListener("resize",lockBottomBar,{passive:true});
+  window.addEventListener("orientationchange",lockBottomBar,{passive:true});
+
+  /* Prevent accidental dragging/moving of the activity bar. */
+  document.addEventListener("touchstart",e=>{
+    if(e.target.closest?.(".v17-bottom")) e.stopPropagation();
+  },{passive:true});
+
+  document.addEventListener("pointerdown",e=>{
+    if(e.target.closest?.(".v17-bottom")) e.stopPropagation();
+  },true);
+
+  setTimeout(lockBottomBar,50);
+  setTimeout(lockBottomBar,300);
+})();
+</script>
+<style>
+/* Hard lock — the activity bar belongs to the viewport, not the scrolling page. */
+html body .fl27-v17-extra,
+html body .v17-bottom{
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  top:auto !important;
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  transform:none !important;
+  float:none !important;
+  clear:none !important;
+  z-index:2147483000 !important;
+  box-sizing:border-box !important;
+}
+html body .v17-bottom{
+  overflow:visible !important;
+  touch-action:none !important;
+}
+html body{
+  padding-bottom:150px !important;
+}
+@supports(padding-bottom: env(safe-area-inset-bottom)){
+  html body{padding-bottom:calc(150px + env(safe-area-inset-bottom)) !important}
+}
+</style>
+
+<script>
+/* ============================================================
+ FL27 V19 — SETTINGS + GENEALOGY + AUTHOR + INTERACTIVE BOTTOM BAR
+ ============================================================ */
+(function(){
+ const KEY="FL27_V19_SETTINGS";
+ let Z;try{Z=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){Z={}}
+ Z.vibration??=true; Z.theme??="original"; Z.genealogyOpen??=false;
+ window.FL27_SETTINGS=Z;
+ const save=()=>localStorage.setItem(KEY,JSON.stringify(Z));
+
+ const themes={
+  original:{name:"Oryginalny",accent:"#76a9ff",bg:"#0b1018"},
+  red:{name:"Czerwony",accent:"#e63946",bg:"#120b0e"},
+  green:{name:"Zielony",accent:"#39a96b",bg:"#09140e"}
+ };
+
+ function vibrate(pattern=[18,35,18]){
+   if(!Z.vibration)return;
+   try{if(navigator.vibrate)navigator.vibrate(pattern)}catch(e){}
+ }
+
+ /* Every mandatory decision can call this hook. */
+ window.FL27_decisionVibrate=vibrate;
+
+ window.FL27_applyTheme=function(){
+   const t=themes[Z.theme]||themes.original;
+   document.documentElement.style.setProperty("--fl-accent",t.accent);
+   document.documentElement.style.setProperty("--fl-bg",t.bg);
+   document.body.dataset.flTheme=Z.theme;
+   document.body.style.setProperty("--fl-accent",t.accent);
+   document.body.style.setProperty("--fl-bg",t.bg);
+   save();
+ };
+
+ window.FL27_resetPlayer=function(){
+   if(!confirm("Resetuj zawodnika? Zostanie usunięta bieżąca postać i jej historia."))return;
+   try{
+     Object.keys(localStorage).filter(k=>/FL27/i.test(k)).forEach(k=>localStorage.removeItem(k));
+   }catch(e){}
+   location.reload();
+ };
+
+ window.FL27_resetGame=function(){
+   if(!confirm("RESET GRY? Zostaną usunięte wszystkie zapisy, historia kariery, rodzina, FLgram i ustawienia."))return;
+   try{localStorage.clear()}catch(e){}
+   location.reload();
+ };
+
+ window.FL27_genealogy=function(){
+   Z.genealogyOpen=!Z.genealogyOpen;save();renderSettings();
+ };
+
+ function getFamily(){
+   const fam=window.FL27_V12||{};
+   const p=fam.partner;
+   const children=fam.children||[];
+   const parent=S?.parents||{};
+   return {p,children,parent};
+ }
+
+ function renderTree(){
+   const f=getFamily();
+   return `<div class="v19-tree">
+     <div class="tree-node self">⚽ <b>${esc19(S?.name||"Zawodnik")}</b><small>${esc19(S?.age||15)} lat</small></div>
+     <div class="tree-branch">
+       <div class="tree-node">👩 <b>${esc19(f.parent?.mother?.name||S?.motherName||"Mama")}</b><small>${esc19(f.parent?.mother?.job||"rodzic")}</small></div>
+       <div class="tree-node">👨 <b>${esc19(f.parent?.father?.name||S?.fatherName||"Tata")}</b><small>${esc19(f.parent?.father?.job||"rodzic")}</small></div>
+     </div>
+     ${f.p?`<div class="tree-branch"><div class="tree-node partner">❤️ <b>${esc19(f.p.name)}</b><small>${esc19(f.p.job)}</small></div></div>`:""}
+     ${f.children.length?`<div class="tree-children">${f.children.map(c=>`<div class="tree-node">👶 <b>${esc19(c.name)}</b><small>${c.age} lat • potencjał wzrostu ${c.traits?.heightPotential||"—"} cm</small></div>`).join("")}</div>`:""}
+   </div>`;
+ }
+
+ function esc19(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+ window.renderSettings=function(){
+   document.querySelectorAll(".v19-settings-overlay").forEach(x=>x.remove());
+   const t=themes[Z.theme]||themes.original;
+   const d=document.createElement("div");d.className="v19-settings-overlay";
+   d.innerHTML=`<div class="v19-modal">
+    <div class="v19-head"><b>⚙️ USTAWIENIA</b><button onclick="renderSettings()">×</button></div>
+
+    <section><h3>🔊 Rozgrywka</h3>
+      <div class="v19-row"><div><b>Wibracje decyzji</b><small>Krótka wibracja, gdy pojawia się decyzja wymagająca wyboru.</small></div>
+      <button class="v19-switch ${Z.vibration?"on":""}" onclick="FL27_SETTINGS.vibration=!FL27_SETTINGS.vibration;localStorage.setItem('FL27_V19_SETTINGS',JSON.stringify(FL27_SETTINGS));renderSettings()">${Z.vibration?"WŁ.":"WYŁ."}</button></div>
+    </section>
+
+    <section><h3>🎨 Wygląd</h3>
+      <div class="v19-themes">
+        ${Object.entries(themes).map(([id,x])=>`<button class="${Z.theme===id?"active":""}" style="--sw:${x.accent}" onclick="FL27_SETTINGS.theme='${id}';FL27_applyTheme();renderSettings()"><i></i>${x.name}</button>`).join("")}
+      </div>
+    </section>
+
+    <section><h3>🌳 Historia rodziny</h3>
+      <button class="v19-wide" onclick="FL27_genealogy()">🌳 ${Z.genealogyOpen?"Ukryj":"Pokaż"} drzewo genealogiczne</button>
+      ${Z.genealogyOpen?renderTree():""}
+    </section>
+
+    <section><h3>💾 Dane gry</h3>
+      <button class="v19-wide danger" onclick="FL27_resetPlayer()">↻ Resetuj zawodnika</button>
+      <button class="v19-wide danger2" onclick="FL27_resetGame()">⚠️ Resetuj całą grę</button>
+    </section>
+
+    <footer>Football Life 27<br><b>Stworzone przez Natalię</b><small>Twoja gra • offline • wersja V19</small></footer>
+   </div>`;
+   document.body.appendChild(d);
+ };
+
+ /* Make the bottom bar usable again: settings is a real button, while
+    the bar remains fixed. */
+ function addSettingsButton(){
+   const bar=document.querySelector(".v17-bottom");
+   if(!bar)return;
+   if(bar.querySelector(".v19-settings-btn"))return;
+   const btn=document.createElement("button");
+   btn.className="v19-settings-btn";
+   btn.innerHTML="<i>⚙️</i><span>Ustawienia</span>";
+   btn.onclick=()=>renderSettings();
+   const actions=bar.querySelector(".v17-actions");
+   if(actions)actions.appendChild(btn);
+   else bar.appendChild(btn);
+ }
+
+ if(window.render&&!window.__FL27_V19_RENDER){
+   const old=window.render;window.__FL27_V19_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     requestAnimationFrame(()=>{addSettingsButton();FL27_applyTheme()});
+     return r;
+   };
+ }
+
+ /* Decision vibration: observe forced decision panels and vibrate once. */
+ let lastDecision=false;
+ const observer=new MutationObserver(()=>{
+   const exists=!!document.querySelector(".v11-event-lock,.v15-event,[data-v15-choice]");
+   if(exists&&!lastDecision){vibrate();lastDecision=true}
+   if(!exists)lastDecision=false;
+   addSettingsButton();
+ });
+ observer.observe(document.documentElement,{subtree:true,childList:true});
+
+ FL27_applyTheme();
+ setTimeout(addSettingsButton,100);
+})();
+</script>
+<style>
+:root{--fl-accent:#76a9ff;--fl-bg:#0b1018}
+.v19-settings-btn{border:1px solid rgba(255,255,255,.08)!important;background:#141a23!important;color:#fff!important;border-radius:8px!important;padding:5px 3px!important;min-height:40px!important;cursor:pointer!important}
+.v19-settings-btn i{font-style:normal;font-size:15px;display:block}.v19-settings-btn span{font-size:8px;display:block;margin-top:2px}
+.v19-settings-overlay{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.68);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+.v19-modal{width:min(620px,100%);max-height:88vh;overflow:auto;border:1px solid color-mix(in srgb,var(--fl-accent),transparent 50%);border-radius:18px;background:#10151e;color:#fff;box-shadow:0 25px 70px rgba(0,0,0,.55);padding:15px}
+.v19-head{display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:7px}.v19-head button{background:transparent;border:0;color:#fff;font-size:24px;cursor:pointer}
+.v19-modal section{padding:11px 0;border-top:1px solid rgba(255,255,255,.07)}.v19-modal h3{margin:0 0 9px;font-size:12px}
+.v19-row{display:flex;justify-content:space-between;gap:12px;align-items:center}.v19-row small,.tree-node small,.v19-modal footer small{display:block;opacity:.58;font-size:9px;line-height:1.4;margin-top:3px}
+.v19-switch{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 12px;background:#202733;color:#fff;font-weight:800}.v19-switch.on{background:var(--fl-accent)}
+.v19-themes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.v19-themes button{padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#181e28;color:#fff}.v19-themes button.active{border-color:var(--sw);box-shadow:0 0 0 1px var(--sw)}.v19-themes i{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--sw);vertical-align:-2px;margin-right:5px}
+.v19-wide{width:100%;padding:10px;margin:4px 0;border-radius:9px;border:1px solid rgba(255,255,255,.09);background:#171d27;color:#fff;text-align:left}.v19-wide.danger{border-color:rgba(255,170,0,.35)}.v19-wide.danger2{border-color:rgba(230,57,70,.45)}
+.v19-modal footer{text-align:center;border-top:1px solid rgba(255,255,255,.07);margin-top:10px;padding-top:13px;font-size:10px;opacity:.65}
+.v19-tree{display:grid;gap:8px;margin-top:9px}.tree-branch,.tree-children{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding-left:18px;border-left:1px solid rgba(255,255,255,.12)}.tree-children{grid-template-columns:repeat(3,1fr)}.tree-node{padding:9px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);font-size:10px}.tree-node.self{border-color:var(--fl-accent);background:color-mix(in srgb,var(--fl-accent),transparent 90%)}.tree-node.partner{border-color:rgba(230,57,70,.35)}
+body[data-fl-theme="red"]{--fl-accent:#ff2438;--fl-bg:#13090c}body[data-fl-theme="red"] .v19-modal{background:#140b0e}
+body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-theme="green"] .v19-modal{background:#0b160f}
+@media(max-width:600px){.v19-modal{max-height:84vh}.v19-themes{grid-template-columns:1fr}.tree-children{grid-template-columns:1fr}}
+</style>
+
+<script>
+/* ============================================================
+ FL27 V20 — NEW GAME HUB
+ "Nowa gra Auto" = everything generated.
+ "Nowa gra +" = player chooses identity; parents/country/family
+ are generated according to the game's rules.
+ Reset player returns to this hub instead of starting mid-game.
+ ============================================================ */
+(function(){
+ const HUBKEY="FL27_V20_NEW_GAME";
+ const SAVE_KEYS=[
+  "FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL",
+  "FL27_V13_POSITION","FL27_V16_TIME","FL27_V17_ACTIVITY","FL27_V19_SETTINGS"
+ ];
+ let H;try{H=JSON.parse(localStorage.getItem(HUBKEY)||"{}")}catch(e){H={}}
+ H.mode??=null;
+ H.ready??=false;
+ window.FL27_NEW_GAME=H;
+ const save=()=>localStorage.setItem(HUBKEY,JSON.stringify(H));
+ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+ window.FL27_showNewGame=function(){
+   document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+   const d=document.createElement("div");d.className="v20-hub-overlay";
+   d.innerHTML=`<div class="v20-hub">
+    <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
+    <div class="v20-kicker">NOWA KARIERA</div>
+    <h1>Jak chcesz rozpocząć?</h1>
+    <p>Możesz oddać swoje życie generatorowi albo stworzyć zawodnika samodzielnie. W obu trybach cała historia będzie później rozwijać się dynamicznie.</p>
+    <div class="v20-modes">
+      <button onclick="FL27_startAuto()">
+        <strong>🎲 NOWA GRA AUTO</strong>
+        <span>Losuje wszystko: imię, nazwisko, płeć, zainteresowanie, rodziców, kraj pochodzenia, miejsce zamieszkania, pozycję, klub i początkową sytuację rodzinną.</span>
+      </button>
+      <button onclick="FL27_startPlus()">
+        <strong>✨ NOWA GRA +</strong>
+        <span>Ty wybierasz swoją postać: imię, nazwisko, płeć, płeć osób, które Cię interesują, a następnie podstawowe elementy startu. Rodzice i ich historia nadal są generowane przez grę.</span>
+      </button>
+    </div>
+    <small>Twoje wybory są zapisywane offline.</small>
+   </div>`;
+   document.body.appendChild(d);
+ };
+
+ function clearGame(){
+   try{SAVE_KEYS.forEach(k=>localStorage.removeItem(k))}catch(e){}
+   /* Keep settings so changing player does not reset the UI preferences. */
+   H={mode:null,ready:false};save();
+ }
+
+ window.FL27_startAuto=function(){
+   clearGame();
+   H.mode="auto";H.ready=true;save();
+   location.reload();
+ };
+
+ window.FL27_startPlus=function(){
+   clearGame();
+   H.mode="plus";H.ready=false;save();
+   FL27_showCreator();
+ };
+
+ window.FL27_showCreator=function(){
+   document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+   const d=document.createElement("div");d.className="v20-hub-overlay";
+   d.innerHTML=`<div class="v20-hub v20-creator">
+    <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
+    <div class="v20-kicker">NOWA GRA +</div>
+    <h1>Stwórz swojego zawodnika</h1>
+    <p>Nie wybierasz jeszcze rodziców ani ich kraju. To wygeneruje życie rodzinne gry.</p>
+    <label>Imię<input id="v20-first" maxlength="24" placeholder="np. Alex"></label>
+    <label>Nazwisko<input id="v20-last" maxlength="30" placeholder="np. Silva"></label>
+    <div class="v20-grid">
+      <label>Płeć<select id="v20-gender"><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+      <label>Płeć osób, które Cię interesują<select id="v20-orientation">
+        <option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na tym etapie nie określam</option>
+      </select></label>
+    </div>
+    <div class="v20-note">🌍 Kraj pochodzenia rodziców, ich zawody, sytuacja rodzinna, miejsce zamieszkania, pozycja i klub zostaną wygenerowane zgodnie z zasadami świata gry.</div>
+    <button class="v20-confirm" onclick="FL27_confirmPlus()">ROZPOCZNIJ KARIERĘ</button>
+    <button class="v20-back" onclick="FL27_showNewGame()">← Wróć</button>
+   </div>`;
+   document.body.appendChild(d);
+ };
+
+ window.FL27_confirmPlus=function(){
+   const first=document.getElementById("v20-first")?.value.trim();
+   const last=document.getElementById("v20-last")?.value.trim();
+   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
+   H.player={first,last,gender:document.getElementById("v20-gender").value,orientation:document.getElementById("v20-orientation").value};
+   H.ready=true;save();location.reload();
+ };
+
+ /* Reset button from V19 now returns to the New Game hub. */
+ window.FL27_resetPlayer=function(){
+   if(!confirm("Usunąć tego zawodnika i rozpocząć nową karierę?"))return;
+   clearGame();
+   FL27_showNewGame();
+ };
+
+ /* The master game can read this configuration when its generator initializes. */
+ window.FL27_getNewGameConfig=function(){return H};
+
+ /* Show the hub automatically when there is no active save. */
+ function shouldShow(){
+   try{
+     const has=localStorage.getItem("FL27_ALL_IN_ONE_V14")||localStorage.getItem("FL27_ACTIVE_PLAYER");
+     return !has && !H.ready;
+   }catch(e){return !H.ready}
+ }
+
+ if(shouldShow())setTimeout(FL27_showNewGame,80);
+})();
+</script>
+<style>
+.v20-hub-overlay{position:fixed;inset:0;z-index:2147483646;background:radial-gradient(circle at 50% 20%,rgba(118,169,255,.10),rgba(4,7,12,.97) 58%);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.v20-hub{width:min(650px,100%);padding:24px;border-radius:22px;border:1px solid rgba(255,255,255,.10);background:#0f151e;color:#fff;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.v20-logo{font-size:13px;letter-spacing:.04em;margin-bottom:25px}.v20-logo i{font-style:normal;color:var(--fl-accent,#76a9ff)}
+.v20-kicker{font-size:10px;letter-spacing:.18em;font-weight:900;opacity:.5}.v20-hub h1{font-size:27px;margin:6px 0 9px}.v20-hub>p{font-size:12px;line-height:1.5;color:#bfc7d3}
+.v20-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.v20-modes button{padding:18px;text-align:left;border-radius:15px;border:1px solid rgba(255,255,255,.10);background:#171e28;color:#fff;cursor:pointer}.v20-modes button:hover{border-color:var(--fl-accent,#76a9ff);transform:translateY(-1px)}.v20-modes strong{display:block;font-size:14px;margin-bottom:8px}.v20-modes span{display:block;font-size:10px;line-height:1.5;opacity:.65}.v20-hub>small{display:block;margin-top:14px;opacity:.4;font-size:9px}
+.v20-creator label{display:grid;gap:5px;font-size:10px;font-weight:800;margin-top:10px}.v20-creator input,.v20-creator select{padding:11px;border-radius:9px;border:1px solid rgba(255,255,255,.10);background:#181f29;color:#fff;outline:none}.v20-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.v20-note{margin-top:13px;padding:11px;border-radius:10px;background:rgba(118,169,255,.06);font-size:10px;line-height:1.45;opacity:.75}.v20-confirm{width:100%;margin-top:14px;padding:13px;border:0;border-radius:10px;background:var(--fl-accent,#76a9ff);color:#081018;font-weight:900;cursor:pointer}.v20-back{display:block;margin:9px auto 0;background:transparent;border:0;color:#fff;opacity:.55;font-size:10px}
+@media(max-width:650px){.v20-modes{grid-template-columns:1fr}.v20-hub{padding:18px}.v20-grid{grid-template-columns:1fr}.v20-hub h1{font-size:23px}}
+</style>
+
+<script>
+/* ============================================================
+ FL27 V21 — MASTER MERGE: DYNAMIC ROMANTIC PREFERENCE
+ + SETTINGS + NEW GAME HUB + FULL PERSISTENCE
+ ============================================================ */
+(function(){
+ const KEY="FL27_V21_PROFILE";
+ let P;try{P=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){P={}}
+ P.romanticPreference??=null;
+ P.preferenceHistory??=[];
+ window.FL27_V21=P;
+ const save=()=>localStorage.setItem(KEY,JSON.stringify(P));
+ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+ const labels={
+  K:"👩 Kobiety",
+  M:"👨 Mężczyźni",
+  B:"❤️ Kobiety i mężczyźni",
+  N:"🌱 Odkrywam / jeszcze nie wiem",
+  X:"🚫 Brak zainteresowania związkiem"
+ };
+
+ window.FL27_setRomanticPreference=function(v){
+   if(!labels[v])return;
+   const old=P.romanticPreference;
+   if(old!==v){
+     P.preferenceHistory.push({day:Number(S?.day||1),age:Number(S?.age||15),from:old,to:v});
+     P.romanticPreference=v;
+   }
+   save();
+   /* Keep New Game + player config in sync without erasing relationships. */
+   try{
+     const hub=JSON.parse(localStorage.getItem("FL27_V20_NEW_GAME")||"{}");
+     if(hub.player){hub.player.orientation=v;localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(hub))}
+   }catch(e){}
+   try{renderSettings()}catch(e){}
+ };
+
+ window.FL27_getRomanticPreference=function(){
+   return P.romanticPreference||"N";
+ };
+
+ window.FL27_renderRomanticSetting=function(){
+   const current=P.romanticPreference||"N";
+   return `<section class="v21-romantic"><h3>❤️ Relacje romantyczne</h3>
+    <div class="v21-romantic-note">To ustawienie wpływa na przyszłe możliwości romantyczne i wydarzenia. Nie usuwa wcześniejszych relacji ani partnerów.</div>
+    <div class="v21-romantic-options">
+      ${Object.entries(labels).map(([id,label])=>`<button class="${current===id?"active":""}" onclick="FL27_setRomanticPreference('${id}')">${esc(label)}</button>`).join("")}
+    </div>
+   </section>`;
+ };
+
+ /* Inject into the existing V19 settings modal without replacing it. */
+ const oldSettings=window.renderSettings;
+ if(oldSettings&&!window.__FL27_V21_SETTINGS){
+   window.__FL27_V21_SETTINGS=true;
+   window.renderSettings=function(){
+     oldSettings.apply(this,arguments);
+     try{
+       const modal=document.querySelector(".v19-modal");
+       if(!modal)return;
+       const old=modal.querySelector(".v21-romantic");
+       if(old)old.remove();
+       const wrap=document.createElement("div");
+       wrap.innerHTML=FL27_renderRomanticSetting();
+       const firstSection=modal.querySelector("section");
+       if(firstSection)modal.insertBefore(wrap.firstElementChild,firstSection);
+       else modal.appendChild(wrap.firstElementChild);
+     }catch(e){}
+   };
+ }
+
+ /* New Game + uses the same canonical preference. */
+ const oldConfirm=window.FL27_confirmPlus;
+ if(oldConfirm&&!window.__FL27_V21_CONFIRM){
+   window.__FL27_V21_CONFIRM=true;
+   window.FL27_confirmPlus=function(){
+     const select=document.getElementById("v20-orientation");
+     if(select)P.romanticPreference=select.value;
+     save();
+     return oldConfirm.apply(this,arguments);
+   };
+ }
+
+ /* Auto mode gets a randomized preference if none exists.
+    "N" remains a legitimate result. */
+ if(window.FL27_startAuto&&!window.__FL27_V21_AUTO){
+   const oldAuto=window.FL27_startAuto;
+   window.__FL27_V21_AUTO=true;
+   window.FL27_startAuto=function(){
+     const vals=["K","M","B","N","X"];
+     P.romanticPreference=vals[Math.floor(Math.random()*vals.length)];
+     save();
+     return oldAuto.apply(this,arguments);
+   };
+ }
+
+ save();
+})();
+</script>
+<style>
+.v21-romantic-note{font-size:9px;line-height:1.45;opacity:.58;margin-bottom:8px}.v21-romantic-options{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.v21-romantic-options button{padding:9px;border-radius:9px;border:1px solid rgba(255,255,255,.09);background:#171d27;color:#fff;text-align:left;font-size:10px}.v21-romantic-options button.active{border-color:var(--fl-accent,#76a9ff);box-shadow:0 0 0 1px var(--fl-accent,#76a9ff)}
+@media(max-width:600px){.v21-romantic-options{grid-template-columns:1fr}}
+</style>
+
+<script>
+/* ============================================================
+ FL27 V22 — SCOUTING / ACADEMY PIPELINE / CONTRACTS / LOANS /
+ LUXURY ECONOMY
+ Realism layer: offers are generated from age, club level, OVR,
+ position, form, reputation, geography and performance.
+ ============================================================ */
+(function(){
+ const KEY="FL27_V22_CAREER";
+ let C;try{C=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){C={}}
+ C.scouting??={watched:[],offers:[],tests:[],history:[]};
+ C.contract??=null; C.loans??=[]; C.assets??=[];
+ C.negotiations??=[]; C.market??={};
+ window.FL27_CAREER=C;
+ const save=()=>localStorage.setItem(KEY,JSON.stringify(C));
+ const n=k=>Number(S?.[k]||0);
+ const age=()=>Number(S?.age||15), day=()=>Number(S?.day||1);
+ const pos=()=>String(S?.pos||S?.position||"").toLowerCase();
+ const ovr=()=>Number(S?.ovr??S?.overall??S?.skill??50);
+ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+ /* Club tiers deliberately use broad ranges, not a fake universal salary.
+    Youth players receive much smaller amounts; professional wages rise
+    with league/club level and performance. */
+ const tiers={
+   grassroots:{name:"Grassroots",youth:0,pro:[400,1800]},
+   academy:{name:"Akademia regionalna",youth:[0,150],pro:[700,3500]},
+   pro2:{name:"Profesjonalny niższy poziom",youth:[50,300],pro:[1200,8000]},
+   pro1:{name:"Profesjonalny krajowy",youth:[100,500],pro:[4000,25000]},
+   top:{name:"Top europejski",youth:[250,1000],pro:[15000,120000]},
+   elite:{name:"Światowa czołówka",youth:[500,2000],pro:[50000,1000000]}
+ };
+ window.FL27_CLUB_TIERS=tiers;
+
+ function tierFromOVR(){
+   const x=ovr();
+   if(x<40)return"grassroots"; if(x<55)return"academy"; if(x<65)return"pro2";
+   if(x<75)return"pro1"; if(x<85)return"top"; return"elite";
+ }
+ function rand(a,b){return Math.round(a+Math.random()*(b-a))}
+ function cityDistance(){return rand(10,450)}
+
+ /* Academy scouting can occur after only a few days at 15, but probability
+    depends heavily on actual performance rather than age alone. */
+ window.FL27_generateScouting=function(trigger="match"){
+   if(age()<15||age()>18)return null;
+   const clubLevel=tierFromOVR();
+   const p=Math.min(.45,
+      .015 + Math.max(0,ovr()-45)*.008 +
+      Math.max(0,n("pr"))*.001 +
+      (trigger==="tournament"?.08:0) +
+      (trigger==="camp"?.06:0) +
+      (trigger==="match"?.04:0)
+   );
+   if(Math.random()>p)return null;
+
+   const level=Math.min(5,Math.max(1,
+      Math.floor((ovr()+n("pr")*.25)/18)+Math.floor(Math.random()*2)
+   ));
+   const names=[
+    ["Sporting CP","Portugalia"],["FC Porto","Portugalia"],["SL Benfica","Portugalia"],
+    ["Real Betis","Hiszpania"],["Sevilla FC","Hiszpania"],["Valencia CF","Hiszpania"],
+    ["Olympique Lyonnais","Francja"],["LOSC Lille","Francja"],["RC Strasbourg","Francja"],
+    ["Ajax","Holandia"],["PSV","Holandia"],["Anderlecht","Belgia"],
+    ["Borussia Dortmund","Niemcy"],["RB Leipzig","Niemcy"],["Atalanta","Włochy"]
+   ];
+   const [club,country]=names[rand(0,names.length-1)];
+   const type=age()<16?"zaproszenie na obserwację / testy":age()<17?"testy akademii":"oferta rozwoju / akademii";
+   const offer={id:"sc_"+Date.now(),day:day(),age:age(),club,country,type,
+      trigger,position:pos(),distance:cityDistance(),
+      status:"pending",deadline:day()+rand(3,14),
+      notes:trigger==="tournament"?"Skaut zauważył Cię podczas turnieju.":trigger==="camp"?"Obserwacja podczas obozu sportowego.":"Obserwacja po meczu."
+   };
+   C.scouting.offers.unshift(offer);C.scouting.history.push({...offer});
+   save();return offer;
+ };
+
+ /* Tests require time and can be accepted/refused. For minors the game
+    creates parent/guardian approval as a separate decision. */
+ window.FL27_acceptScouting=function(id){
+   const o=C.scouting.offers.find(x=>x.id===id);if(!o)return;
+   o.status="accepted";o.testDate=day()+rand(2,7);
+   C.scouting.tests.push({offerId:id,day:o.testDate,club:o.club,status:"scheduled"});
+   save();
+ };
+
+ window.FL27_declineScouting=function(id){
+   const o=C.scouting.offers.find(x=>x.id===id);if(o)o.status="declined";save();
+ };
+
+ /* Contract negotiation: salary + signing bonus + appearance/goal bonuses +
+    housing + transport + release clause + duration + loan/role. */
+ window.FL27_makeContractOffer=function(club,contractTier=tierFromOVR()){
+   const t=tiers[contractTier]||tiers.academy;
+   const range=Array.isArray(t.pro)?t.pro:[0,0];
+   const base=rand(range[0],Math.max(range[0],range[1]));
+   const isMinor=age()<18;
+   return {
+    club,duration:rand(2,5),grossMonthly:base,
+    signingBonus:rand(0,Math.max(0,base*2)),
+    appearanceBonus:rand(0,Math.max(0,base*.25)),
+    goalBonus:/napastnik|striker|9|cf/.test(pos())?rand(0,Math.max(0,base*.15)):rand(0,Math.max(0,base*.08)),
+    assistBonus:/pomocnik|skrzydłowy|winger/.test(pos())?rand(0,Math.max(0,base*.12)):rand(0,Math.max(0,base*.05)),
+    cleanSheetBonus:/bramkarz|obrońca/.test(pos())?rand(0,Math.max(0,base*.12)):0,
+    housing:isMinor||Math.random()<.5,
+    transport:Math.random()<.55,
+    education:isMinor,
+    releaseClause:base>10000?rand(base*50,base*250):null,
+    imageRights:base>30000?rand(base*.1,base*1.5):0,
+    status:"proposal"
+   };
+ };
+
+ window.FL27_startNegotiation=function(club,tier){
+   const offer=FL27_makeContractOffer(club,tier);
+   offer.id="neg_"+Date.now();offer.day=day();
+   C.negotiations.unshift(offer);save();return offer;
+ };
+
+ window.FL27_acceptContract=function(id){
+   const o=C.negotiations.find(x=>x.id===id);if(!o)return;
+   o.status="accepted";C.contract=o;
+   S.money=Number(S.money||0)+(o.signingBonus||0);
+   save();
+ };
+
+ window.FL27_counterContract=function(id,changes){
+   const o=C.negotiations.find(x=>x.id===id);if(!o)return;
+   Object.assign(o,changes||{});o.status="counter";o.counterDay=day();save();
+ };
+
+ window.FL27_rejectContract=function(id){
+   const o=C.negotiations.find(x=>x.id===id);if(o)o.status="rejected";save();
+ };
+
+ /* Loans can be initiated by player or offered by club. Both sides can refuse.
+    Purchase option / obligation is modelled separately. */
+ window.FL27_makeLoanOffer=function(club,months=12){
+   const o={id:"loan_"+Date.now(),club,months,
+      salaryShare:rand(20,100),housing:Math.random()<.5,
+      purchaseOption:Math.random()<.55,purchaseObligation:Math.random()<.12,
+      status:"proposal",direction:"club"};
+   C.loans.unshift(o);save();return o;
+ };
+ window.FL27_requestLoan=function(club,months=12){
+   const o={id:"loan_req_"+Date.now(),club,months,
+      salaryShare:rand(20,80),purchaseOption:false,purchaseObligation:false,
+      status:"requested",direction:"player"};
+   C.loans.unshift(o);save();return o;
+ };
+ window.FL27_answerLoan=function(id,yes){
+   const o=C.loans.find(x=>x.id===id);if(!o)return;
+   o.status=yes?"accepted":"declined";save();
+ };
+
+ /* Luxury catalogue: huge price spread, but no instant free supercar.
+    Purchases remain meaningful only after wealth is actually earned. */
+ const luxury=[
+  {id:"sports_car",name:"Luksusowy samochód sportowy",min:120000,max:450000,benefit:"PR + mobilność"},
+  {id:"hypercar",name:"Hipersamochód",min:900000,max:5000000,benefit:"PR + prestiż"},
+  {id:"penthouse",name:"Penthouse w topowej lokalizacji",min:1500000,max:12000000,benefit:"komfort + PR"},
+  {id:"villa",name:"Luksusowa willa",min:800000,max:15000000,benefit:"komfort + rodzina + PR"},
+  {id:"private_jet",name:"Prywatny odrzutowiec",min:15000000,max:80000000,benefit:"czas podróży + PR"},
+  {id:"yacht",name:"Jacht",min:5000000,max:100000000,benefit:"luksus + PR"},
+  {id:"island",name:"Prywatna wyspa",min:20000000,max:500000000,benefit:"prestiż + PR"},
+  {id:"football_club",name:"Udziały / własny klub",min:10000000,max:1000000000,benefit:"biznes + PR"},
+  {id:"private_training_centre",name:"Prywatne centrum treningowe",min:3000000,max:80000000,benefit:"rozwój + biznes"},
+  {id:"art_collection",name:"Kolekcja sztuki / zegarków",min:250000,max:20000000,benefit:"prestiż + inwestycja"}
+ ];
+ window.FL27_LUXURY=luxury;
+ window.FL27_buyLuxury=function(id){
+   const item=luxury.find(x=>x.id===id);if(!item)return false;
+   const price=rand(item.min,item.max);
+   if(Number(S?.money||0)<price)return false;
+   S.money-=price;C.assets.push({id:item.id,name:item.name,price,day:day(),benefit:item.benefit});
+   if(S.pr!=null)S.pr=Math.min(100,Number(S.pr)+Math.min(5,Math.log10(price)));
+   save();return true;
+ };
+
+ window.FL27_renderCareerMarket=function(){
+   const offers=C.scouting.offers.filter(x=>x.status==="pending").slice(0,5);
+   const neg=C.negotiations.filter(x=>["proposal","counter"].includes(x.status)).slice(0,3);
+   const loans=C.loans.filter(x=>["proposal","requested"].includes(x.status)).slice(0,3);
+   return `<div class="card v22-career"><div class="section-title"><b>📨 Kariera i rynek</b><span>scouting • kontrakty • wypożyczenia</span></div>
+   ${offers.length?`<h4>🔎 Zainteresowanie klubów</h4>${offers.map(o=>`<div class="v22-offer"><b>${esc(o.club)}</b><small>${esc(o.type)} • ${esc(o.country)} • ${o.notes} • odpowiedź do dnia ${o.deadline}</small><div><button onclick="FL27_acceptScouting('${o.id}')">Przyjmuję</button><button onclick="FL27_declineScouting('${o.id}')">Odrzucam</button></div></div>`).join("")}`:"<p class=sub>Brak nowych ofert. Skauci mogą pojawić się na meczach, turniejach, obozach i przez obserwację.</p>"}
+   ${neg.length?`<h4>📝 Negocjacje</h4>${neg.map(o=>`<div class=v22-offer><b>${esc(o.club)}</b><small>€${Math.round(o.grossMonthly).toLocaleString("pl-PL")}/mies. • ${o.duration} lat • premia za podpis €${Math.round(o.signingBonus).toLocaleString("pl-PL")}${o.housing?" • mieszkanie":""}${o.transport?" • transport":""}${o.releaseClause?" • klauzula €"+Math.round(o.releaseClause).toLocaleString("pl-PL"):""}</small><div><button onclick="FL27_acceptContract('${o.id}')">Akceptuj</button><button onclick="FL27_counterContract('${o.id}',{grossMonthly:Math.round(${o.grossMonthly}*1.12)})">Kontroferta +12%</button><button onclick="FL27_rejectContract('${o.id}')">Odrzuć</button></div></div>`).join("")}`:""}
+   ${loans.length?`<h4>🔄 Wypożyczenia</h4>${loans.map(o=>`<div class=v22-offer><b>${esc(o.club)}</b><small>${o.direction==="player"?"Ty poprosiłeś/aś o wypożyczenie":"Klub proponuje wypożyczenie"} • ${o.months} mies. • klub pokrywa ${o.salaryShare}% pensji${o.purchaseOption?" • opcja wykupu":""}${o.purchaseObligation?" • obowiązek wykupu":""}</small><div><button onclick="FL27_answerLoan('${o.id}',true)">Zgadzam się</button><button onclick="FL27_answerLoan('${o.id}',false)">Odrzucam</button></div></div>`).join("")}`:""}</div>`;
+ };
+
+ window.FL27_renderLuxury=function(){
+   return `<div class="card v22-lux"><div class="section-title"><b>💎 Wielkie wydatki</b><span>od luksusu po ekstremalne majątki</span></div>
+   ${luxury.map(x=>`<div class="v22-lux-row"><div><b>${esc(x.name)}</b><small>€${x.min.toLocaleString("pl-PL")} – €${x.max.toLocaleString("pl-PL")} • ${esc(x.benefit)}</small></div><button onclick="FL27_buyLuxury('${x.id}')">Kup / sprawdź cenę</button></div>`).join("")}</div>`;
+ };
+
+ /* Generate scouting around high-signal football events. */
+ if(window.advance&&!window.__FL27_V22_ADV){
+   const old=window.advance;window.__FL27_V22_ADV=true;
+   window.advance=function(h){
+     const before=day(),r=old.apply(this,arguments),after=day();
+     if(age()>=15&&age()<=18&&Math.random()<.35){
+       try{window.FL27_generateScouting(["match","tournament","camp"][rand(0,2)])}catch(e){}
+     }
+     return r;
+   };
+ }
+
+ if(window.render&&!window.__FL27_V22_RENDER){
+   const old=window.render;window.__FL27_V22_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     try{
+       const host=document.querySelector("main")||document.body;
+       document.querySelectorAll(".fl27-v22-extra").forEach(x=>x.remove());
+       const d=document.createElement("div");d.className="fl27-v22-extra";
+       d.innerHTML=FL27_renderCareerMarket()+FL27_renderLuxury();
+       host.appendChild(d);
+     }catch(e){}
+     return r;
+   };
+ }
+ save();
+})();
+</script>
+<style>
+.v22-career h4{font-size:10px;margin:10px 0 5px}.v22-offer{padding:9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);margin:6px 0}.v22-offer b{font-size:11px}.v22-offer small,.v22-lux-row small{display:block;font-size:9px;opacity:.62;line-height:1.4;margin:3px 0 6px}.v22-offer button,.v22-lux-row button{border:1px solid rgba(255,255,255,.09);background:#171d27;color:#fff;border-radius:7px;padding:6px 8px;font-size:8px;margin:2px}.v22-lux-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.v22-lux-row>b{font-size:10px}
+</style>
+
+<script>
+/* ============================================================
+ FL27 V23 — GLOBAL FOOTBALL WORLD
+ Real leagues/countries + market profiles + Saudi/MLS/etc.
+ This layer feeds scouting, salary and transfer logic.
+ ============================================================ */
+(function(){
+ const KEY="FL27_V23_GLOBAL";
+ let G;try{G=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){G={}}
+ G.version=23; G.transferHistory??=[]; G.marketEvents??=[];
+ window.FL27_GLOBAL=G;
+ const save=()=>localStorage.setItem(KEY,JSON.stringify(G));
+ const rand=(a,b)=>Math.round(a+Math.random()*(b-a));
+ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+ /* Broad market profiles. Values are relative simulation parameters,
+    not claims that every club in a league pays the same amount. */
+ const markets={
+  "Premier League":{country:"Anglia",level:98,money:100,scouting:98,prestige:100,exposure:100,cost:95},
+  "LaLiga":{country:"Hiszpania",level:96,money:92,scouting:97,prestige:99,exposure:98,cost:90},
+  "Bundesliga":{country:"Niemcy",level:95,money:88,scouting:96,prestige:97,exposure:94,cost:82},
+  "Serie A":{country:"Włochy",level:94,money:84,scouting:95,prestige:96,exposure:93,cost:85},
+  "Ligue 1":{country:"Francja",level:91,money:78,scouting:94,prestige:92,exposure:88,cost:80},
+  "Liga Portugal":{country:"Portugalia",level:84,money:55,scouting:91,prestige:83,exposure:78,cost:68},
+  "Eredivisie":{country:"Holandia",level:83,money:55,scouting:94,prestige:84,exposure:78,cost:67},
+  "Belgium":{country:"Belgia",level:78,money:48,scouting:86,prestige:76,exposure:69,cost:63},
+  "Austria":{country:"Austria",level:72,money:42,scouting:78,prestige:69,exposure:61,cost:60},
+  "Switzerland":{country:"Szwajcaria",level:75,money:52,scouting:76,prestige:71,exposure:64,cost:78},
+  "Polska":{country:"Polska",level:67,money:25,scouting:72,prestige:61,exposure:58,cost:45},
+  "Turcja":{country:"Turcja",level:76,money:58,scouting:78,prestige:76,exposure:74,cost:52},
+  "Grecja":{country:"Grecja",level:68,money:35,scouting:67,prestige:66,exposure:61,cost:48},
+  "Czechy":{country:"Czechy",level:70,money:31,scouting:73,prestige:64,exposure:57,cost:46},
+  "Dania":{country:"Dania",level:69,money:38,scouting:77,prestige:65,exposure:59,cost:61},
+  "Szwecja":{country:"Szwecja",level:66,money:33,scouting:72,prestige:61,exposure:55,cost:65},
+  "Norwegia":{country:"Norwegia",level:68,money:44,scouting:71,prestige:63,exposure:58,cost:82},
+  "Chorwacja":{country:"Chorwacja",level:73,money:30,scouting:82,prestige:72,exposure:58,cost:45},
+  "Serbia":{country:"Serbia",level:67,money:22,scouting:75,prestige:60,exposure:51,cost:40},
+  "Rumunia":{country:"Rumunia",level:65,money:22,scouting:67,prestige:58,exposure:49,cost:42},
+  "Ukraina":{country:"Ukraina",level:68,money:27,scouting:72,prestige:63,exposure:50,cost:39},
+  "Saudi Pro League":{country:"Arabia Saudyjska",level:80,money:100,scouting:70,prestige:82,exposure:89,cost:65},
+  "Qatar Stars League":{country:"Katar",level:64,money:88,scouting:52,prestige:62,exposure:66,cost:55},
+  "UAE Pro League":{country:"ZEA",level:65,money:82,scouting:55,prestige:64,exposure:69,cost:66},
+  "MLS":{country:"USA",level:78,money:74,scouting:79,prestige:78,exposure:92,cost:88},
+  "China":{country:"Chiny",level:65,money:72,scouting:46,prestige:54,exposure:60,cost:48},
+  "J1 League":{country:"Japonia",level:76,money:55,scouting:67,prestige:71,exposure:73,cost:70},
+  "K League":{country:"Korea Południowa",level:72,money:44,scouting:61,prestige:65,exposure:66,cost:62},
+  "A-League":{country:"Australia",level:65,money:42,scouting:55,prestige:57,exposure:65,cost:74},
+  "Brasileirão":{country:"Brazylia",level:88,money:48,scouting:93,prestige:89,exposure:82,cost:45},
+  "Argentina":{country:"Argentyna",level:84,money:36,scouting:90,prestige:84,exposure:74,cost:43},
+  "Liga MX":{country:"Meksyk",level:78,money:63,scouting:69,prestige:74,exposure:76,cost:55}
+ };
+ window.FL27_GLOBAL_MARKETS=markets;
+
+ /* Real club pool used as a safe starting point for generated offers.
+    More clubs can be added later without changing the economic model. */
+ const clubs=[
+  ["Premier League","Arsenal"],["Premier League","Liverpool"],["Premier League","Manchester City"],
+  ["Premier League","Manchester United"],["Premier League","Chelsea"],["Premier League","Tottenham"],
+  ["LaLiga","Real Madrid"],["LaLiga","FC Barcelona"],["LaLiga","Atlético de Madrid"],
+  ["LaLiga","Athletic Club"],["Bundesliga","Bayern Munich"],["Bundesliga","Borussia Dortmund"],
+  ["Bundesliga","RB Leipzig"],["Bundesliga","Bayer Leverkusen"],["Serie A","Inter"],["Serie A","AC Milan"],
+  ["Serie A","Juventus"],["Serie A","Atalanta"],["Ligue 1","Paris Saint-Germain"],["Ligue 1","Olympique Lyonnais"],
+  ["Ligue 1","Olympique de Marseille"],["Liga Portugal","SL Benfica"],["Liga Portugal","FC Porto"],
+  ["Liga Portugal","Sporting CP"],["Eredivisie","Ajax"],["Eredivisie","PSV Eindhoven"],
+  ["Polska","Legia Warszawa"],["Polska","Lech Poznań"],["Polska","Jagiellonia Białystok"],
+  ["Turcja","Galatasaray"],["Turcja","Fenerbahçe"],["Turcja","Beşiktaş"],
+  ["Grecja","Olympiacos"],["Grecja","Panathinaikos"],["Chorwacja","Dinamo Zagreb"],
+  ["Saudi Pro League","Al-Hilal"],["Saudi Pro League","Al-Nassr"],["Saudi Pro League","Al-Ittihad"],
+  ["Saudi Pro League","Al-Ahli"],["MLS","Inter Miami"],["MLS","LAFC"],["MLS","LA Galaxy"],
+  ["Qatar Stars League","Al-Sadd"],["UAE Pro League","Al Ain"],["J1 League","Urawa Red Diamonds"],
+  ["J1 League","Kawasaki Frontale"],["K League","Jeonbuk Hyundai Motors"],["Brasileirão","Flamengo"],
+  ["Brasileirão","Palmeiras"],["Argentina","River Plate"],["Argentina","Boca Juniors"],["Liga MX","Club América"]
+ ];
+ window.FL27_GLOBAL_CLUBS=clubs;
+
+ function marketFactor(name,key){return markets[name]?.[key]??50}
+
+ /* Salary is intentionally non-linear and varies from offer to offer. */
+ window.FL27_globalSalary=function(market,base){
+   const m=markets[market]||markets["Polska"];
+   const o=Number(S?.ovr??S?.overall??S?.skill??50);
+   const pr=Number(S?.pr||0);
+   const age=Number(S?.age||15);
+   const form=Number(S?.form||50);
+   const volatility=.72+Math.random()*.62;
+   let value=base*(0.35+m.money/75)*(0.45+o/70)*(0.75+pr/120)*(0.75+form/160)*volatility;
+   if(market==="Saudi Pro League")value*=1.7+Math.random()*1.8;
+   if(market==="MLS")value*=.85+Math.random()*.45;
+   if(age<18)value*=.15;
+   return Math.max(0,Math.round(value));
+ };
+
+ /* Add global-market offers to the existing scouting/contract system. */
+ window.FL27_generateGlobalOffer=function(trigger="tournament"){
+   const age=Number(S?.age||15),o=Number(S?.ovr??S?.overall??S?.skill??50);
+   if(age<15||o<45)return null;
+   const eligible=clubs.filter(([m])=>marketFactor(m,"level")<=o+25 || marketFactor(m,"scouting")>85);
+   if(!eligible.length)return null;
+   const [market,club]=eligible[rand(0,eligible.length-1)];
+   const base=market==="Saudi Pro League"?rand(8000,100000):rand(1000,50000);
+   const monthly=window.FL27_globalSalary(market,base);
+   const offer={id:"global_"+Date.now(),club,market,country:markets[market].country,
+      trigger,day:Number(S?.day||1),age,ovr:o,monthly,
+      signingBonus:Math.round(monthly*(Math.random()*.2+(.1))),
+      housing:Math.random()<.55,transport:Math.random()<.45,
+      releaseClause:monthly>10000?Math.round(monthly*rand(30,220)):null,
+      status:"pending"};
+   G.transferHistory.unshift(offer);
+   try{window.FL27_CAREER.negotiations.unshift(offer)}catch(e){}
+   save();try{localStorage.setItem("FL27_V22_CAREER",JSON.stringify(window.FL27_CAREER))}catch(e){}
+   return offer;
+ };
+
+ window.FL27_marketSummary=function(){
+   return `<div class="card v23-world"><div class="section-title"><b>🌍 Globalny rynek</b><span>liga • pieniądze • scouting • prestiż</span></div>
+   <div class="v23-market-grid">${Object.entries(markets).slice(0,24).map(([name,m])=>`<div class="v23-market"><b>${esc(name)}</b><small>${esc(m.country)} • ⚽ ${m.level} • 💰 ${m.money} • 🔎 ${m.scouting}</small></div>`).join("")}</div></div>`;
+ };
+
+ /* High-value markets are allowed to appear, but never guaranteed. */
+ if(window.advance&&!window.__FL27_V23_ADV){
+   const old=window.advance;window.__FL27_V23_ADV=true;
+   window.advance=function(h){
+     const r=old.apply(this,arguments);
+     if(Number(S?.age||15)>=15&&Number(S?.age||15)<=30&&Math.random()<.12){
+       try{window.FL27_generateGlobalOffer(["match","tournament","camp"][rand(0,2)])}catch(e){}
+     }
+     return r;
+   };
+ }
+ if(window.render&&!window.__FL27_V23_RENDER){
+   const old=window.render;window.__FL27_V23_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     try{
+       const host=document.querySelector("main")||document.body;
+       document.querySelectorAll(".fl27-v23-extra").forEach(x=>x.remove());
+       const d=document.createElement("div");d.className="fl27-v23-extra";
+       d.innerHTML=FL27_marketSummary();
+       host.appendChild(d);
+     }catch(e){}
+     return r;
+   };
+ }
+ save();
+})();
+</script>
+<style>
+.v23-market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.v23-market{padding:7px;border-radius:8px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}.v23-market b{font-size:9px}.v23-market small{display:block;font-size:7px;opacity:.55;margin-top:2px}
+@media(max-width:650px){.v23-market-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </body>
 </html>
