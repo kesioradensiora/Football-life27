@@ -10354,3 +10354,73 @@ body.creator-screen #main > .fl27-v10-finance{
   setTimeout(welcome,500);
 })();
 </script>
+
+
+<style id="fl27-v76-click-fix">
+/* V76: startup overlay is the top-most interactive layer. */
+.fl27-welcome-backdrop.fl27-v75-welcome,
+.fl27-welcome-backdrop.fl27-v75-chooser{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483647!important;
+  pointer-events:auto!important;
+  touch-action:auto!important;
+}
+.fl27-welcome-backdrop.fl27-v75-welcome *,
+.fl27-welcome-backdrop.fl27-v75-chooser *{
+  pointer-events:auto!important;
+}
+.fl27-v75-welcome .go,
+.fl27-v75-chooser .fl27-mode{
+  position:relative!important;
+  z-index:2147483647!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:rgba(255,255,255,.15)!important;
+}
+</style>
+<script id="fl27-v76-click-fix-js">
+(function(){
+  "use strict";
+
+  function clearStaleOverlays(){
+    /* Remove old startup/legacy overlays that can sit above the page invisibly. */
+    document.querySelectorAll(
+      ".fl27-welcome-backdrop:not(.fl27-v75-welcome):not(.fl27-v75-chooser),"+
+      ".v66-mode-overlay,.v20-hub-overlay"
+    ).forEach(function(el){el.remove();});
+  }
+
+  function forceStartupLayer(){
+    clearStaleOverlays();
+    var welcome=document.querySelector(".fl27-v75-welcome");
+    var chooser=document.querySelector(".fl27-v75-chooser");
+    var active=welcome||chooser;
+    if(active){
+      active.style.zIndex="2147483647";
+      active.style.pointerEvents="auto";
+      active.querySelectorAll("button").forEach(function(b){
+        b.style.pointerEvents="auto";
+        b.style.position="relative";
+        b.style.zIndex="2147483647";
+      });
+    }
+  }
+
+  /* One-time cleanup of a bad V74/V75 state. The current game's actual save
+     is untouched; only stale startup flags are cleared if no player exists. */
+  try{
+    var st=window.S||{};
+    var hasPlayer=!!(st.started===true || st.ready===true || (st.name&&st.name!=="Zawodnik"));
+    if(!hasPlayer){
+      localStorage.removeItem("FL27_WELCOME_SEEN_V74");
+      localStorage.removeItem("FL27_WELCOME_SEEN_V75");
+    }
+  }catch(e){}
+
+  clearStaleOverlays();
+  setTimeout(forceStartupLayer,100);
+  setTimeout(forceStartupLayer,500);
+  setTimeout(forceStartupLayer,1200);
+})();
+</script>
