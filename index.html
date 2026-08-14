@@ -6774,58 +6774,125 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
  window.FL27_showCreator=function(){
    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
    const d=document.createElement("div");d.className="v20-hub-overlay";
-   d.innerHTML=`<div class="v20-hub v20-creator">
+   d.innerHTML=`<div class="v20-hub v20-creator v52-creator">
     <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
-    <div class="v20-kicker">NOWA GRA +</div>
-    <h1>Stwórz swojego zawodnika</h1>
-    <p>Nie wybierasz jeszcze rodziców ani ich kraju. To wygeneruje życie rodzinne gry.</p>
-    <label>Imię<input id="v20-first" maxlength="24" placeholder="np. Alex"></label>
-    <label>Nazwisko<input id="v20-last" maxlength="30" placeholder="np. Silva"></label>
-    <div class="v20-grid">
-      <label>Płeć<select id="v20-gender" onchange="FL27_saveAvatar()">
-        <option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
-      <label>Płeć osób, które Cię interesują<select id="v20-orientation">
-        <option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na tym etapie nie określam</option>
-      </select></label>
-    </div>
-    <section class="v20-avatar-editor">
-      <div class="v20-avatar-preview" id="v20-avatar-preview"></div>
-      <div class="v20-avatar-controls">
-        <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">LOSOWY</button></div><div class="v20-avatar-help">Wybierz płeć, cerę, fryzurę, kolor włosów, oczy i strój. Możesz też wylosować cały wygląd.</div>
-        <div class="v20-grid">
-          <label>Cera<select id="v20-skin" onchange="FL27_saveAvatar()">
-            <option value="#f6d1b1">Jasna</option><option value="#e7b58f" selected>Średnia</option><option value="#c98f68">Oliwkowa</option><option value="#9a6345">Brązowa</option><option value="#6b402d">Ciemna</option>
-          </select></label>
-          <label>Fryzura<select id="v20-hair" onchange="FL27_saveAvatar()">
-            <option value="short">Krótka</option><option value="long">Długa</option><option value="curly">Kręcona</option><option value="fade">Fade</option><option value="buzz">Bardzo krótka</option><option value="ponytail">Kucyk</option><option value="bob">Bob</option><option value="braids">Warkoczyki</option><option value="wavy">Falowane</option><option value="undercut">Undercut</option>
-          </select></label>
-          <label>Kolor włosów<select id="v20-hairColor" onchange="FL27_saveAvatar()">
-            <option value="#17151a">Czarne</option><option value="#2a211c">Bardzo ciemny brąz</option><option value="#3b2417">Brązowe</option><option value="#70452b">Ciemny brąz</option><option value="#a66b35">Rudo-brązowe</option><option value="#c98b4b">Miedziane</option><option value="#d7b36a">Blond</option><option value="#eee0b5">Bardzo jasny blond</option><option value="#9b4a2f">Rude</option><option value="#6b4aa1">Fioletowe</option>
-          </select></label>
-          <label>Oczy<select id="v20-eyes" onchange="FL27_saveAvatar()">
-            <option value="#241812">Bardzo ciemnobrązowe</option><option value="#3b2a20">Brązowe</option><option value="#3d6b91">Niebieskie</option><option value="#5a7b4c">Zielone</option><option value="#6d4d3c">Piwne</option><option value="#6f8e9e">Szaroniebieskie</option>
-          </select></label>
-          <label>Stroje<select id="v20-jersey" onchange="FL27_saveAvatar()">
-            <option value="#d9364a">Czerwony</option><option value="#2467d1">Niebieski</option><option value="#24915b">Zielony</option><option value="#f0b429">Żółty</option><option value="#7b4fd6">Fioletowy</option><option value="#e9edf3">Biały</option>
-          </select></label>
-        </div>
-      </div>
-    </section>
-    <div class="v20-note">🌍 Kraj pochodzenia rodziców, ich zawody, sytuacja rodzinna, miejsce zamieszkania, pozycja i klub zostaną wygenerowane zgodnie z zasadami świata gry.</div>
-    <button class="v20-confirm" onclick="FL27_confirmPlus()">ROZPOCZNIJ KARIERĘ</button>
-    <button class="v20-back" onclick="FL27_showNewGame()">← Wróć</button>
+    <div class="v20-kicker">NOWA GRA + • TWORZENIE POSTACI</div>
+    <div id="v52-creator-body"></div>
    </div>`;
    document.body.appendChild(d);
-   FL27_saveAvatar();
+   window.FL27_renderCreatorV52();
  };
 
- window.FL27_confirmPlus=function(){
-   const first=document.getElementById("v20-first")?.value.trim();
-   const last=document.getElementById("v20-last")?.value.trim();
-   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
-   H.player={first,last,gender:document.getElementById("v20-gender").value,orientation:document.getElementById("v20-orientation").value,avatar:FL27_saveAvatar()};
-   H.ready=true;save();location.reload();
+ window.FL27_renderCreatorV52=function(){
+   const body=document.getElementById("v52-creator-body"); if(!body)return;
+
+   if(!creatorStarted){
+     const hasDraft=selectedAnswers.length>0||playerName;
+     body.innerHTML=`
+       <div class="v52-step">START</div>
+       <h1>Stwórz swojego zawodnika</h1>
+       <p>Najpierw podaj dane podstawowe. Potem przejdziesz przez <b>10 pytań</b>, które wpłyną na rozwój, relacje, mental i przyszłe wydarzenia.</p>
+       <div class="v52-name-grid">
+         <label>Imię<input id="creatorName" maxlength="24" value="${esc(playerName.split(" ")[0]||"")}" placeholder="np. Alex"></label>
+         <label>Nazwisko<input id="creatorSurname" maxlength="30" value="${esc(playerName.split(" ").slice(1).join(" "))}" placeholder="np. Silva"></label>
+       </div>
+       <button class="v20-confirm" onclick="FL27_beginV52()">PRZEJDŹ DO PYTAŃ <small>1 / 10</small></button>
+       ${hasDraft?`<button class="v20-back" onclick="resetCreator()">🗑️ Zacznij tworzenie od początku</button>`:""}
+       <div class="v52-info">🎲 Nie wybierasz tutaj klubu ani rodziców. Świat gry wygeneruje je później zgodnie z Twoimi odpowiedziami i losowością.</div>`;
+     return;
+   }
+
+   if(selectedAnswers.length<QUESTIONS.length){
+     const q=QUESTIONS[selectedAnswers.length];
+     const options=q[1].map(v=>{
+       const parts=v.split(" — ");
+       const js=JSON.stringify(v).replace(/'/g,"&#39;").replace(/</g,"&lt;");
+       return `<button class="choice v52-choice" onclick='answer(${js});setTimeout(window.FL27_renderCreatorV52,0)'>
+         <b>${esc(parts[0])}</b>${parts[1]?`<span>${esc(parts.slice(1).join(" — "))}</span>`:""}
+       </button>`;
+     }).join("");
+     body.innerHTML=`
+       <div class="v52-step">TWORZENIE POSTACI • ${selectedAnswers.length+1}/${QUESTIONS.length}</div>
+       <div class="progress v52-progress"><i style="width:${selectedAnswers.length/QUESTIONS.length*100}%"></i></div>
+       <h2>${esc(q[0])}</h2>
+       <p class="v52-help">${q[0]==="Pozycja na boisku"
+         ?"Wybierz pozycję. Ten wybór będzie miał wpływ na trening, atrybuty, rolę w drużynie, decyzje i późniejsze wydarzenia."
+         :"Wybierz odpowiedź, która najbardziej pasuje do Twojej postaci. Nie ma jednej uniwersalnie dobrej odpowiedzi — wcześniejsze wybory będą miały znaczenie później."}</p>
+       <div class="v52-options">${options}</div>
+       ${selectedAnswers.length?`<button class="choice v52-back" onclick="selectedAnswers.pop();saveCreatorDraft();window.FL27_renderCreatorV52()">← Poprzednie pytanie</button>`:""}
+     `;
+     return;
+   }
+
+   const a=window.FL27_saveAvatar?.()||{};
+   body.innerHTML=`
+     <div class="v52-step">TWORZENIE POSTACI • GOTOWE</div>
+     <div class="v52-progress"><i style="width:100%"></i></div>
+     <h1>Jeszcze jeden krok</h1>
+     <p>Odpowiedziałeś na wszystkie 10 pytań. Teraz wybierz wygląd zawodnika.</p>
+     <section class="v52-avatar-editor">
+       <div class="v20-avatar-preview" id="v20-avatar-preview"></div>
+       <div class="v20-avatar-controls">
+         <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">🎲 LOSOWY</button></div>
+         <div class="v20-avatar-help">Płeć, karnacja, fryzura, kolor włosów, oczy i strój. Możesz zmieniać wszystko przed startem.</div>
+         <div class="v20-grid">
+          <label>Płeć<select id="v20-gender" onchange="FL27_saveAvatar()"><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+          <label>Osoby, które Cię interesują<select id="v20-orientation"><option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na razie nikim</option></select></label>
+          <label>Karnacja<select id="v20-skin" onchange="FL27_saveAvatar()">
+            <option value="#f8dcc3">Bardzo jasna</option><option value="#f1c9a8">Jasna</option><option value="#e7b58f" selected>Średnia</option><option value="#d7a07a">Ciepła</option><option value="#c98f68">Oliwkowa</option><option value="#a97452">Brązowa</option><option value="#9a6345">Ciemnobrązowa</option><option value="#6b402d">Ciemna</option><option value="#4b2b1e">Bardzo ciemna</option>
+          </select></label>
+          <label>Fryzura<select id="v20-hair" onchange="FL27_saveAvatar()"><option value="short">Krótka</option><option value="long">Długa</option><option value="curly">Kręcona</option><option value="fade">Fade</option><option value="buzz">Bardzo krótka</option><option value="ponytail">Kucyk</option><option value="bob">Bob</option><option value="braids">Warkoczyki</option><option value="wavy">Falowane</option><option value="undercut">Undercut</option></select></label>
+          <label>Kolor włosów<select id="v20-hairColor" onchange="FL27_saveAvatar()"><option value="#17151a">Czarne</option><option value="#2a211c">Bardzo ciemny brąz</option><option value="#3b2417">Brązowe</option><option value="#70452b">Ciemny brąz</option><option value="#a66b35">Rudo-brązowe</option><option value="#c98b4b">Miedziane</option><option value="#d7b36a">Blond</option><option value="#eee0b5">Bardzo jasny blond</option><option value="#9b4a2f">Rude</option><option value="#6b4aa1">Fioletowe</option></select></label>
+          <label>Oczy<select id="v20-eyes" onchange="FL27_saveAvatar()"><option value="#241812">Bardzo ciemnobrązowe</option><option value="#3b2a20">Brązowe</option><option value="#3d6b91">Niebieskie</option><option value="#5a7b4c">Zielone</option><option value="#6d4d3c">Piwne</option><option value="#6f8e9e">Szaroniebieskie</option></select></label>
+          <label>Stroje<select id="v20-jersey" onchange="FL27_saveAvatar()"><option value="#d9364a">Czerwony</option><option value="#2467d1">Niebieski</option><option value="#24915b">Zielony</option><option value="#f0b429">Żółty</option><option value="#7b4fd6">Fioletowy</option><option value="#e9edf3">Biały</option></select></label>
+         </div>
+       </div>
+     </section>
+     <div class="v52-summary">${selectedAnswers.map((x,i)=>`<span>${esc(QUESTIONS[i][0])}: <b>${esc(x).split(" — ")[0]}</b></span>`).join("")}</div>
+     <button class="v20-confirm" onclick="FL27_confirmPlus()">⚽ ROZPOCZNIJ KARIERĘ</button>
+     <button class="v20-back" onclick="selectedAnswers.pop();saveCreatorDraft();window.FL27_renderCreatorV52()">← Wróć do ostatniego pytania</button>`;
+   window.FL27_saveAvatar();
  };
+
+ window.FL27_beginV52=function(){
+   const first=document.getElementById("creatorName")?.value.trim();
+   const last=document.getElementById("creatorSurname")?.value.trim();
+   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
+   playerName=first+" "+last;
+   creatorStarted=true;
+   saveCreatorDraft();
+   window.FL27_renderCreatorV52();
+ };
+
+ 
+(function(){
+  if(typeof window.__FL27_ORIGINAL_START_CAREER!=="function" && typeof window.startCareer==="function"){
+    window.__FL27_ORIGINAL_START_CAREER=window.startCareer;
+  }
+})();
+window.FL27_confirmPlus=function(){
+   const first=playerName.split(" ")[0], last=playerName.split(" ").slice(1).join(" ");
+   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
+   const av=window.FL27_saveAvatar?.()||{};
+   const orientation=document.getElementById("v20-orientation")?.value||"N";
+   window.__FL27_AVATAR_CONFIG={...av,orientation};
+   /*
+    * The original 10-question startCareer remains authoritative for career
+    * generation. We add avatar data after it initializes S.
+    */
+   if(selectedAnswers.length!==QUESTIONS.length){alert("Odpowiedz na wszystkie 10 pytań.");return}
+   if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
+     window.__FL27_ORIGINAL_START_CAREER();
+   }else{
+     startCareer();
+   }
+   try{
+     S.firstName=first;S.lastName=last;S.name=playerName;
+     S.avatar=av;S.orientation=orientation;
+     saveSoon();render();
+   }catch(e){}
+ };
+
 
  /* Reset button from V19 now returns to the New Game hub. */
  window.FL27_resetPlayer=function(){
@@ -9037,6 +9104,37 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
   .v20-avatar-preview svg{max-height:215px!important}
 }
 </style>
+
+<style id="fl27-v52-creator">
+.v52-creator{max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin}
+.v52-creator h1{margin-bottom:8px}
+.v52-step{font-size:9px;letter-spacing:.18em;font-weight:900;color:var(--fl-accent,#76a9ff);margin-bottom:8px}
+.v52-name-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.v52-name-grid label{display:grid;gap:5px}
+.v52-name-grid input{width:100%;box-sizing:border-box}
+.v52-progress{height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:10px 0 15px}
+.v52-progress i{display:block;height:100%;background:var(--fl-accent,#76a9ff);border-radius:99px}
+.v52-help{font-size:11px;line-height:1.5;color:#aeb8c6}
+.v52-options{display:grid;gap:8px;margin-top:14px}
+.v52-choice{width:100%;text-align:left!important;padding:13px 14px!important}
+.v52-choice b{display:block}
+.v52-choice span{display:block;margin-top:4px;font-size:9px;line-height:1.35;opacity:.58}
+.v52-back{margin-top:9px!important}
+.v52-info{margin-top:13px;padding:11px;border-radius:11px;background:rgba(118,169,255,.06);font-size:9px;line-height:1.45;color:#9eabbc}
+.v52-avatar-editor{display:grid;grid-template-columns:210px 1fr;gap:14px;align-items:start;margin-top:14px}
+.v52-avatar-editor .v20-avatar-preview{min-height:220px!important}
+.v52-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.v52-summary span{font-size:8px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,.05);color:#aeb8c6}
+.v52-summary b{color:#fff}
+.v52-creator .v20-avatar-controls{min-width:0}
+.v52-creator .v20-grid{grid-template-columns:1fr 1fr}
+.v52-creator select{min-width:0}
+@media(max-width:650px){
+ .v52-name-grid,.v52-avatar-editor,.v52-creator .v20-grid{grid-template-columns:1fr}
+ .v52-avatar-editor .v20-avatar-preview{max-width:220px;margin:auto}
+ .v52-creator{padding:16px!important}
+}
+</style>
 </style>
 <script id="fl27-v50-new-game-scroll-js">
 (function(){
@@ -9056,5 +9154,265 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
   mo.observe(document.body,{childList:true,subtree:true});
   setTimeout(fix,50);
   setTimeout(fix,250);
+})();
+</script>
+
+
+<style id="fl27-v53-side-nav">
+/* ============================================================
+   V53 — SIDE DRAWER NAVIGATION
+   Replaces the tiny bottom-tab targets with one large thumb-friendly
+   handle. The existing bottom nav is hidden; routing stays the same.
+   ============================================================ */
+body:not(.creator-screen){
+  padding-bottom:18px!important;
+}
+body:not(.creator-screen) .fl27-v35-bottom{
+  display:none!important;
+}
+
+/* Floating handle */
+.fl27-v53-handle{
+  position:fixed!important;
+  right:0!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  width:42px!important;
+  min-height:142px!important;
+  z-index:2147483646!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-right:0!important;
+  border-radius:18px 0 0 18px!important;
+  background:linear-gradient(180deg,rgba(28,39,56,.97),rgba(12,18,28,.98))!important;
+  color:#fff!important;
+  box-shadow:-10px 0 30px rgba(0,0,0,.28)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+}
+.fl27-v53-handle .handle-icon{font-size:20px!important;line-height:1}
+.fl27-v53-handle .handle-lines{display:grid;gap:4px!important}
+.fl27-v53-handle .handle-lines i{
+  display:block;width:18px;height:2px;border-radius:4px;
+  background:#76a9ff;
+}
+.fl27-v53-handle small{
+  writing-mode:vertical-rl;
+  font-size:7px;font-weight:900;letter-spacing:1.4px;opacity:.62;
+}
+
+/* Drawer */
+.fl27-v53-drawer{
+  position:fixed!important;
+  top:0!important;right:0!important;bottom:0!important;
+  width:min(320px,88vw)!important;
+  z-index:2147483647!important;
+  transform:translateX(105%)!important;
+  transition:transform .22s ease!important;
+  background:linear-gradient(180deg,#111b29,#091019)!important;
+  border-left:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:-24px 0 70px rgba(0,0,0,.52)!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding:20px 14px calc(24px + env(safe-area-inset-bottom))!important;
+  box-sizing:border-box!important;
+}
+.fl27-v53-drawer.open{transform:translateX(0)!important}
+.fl27-v53-drawer-backdrop{
+  position:fixed!important;inset:0!important;z-index:2147483645!important;
+  background:rgba(0,0,0,.48)!important;
+  opacity:0;pointer-events:none;transition:opacity .2s ease!important;
+}
+.fl27-v53-drawer-backdrop.open{opacity:1;pointer-events:auto}
+
+.v53-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;padding-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.08)
+}
+.v53-head strong{font-size:14px}
+.v53-close{
+  width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);color:#fff;font-size:20px;cursor:pointer
+}
+.v53-nav-list{display:grid;gap:8px}
+.v53-nav-btn{
+  width:100%;min-height:58px;padding:9px 12px;
+  display:flex;align-items:center;gap:12px;text-align:left;
+  border:1px solid rgba(255,255,255,.07);border-radius:14px;
+  background:rgba(255,255,255,.035);color:#fff;cursor:pointer;
+  touch-action:manipulation;transition:.15s ease
+}
+.v53-nav-btn:active{transform:scale(.98)}
+.v53-nav-btn.active{
+  background:linear-gradient(90deg,rgba(118,169,255,.18),rgba(118,169,255,.05));
+  border-color:rgba(118,169,255,.36);
+  box-shadow:inset 4px 0 0 #76a9ff;
+}
+.v53-icon{
+  width:38px;height:38px;min-width:38px;border-radius:11px;
+  display:grid;place-items:center;font-size:20px;
+  background:var(--v53-bg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)
+}
+.v53-label{font-size:12px;font-weight:900}
+.v53-desc{font-size:8px;color:#8998aa;margin-top:2px}
+.v53-arrow{margin-left:auto;opacity:.45;font-size:18px}
+</style>
+
+<script id="fl27-v53-side-nav-js">
+(function(){
+  const ITEMS=[
+    ["home","🏠","Dziś","Co dzieje się teraz","#4f9cff"],
+    ["day","🕐","Dzień","Plan dnia i czas","#ffd166"],
+    ["career","⚽","Kariera","Klub, trening i rozwój","#55d88a"],
+    ["life","💬","Życie","Relacje i życie prywatne","#ff6fb5"],
+    ["family","👨‍👩‍👧","Rodzina","Rodzice i bliscy","#ff9f43"],
+    ["history","📖","Historia","Twoje decyzje i wydarzenia","#b18cff"],
+    ["careerStats","📊","Statystyki","Atrybuty i liczby","#45d6d6"],
+    ["store","🛍️","Sklep","Zakupy i rzeczy","#ffcf4a"],
+    ["settings","⚙️","Ustawienia","Gra i ustawienia","#aeb9c8"]
+  ];
+
+  function make(){
+    if(document.querySelector(".fl27-v53-handle"))return;
+    const backdrop=document.createElement("div");
+    backdrop.className="fl27-v53-drawer-backdrop";
+    backdrop.addEventListener("click",close);
+
+    const handle=document.createElement("button");
+    handle.className="fl27-v53-handle";
+    handle.type="button";
+    handle.innerHTML=`<span class="handle-icon">☰</span><span class="handle-lines"><i></i><i></i><i></i></span><small>MENU</small>`;
+    handle.addEventListener("click",open);
+
+    const drawer=document.createElement("aside");
+    drawer.className="fl27-v53-drawer";
+    drawer.setAttribute("aria-label","Nawigacja gry");
+    drawer.innerHTML=`<div class="v53-head"><strong>⚽ FOOTBALL LIFE 27</strong><button class="v53-close" type="button">×</button></div><div class="v53-nav-list"></div>`;
+    drawer.querySelector(".v53-close").addEventListener("click",close);
+
+    const list=drawer.querySelector(".v53-nav-list");
+    ITEMS.forEach(([key,icon,label,desc,color])=>{
+      const b=document.createElement("button");
+      b.className="v53-nav-btn";b.type="button";b.dataset.tab=key;
+      b.innerHTML=`<span class="v53-icon" style="--v53-bg:${color}22">${icon}</span><span><span class="v53-label">${label}</span><span class="v53-desc">${desc}</span></span><span class="v53-arrow">›</span>`;
+      b.addEventListener("click",()=>{
+        if(key==="settings"){
+          window.renderSettings?.();
+        }else{
+          window.FL27_ROUTE?.(key);
+        }
+        sync();
+        close();
+      });
+      list.appendChild(b);
+    });
+
+    document.body.append(backdrop,handle,drawer);
+    window.FL27_V53_OPEN=open;
+    window.FL27_V53_CLOSE=close;
+    sync();
+  }
+
+  function sync(){
+    const active=window.FL27_GET_TAB?.()||"home";
+    document.querySelectorAll(".v53-nav-btn").forEach(b=>{
+      b.classList.toggle("active",b.dataset.tab===active);
+    });
+  }
+  function open(){
+    document.querySelector(".fl27-v53-drawer")?.classList.add("open");
+    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.add("open");
+    sync();
+  }
+  function close(){
+    document.querySelector(".fl27-v53-drawer")?.classList.remove("open");
+    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.remove("open");
+  }
+
+  const mo=new MutationObserver(()=>requestAnimationFrame(()=>{
+    if(!document.body.classList.contains("creator-screen"))make();
+    sync();
+  }));
+  mo.observe(document.body,{childList:true,subtree:true});
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(make,100));
+  setTimeout(make,100);
+})();
+</script>
+
+
+<style id="fl27-v53-color-boost">
+/* Color boost — existing cards only, no extra panels. */
+.section-title b,.kicker,.hero-badge{color:var(--fl-accent,#76a9ff)}
+.card .section-title span{color:#ffd166}
+.row b{color:#65d6a0}
+.action.green{box-shadow:0 8px 22px rgba(75,210,140,.12)}
+.choice:hover{border-color:rgba(118,169,255,.34)!important}
+.toast{border-color:rgba(118,169,255,.25)!important}
+</style>
+
+
+<style id="fl27-v54-tutorial-diamonds">
+/* V54 — keep the tutorial visible and readable on Dziś. */
+.v37-tasks{display:block!important;visibility:visible!important;opacity:1!important}
+.v37-task-list{display:grid!important}
+@media(max-width:520px){
+  .v37-task-list{grid-template-columns:1fr!important}
+}
+.v54-diamond-badge{
+  display:inline-flex;align-items:center;gap:5px;margin-left:6px;
+  padding:4px 7px;border-radius:999px;background:rgba(177,124,255,.12);
+  border:1px solid rgba(177,124,255,.22);color:#d5b7ff;font-size:8px;font-weight:900
+}
+</style>
+<script id="fl27-v54-tutorial-diamonds-js">
+(function(){
+  const MAP={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",careerStats:"stats",store:"shop"};
+
+  function complete(tab){
+    try{
+      if(typeof window.FL27_panelTask!=="function")return;
+      if(MAP[tab])window.FL27_panelTask(MAP[tab]);
+      if(tab==="settings" && typeof window.FL27_panelTask==="function")window.FL27_panelTask("settings");
+    }catch(e){}
+  }
+
+  /* Side drawer buttons bypassed the old go() wrapper. Connect them to
+     the same tutorial rewards so the 10 tasks still teach the panel. */
+  function bind(){
+    document.querySelectorAll(".v53-nav-btn").forEach(b=>{
+      if(b.dataset.v54Bound==="1")return;
+      b.dataset.v54Bound="1";
+      b.addEventListener("click",()=>complete(b.dataset.tab),true);
+    });
+  }
+
+  /* If an older render accidentally drops the task section, restore it
+     inside the existing Dziś main panel — never as a separate overlay. */
+  function ensureHomeTasks(){
+    if(document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main");
+    if(!main)return;
+    const tab=window.FL27_GET_TAB?.()||"home";
+    if(tab!=="home")return;
+    if(main.querySelector(".v37-tasks"))return;
+    if(typeof window.panelTasksHTML!=="function")return;
+    const wrap=document.createElement("div");
+    wrap.innerHTML=window.panelTasksHTML();
+    const section=wrap.firstElementChild;
+    if(section)main.insertBefore(section,main.querySelector(".v9-timebar")||main.firstChild);
+  }
+
+  const mo=new MutationObserver(()=>requestAnimationFrame(()=>{bind();ensureHomeTasks()}));
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>{bind();ensureHomeTasks()},100);
+  setTimeout(()=>{bind();ensureHomeTasks()},500);
+
+  /* Make the diamond balance easy to spot without adding a new panel. */
+  window.FL27_V54_TUTORIAL_READY=true;
 })();
 </script>
