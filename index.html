@@ -10424,3 +10424,133 @@ body.creator-screen #main > .fl27-v10-finance{
   setTimeout(forceStartupLayer,1200);
 })();
 </script>
+
+
+<style id="fl27-v77-stable-ui">
+/* Final navigation: one thumb-friendly side handle, no tiny bottom tabs. */
+#nav,.fl27-v35-bottom{display:none!important}
+.fl27-v77-menu{
+ position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
+ z-index:100000!important;width:48px!important;height:150px!important;border:0!important;
+ border-radius:18px 0 0 18px!important;background:linear-gradient(180deg,#1b2a40,#0c1420)!important;
+ color:#fff!important;box-shadow:-8px 0 30px rgba(0,0,0,.35)!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;
+ gap:8px!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important
+}
+.fl27-v77-menu .bars{display:grid;gap:4px}.fl27-v77-menu i{width:20px;height:2px;background:#76a9ff;border-radius:3px}
+.fl27-v77-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.7}
+.fl27-v77-drawer{
+ position:fixed!important;top:0!important;right:0!important;bottom:0!important;width:min(330px,88vw)!important;
+ z-index:100001!important;transform:translateX(105%)!important;transition:transform .22s ease!important;
+ background:linear-gradient(180deg,#121d2c,#080e16)!important;border-left:1px solid rgba(255,255,255,.1)!important;
+ box-shadow:-25px 0 70px rgba(0,0,0,.55)!important;padding:18px 14px!important;box-sizing:border-box!important;
+ overflow:auto!important;pointer-events:auto!important
+}
+.fl27-v77-drawer.open{transform:translateX(0)!important}
+.fl27-v77-back{
+ position:fixed!important;inset:0!important;z-index:100000!important;background:rgba(0,0,0,.5)!important;
+ opacity:0!important;pointer-events:none!important;transition:.2s
+}
+.fl27-v77-back.open{opacity:1!important;pointer-events:auto!important}
+.fl27-v77-item{
+ width:100%!important;min-height:58px!important;border:1px solid rgba(255,255,255,.07)!important;
+ border-radius:15px!important;background:rgba(255,255,255,.04)!important;color:#fff!important;
+ display:flex!important;align-items:center!important;gap:12px!important;padding:9px 12px!important;
+ margin:0 0 8px!important;text-align:left!important;cursor:pointer!important;pointer-events:auto!important;
+ touch-action:manipulation!important
+}
+.fl27-v77-item.active{border-color:rgba(118,169,255,.45)!important;background:rgba(118,169,255,.13)!important;box-shadow:inset 4px 0 #76a9ff!important}
+.fl27-v77-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:rgba(118,169,255,.12)}
+</style>
+<script id="fl27-v77-stable-ui-js">
+(function(){
+  "use strict";
+  var ITEMS=[
+    ["home","🏠","Dziś"],["day","🕐","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],
+    ["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],
+    ["store","🛍️","Sklep"],["wealth","💰","Finanse"],["social","📱","FLgram"],["settings","⚙️","Ustawienia"]
+  ];
+
+  function route(key){
+    try{
+      if(key==="settings"){
+        if(typeof window.renderSettings==="function")return window.renderSettings();
+        if(typeof window.go==="function")return window.go("settings");
+      }
+      if(typeof window.FL27_ROUTE==="function")return window.FL27_ROUTE(key);
+      if(typeof window.go==="function")return window.go(key);
+    }catch(e){console.error(e)}
+  }
+
+  function sync(){
+    var active=window.FL27_GET_TAB?window.FL27_GET_TAB():"home";
+    document.querySelectorAll(".fl27-v77-item").forEach(function(b){
+      b.classList.toggle("active",b.getAttribute("data-tab")===active);
+    });
+  }
+
+  function close(){
+    document.querySelector(".fl27-v77-drawer")?.classList.remove("open");
+    document.querySelector(".fl27-v77-back")?.classList.remove("open");
+  }
+
+  function open(){
+    document.querySelector(".fl27-v77-drawer")?.classList.add("open");
+    document.querySelector(".fl27-v77-back")?.classList.add("open");
+    sync();
+  }
+
+  function build(){
+    if(document.querySelector(".fl27-v77-menu")){sync();return}
+
+    var back=document.createElement("div");back.className="fl27-v77-back";back.onclick=close;
+    var menu=document.createElement("button");menu.type="button";menu.className="fl27-v77-menu";
+    menu.innerHTML='<span style="font-size:20px">☰</span><span class="bars"><i></i><i></i><i></i></span><small>MENU</small>';
+    menu.onclick=open;
+
+    var drawer=document.createElement("aside");drawer.className="fl27-v77-drawer";
+    drawer.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><b style="font-size:14px">⚽ FOOTBALL LIFE 27</b><button type="button" class="fl27-v77-close" style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:20px">×</button></div>';
+    drawer.querySelector(".fl27-v77-close").onclick=close;
+
+    ITEMS.forEach(function(item){
+      var b=document.createElement("button");b.type="button";b.className="fl27-v77-item";b.dataset.tab=item[0];
+      b.innerHTML='<span class="fl27-v77-ico">'+item[1]+'</span><b>'+item[2]+'</b><span style="margin-left:auto;opacity:.4;font-size:20px">›</span>';
+      b.onclick=function(){route(item[0]);close();setTimeout(sync,30)};
+      drawer.appendChild(b);
+    });
+
+    document.body.append(back,menu,drawer);
+    sync();
+  }
+
+  /* Build after body exists. Do not use a body-wide MutationObserver. */
+  function boot(){
+    if(!document.body)return;
+    build();
+    setTimeout(build,250);
+    setTimeout(sync,500);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
+  else boot();
+
+  /* Remove transparent legacy startup layers which were blocking taps. */
+  function clearBlockers(){
+    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay").forEach(function(x){x.remove()});
+  }
+  setTimeout(clearBlockers,50);
+  setTimeout(clearBlockers,300);
+
+  window.FL27_V77_OPEN=open;
+  window.FL27_V77_CLOSE=close;
+})();
+</script>
+
+<script id="fl27-v77-overlay-clean">
+(function(){
+  setTimeout(function(){
+    document.querySelectorAll(".fl27-welcome-backdrop").forEach(function(el){
+      if(!el.querySelector("button")) el.remove();
+    });
+  },800);
+})();
+</script>
