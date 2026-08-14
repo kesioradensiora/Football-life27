@@ -67,22 +67,25 @@ nav button{border:0;background:transparent;padding:7px 2px;border-radius:12px;co
 <script>
 "use strict";
 
-const KEY="footballLife27_v4";
+const KEY="footballLife27_v5";
+const DRAFT_KEY="footballLife27_creatorDraft_v1";
 let state=load();
 let currentTab="home";
+let creatorStarted=false;
 let selectedAnswers=[];
+let playerName="";
 
 const QUESTIONS=[
  ["Płeć",["Kobieta","Mężczyzna"]],
- ["Pozycja",["BR","LO","PO","ŚO","LP","ŚP","PP","LS","N","PS"]],
- ["Noga",["Lewa","Prawa"]],
- ["Styl gry",["Techniczna","Szybka","Fizyczna","Kreatywna","Uniwersalna"]],
- ["Pierwszy klub",["Lech Poznań","Legia Warszawa","Barcelona","Arsenal","Bayern","Lokalna akademia"]],
- ["Piłkarski wzór",["Messi","Ronaldo","Bellingham","Mbappé","Alexia Putellas","Salah"]],
- ["Klub marzeń",["Barcelona","Real Madryt","Manchester City","Bayern","Arsenal","Lech Poznań"]],
- ["Charakter",["Ambitny/a","Spokojny/a","Towarzyski/a","Uparty/a","Pracowity/a"]],
- ["Ryzyko",["Ostrożnie","Z głową","Ryzykuję"]],
- ["Najważniejszy cel",["Kariera","Rodzina","Pieniądze","Sława"]]
+ ["Pozycja na boisku",["Bramkarz (BR)","Lewy obrońca (LO)","Prawy obrońca (PO)","Środkowy obrońca (ŚO)","Lewy pomocnik (LP)","Środkowy pomocnik (ŚP)","Prawy pomocnik (PP)","Lewy skrzydłowy (LS)","Napastnik (N)","Prawy skrzydłowy (PS)"]],
+ ["Dominująca noga",["Lewa","Prawa"]],
+ ["Najbardziej naturalny styl gry",["Techniczny — drybling i kontrola","Szybki — sprint i gra za plecy obrony","Fizyczny — siła i pojedynki","Kreatywny — podania i wizja","Uniwersalny — potrafię robić wszystko po trochu"]],
+ ["Gdzie zaczynasz?",["Lokalna akademia","Lech Poznań","Legia Warszawa","Barcelona","Arsenal","Bayern Monachium"]],
+ ["Który zawodnik najbardziej Cię inspiruje?",["Lionel Messi","Cristiano Ronaldo","Jude Bellingham","Kylian Mbappé","Alexia Putellas","Mohamed Salah"]],
+ ["Jaki jest Twój klub marzeń?",["FC Barcelona","Real Madryt","Manchester City","Bayern Monachium","Arsenal","Lech Poznań"]],
+ ["Jak zachowujesz się pod presją?",["Walczę do końca","Zachowuję spokój","Biorę odpowiedzialność","Szukam wsparcia u drużyny","Czasem presja mnie blokuje"]],
+ ["Co jest dla Ciebie najważniejsze w karierze?",["Rozwój i umiejętności","Trofea","Pieniądze","Sława i rozpoznawalność","Reprezentowanie Polski","Dobra atmosfera i ludzie"]],
+ ["Jaki jest Twój największy cel?",["Zostać zawodnikiem/zawodniczką światowego poziomu","Zagrać w klubie marzeń","Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zbudować karierę i jednocześnie mieć normalne życie"]]
 ];
 
 const NAMES=["Maja","Ola","Emma","Kuba","Michał","Nina","Lena","Bartek","Zosia","Igor","Sara","Antek","Julia","Filip","Oskar","Kacper","Laura","Tomek"];
@@ -119,7 +122,7 @@ const EVENT_POOL=[
 
 function fresh(){
  return {
-  started:false,day:1,year:2015,age:15,hour:8,week:1,
+  started:false,name:"",day:1,year:2015,age:15,hour:8,week:1,
   money:0,energy:82,form:62,pr:5,skill:60,allowance:0,independent:false,
   gender:"",pos:"",foot:"",style:"",club:"Akademia lokalna",dream:"",
   school:"Szkoła",family:60,mental:60,health:90,injury:0,
@@ -129,6 +132,10 @@ function fresh(){
  };
 }
 let S=state||fresh();
+try{
+  const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");
+  if(d){ selectedAnswers=d.answers||[]; playerName=d.name||""; creatorStarted=!!d.started; }
+}catch(e){}
 
 function load(){
  try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}
@@ -172,30 +179,108 @@ function renderNav(){
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
-function renderCreator(){
- document.getElementById("nav").innerHTML="";
- const q=QUESTIONS[selectedAnswers.length];
- if(!q){
-   document.getElementById("main").innerHTML=`<div class="card hero"><div class="kicker">Gotowe</div><h1>Twój zawodnik</h1><p>Wszystkie odpowiedzi są zapisane. Możesz rozpocząć życie piłkarskie.</p>
-   <div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${QUESTIONS[i][0]}: ${esc(x)}</span>`).join("")}</div>
-   <button class="action green" style="width:100%;margin-top:12px;text-align:center" onclick="startCareer()">⚽ ROZPOCZNIJ KARIERĘ</button></div>`;
-   return;
- }
- document.getElementById("main").innerHTML=`<div class="card"><div class="kicker">Tworzenie zawodnika • ${selectedAnswers.length+1}/10</div><h2>${q[0]}</h2><p class="sub">Wybierz odpowiedź. Później część wyborów będzie wpływać na karierę.</p>
- ${q[1].map(v=>`<button class="choice" onclick="answer('${esc(v)}')"><b>${esc(v)}</b><span>Wpływ zostanie zapamiętany.</span></button>`).join("")}</div>`;
+function saveCreatorDraft(){
+  localStorage.setItem(DRAFT_KEY,JSON.stringify({
+    started:creatorStarted,name:playerName,answers:selectedAnswers
+  }));
+  const el=document.getElementById("saveState");
+  if(el){el.textContent="● Zapisano";el.style.color="#79e6ae";}
 }
-function answer(v){selectedAnswers.push(v);renderCreator()}
+function beginCreator(){
+  if(!playerName){
+    const n=prompt("Jak ma nazywać się Twój zawodnik / zawodniczka?","Moja kariera");
+    if(!n || !n.trim()){toast("Najpierw wpisz imię lub nazwę zawodnika.");return}
+    playerName=n.trim();
+  }
+  creatorStarted=true;
+  saveCreatorDraft();
+  renderCreator();
+}
+function resetCreator(){
+  if(!confirm("Usunąć rozpoczęte tworzenie zawodnika?"))return;
+  localStorage.removeItem(DRAFT_KEY);
+  creatorStarted=false; playerName=""; selectedAnswers=[];
+  renderCreator();
+}
+function renderCreator(){
+  const main=document.getElementById("main");
+  if(!creatorStarted){
+    const hasDraft=selectedAnswers.length>0 || playerName;
+    main.innerHTML=`<div class="card hero">
+      <div class="kicker">⚽ FOOTBALL LIFE 27</div>
+      <h1>Stwórz swoją karierę</h1>
+      <p>Najpierw stworzymy zawodnika/zawodniczkę na podstawie Twoich odpowiedzi. Każda odpowiedź zostanie zapisana na telefonie.</p>
+      <div class="pills">
+        <span class="pill">10 decyzji startowych</span>
+        <span class="pill">pozycja</span>
+        <span class="pill">styl</span>
+        <span class="pill">klub</span>
+        <span class="pill">klub marzeń</span>
+      </div>
+      <button class="action green" style="width:100%;margin-top:14px;text-align:center" onclick="beginCreator()">
+        <b>${hasDraft?"▶️ KONTYNUUJ TWORZENIE":"⚽ STWÓRZ ZAWODNIKA / ZAWODNICZKĘ"}</b>
+        <small>${hasDraft?`Masz zapisane ${selectedAnswers.length}/10 odpowiedzi.`:"Zaczynamy od podstaw."}</small>
+      </button>
+      ${hasDraft?`<button class="choice" style="margin-top:8px;text-align:center" onclick="resetCreator()"><b>🗑️ Zacznij od początku</b></button>`:""}
+    </div>
+    <div class="card">
+      <div class="section-title"><b>Co będzie miało znaczenie?</b><span>na start</span></div>
+      <div class="row"><span>Pozycja i noga</span><b>wpływ na rozwój</b></div>
+      <div class="row"><span>Styl gry</span><b>predyspozycje</b></div>
+      <div class="row"><span>Klub startowy</span><b>pierwsza ścieżka</b></div>
+      <div class="row"><span>Klub marzeń</span><b>długoterminowy cel</b></div>
+      <div class="row"><span>Charakter i cel</span><b>decyzje życiowe</b></div>
+    </div>`;
+    return;
+  }
+
+  if(selectedAnswers.length>=QUESTIONS.length){
+    main.innerHTML=`<div class="card hero">
+      <div class="kicker">Tworzenie zakończone</div>
+      <h1>${esc(playerName||"Twój zawodnik")}</h1>
+      <p>Sprawdź profil przed rozpoczęciem kariery.</p>
+      <div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${esc(QUESTIONS[i][0])}: ${esc(x)}</span>`).join("")}</div>
+      <button class="action green" style="width:100%;margin-top:12px;text-align:center" onclick="startCareer()">
+        <b>⚽ ROZPOCZNIJ KARIERĘ</b><small>Profil zostanie zapisany jako Twoja kariera.</small>
+      </button>
+      <button class="choice" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()"><b>✏️ Cofnij ostatnią odpowiedź</b></button>
+    </div>`;
+    return;
+  }
+
+  const q=QUESTIONS[selectedAnswers.length];
+  main.innerHTML=`<div class="card">
+    <div class="kicker">Tworzenie zawodnika • ${selectedAnswers.length+1}/${QUESTIONS.length}</div>
+    <h2>${q[0]}</h2>
+    <p class="sub">Wybierz jedną odpowiedź. Postęp zapisuje się automatycznie.</p>
+    ${q[1].map(v=>`<button class="choice" onclick="answer('${esc(v)}')"><b>${esc(v)}</b><span>Ta decyzja zostanie zapamiętana.</span></button>`).join("")}
+    ${selectedAnswers.length>0?`<button class="choice" style="background:#0a1626" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()">← Wróć do poprzedniego pytania</button>`:""}
+  </div>`;
+}
+function answer(v){
+  selectedAnswers.push(v);
+  saveCreatorDraft();
+  toast("Odpowiedź zapisana ✓");
+  renderCreator();
+}
 function startCareer(){
  const a=selectedAnswers;
  S=fresh();S.started=true;
+ S.name=playerName||"Moja kariera";
  [S.gender,S.pos,S.foot,S.style,S.club,S.wildcard,S.dream,S.character,S.risk,S.goal]=a;
- S.money=S.gender==="Kobieta"?35:35;
+ S.pos=(S.pos||"").replace(/.*\(([^)]+)\)$/,"$1");
+
+ S.money=35;
  S.school=S.club==="Lokalna akademia"?"Szkoła sportowa":"Szkoła";
- if(S.style==="Techniczna")S.skill+=7;if(S.style==="Szybka")S.form+=4;
- if(S.style==="Fizyczna")S.health+=4;if(S.style==="Kreatywna")S.pr+=2;
+ if(S.style && S.style.startsWith("Techniczny"))S.skill+=7;
+ if(S.style && S.style.startsWith("Szybki"))S.form+=4;
+ if(S.style && S.style.startsWith("Fizyczny"))S.health+=4;
+ if(S.style && S.style.startsWith("Kreatywny"))S.pr+=2;
+ if(S.character==="Pracowity/a")S.trainingLevel=1;
  if(S.character==="Pracowity/a")S.trainingLevel=1;
  log(`Start kariery. ${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${S.pos} • ${S.club}.`);
- saveSoon();currentTab="home";render();toast("Kariera rozpoczęta!"); 
+ localStorage.removeItem(DRAFT_KEY);
+ saveSoon();currentTab="home";render();toast("Kariera rozpoczęta i zapisana!"); 
 }
 function spend(cost,label){
  if(S.money<cost){toast("Nie masz na to pieniędzy 💸");return false}
@@ -245,7 +330,7 @@ function playMatch(){
  advance(2);toast(result);render()
 }
 function city(kind){
- const data=kind==="cafe"?[8,"Kawiarnia"]:kind==="cinema"?[15,"Kino"]:kind==="shop"?[25,"Sklep"];
+ const data=kind==="cafe"?[8,"Kawiarnia"]:kind==="cinema"?[15,"Kino"]:kind==="shop"?[25,"Sklep"]:[0,"Miasto"];
  if(!spend(data[0],data[1]))return;
  S.energy=Math.max(0,S.energy-6);
  if(Math.random()<.65)addFriend();
@@ -310,7 +395,7 @@ function renderTab(tab){
 function renderHome(m){
  const nextMatch=(S.day%7===0)?"DZIŚ":"za "+(7-(S.day%7))+" dni";
  m.innerHTML=`
- <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)}</h1><p>${esc(S.style)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
+ <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${esc(S.name||"Moja kariera")}</h1><p>${esc(S.style)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
  <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill)}</span><span class="pill">🧠 Mental ${Math.round(S.mental)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health)}</span></div></div>
  <div class="section-title"><b>Co robisz teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
  <div class="card"><div class="actions">
@@ -352,7 +437,7 @@ function renderHistory(m){
 }
 function newGame(){
  if(!confirm("Na pewno usunąć obecną karierę?"))return;
- localStorage.removeItem(KEY);S=fresh();selectedAnswers=[];currentTab="home";toast("Zapis usunięty");render()
+ localStorage.removeItem(KEY);localStorage.removeItem(DRAFT_KEY);S=fresh();selectedAnswers=[];playerName="";creatorStarted=false;currentTab="home";toast("Zapis usunięty");render()
 }
 
 render();
