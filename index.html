@@ -6701,31 +6701,55 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
    const skin=a.skin||AVATAR_OPTIONS.skin[1], hair=a.hair||"short",
          hc=a.hairColor||AVATAR_OPTIONS.hairColor[0], eye=a.eyes||AVATAR_OPTIONS.eyes[0],
          jersey=a.jersey||AVATAR_OPTIONS.jersey[0], gender=a.gender||"M";
-   let hairPath={
-     short:`<path fill="${hc}" d="M52 58c0-28 18-43 48-43s48 15 48 43v10H52z"/>`,
-     long:`<path fill="${hc}" d="M48 63c0-31 20-48 52-48s52 17 52 48v65h-19V75H67v53H48z"/>`,
-     curly:`<path fill="${hc}" d="M48 66c-4-28 18-53 52-53s56 25 52 53l-10 13H58z"/>`,
-     fade:`<path fill="${hc}" d="M54 62c0-26 17-42 46-42s46 16 46 42v8H54z"/>`,
-     buzz:`<path fill="${hc}" d="M55 57c2-21 18-34 45-34s43 13 45 34H55z"/>`,
-     ponytail:`<path fill="${hc}" d="M51 64c0-30 19-49 49-49s49 19 49 49v14h-18V69H69v9H51z"/><circle fill="${hc}" cx="156" cy="69" r="14"/>`,
-     bob:`<path fill="${hc}" d="M48 66c0-31 20-49 52-49s52 18 52 49v47h-18V72H66v41H48z"/>`,
-     braids:`<path fill="${hc}" d="M50 65c0-30 19-48 50-48s50 18 50 48v54h-13V72H63v47H50z"/><path fill="${hc}" d="M54 73h12v65H52zM134 73h12v65h-14z"/>`,
-     wavy:`<path fill="${hc}" d="M48 66c0-30 20-50 52-50s52 20 52 50v54h-17V73H65v47H48z"/><path d="M55 57q12 12 0 24M145 57q-12 12 0 24" fill="none" stroke="${hc}" stroke-width="9" stroke-linecap="round"/>`,
-     undercut:`<path fill="${hc}" d="M55 61c0-26 16-43 45-43s45 17 45 43v11h-17V59H72v13H55z"/>`
+   const hairPath={
+     short:`<path fill="${hc}" d="M48 67c0-31 19-51 52-51s52 20 52 51v10H48z"/>`,
+     long:`<path fill="${hc}" d="M45 70c0-35 21-54 55-54s55 19 55 54v83h-22V76H67v77H45z"/>`,
+     curly:`<path fill="${hc}" d="M47 69C40 39 63 14 100 14s63 25 53 55l-8 16H55z"/><circle fill="${hc}" cx="55" cy="54" r="14"/><circle fill="${hc}" cx="145" cy="54" r="14"/>`,
+     fade:`<path fill="${hc}" d="M53 66c2-28 19-47 47-47s45 19 47 47v12H53z"/><path d="M57 68h86" stroke="rgba(255,255,255,.12)" stroke-width="3"/>`,
+     buzz:`<path fill="${hc}" d="M56 60c2-23 18-38 44-38s42 15 44 38H56z"/>`,
+     ponytail:`<path fill="${hc}" d="M49 67c0-32 20-51 51-51s51 19 51 51v15h-18V70H67v12H49z"/><circle fill="${hc}" cx="157" cy="70" r="15"/>`,
+     bob:`<path fill="${hc}" d="M47 68c0-32 20-51 53-51s53 19 53 51v56h-19V74H66v50H47z"/>`,
+     braids:`<path fill="${hc}" d="M48 68c0-32 20-51 52-51s52 19 52 51v58h-16V75H64v51H48z"/><path fill="${hc}" d="M52 73h14v78H51zM134 73h14v78h-15z"/><path d="M55 92v46M141 92v46" stroke="rgba(255,255,255,.12)" stroke-width="3"/>`,
+     wavy:`<path fill="${hc}" d="M47 69c0-34 21-53 53-53s53 19 53 53v59h-19V75H66v53H47z"/><path d="M57 55q14 15 0 29M143 55q-14 15 0 29" fill="none" stroke="${hc}" stroke-width="10" stroke-linecap="round"/>`,
+     undercut:`<path fill="${hc}" d="M54 64c2-28 19-45 46-45s44 17 46 45v15h-18V62H72v17H54z"/>`
    }[hair]||"";
-   const neck=gender==="K"?`<path fill="${skin}" d="M91 113h18v18H91z"/>`:`<path fill="${skin}" d="M91 113h18v18H91z"/>`;
-   return `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
-     <defs><linearGradient id="avbg" x1="0" x2="1"><stop stop-color="#202938"/><stop offset="1" stop-color="#10151e"/></linearGradient></defs>
-     <rect width="200" height="230" rx="22" fill="url(#avbg)"/>
-     <ellipse cx="100" cy="215" rx="67" ry="24" fill="${jersey}" opacity=".95"/>
-     <path fill="${jersey}" d="M45 230v-37c0-23 24-39 55-39s55 16 55 39v37z"/>
-     <path fill="${skin}" d="M91 125h18v24H91z"/>
-     <ellipse cx="100" cy="78" rx="47" ry="56" fill="${skin}"/>
-     ${hairPath}
-     <circle cx="82" cy="80" r="4" fill="${eye}"/><circle cx="118" cy="80" r="4" fill="${eye}"/>
-     <path d="M91 103q9 7 18 0" fill="none" stroke="#7d4f42" stroke-width="3" stroke-linecap="round"/>
-     <path d="M67 70q12-8 25-1M108 69q13-7 25 1" fill="none" stroke="${hc}" stroke-width="5" stroke-linecap="round"/>
-     <circle cx="100" cy="35" r="3" fill="rgba(255,255,255,.25)"/>
+   const skinShadow=skin;
+   return `<svg viewBox="0 0 240 270" xmlns="http://www.w3.org/2000/svg" aria-label="Podgląd avatara">
+     <defs>
+       <linearGradient id="avBg51" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#263449"/><stop offset=".55" stop-color="#141c29"/><stop offset="1" stop-color="#0c1119"/></linearGradient>
+       <radialGradient id="avGlow51" cx=".5" cy=".2" r=".75"><stop stop-color="#76a9ff" stop-opacity=".18"/><stop offset="1" stop-color="#76a9ff" stop-opacity="0"/></radialGradient>
+       <linearGradient id="avSkin51" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${skin}"/><stop offset="1" stop-color="${skinShadow}"/></linearGradient>
+       <linearGradient id="avJersey51" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${jersey}"/><stop offset="1" stop-color="${jersey}" stop-opacity=".72"/></linearGradient>
+       <filter id="avShadow51"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".35"/></filter>
+     </defs>
+     <rect x="4" y="4" width="232" height="262" rx="28" fill="url(#avBg51)"/>
+     <rect x="4" y="4" width="232" height="262" rx="28" fill="url(#avGlow51)"/>
+     <ellipse cx="120" cy="255" rx="80" ry="20" fill="#000" opacity=".22"/>
+     <g filter="url(#avShadow51)">
+       <path fill="url(#avJersey51)" d="M38 266v-47c0-27 28-48 82-48s82 21 82 48v47z"/>
+       <path fill="${jersey}" opacity=".45" d="M38 230q28-21 48-19l34 42 34-42q20-2 48 19v36H38z"/>
+       <path fill="url(#avSkin51)" d="M103 136h34v35h-34z"/>
+       <ellipse cx="120" cy="92" rx="56" ry="66" fill="url(#avSkin51)"/>
+       <ellipse cx="62" cy="96" rx="8" ry="14" fill="${skin}" opacity=".92"/>
+       <ellipse cx="178" cy="96" rx="8" ry="14" fill="${skin}" opacity=".92"/>
+       ${hairPath}
+       <path d="M78 82q14-10 29-2M133 80q15-8 29 2" fill="none" stroke="${hc}" stroke-width="6" stroke-linecap="round"/>
+       <ellipse cx="91" cy="94" rx="7" ry="6" fill="#fff" opacity=".92"/>
+       <ellipse cx="149" cy="94" rx="7" ry="6" fill="#fff" opacity=".92"/>
+       <circle cx="91" cy="94" r="3.6" fill="${eye}"/>
+       <circle cx="149" cy="94" r="3.6" fill="${eye}"/>
+       <circle cx="90" cy="93" r="1.1" fill="#fff"/>
+       <circle cx="148" cy="93" r="1.1" fill="#fff"/>
+       <path d="M120 98q-5 12 1 18" fill="none" stroke="${skinShadow}" stroke-width="3" stroke-linecap="round" opacity=".72"/>
+       <path d="M105 126q15 9 30 0" fill="none" stroke="#8b554b" stroke-width="3.5" stroke-linecap="round"/>
+       <path d="M98 151q22 12 44 0" fill="none" stroke="${skinShadow}" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>
+       <circle cx="80" cy="119" r="9" fill="#e98f8f" opacity=".10"/>
+       <circle cx="160" cy="119" r="9" fill="#e98f8f" opacity=".10"/>
+       <path d="M102 170h36" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+       <path d="M72 219q48 18 96 0" stroke="rgba(255,255,255,.12)" stroke-width="2" fill="none"/>
+     </g>
+     <circle cx="214" cy="28" r="10" fill="#fff" opacity=".07"/>
+     <circle cx="214" cy="28" r="4" fill="#fff" opacity=".22"/>
    </svg>`;
  };
  window.FL27_saveAvatar=function(){
@@ -8930,5 +8954,107 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
   mo.observe(document.body,{childList:true,subtree:true});
   setTimeout(inject,100);
   setTimeout(inject,500);
+})();
+</script>
+
+
+<style id="fl27-v50-new-game-scroll">
+/* V50 — New Game + is a real scrollable form on mobile and desktop.
+   Only the existing creator card scrolls; the background stays fixed. */
+.v20-hub-overlay{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  padding:clamp(12px,3vh,28px) 14px!important;
+  touch-action:pan-y!important;
+}
+.v20-hub-overlay .v20-hub{
+  max-height:none!important;
+  min-height:0!important;
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  margin:auto 0!important;
+}
+.v20-hub-overlay .v20-creator{
+  width:min(650px,100%)!important;
+  padding-bottom:22px!important;
+}
+.v20-creator label,
+.v20-creator input,
+.v20-creator select,
+.v20-creator button{
+  touch-action:manipulation!important;
+}
+.v20-creator input,
+.v20-creator select{
+  min-height:42px!important;
+  box-sizing:border-box!important;
+}
+.v20-avatar-editor{
+  min-height:0!important;
+  overflow:visible!important;
+}
+@media(max-width:650px){
+  .v20-hub-overlay{
+    padding:12px 10px 28px!important;
+  }
+  .v20-hub-overlay .v20-creator{
+    width:100%!important;
+    margin:0 auto!important;
+  }
+  .v20-creator .v20-avatar-editor{
+    grid-template-columns:1fr!important;
+  }
+  .v20-creator .v20-avatar-preview{
+    max-width:190px!important;
+    margin:0 auto!important;
+  }
+}
+
+<style id="fl27-v51-avatar-polish">
+.v20-avatar-preview{
+  min-height:225px!important;
+  border-radius:20px!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  background:linear-gradient(145deg,rgba(118,169,255,.07),rgba(255,255,255,.02))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 35px rgba(0,0,0,.18)!important;
+  padding:8px!important;
+  box-sizing:border-box!important;
+}
+.v20-avatar-preview svg{
+  width:100%!important;
+  height:auto!important;
+  max-height:235px!important;
+  display:block!important;
+}
+.v20-avatar-controls{
+  min-width:0!important;
+}
+@media(max-width:650px){
+  .v20-avatar-preview{min-height:210px!important;max-width:210px!important}
+  .v20-avatar-preview svg{max-height:215px!important}
+}
+</style>
+</style>
+<script id="fl27-v50-new-game-scroll-js">
+(function(){
+  function fix(){
+    document.querySelectorAll(".v20-hub-overlay").forEach(o=>{
+      o.style.overflowY="auto";
+      o.style.overflowX="hidden";
+      o.style.touchAction="pan-y";
+      const card=o.querySelector(".v20-hub");
+      if(card){
+        card.style.maxHeight="none";
+        card.style.flexShrink="0";
+      }
+    });
+  }
+  const mo=new MutationObserver(()=>requestAnimationFrame(fix));
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(fix,50);
+  setTimeout(fix,250);
 })();
 </script>
