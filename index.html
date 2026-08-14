@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08111f">
-<title>Football Life 27</title>
+<title>Football Life 27 — FINAL • Football Life 27</title>
 <style>
 :root{
   --bg:#07080d;
@@ -380,7 +380,11 @@ const EVENT_POOL=[
 ["Nie nakręcam się",()=>{S.mental+=2;log("Zachowujesz spokój i skupiasz się na rozwoju.")}],
 ["Pracuję jeszcze mocniej",()=>{S.skill+=2;S.energy-=4;log("Zainteresowanie skauta motywuje Cię do pracy.")}]]},
 {id:"school_scout",title:"Kontakt po treningu",text:"Ktoś przedstawia się jako skaut i pyta o Twoją sytuację w klubie.",choices:[
-["Odsyłam go do trenera",()=>{S.pr+=2;S.rel.Trener+=2;log("Zachowujesz profesjonalizm i informujesz trenera.")}],
+["Odsyłam go do trenera",()=>{
+  S.pr+=2;S.rel.Trener+=2;
+  if(window.FL27_startScoutCase)FL27_startScoutCase("scout_"+S.day);
+  log("🔎 Odsyłasz skauta do trenera. Teraz trzeba poczekać na dalszy kontakt.");
+}],
 ["Rozmawiam chwilę",()=>{S.pr+=3;S.mental+=1;log("Spokojnie opowiadasz o swojej karierze.")}],
 ["Nie podaję żadnych danych",()=>{S.mental+=1;log("Zachowujesz ostrożność.")}]]},
 {id:"music_lesson",title:"Lekcja śpiewu",text:"Znajoma osoba proponuje Ci jedną próbną lekcję śpiewu.",choices:[
@@ -859,7 +863,16 @@ function renderWealth(m){
   <div class="card"><div class="section-title"><b>📈 Giełda / inwestycje</b><span>automatyczne</span></div>
   <button class="action" onclick="investAutomatic()"><b>📊 Zainwestuj 500–1000€</b><small>Gra sama dobierze instrument. Wartość portfela zmienia się automatycznie.</small></button>
   ${w.portfolio.length?w.portfolio.map(a=>`<div class="row"><span>${esc(a.name)} (${esc(a.ticker)})</span><b>${Math.round(a.currentValue)}€</b></div>`).join(""):"<div class='empty'>Nie masz jeszcze inwestycji.</div>"}</div>
-  <div class="card"><div class="section-title"><b>❤️ Działalność charytatywna</b></div>
+  <div class="card">
+    <div class="section-title"><b>👥 Twój przyszły sztab</b><span>rynek pracy</span></div>
+    <p class="sub">Kiedy będziesz zarabiać dużo, możesz zatrudnić fizjoterapeutę, dietetyka, kucharza, trenera, psychologa sportowego, skauta itd. Wynagrodzenie ma znaczenie, ale pracownik nie musi przyjąć oferty.</p>
+    <div class="row"><span>Przykładowy fizjoterapeuta</span><b>1 400–5 000€/mies.</b></div>
+    <div class="row"><span>Przykładowy trener</span><b>1 800–9 000€/mies.</b></div>
+    <div class="row"><span>Przykładowy dietetyk</span><b>1 800–6 000€/mies.</b></div>
+    <div class="row"><span>Przykładowy kucharz</span><b>1 600–5 000€/mies.</b></div>
+    <div class="row"><span>Psycholog sportowy</span><b>2 200–6 500€/mies.</b></div>
+  </div>
+<div class="card"><div class="section-title"><b>❤️ Działalność charytatywna</b></div>
   <button class="action" onclick="donateMoney(250,'lokalną akademię dziecięcą')"><b>Wpłać 250€</b><small>Pomoc lokalnej akademii • pozytywny wpływ na PR</small></button>
   <button class="action" onclick="donateMoney(1000,'fundację sportową')"><b>Wpłać 1000€</b><small>Wsparcie fundacji sportowej • większy wpływ na PR</small></button>
   <div class="row"><span>Łącznie przekazano</span><b>${Math.round(w.charityTotal)}€</b></div></div>`;
@@ -976,6 +989,8 @@ function checkSponsors(){
  });
 }
 function renderStore(m){
+  window.FL27_renderMobilityCard=function(){const mob=window.FL27_mobilitySummary(); return `<div class="card"><div class="section-title"><b>🚲 Mobilność</b><span>${esc(mob.home.town)}</span></div><div class="row"><span>Do klubu</span><b>${mob.clubMinutes} min</b></div><div class="row"><span>Do szkoły</span><b>${mob.schoolMinutes} min</b></div>${mob.bike.owned?`<div class="row"><span>Rower</span><b>posiadasz 🚲</b></div>`:`<button class="action" onclick="FL27_buyBike()"><b>🚲 Kup rower — ${mob.bike.price}€</b><small>Szybsze dojazdy i większa niezależność od rodziców/komunikacji.</small></button>`}</div>`;}
+
  ensureStore();checkSponsors();
  const card=(it)=>`<div class="card" style="margin:0"><div class="section-title"><b>${esc(it.name)}</b><span>${it.price.toLocaleString("pl-PL")}€</span></div><p class="sub">Wpływ: ${Object.entries(it.boost||{}).map(([k,v])=>`+${v} ${k}`).join(" • ")}</p><button class="action ${S.store.owned.includes(it.id)?"":"red"}" style="width:100%" onclick="storeBuy('${it.id}')"><b>${S.store.owned.includes(it.id)?"✓ Posiadasz":"Kup"}</b><small>${it.cat==="home"?"Nieruchomość":it.cat==="car"?"Samochód":it.cat==="boots"?"Buty piłkarskie":"Akcesorium"}</small></button></div>`;
  m.innerHTML=`<div class="card hero"><div class="kicker">🛒 RYNEK</div><h1>Twój sprzęt i styl życia</h1><p>Im więcej zarabiasz, tym więcej możesz kupić. Ceny są realnym ograniczeniem — a sponsor może czasem dać Ci sprzęt za darmo.</p></div>
@@ -998,6 +1013,57 @@ function evaluateYouthAwards(){
    addCareerAward("Kopa Trophy — kandydatura młodego zawodnika",year);
  if(s.goals>=20)addCareerAward("Król strzelców rozgrywek młodzieżowych",year);
  if(s.apps>=10 && s.minutes>=700 && S.form>=75)addCareerAward("Zawodnik turnieju młodzieżowego — kandydatura",year);
+}
+
+
+function renderRelations(m){
+  const people=FL27_relationSummary();
+  m.innerHTML=`<div class="card hero">
+    <div class="kicker">❤️ RELACJE</div><h1>Twoi ludzie</h1>
+    <p>Gra zapamiętuje, kogo spotykasz, jak często się widujecie i jak rozwija się relacja.</p>
+    <div class="pills"><span class="pill">👥 ${people.length} osób</span><span class="pill">📱 ${FL27_rel.social.followers} obserwujących</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>👥 Znajomi i osoby z piłki</b><span>sortowanie wg relacji</span></div>
+    ${people.length?people.map((p,i)=>`<div class="fl27-person"><div class="fl27-avatar">${p.kind==="football"?"⚽":"👤"}</div><div style="flex:1"><b>${esc(p.name)}</b><small>${esc(p.role)} • ${esc(p.team)} • ${FL27_relationLevel(p)} • spotkań: ${p.meetings}</small></div></div>`).join(""):`<div class="empty">Na razie nikogo tu nie ma. Pierwsze znajomości pojawią się naturalnie w szkole, klubie, mieście i podczas meczów.</div>`}
+  </div>
+  <div class="card">
+    <div class="section-title"><b>🔗 Wpływ relacji na życie</b><span>połączone systemy</span></div>
+    <div class="row"><span>Bliskie relacje</span><b>mogą poprawiać mental i otwierać wydarzenia</b></div>
+    <div class="row"><span>Kontakty piłkarskie</span><b>mogą prowadzić do skautów, testów i transferów</b></div>
+    <div class="row"><span>Social media</span><b>PR, sponsorzy, obserwujący i ryzyko wizerunkowe</b></div>
+    <div class="row"><span>Rodzina</span><b>pieniądze, wsparcie, kontakty i wydarzenia</b></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>🤝 Jak powstają relacje?</b><span>automatycznie</span></div>
+    <div class="row"><span>Trening</span><b>kolega/koleżanka z drużyny</b></div>
+    <div class="row"><span>Mecz</span><b>rywal/rywalka z przeciwnej drużyny</b></div>
+    <div class="row"><span>Po meczu</span><b>piątka, rozmowa, wymiana kontaktu</b></div>
+    <div class="row"><span>Szkoła</span><b>klasa, wycieczki, projekty</b></div>
+    <div class="row"><span>Miasto</span><b>nowe osoby i przypadkowe spotkania</b></div>
+  </div>`;
+}
+
+function renderSocial(m){
+  const soc=FL27_rel.social;
+  const stars=["Lokalna gwiazda futbolu","Młody reprezentant","Popularna zawodniczka/zawodnik","Gwiazda Twojego ulubionego klubu"];
+  m.innerHTML=`<div class="card hero"><div class="kicker">📱 FLGRAM</div><h1>@${esc(S.name||"football_life")}</h1>
+    <div class="pills"><span class="pill">👥 ${soc.followers} obserwujących</span><span class="pill">➕ ${soc.following} obserwowanych</span><span class="pill">📣 PR ${Math.round(S.pr||0)}</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>➕ Nowy post</b><span>maks. 1 własny post / tydzień</span></div>
+    <button class="action" onclick="FL27_post('Zdjęcie po treningu','sport')"><b>⚽ Zdjęcie po treningu</b><small>Sportowy, spokojny wizerunek</small></button>
+    <button class="action" onclick="FL27_post('Dzień ze znajomymi','life')"><b>👥 Dzień ze znajomymi</b><small>Życie poza boiskiem</small></button>
+    <button class="action" onclick="FL27_post('Zabawny moment','fun')"><b>😂 Zabawny moment</b><small>Więcej zasięgu, ale większa losowość reakcji</small></button>
+  </div>
+  <div class="card"><div class="section-title"><b>⭐ Futbolowe osoby</b><span>losowe reakcje</span></div>
+    ${stars.map(st=>`<button class="action" onclick="FL27_starInteraction('${st.replace(/'/g,"\\'")}')"><b>💬 Napisz do: ${esc(st)}</b><small>Może polubić, odpisać, zauważyć Cię… albo nic się nie wydarzy.</small></button>`).join("")}
+  </div>
+  <div class="card"><div class="section-title"><b>📰 Twój feed</b><span>ostatnie posty</span></div>
+    ${soc.posts.length?soc.posts.slice().reverse().map((p,idx)=>`<div class="fl27-social-post"><div class="fl27-social-head"><b>${esc(p.text)}</b><span>❤️ ${p.likes}</span></div><small>Dzień ${p.day} • +${p.followers} obserwujących</small>
+      ${p.comments.map((c,ci)=>`<div class="fl27-social-comment"><b>${esc(c.from)}:</b> ${esc(c.text)} ${c.reply?`<br>↳ <b>Ty:</b> ${esc(c.reply)}`:`<button class="choice" onclick="FL27_replyComment(${soc.posts.indexOf(p)},${ci},'Dzięki! ❤️')">Odpowiedz „Dzięki! ❤️”</button>`}</div>`).join("")}
+    </div>`).join(""):`<div class="empty">Twój feed jest jeszcze pusty. Pierwsze posty pojawią się od 15. roku życia.</div>`}
+  </div>`;
 }
 
 function renderFamily(m){
@@ -1025,6 +1091,33 @@ function renderFamily(m){
     <div class="row"><span>Rodzeństwo</span><b>${f.siblings.length?"tak":"brak"}</b></div>
   </div>
   <div class="card">
+    <div class="section-title"><b>📈 Sytuacja rodziny w czasie</b><span>najbardziej aktywna do 20 r.ż.</span></div>
+    <div class="row"><span>Status finansowy</span><b>${esc(FL27_familyArc.profile.wealth)}</b></div>
+    <div class="row"><span>Wsparcie finansowe taty</span><b>${esc(FL27_familyArc.profile.fatherSupport)}</b></div>
+    <div class="row"><span>Dostępność taty</span><b>${esc(FL27_familyArc.profile.fatherTime)}</b></div>
+    <div class="row"><span>Stabilność domu</span><b>${esc(FL27_familyArc.profile.stability)}</b></div>
+    <p class="sub">Rodzina może się bogacić, mieć gorszy okres, dawać więcej pieniędzy, ale mniej czasu, albo odwrotnie. Po 20. roku życia takie wydarzenia są rzadsze, bo Twoje życie coraz bardziej staje się niezależne.</p>
+    ${FL27_familyArc.events.slice(-4).reverse().map(e=>`<div class="log"><em>Dzień ${e.day}</em>${esc(e.title)} — ${esc(e.text)}</div>`).join("")}
+  </div>
+<div class="card">
+    <div class="section-title"><b>💼 Zawody rodziców i ich wpływ</b><span>nie zawsze jest gwarantowany</span></div>
+    <div class="row"><span>Ojciec</span><b>${esc(S.familyProfile?.father?.job||"—")}</b></div>
+    <div class="row"><span>Matka</span><b>${esc(S.familyProfile?.mother?.job||"—")}</b></div>
+    <p class="sub">Zawód rodzica może czasem pomóc Ci bez kosztu, ale rodzic może być zajęty, odmówić albo nie chcieć mieszać pracy z rodziną.</p>
+    <div class="pills">
+      <span class="pill">🩺 Fizjoterapia</span><span class="pill">⚽ Trening</span><span class="pill">🥗 Dieta</span><span class="pill">🧠 Mental</span>
+    </div>
+  </div>
+<div class="card">
+    <div class="section-title"><b>🏠 Sytuacja rodzinna</b><span>zmienia się z czasem</span></div>
+    <div class="row"><span>Rodzice</span><b>${esc(FL27_familyDynamics.parents.status==="together"?"razem":"po rozstaniu")}</b></div>
+    <div class="row"><span>Partner/partnerka taty</span><b>${FL27_familyDynamics.parents.fatherPartner?"obecny/a w historii":"brak"}</b></div>
+    <div class="row"><span>Partner/partnerka mamy</span><b>${FL27_familyDynamics.parents.motherPartner?"obecny/a w historii":"brak"}</b></div>
+    <div class="row"><span>Wpływ rodziny na mental</span><b>${FL27_familyDynamics.impact.mental>=0?"+":""}${FL27_familyDynamics.impact.mental}</b></div>
+    <p class="sub">Rodzina nie jest stała. Mogą pojawić się zmiany pracy, przeprowadzki, rozstania, nowi partnerzy rodziców, okresy wsparcia albo trudniejsze momenty. Nie każde wydarzenie musi być negatywne.</p>
+    ${FL27_familyDynamics.events.slice(-3).reverse().map(e=>`<div class="log"><em>Dzień ${e.day}</em>${esc(e.title)} — ${esc(e.text)}</div>`).join("")}
+  </div>
+<div class="card">
     <div class="section-title"><b>❤️ Twoje życie teraz</b><span>aktualne</span></div>
     <div class="row"><span>Partner/partnerka</span><b>${partner}</b></div>
     <div class="row"><span>Dzieci</span><b>${kids}</b></div>
@@ -1136,63 +1229,83 @@ function advance(hours){
   ensureStore(); checkSponsors();
   const whole=Math.max(0,Math.floor(hours));
   S.hour+=whole;
-  let daysPassed=0;
+
   while(S.hour>=24){
     S.hour-=24;
     S.day++;
     S.dayOfMonth++;
-    daysPassed++;
 
     const daysInMonth=new Date(S.year,S.month,0).getDate();
     if(S.dayOfMonth>daysInMonth){
-      S.dayOfMonth=1;
-      S.month++;
-      if(S.month>12){
-        S.month=1;
-        S.year++;
-      }
+      S.dayOfMonth=1; S.month++;
+      if(S.month>12){S.month=1;S.year++;}
     }
 
     S.week=Math.floor((S.day-1)/7)+1;
 
-    // Natural daily recovery, but sleeping gives full recovery.
-    S.energy=clamp(S.energy+10);
-    S.form=clamp(S.form+1);
-
-    // Weekly allowance: exactly every 7 days after the first week.
-    if(S.allowance>0 && S.day>1 && (S.day-1)%7===0){
-      S.money+=S.allowance;
-      log(`Tygodniowe kieszonkowe: +${S.allowance}€ 💶`);
+    // A new week resets team-training limits. Allowance varies with family finances/events.
+    if(S.day>1 && (S.day-1)%7===0){
+      const family=String(S.familyProfile?.income||S.familyProfile?.socialClass||"stabilny").toLowerCase();
+      const base=family.includes("nis")?8:family.includes("dobr")?18:14;
+      const roll=Math.random();
+      const allowance=roll<.08?0:roll<.25?Math.max(5,base-4):roll<.88?base:base+Math.floor(3+Math.random()*8);
+      S.money+=allowance;
+      S.allowance=allowance;
+      log(allowance?`💶 Kieszonkowe za ten tydzień: +${allowance}€.`:"💶 W tym tygodniu rodzice nie dali kieszonkowego — w domu są większe wydatki.");
+      if(window.FL27_newWeek)FL27_newWeek(S.week);
+      // Weekend block belongs only to the current week.
+      if(window.FL27_newSocialWeek)FL27_newSocialWeek(); if(window.FL27_schedule){FL27_schedule.weekendBlock=false;FL27_schedule.weekendWork=false;FL27_schedule.weekTraining=0;FL27_schedule.weekExtra=0;}
     }
 
-    // Birthday is based on the in-game birth date.
+    // Birthday.
     if(S.month===S.birthMonth && S.dayOfMonth===S.birthDay){
-      S.age++;
-      S.mental=clamp(S.mental+3);
+      S.age++; S.mental=clamp(S.mental+3);
       log(`Urodziny! Masz teraz ${S.age} lat. 🎂`);
     }
+
+    if(window.FL27_checkScoutCases)FL27_checkScoutCases(); if(window.FL27_unifiedTick)FL27_unifiedTick(); if(window.FL27_familyArcTick)FL27_familyArcTick(); if(window.FL27_familyGift)FL27_familyGift(); if(window.FL27_familyLifeCheck)FL27_familyLifeCheck(); if(window.FL27_familyPositiveCheck)FL27_familyPositiveCheck(); if(window.fatherCoachOpportunity)fatherCoachOpportunity();
+    if(window.checkGeneticsResearch)checkGeneticsResearch();
   }
 
-  if(daysPassed>0) randomEventChance();
+  // No automatic +10 energy every day. Recovery comes primarily from sleep.
+  S.energy=clamp(S.energy);
   saveSoon();
 }
 function sleep(){
- if(S.injury>0)S.injury--;
- S.energy=100;S.health=clamp(S.health+5);S.form=clamp(S.form+4);
- log("Sen i regeneracja. Energia wraca do 100.");
- advance(16);toast("Nowy dzień 🌅");render()
+  if(S.injury>0)S.injury--;
+  S.energy=clamp(S.energy+55);
+  S.health=clamp(S.health+5);
+  S.form=clamp(S.form+3);
+  log("😴 8 godzin snu. Regeneracja i nowy dzień.");
+  advance(8);
+  toast("8h snu • nowy dzień 🌅");
+  render();
 }
 function train(real=true){
- if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
- const cost=real?18:10;
- if(S.energy<cost){toast("Za mało energii ⚡");return}
- if(!real && !S.trainingUnlocked){toast("Najpierw wykonaj trening samodzielnie.");return}
- S.energy-=cost;S.form=clamp(S.form+ (real?6:3));S.skill=clamp(S.skill+(real?2:1));
- if(real){S.trainingUnlocked=true;S.trainingLevel=Math.min(10,S.trainingLevel+1);log(`Trening wykonany. Poziom treningu: ${S.trainingLevel}/10.`)}
- else log("Trening zasymulowany. Rozwój jest mniejszy niż przy ręcznym treningu.");
- advance(real?2:1);toast(real?"Trening wykonany 💪":"Trening zasymulowany ⏩");render()
+  if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
+  if(window.FL27_schedule && !FL27_canTeamTraining()){
+    toast(FL27_schedule.weekendBlock?"Weekend masz zajęty — trening drużynowy jest zablokowany.":"Masz już 4 treningi drużynowe w tym tygodniu.");
+    return;
+  }
+  if(window.FL27_schedule && !FL27_teamTraining())return;
+
+  const trainingHours=2;
+  const travelMinutes=window.FL27_mobility?Math.round(FL27_travelHours("club")*60):20;
+  const totalHours=trainingHours+(travelMinutes*2/60);
+  if(S.hour+totalHours>23){toast(`Nie zmieści się już dziś trening z dojazdami (${Math.round(totalHours*60)} min).`);return}
+  if(window.FL27_travel)FL27_travel("club");
+  S.form=clamp(S.form+5);
+  S.skill=clamp(S.skill+(real?2:1));
+  S.energy=clamp(S.energy-8);
+  S.trainingUnlocked=true;
+  S.trainingLevel=Math.min(10,S.trainingLevel+1);
+  log(`⚽ Trening drużynowy • 2h. W tygodniu: ${window.FL27_schedule?FL27_schedule.weekTraining:1}/4.`);
+  advance(2);
+  toast("Trening wykonany 💪");
+  render();
 }
 function playMatch(){
+  if(window.FL27_matchMeeting && Math.random()<0.55){FL27_matchMeeting(S.opponent||"Rywal",[{name:["Kuba","Marek","Alex","Olek","Maja","Lena"][Math.floor(Math.random()*6)],role:"zawodnik/zawodniczka",age:S.age,}]);}
  if(S.injury>0){toast("Nie możesz zagrać z urazem.");return}
  const target=Number(S.nextMatchDay||7);
  if(S.day<target){
@@ -1248,7 +1361,13 @@ function job(){
  }
  openModal("💼 Dorywcza praca","Możesz podjąć jedną dorywczą pracę w tym tygodniu. Wybierz świadomie — zabierze Ci realny czas.",[
   ["Praca po szkole • +25€ • 4h",()=>{S.lastJobWeekKey=key;S.money+=25;S.energy=Math.max(0,S.energy-12);log("Dorywcza praca po szkole: +25€.");advance(4);toast("+25€ 💶");render()}],
-  ["Weekendowa robota • +60€ • 8h",()=>{S.lastJobWeekKey=key;S.money+=60;S.energy=Math.max(0,S.energy-20);log("Weekendowa robota: +60€. Wykorzystujesz tygodniowy limit dorywczej pracy.");advance(8);toast("+60€ 💶");render()}],
+  ["Weekendowa robota • +60€ • 8h",()=>{
+  if(window.FL27_takeWeekendWork && !FL27_takeWeekendWork())return;
+  S.lastJobWeekKey=key; S.money+=60;
+  S.energy=Math.max(0,S.energy-5);
+  log("💼 Weekendowa robota: +60€. Ten weekend jest zajęty pracą, więc trening zostaje zablokowany.");
+  advance(8); toast("+60€ 💶 • weekend zajęty"); render()
+}],
   ["Odmów — regeneracja",()=>{S.lastJobWeekKey=key;S.form=clamp(S.form+3);log("Odmówiłeś/aś pracy, wybierając regenerację.");advance(2);render()}]
  ])
 }
@@ -1344,6 +1463,8 @@ function renderTab(tab){
  if(tab==="family")renderFamily(m);
  if(tab==="careerStats")renderCareerHistory(m);
  if(tab==="wealth")renderWealth(m);
+ if(tab==="relations")renderRelations(m);
+ if(tab==="social")renderSocial(m);
  if(tab==="store")renderStore(m);
  if(tab==="social")renderSocial(m);
 }
@@ -1850,6 +1971,904 @@ window.recordProfessionalMatch=function(stats){
   toast("Statystyki meczu zapisane ✓");
   render();
 };
+</script>
+
+<script>
+window.FL27_extraSession=function(kind){
+  if(window.FL27_schedule && !FL27_canExtraTraining()){toast(FL27_schedule.weekendBlock?"Weekend zajęty — bez dodatkowego treningu.":"Limit 2 dodatkowych jednostek w tym tygodniu.");return}
+  if(window.FL27_schedule && !FL27_extraTraining(kind))return;
+  const hours=kind==="mental"?1:2;
+  if(S.hour+hours>23){toast("Nie masz już wystarczająco dużo czasu dzisiaj.");return}
+  if(kind==="mental"){S.mental=clamp(S.mental+2);log("🧠 1h treningu mentalnego.");}
+  else if(kind==="motoryka"){S.form=clamp(S.form+3);S.fitness=clamp((S.fitness||60)+2);log("🏃 2h treningu motorycznego.");}
+  else {S.skill=clamp(S.skill+1);S.form=clamp(S.form+2);log("⚽ 2h treningu indywidualnego.");}
+  advance(hours); render();
+};
+</script>
+
+<script>
+window.fatherCoachOpportunity=function(){
+  const job=String(S.familyProfile?.father?.job||"").toLowerCase();
+  if(!(job.includes("trener")||job.includes("sport")))return;
+  if(Math.random()<.18){
+    const opts=[
+      ["👨‍👧 Tata zabiera Cię na dodatkowy trening","Słyszysz kilka praktycznych wskazówek i poznajesz jedną osobę ze środowiska sportowego.",()=>{S.skill=clamp(S.skill+1);S.mental=clamp(S.mental+1);log("Tata, jako trener sportowy, pomógł Ci z dodatkowym treningiem.")}],
+      ["🤝 Tata przedstawia Cię trenerowi znajomego klubu","To tylko kontakt — nic nie jest zagwarantowane.",()=>{S.pr+=2;log("Tata wykorzystuje sportową znajomość, żeby przedstawić Cię trenerowi.")}],
+      ["🧠 Rozmowa o treningu","Tata pomaga Ci lepiej zrozumieć regenerację i planowanie.",()=>{S.mental=clamp(S.mental+2);log("Rozmowa z tatą daje Ci nowe spojrzenie na trening.")}]
+    ];
+    const x=opts[Math.floor(Math.random()*opts.length)];
+    openModal(x[0],x[1],[["OK",x[2]]]);
+  }
+};
+</script>
+
+<script>
+/* FL27 RELATIONS + SOCIAL v1 */
+(function(){
+  const KEY="FL27_RELATIONS_SOCIAL_V1";
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}};
+  const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
+  let R=load();
+  R.people??=[];
+  R.social??={followers:0,following:0,posts:[],comments:[],messages:[],weeklyPost:0,likedStars:[],noticedBy:[]};
+  R.meetings??=[];
+  window.FL27_rel=R;
+
+  function person(name,role,team,age,kind){
+    let p=R.people.find(x=>x.name===name&&x.team===team);
+    if(!p){p={id:Date.now()+"_"+Math.random(),name,role,team,age,kind,level:0,meetings:0,lastDay:-99,tags:[]};R.people.push(p);}
+    return p;
+  }
+  window.FL27_meetPerson=function(name,role,team,age,kind="football"){
+    const p=person(name,role,team,age,kind);
+    p.meetings++; p.lastDay=window.S?.day||0; p.level=Math.min(100,p.level+4);
+    save(R); return p;
+  };
+  window.FL27_relationLevel=function(p){
+    if(!p)return "Nieznajomy";
+    if(p.level<10)return "Nowa osoba";
+    if(p.level<25)return "Znajomy/a";
+    if(p.level<50)return "Dobry znajomy/a";
+    if(p.level<75)return "Bliska osoba";
+    return "Bardzo bliska relacja";
+  };
+  window.FL27_post=function(text,type){
+    if(!R.social || (R.social.weeklyPost||0)>=1){toast("Możesz opublikować kolejny post za kilka dni.");return;}
+    const reactions=Math.floor(Math.random()*9);
+    const followers=Math.floor(3+Math.random()*25);
+    R.social.posts.push({day:S.day,text,type,likes:reactions,followers,comments:Math.random()<.45?[{from:"obserwujący",text:["Mega! 🔥","Powodzenia w sezonie!","Ale forma 👀","Kiedy następny mecz?"][Math.floor(Math.random()*4)],reply:null}]:[]});
+    R.social.followers+=followers; R.social.weeklyPost=1;
+    if(window.FL27_life?.memories){
+      FL27_life.memories.push({day:S.day,text:`Post na FLgramie: ${text}`,tags:["social","pr"]});
+      if(FL27_life.memories.length>120)FL27_life.memories.shift();
+      localStorage.setItem("FL27_UNIFIED_LIFE_V6",JSON.stringify(FL27_life));
+    }
+    const pr=type==="sport"?2:type==="life"?1:type==="fun"?1:0;
+    if(pr)S.pr=Math.min(100,(S.pr||0)+pr);
+    log(`📱 FLgram: post zdobył ${reactions} polubień i ${followers} nowych obserwujących.`);
+    save(R);render();
+  };
+  window.FL27_comment=function(postIndex,text){
+    const p=R.social.posts[postIndex]; if(!p)return;
+    p.comments.push({from:"obserwujący",text,reply:null});
+    save(R);render();
+  };
+  window.FL27_replyComment=function(postIndex,commentIndex,text){
+    const p=R.social.posts[postIndex], c=p?.comments?.[commentIndex]; if(!c)return;
+    c.reply=text;
+    R.social.followers+=Math.random()<.5?1:0;
+    S.pr=Math.min(100,(S.pr||0)+(Math.random()<.35?1:0));
+    save(R);render();
+  };
+  window.FL27_starInteraction=function(star){
+    const outcomes=[
+      ["like","Gwiazda polubiła Twój komentarz. 👀",2],
+      ["reply","Dostałeś/aś krótką odpowiedź. Nie jest to nic wielkiego, ale ktoś Cię zauważył.",3],
+      ["notice","Twój profil został zauważony przez osobę z otoczenia zawodnika.",4],
+      ["none","Komentarz przeszedł bez reakcji. To normalne — większość takich wiadomości pozostaje bez odpowiedzi.",0]
+    ];
+    const weights=[.18,.08,.06,.68],r=Math.random();let sum=0,o=outcomes[3];
+    for(let i=0;i<weights.length;i++){sum+=weights[i];if(r<sum){o=outcomes[i];break;}}
+    if(o[0]!=="none"){
+      R.social.noticedBy.push({star,day:S.day,type:o[0]});
+      S.pr=Math.min(100,(S.pr||0)+o[2]);
+    }
+    R.social.messages.push({day:S.day,to:star,result:o[1]});
+    log(`⭐ ${star}: ${o[1]}`);
+    save(R);render();
+  };
+  window.FL27_newSocialWeek=function(){
+    if(R.social.weeklyPost)R.social.weeklyPost=0;
+    save(R);
+  };
+
+  // Real-life meeting hooks for matches and team life.
+  window.FL27_matchMeeting=function(opponent,players){
+    const p=players[Math.floor(Math.random()*players.length)];
+    const same=opponent===S.club;
+    const x=FL27_meetPerson(p.name,p.role,opponent,p.age,"football");
+    log(`🤝 Po meczu ${same?"":"z "}poznajesz ${p.name} (${p.role}). Relacja: ${FL27_relationLevel(x)}.`);
+    save(R);
+  };
+
+  window.FL27_relationSummary=function(){
+    const sorted=R.people.slice().sort((a,b)=>b.level-a.level);
+    return sorted;
+  };
+})();
+</script>
+
+<style>
+.fl27-person{display:flex;align-items:center;gap:11px;padding:12px;border-radius:16px;background:linear-gradient(145deg,#171e29,#111720);border:1px solid rgba(255,255,255,.08);margin:7px 0}
+.fl27-avatar{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:#232b39;font-size:20px}
+.fl27-person small{display:block;color:#8f9bad;margin-top:3px}
+.fl27-social-post{padding:13px;border-radius:18px;background:#111720;border:1px solid rgba(255,255,255,.08);margin:9px 0}
+.fl27-social-head{display:flex;justify-content:space-between;align-items:center}
+.fl27-social-comment{padding:8px 0;border-top:1px solid rgba(255,255,255,.06);font-size:12px;color:#b7c0cc}
+</style>
+
+<script>
+/* FL27 UNIFIED LIFE CONSEQUENCES v6
+   One persistent layer connecting family, father profession, relationships,
+   school, football, social media, money, PR, health, time and career.
+*/
+(function(){
+  const KEY="FL27_UNIFIED_LIFE_V6";
+  function get(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function put(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let L=get();
+  L.flags??={};
+  L.memories??=[];
+  L.opportunities??=[];
+  L.pending??=[];
+  L.stats??={familyHelp:0,coachHelp:0,schoolEvents:0,socialEvents:0,scoutEvents:0};
+  window.FL27_life=L;
+
+  function addMemory(text,tags=[]){
+    L.memories.push({day:Number(window.S?.day||1),text,tags});
+    if(L.memories.length>120)L.memories.shift();
+    put(L);
+  }
+  function change(field,amount,reason){
+    if(!window.S)return;
+    const n=Number(S[field]||0)+Number(amount||0);
+    S[field]=typeof S[field]==="number"?Math.max(0,Math.min(100,n)):n;
+    if(reason && window.log)log(reason);
+  }
+
+  // Father's occupation can matter, but never guarantees success.
+  window.FL27_applyFatherInfluence=function(){
+    if(!window.S?.familyProfile?.father)return;
+    const job=String(S.familyProfile.father.job||"").toLowerCase();
+    if(!(job.includes("trener")||job.includes("sport")||job.includes("wf")))return;
+    if(L.flags.fatherCoachIntro)return;
+    L.flags.fatherCoachIntro=true;
+    L.stats.coachHelp++;
+    const roll=Math.random();
+    if(roll<.45){
+      addMemory("Tata pomaga Ci lepiej zrozumieć trening i przygotowanie do meczu.",["family","football"]);
+      change("mental",2,"👨‍👧 Tata, jako trener sportowy, pomaga Ci w przygotowaniu.");
+    }else if(roll<.75){
+      addMemory("Dzięki tacie poznajesz trenera lub osobę ze środowiska sportowego.",["family","network"]);
+      change("pr",2,"🤝 Tata przedstawia Cię osobie ze środowiska sportowego.");
+      L.opportunities.push({type:"network",availableFrom:Number(S.day||1)+1});
+    }else{
+      addMemory("Tata jest trenerem, ale nie chce mieszać rodziny z Twoją karierą.",["family"]);
+      if(window.log)log("👨 Tata jest trenerem, ale tym razem nie ingeruje w Twoją karierę.");
+    }
+    put(L);
+  };
+
+  // School and club life feed each other.
+  window.FL27_lifeEvent=function(type){
+    const age=Number(S?.age||15);
+    if(type==="school"){
+      L.stats.schoolEvents++;
+      const r=Math.random();
+      if(r<.34){
+        change("mental",2,"🏫 Nauczyciel zauważa, że dobrze organizujesz czas.");
+        addMemory("Nauczyciel pomaga Ci pogodzić szkołę ze sportem.",["school","football"]);
+      }else if(r<.67){
+        change("pr",1,"🏫 Dobrze reprezentujesz szkołę.");
+        addMemory("Szkolne wydarzenie poprawia Twój wizerunek.",["school","pr"]);
+      }else{
+        change("mental",-1,"🏫 Szkoła zabiera Ci więcej czasu niż zwykle.");
+        addMemory("W tym tygodniu szkoła utrudnia pogodzenie obowiązków.",["school","time"]);
+      }
+    }
+    if(type==="team"){
+      const bonus=Math.random()<.5?1:0;
+      if(bonus)change("skill",1,"⚽ Dobra atmosfera w drużynie pomaga Ci się rozwijać.");
+      addMemory("Relacja z zespołem wpływa na Twoją codzienną formę.",["team","relations"]);
+    }
+    if(type==="social"){
+      L.stats.socialEvents++;
+      const r=Math.random();
+      if(r<.5)change("mental",1,"👥 Dobre spotkanie ze znajomymi poprawia Ci humor.");
+      else change("pr",-1,"📱/👥 Nieudana sytuacja towarzyska odbija się na wizerunku.");
+      addMemory("Życie towarzyskie wpływa na Twoje samopoczucie i wizerunek.",["social"]);
+    }
+    put(L);
+  };
+
+  // After a meaningful football contact, create delayed consequences.
+  window.FL27_registerScoutFollowup=function(id,club,contactDay){
+    L.pending.push({type:"scout",id,club,day:Number(contactDay||S.day||1)+3});
+    L.stats.scoutEvents++;
+    put(L);
+  };
+
+  window.FL27_processPending=function(){
+    if(!window.S)return;
+    const day=Number(S.day||1);
+    const due=L.pending.filter(x=>x.day<=day);
+    L.pending=L.pending.filter(x=>x.day>day);
+    due.forEach(x=>{
+      if(x.type==="scout"){
+        const r=Math.random();
+        if(r<.62){
+          addMemory(`Skaut wrócił z konkretną propozycją obserwacji w klubie ${x.club||"zewnętrznym"}.`,["scout","career"]);
+          L.opportunities.push({type:"scout_trial",club:x.club||"zewnętrzny klub",createdDay:day});
+          change("pr",2,"🔎 Skaut wraca po rozmowie z trenerem.");
+        }else{
+          addMemory("Skaut na razie nie wraca z dalszą propozycją.",["scout"]);
+          if(window.log)log("📭 Skaut na razie nie podejmuje dalszych działań.");
+        }
+      }
+    });
+    put(L);
+  };
+
+  // Money choices feed life instead of being isolated purchases.
+  window.FL27_recordLifePurchase=function(kind,cost){
+    if(!window.S || Number(S.money||0)<Number(cost||0))return false;
+    S.money-=Number(cost);
+    if(kind==="boots"){change("skill",1,"👟 Nowe korki dają niewielką przewagę treningową.");}
+    if(kind==="training"){change("fitness",1,"🏃 Sprzęt pomaga w treningu.");}
+    if(kind==="home"){change("mental",1,"🏠 Lepsze warunki życia poprawiają komfort.");}
+    if(kind==="car"){change("pr",1,"🚗 Lepszy samochód wpływa na komfort i wizerunek.");}
+    addMemory(`Kupiono: ${kind}. Wydatek ${cost}€.`,["money","purchase"]);
+    put(L);return true;
+  };
+
+  // Relationship strength has practical effects, but grows through repeated meetings.
+  window.FL27_applyRelationshipEffects=function(){
+    if(!window.FL27_rel || !window.S)return;
+    const people=FL27_rel.people||[];
+    const close=people.filter(p=>Number(p.level||0)>=50).length;
+    const newFriends=people.filter(p=>Number(p.level||0)>=10).length;
+    if(close>0 && Math.random()<.18)change("mental",1,"❤️ Bliskie relacje dają Ci wsparcie.");
+    if(newFriends>=3 && Math.random()<.12)change("pr",1,"👥 Dobre kontakty społeczne poprawiają Twój wizerunek.");
+  };
+
+  window.FL27_unifiedTick=function(){
+    try{
+      FL27_applyFatherInfluence();
+      FL27_processPending();
+      FL27_applyRelationshipEffects();
+      put(L);
+    }catch(e){}
+  };
+})();
+</script>
+
+<script>
+/* FL27 FAMILY DYNAMICS v7 — rodzina nie jest statyczną tabelką */
+(function(){
+  const KEY="FL27_FAMILY_DYNAMICS_V7";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let F=load();
+  F.parents??={status:"together",fatherPartner:null,motherPartner:null};
+  F.events??=[];
+  F.impact??={mental:0,money:0,stability:0};
+  F.familyTimeline??=[];
+  window.FL27_familyDynamics=F;
+
+  const fatherJobs=["nauczyciel","inżynier","mechanik","kierowca","policjant","informatyk","przedsiębiorca","lekarz","pracownik budowlany","księgowy","trener sportowy","fizjoterapeuta","sprzedawca","muzyk"];
+  const motherJobs=["nauczycielka","pielęgniarka","księgowa","architektka","farmaceutka","przedsiębiorczyni","lekarka","pracownica biurowa","projektantka","fizjoterapeutka","trenerka sportowa","sprzedawczyni","artystka"];
+
+  function addEvent(type,title,text,mental,money){
+    const e={day:Number(window.S?.day||1),type,title,text,mental,money,status:"completed"};
+    F.events.push(e);F.familyTimeline.push(e);
+    F.impact.mental+=mental||0;F.impact.money+=money||0;
+    if(window.S){
+      S.mental=Math.max(0,Math.min(100,Number(S.mental||0)+(mental||0)));
+      S.money=Math.max(0,Number(S.money||0)+(money||0));
+    }
+    if(window.log)log(`${title}: ${text}`);
+    save(F);
+  }
+
+  // Rare but meaningful family developments. They do NOT happen every week.
+  window.FL27_familyLifeCheck=function(){
+    if(!window.S?.familyProfile)return;
+    const age=Number(S.age||15);
+    if(age<10 || age>22)return;
+
+    // Only occasional checks, with a cooldown of at least ~100 days.
+    const last=F.events.length?F.events[F.events.length-1].day:-999;
+    if(Number(S.day||1)-last<90)return;
+    if(Math.random()>0.055)return;
+
+    const r=Math.random();
+    const fp=S.familyProfile;
+
+    if(r<.20 && F.parents.status==="together"){
+      F.parents.status="separated";
+      addEvent("family","💔 Rodzice się rozstają",
+        "W domu pojawia się dużo zmian. Nie znasz jeszcze wszystkich odpowiedzi, ale Twoje życie rodzinne nie wygląda już tak jak wcześniej.",
+        -5,0);
+      return;
+    }
+    if(r<.34 && F.parents.status==="separated"){
+      const parent=Math.random()<.5?"father":"mother";
+      const partner=parent==="father"?"nowa partnerka":"nowy partner";
+      F.parents[parent+"Partner"]={status:"new_partner",introducedAt:S.day};
+      addEvent("family","🏠 Nowa sytuacja rodzinna",
+        `${parent==="father"?"Tata":"Mama"} zaczyna spotykać się z kimś nowym. Z czasem możesz tę osobę polubić, zaakceptować albo mieć z nią trudniejszą relację.`,
+        Math.random()<.5?1:-3,0);
+      return;
+    }
+    if(r<.46 && F.parents.status==="separated"){
+      addEvent("family","📅 Podział czasu między rodzicami",
+        "Musisz częściej planować, u którego rodzica spędzasz weekendy. Czas na trening i znajomych robi się bardziej skomplikowany.",
+        -2,0);
+      return;
+    }
+    if(r<.60){
+      const job=fatherJobs[Math.floor(Math.random()*fatherJobs.length)];
+      if(Math.random()<.35){
+        fp.father.job=job;
+        addEvent("family","💼 Zmiana pracy taty",
+          `Tata zmienia pracę na: ${job}. Może to w przyszłości oznaczać większe pieniądze, więcej czasu albo nowe problemy — jeszcze nie wiadomo.`,
+          Math.random()<.5?1:-1, Math.random()<.55?Math.round(20+Math.random()*80):0);
+      }
+      return;
+    }
+    if(r<.74){
+      const job=motherJobs[Math.floor(Math.random()*motherJobs.length)];
+      if(Math.random()<.35){
+        fp.mother.job=job;
+        addEvent("family","💼 Zmiana pracy mamy",
+          `Mama zmienia pracę na: ${job}. Sytuacja rodziny może się zmienić, ale nie zawsze oznacza to więcej pieniędzy.`,
+          Math.random()<.5?1:-1, Math.random()<.55?Math.round(20+Math.random()*80):0);
+      }
+      return;
+    }
+    if(r<.86){
+      addEvent("family","🧳 Przeprowadzka rodziny",
+        "Rodzice rozważają przeprowadzkę. Może to oznaczać nową szkołę, nowy klub, nowych ludzi i konieczność odnalezienia się w nowym miejscu.",
+        -2,0);
+      F.opportunity={type:"move_discussion",createdDay:S.day};
+      save(F);
+      return;
+    }
+    addEvent("family","👨‍👩‍👧 Spokojniejszy okres w domu",
+      "Tym razem nic dramatycznego się nie dzieje. Rodzina ma po prostu dobry okres, a stabilność pomaga Ci skupić się na swoim życiu.",
+      2,0);
+  };
+
+  // Positive family events also matter.
+  window.FL27_familyPositiveCheck=function(){
+    if(!window.S?.familyProfile)return;
+    if(Math.random()>0.025)return;
+    const opts=[
+      ["🎉 Rodzinny sukces","Rodzice mają powód do świętowania i atmosfera w domu jest bardzo dobra.",2,25],
+      ["💶 Rodzice pomagają Ci z ważnym wydatkiem","Rodzina dokłada się do sprzętu lub badania, bo widzi Twoje zaangażowanie.",2,Math.round(30+Math.random()*100)],
+      ["❤️ Ważna rozmowa z rodzicem","Rozmowa pomaga Ci uporządkować presję związaną ze sportem.",3,0],
+      ["🏡 Spokojny weekend z rodziną","Odpoczywasz od futbolu i szkoły. Nie tracisz treningu — po prostu regenerujesz głowę.",2,0]
+    ];
+    const x=opts[Math.floor(Math.random()*opts.length)];
+    addEvent("family",x[0],x[1],x[2],x[3]);
+  };
+
+  window.FL27_familySummary=function(){
+    return {
+      status:F.parents.status,
+      fatherPartner:F.parents.fatherPartner,
+      motherPartner:F.parents.motherPartner,
+      events:F.events.slice().reverse(),
+      impact:F.impact
+    };
+  };
+})();
+</script>
+
+<script>
+/* FL27 FAMILY PROFESSIONS + FUTURE STAFF v8 */
+(function(){
+  const KEY="FL27_FAMILY_PROFESSIONS_V8";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let P=load();
+  P.hired??=[];
+  P.offers??=[];
+  P.salaryMarket??={
+    physiotherapist:{min:1400,max:5000,typical:2800},
+    coach:{min:1800,max:9000,typical:4000},
+    teacher:{min:1200,max:4200,typical:2400},
+    dietitian:{min:1800,max:6000,typical:3200},
+    chef:{min:1600,max:5000,typical:2700},
+    sports_psychologist:{min:2200,max:6500,typical:3500},
+    scout:{min:2000,max:8000,typical:3600},
+    doctor:{min:3500,max:12000,typical:6000},
+    lawyer:{min:3000,max:10000,typical:5200},
+    accountant:{min:1800,max:6000,typical:3000},
+    fitness_trainer:{min:1800,max:6000,typical:3000},
+    marketing:{min:2000,max:7500,typical:3500},
+    mechanic:{min:1800,max:5500,typical:2800},
+    physiologist:{min:2200,max:7000,typical:3800}
+  };
+  window.FL27_prof=P;
+
+  function professionKey(job){
+    const j=String(job||"").toLowerCase();
+    if(j.includes("fizjoter"))return"physiotherapist";
+    if(j.includes("trener"))return"coach";
+    if(j.includes("nauczyc"))return"teacher";
+    if(j.includes("diet"))return"dietitian";
+    if(j.includes("kuchar"))return"chef";
+    if(j.includes("psycholog"))return"sports_psychologist";
+    if(j.includes("skaut"))return"scout";
+    if(j.includes("lekar"))return"doctor";
+    if(j.includes("prawnik"))return"lawyer";
+    if(j.includes("księg"))return"accountant";
+    if(j.includes("fitness"))return"fitness_trainer";
+    if(j.includes("marketing"))return"marketing";
+    if(j.includes("mechanik"))return"mechanic";
+    if(j.includes("fizjolog"))return"physiologist";
+    return null;
+  }
+
+  // Existing family professions can be useful, but only while that parent remains active/available.
+  window.FL27_familyProfessionalHelp=function(kind){
+    if(!window.S?.familyProfile)return false;
+    const f=S.familyProfile;
+    const candidates=[["father",f.father],["mother",f.mother]];
+    const match=candidates.find(([_,p])=>professionKey(p?.job)===kind);
+    if(!match)return false;
+
+    const parent=match[1];
+    const r=Math.random();
+    if(r<.12){
+      toast(`${parent.name} nie może teraz pomóc — ma własne obowiązki.`);
+      return false;
+    }
+    if(r<.25){
+      toast(`${parent.name} nie chce mieszać pracy z Twoją karierą.`);
+      return false;
+    }
+    if(window.log)log(`👨‍👩‍👧 ${parent.name}, jako ${parent.job}, pomaga Ci bez dodatkowego kosztu.`);
+    if(kind==="physiotherapist"){S.health=Math.min(100,(S.health||70)+3);S.injury=Math.max(0,(S.injury||0)-1);}
+    if(kind==="coach"){S.skill=Math.min(100,(S.skill||50)+1);S.mental=Math.min(100,(S.mental||50)+1);}
+    if(kind==="teacher"){S.mental=Math.min(100,(S.mental||50)+1);}
+    if(kind==="dietitian"){S.fitness=Math.min(100,(S.fitness||60)+1);}
+    if(kind==="chef"){S.health=Math.min(100,(S.health||70)+2);}
+    if(kind==="doctor"){S.health=Math.min(100,(S.health||70)+4);}
+    if(kind==="sports_psychologist"){S.mental=Math.min(100,(S.mental||50)+2);}
+    return true;
+  };
+
+  // Future professional career: the player can offer jobs to relatives/known people.
+  window.FL27_offerJobToParent=function(parentKey,role,salary){
+    if(!window.S?.familyProfile)return;
+    const parent=S.familyProfile[parentKey];
+    if(!parent){toast("Nie znaleziono tej osoby.");return;}
+    const key=professionKey(role)||role;
+    const market=P.salaryMarket[key];
+    if(!market){toast("Nie znam jeszcze widełek dla tego zawodu.");return;}
+    salary=Number(salary);
+    if(salary<market.min){toast(`To poniżej realnego minimum dla tej roli: około ${market.min}€ miesięcznie.`);return;}
+    if(salary>market.max*2){toast("To bardzo wysoka oferta. Możesz ją złożyć, ale gra potraktuje ją jako wyjątkowo hojną.");}
+    const acceptance=Math.min(.95,Math.max(.08,
+      .45 + (salary-market.typical)/(market.typical*2)
+      + (Math.random()*.30-.15)
+    ));
+    if(Math.random()>acceptance){
+      log(`❌ ${parent.name} odrzuca ofertę pracy za ${salary}€ miesięcznie.`);
+      toast(`${parent.name} nie przyjął/przyjęła oferty.`);
+      return;
+    }
+    P.hired.push({name:parent.name,role,salary,relation:parentKey,day:S.day,status:"hired"});
+    log(`🤝 ${parent.name} przyjmuje pracę: ${role}, ${salary}€ miesięcznie.`);
+    save(P);render();
+  };
+
+  window.FL27_offerJobToPerson=function(personId,role,salary){
+    const person=(window.FL27_rel?.people||[]).find(x=>x.id===personId);
+    if(!person){toast("Nie znaleziono osoby.");return;}
+    const key=professionKey(role)||role, market=P.salaryMarket[key];
+    if(!market){toast("Brak danych rynku dla tego zawodu.");return;}
+    salary=Number(salary);
+    if(salary<market.min){toast(`Oferta jest zbyt niska. Orientacyjny rynek: ${market.min}–${market.max}€ miesięcznie.`);return;}
+    const relationBonus=Number(person.level||0)>=50?.12:Number(person.level||0)>=25?.05:0;
+    const acceptance=Math.min(.96,Math.max(.05,.35+relationBonus+(salary-market.typical)/(market.typical*2)+(Math.random()*.25-.125)));
+    if(Math.random()>acceptance){
+      log(`❌ ${person.name} odrzuca ofertę ${salary}€ miesięcznie.`);
+      toast(`${person.name} odrzucił/a ofertę.`);
+      return;
+    }
+    P.hired.push({name:person.name,role,salary,relation:person.id,day:S.day,status:"hired"});
+    log(`🤝 ${person.name} przyjmuje pracę jako ${role} za ${salary}€ miesięcznie.`);
+    save(P);render();
+  };
+
+  window.FL27_salaryMarket=function(role){
+    return P.salaryMarket[professionKey(role)||role]||null;
+  };
+
+  window.FL27_professionSummary=function(){
+    const f=S.familyProfile||{};
+    return {
+      father:f.father?{name:f.father.name,job:f.father.job,role:professionKey(f.father.job)}:null,
+      mother:f.mother?{name:f.mother.name,job:f.mother.job,role:professionKey(f.mother.job)}:null,
+      hired:P.hired.slice()
+    };
+  };
+})();
+</script>
+
+<script>
+/* FL27 FAMILY ARC v9 — dynamic family life, weighted toward ages 15–20 */
+(function(){
+  const KEY="FL27_FAMILY_ARC_V9";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let A=load();
+  A.profile??={wealth:"normal",fatherTime:"normal",fatherSupport:"normal",motherSupport:"normal",stability:"stable",lastEventDay:-999};
+  A.events??=[];
+  A.arcSeed??=Math.random();
+  window.FL27_familyArc=A;
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function add(title,text,effects={}){
+    const day=Number(window.S?.day||1);
+    A.events.push({day,title,text,effects});
+    if(A.events.length>80)A.events.shift();
+    A.profile.lastEventDay=day;
+    if(window.S){
+      if(effects.mental)S.mental=clamp((S.mental||50)+effects.mental,0,100);
+      if(effects.money)S.money=Math.max(0,(S.money||0)+effects.money);
+      if(effects.pr)S.pr=clamp((S.pr||0)+effects.pr,0,100);
+    }
+    if(window.log)log(`${title}: ${text}`);
+    save(A);
+  }
+
+  // Family circumstances evolve, but not every week. The system becomes much quieter after 20.
+  window.FL27_familyArcTick=function(){
+    if(!window.S?.familyProfile)return;
+    const age=Number(S.age||15);
+    if(age<15 || age>25)return;
+    const day=Number(S.day||1);
+    const since=day-Number(A.profile.lastEventDay||-999);
+    if(since<120)return;
+
+    // Highest activity in 15–20, then progressively lower frequency.
+    const chance=age<=17?.075:age<=20?.055:age<=22?.025:.012;
+    if(Math.random()>chance)return;
+
+    const f=S.familyProfile;
+    const fatherJob=String(f.father?.job||"").toLowerCase();
+    const motherJob=String(f.mother?.job||"").toLowerCase();
+
+    // If father is an entrepreneur/business owner, wealth can change over time.
+    if(fatherJob.includes("przedsiębior") && Math.random()<.45){
+      const success=Math.random();
+      if(success<.45){
+        A.profile.wealth="high"; A.profile.fatherSupport="financial";
+        add("📈 Tata odnosi sukces biznesowy",
+          "Firma taty mocno się rozwija. Od teraz rodzina ma znacznie większe możliwości finansowe. Tata zaczyna kupować Ci rzeczy i częściej pomaga finansowo, ale przez pracę ma mniej czasu.",
+          {mental:Math.random()<.5?2:-1,money:Math.round(150+Math.random()*500)});
+      }else if(success<.65){
+        A.profile.wealth="very_high"; A.profile.fatherTime="low"; A.profile.fatherSupport="financial";
+        add("💰 Tata bardzo się wzbogaca",
+          "Tata zaczyna zarabiać naprawdę dużo. Możesz liczyć na droższy sprzęt, samochód, wyjazdy czy większe kieszonkowe, ale jego życie zawodowe pochłania coraz więcej czasu.",
+          {mental:Math.random()<.5?1:-2,money:Math.round(500+Math.random()*1500),pr:1});
+      }else{
+        A.profile.wealth="lower"; A.profile.fatherSupport="stressed";
+        add("📉 Problemy w biznesie taty",
+          "Firma ma słabszy okres. Rodzina musi ograniczyć część wydatków, a tata jest bardziej zestresowany.",
+          {mental:-3,money:-Math.round(20+Math.random()*80)});
+      }
+      return;
+    }
+
+    // Generic career improvement/change for any father.
+    if(Math.random()<.22){
+      const positive=Math.random()<.62;
+      if(positive){
+        A.profile.fatherSupport="financial";
+        add("💼 Zmiana sytuacji zawodowej taty",
+          "Tata dostaje lepszą pracę lub awans. W domu pojawia się trochę więcej pieniędzy, ale jego dostępność dla rodziny może się zmienić.",
+          {mental:Math.random()<.6?1:-1,money:Math.round(40+Math.random()*180)});
+      }else{
+        A.profile.fatherSupport="stressed";
+        add("💼 Trudniejszy okres zawodowy taty",
+          "Praca taty zaczyna wymagać więcej czasu i nerwów. Nie oznacza to problemów na stałe, ale przez jakiś czas w domu jest mniej spokoju.",
+          {mental:-2});
+      }
+      return;
+    }
+
+    // Mother can have an independent career arc too.
+    if(Math.random()<.22){
+      const positive=Math.random()<.65;
+      if(positive){
+        A.profile.motherSupport="financial";
+        add("💼 Mama ma lepszy okres w pracy",
+          "Mama dostaje awans, lepszą pracę albo dodatkowe źródło dochodu. Rodzina zyskuje większą stabilność.",
+          {mental:2,money:Math.round(30+Math.random()*130)});
+      }else{
+        A.profile.motherSupport="busy";
+        add("⏰ Mama ma bardzo dużo pracy",
+          "Mama jest ostatnio mocno zajęta. Nie chodzi o brak zainteresowania Tobą — po prostu ma mniej czasu.",
+          {mental:-1});
+      }
+      return;
+    }
+
+    // Relationship/family stability changes.
+    if(Math.random()<.14 && A.profile.stability==="stable"){
+      A.profile.stability="strained";
+      add("🏠 Napięty okres w domu",
+        "W rodzinie pojawiają się napięcia. Nie ma jednego wielkiego wydarzenia — po prostu przez jakiś czas wszyscy mają więcej na głowie.",
+        {mental:-2});
+      return;
+    }
+
+    if(Math.random()<.20 && A.profile.stability==="strained"){
+      A.profile.stability="stable";
+      add("❤️ Sytuacja w domu się uspokaja",
+        "Rodzina przechodzi przez trudniejszy okres, ale teraz jest spokojniej. Nie wszystko jest idealne, jednak możesz skupić się na swoim życiu.",
+        {mental:2});
+      return;
+    }
+
+    // Rare separation/new partner arc, never guaranteed.
+    if(A.profile.stability==="stable" && Math.random()<.035){
+      A.profile.stability="separated";
+      add("💔 Rodzice podejmują trudną decyzję",
+        "Rodzice rozstają się. Twoja codzienność zaczyna wyglądać inaczej i będziesz musieć nauczyć się funkcjonować w nowej sytuacji.",
+        {mental:-6});
+      return;
+    }
+    if(A.profile.stability==="separated" && Math.random()<.18){
+      const parent=Math.random()<.5?"father":"mother";
+      if(parent==="father")A.profile.fatherTime="new_family";
+      else A.profile.motherSupport="new_family";
+      add("❤️ Nowa osoba w życiu rodzica",
+        `${parent==="father"?"Tata":"Mama"} zaczyna układać sobie życie na nowo. Możesz tę osobę polubić, mieć dystans albo potrzebować czasu — relacja będzie rozwijać się stopniowo.`,
+        {mental:Math.random()<.5?1:-2});
+      return;
+    }
+
+    // A positive "present but not rich" family event.
+    if(Math.random()<.22){
+      add("👨‍👩‍👧 Rodzinny czas",
+        "Tym razem rodzina po prostu spędza razem trochę czasu. Bez wielkiego wydarzenia — zwykły, dobry dzień.",
+        {mental:3});
+    }
+  };
+
+  // Family wealth can affect allowance and gifts without becoming an unlimited money cheat.
+  window.FL27_familyGift=function(){
+    if(!window.S)return;
+    const age=Number(S.age||15);
+    if(age>20)return;
+    const w=A.profile.wealth;
+    if(w==="very_high" && Math.random()<.25){
+      const amount=Math.round(100+Math.random()*500);
+      S.money+=amount;
+      add("🎁 Tata daje Ci pieniądze",
+        `Tata chce, żebyś miał/a łatwiej. Dostajesz ${amount}€ na własne wydatki. Nie jest to jednak stała wypłata.`,
+        {mental:1});
+    }else if(w==="high" && Math.random()<.16){
+      const amount=Math.round(50+Math.random()*200);
+      S.money+=amount;
+      add("🎁 Rodzice pomagają Ci finansowo",
+        `Rodzice dokładają ${amount}€ do Twoich wydatków lub sprzętu.`,
+        {mental:1});
+    }
+  };
+
+  window.FL27_familyArcSummary=function(){return A};
+})();
+</script>
+
+<script>
+/* FL27 MOBILITY v10 — miejsce zamieszkania + transport wpływają na realny czas */
+(function(){
+  const KEY="FL27_MOBILITY_V10";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let M=load();
+  M.home??={town:"lokalna miejscowość",distanceToClub:4,distanceToSchool:2};
+  M.transport??={bike:false,car:false,parentRide:true,publicTransport:true};
+  M.bike??={owned:false,price:180,quality:"standard"};
+  M.travelHistory??=[];
+  window.FL27_mobility=M;
+
+  const towns=[
+    {name:"małe miasto",club:4,school:2,public:35},
+    {name:"przedmieścia dużego miasta",club:7,school:3,public:25},
+    {name:"centrum dużego miasta",club:3,school:2,public:15},
+    {name:"wieś pod miastem",club:14,school:5,public:45},
+    {name:"miasteczko sportowe",club:5,school:2,public:20}
+  ];
+
+  window.FL27_setHome=function(name){
+    const t=towns.find(x=>x.name===name)||towns[0];
+    M.home={town:t.name,distanceToClub:t.club,distanceToSchool:t.school};
+    save(M);
+  };
+
+  window.FL27_buyBike=function(){
+    if(M.bike.owned){toast("Masz już rower.");return false}
+    const price=M.bike.price;
+    if(Number(S.money||0)<price){toast(`Rower kosztuje ${price}€. Brakuje Ci pieniędzy.`);return false}
+    S.money-=price;
+    M.bike.owned=true;
+    M.transport.bike=true;
+    M.bike.quality=Math.random()<.2?"sportowy":"standard";
+    log(`🚲 Kupujesz rower za ${price}€. Dojazdy na trening stają się szybsze.`);
+    save(M);render();return true;
+  };
+
+  // Travel time is calculated from the current home, not from a fixed global number.
+  window.FL27_travelHours=function(destination){
+    const h=M.home;
+    let base=destination==="club"?Number(h.distanceToClub||5):Number(h.distanceToSchool||2);
+    let minutes=base*4; // rough walking/biking baseline in minutes per km
+    if(M.transport.bike && destination==="club")minutes=Math.max(8,Math.round(base*2.3));
+    else if(M.transport.car)minutes=Math.max(5,Math.round(base*1.4));
+    else if(M.transport.parentRide)minutes=Math.max(10,Math.round(base*1.8));
+    else if(M.transport.publicTransport)minutes=Math.max(15,Math.round(base*3.5));
+
+    // Convert to hours, preserving partial hours for the schedule.
+    return minutes/60;
+  };
+
+  window.FL27_travel=function(destination){
+    const minutes=Math.round(FL27_travelHours(destination)*60);
+    const hours=minutes/60;
+    if(S.hour+hours>24){toast("Nie zmieści się już dziś ten dojazd.");return false}
+    S.hour+=hours;
+    M.travelHistory.push({day:S.day,destination,minutes,transport:M.transport.bike?"rower":M.transport.car?"samochód":M.transport.parentRide?"rodzic":"komunikacja"});
+    if(M.travelHistory.length>100)M.travelHistory.shift();
+    save(M);
+    log(`🚗 Dojazd: ${destination==="club"?"klub":"szkoła"} • ${minutes} min • ${M.transport.bike?"rower":M.transport.car?"samochód":M.transport.parentRide?"rodzic":"komunikacja"}.`);
+    return true;
+  };
+
+  window.FL27_mobilitySummary=function(){
+    return {
+      home:M.home,
+      bike:M.bike,
+      transport:M.transport,
+      clubMinutes:Math.round(FL27_travelHours("club")*60),
+      schoolMinutes:Math.round(FL27_travelHours("school")*60)
+    };
+  };
+})();
+</script>
+
+<script>
+/* FL27 MINOR RELOCATION + CLUB MOVE v11 */
+(function(){
+  const KEY="FL27_RELOCATION_V11";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let R=load();
+  R.moves??=[];
+  R.pending??=[];
+  R.current??={town:null,living:"parents"};
+  R.conditions??=[];
+  window.FL27_relocation=R;
+
+  function familyDecision(clubCity,clubLevel){
+    const age=Number(S?.age||15);
+    const parents=S?.familyProfile||{};
+    const income=String(parents.income||"").toLowerCase();
+    const stability=window.FL27_familyArc?.profile?.stability||"stable";
+
+    // A minor cannot simply decide to relocate alone.
+    if(age<18){
+      const base=0.55;
+      const development=clubLevel==="academy_top"?0.18:clubLevel==="professional"?0.10:0;
+      const familyPenalty=stability==="strained"?-0.18:stability==="separated"?-0.10:0;
+      const roll=Math.random();
+      const chance=Math.max(.18,Math.min(.88,base+development+familyPenalty));
+
+      if(roll<chance){
+        const options=[
+          {type:"all_move",title:"👨‍👩‍👧 Cała rodzina się przeprowadza",text:`Rodzice zgadzają się, żebyś kontynuował/a karierę w ${clubCity}. Rodzina zaczyna organizować przeprowadzkę.`,mental:1},
+          {type:"one_parent",title:"🚗 Jeden z rodziców jedzie z Tobą",text:"Rodzice nie chcą zmieniać całego życia, więc jeden z nich decyduje się tymczasowo przeprowadzić razem z Tobą.",mental:1},
+          {type:"conditions",title:"📋 Rodzice stawiają warunek",text:"Zgadzają się, ale pod warunkiem dobrych wyników w szkole, bezpiecznego mieszkania/opieki i regularnego kontaktu z rodziną.",mental:0}
+        ];
+        // Wealth/family stability changes which option is more plausible.
+        let pick=options[Math.floor(Math.random()*options.length)];
+        if(stability==="separated" && Math.random()<.45)pick=options[1];
+        R.pending.push({type:"move_accepted",city:clubCity,clubLevel,option:pick.type,createdDay:S.day});
+        R.conditions=pick.type==="conditions"?["szkoła","opieka","kontakt z rodziną"]:[];
+        save(R);
+        if(window.log)log(`${pick.title}: ${pick.text}`);
+        if(pick.mental)S.mental=Math.max(0,Math.min(100,(S.mental||50)+pick.mental));
+        return pick;
+      }else{
+        const noOptions=[
+          {type:"no",text:"Rodzice nie zgadzają się na przeprowadzkę na tym etapie."},
+          {type:"wait",text:"Rodzice uważają, że to za wcześnie. Chcą, żeby klub najpierw pokazał, że naprawdę na Ciebie stawia."},
+          {type:"condition",text:"Rodzice nie mówią „nie”, ale chcą najpierw konkretnej umowy, opieki i warunków mieszkaniowych."}
+        ];
+        const pick=noOptions[Math.floor(Math.random()*noOptions.length)];
+        R.pending.push({type:"move_blocked",city:clubCity,createdDay:S.day,reason:pick.type});
+        save(R);
+        if(window.log)log(`🏠 ${pick.text}`);
+        S.mental=Math.max(0,Math.min(100,(S.mental||50)-1));
+        return pick;
+      }
+    }
+
+    // At 18+, the player can decide independently, with financial consequences.
+    return {type:"independent",text:"Masz 18 lat lub więcej — możesz sam/a zdecydować o przeprowadzce, kontrakcie i miejscu zamieszkania."};
+  }
+
+  window.FL27_offerRelocation=function(clubCity,clubLevel="professional"){
+    if(!window.S)return;
+    const age=Number(S.age||15);
+    if(age>=18){
+      const result=familyDecision(clubCity,clubLevel);
+      log(`🏙️ Przeprowadzka do ${clubCity}: ${result.text}`);
+      return result;
+    }
+    return familyDecision(clubCity,clubLevel);
+  };
+
+  window.FL27_completeMove=function(){
+    const move=R.pending.find(x=>x.type==="move_accepted");
+    if(!move){toast("Nie ma obecnie zaakceptowanej przeprowadzki.");return false;}
+    R.current.town=move.city;
+    R.current.living=move.option==="all_move"?"cała rodzina":move.option==="one_parent"?"z jednym rodzicem":"rodzice + opieka";
+    R.moves.push({day:S.day,city:move.city,living:R.current.living,clubLevel:move.clubLevel});
+    R.pending=R.pending.filter(x=>x!==move);
+
+    // New location changes travel distance and creates a new-life reset.
+    if(window.FL27_mobility){
+      FL27_mobility.home.town=move.city;
+      FL27_mobility.home.distanceToClub=3+Math.floor(Math.random()*6);
+      FL27_mobility.home.distanceToSchool=2+Math.floor(Math.random()*4);
+      FL27_mobility.travelHistory=[];
+    }
+    if(window.log)log(`📦 Przeprowadzka zakończona. Nowy dom: ${move.city}. Mieszkasz ${R.current.living}.`);
+    save(R);render();return true;
+  };
+
+  // A move can change parents' work and family finances.
+  window.FL27_moveFamilyLife=function(){
+    const move=R.moves[R.moves.length-1];
+    if(!move||move.day!==S.day)return;
+    if(move.living==="cała rodzina" && window.S?.familyProfile){
+      const jobChanges=Math.random()<.65;
+      if(jobChanges){
+        if(Math.random()<.5)S.familyProfile.father.job=["nauczyciel","mechanik","sprzedawca","trener sportowy","informatyk"][Math.floor(Math.random()*5)];
+        else S.familyProfile.mother.job=["nauczycielka","księgowa","pracownica biurowa","fizjoterapeutka","sprzedawczyni"][Math.floor(Math.random()*5)];
+        if(window.log)log("💼 Po przeprowadzce jedno z rodziców musi poukładać swoją pracę na nowo.");
+      }
+    }
+  };
+})();
+</script>
+
+<script>
+/* FL27_CANONICAL_BUILD */
+(function(){
+  try{
+    localStorage.setItem("FL27_CANONICAL_BUILD","FINAL-ZCALONE-V1");
+    if(window.S && S.version!==7)S.version=7;
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
