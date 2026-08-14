@@ -1068,6 +1068,7 @@ function renderSocial(m){
   </div>`;
 }
 
+
 function renderFamily(m){
   ensureFamily(); checkGeneticsResearch();
   const f=S.familyProfile;
@@ -1081,6 +1082,8 @@ function renderFamily(m){
   </div>
   <div class="card">
     <div class="section-title"><b>👨‍👩‍👧 Rodzina</b><span>zawsze aktualna</span></div>
+    <div class="v58-family-note">💡 Zamożniejsza rodzina może oznaczać większe kieszonkowe, prezenty albo opłacanie części wydatków, ale <b>nic nie jest gwarantowane</b>. Rodzice mogą być hojni, zajęci, mieć gorszy okres albo odmówić. Ich zawód również czasem pomaga — jeśli chcą.</div>
+    <button class="action" style="width:100%;margin:10px 0" onclick="FL27_familyMoment()"><b>🎲 Sprawdź, co dziś wydarzyło się w rodzinie</b><small>losowa sytuacja • pieniądze / prezent / czas / wsparcie</small></button>
     <div class="row"><span>Ojciec</span><b>${esc(f.father.name)} • ${f.father.age} lat</b></div>
     <div class="row"><span>Zawód</span><b>${esc(f.father.job)}</b></div>
     <div class="row"><span>Pochodzenie</span><b>${esc(f.father.country)}</b></div>
@@ -1471,34 +1474,36 @@ function renderTab(tab){
  if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
- try{m.innerHTML=FL27_renderNews();}catch(e){}
-
- const md=Number(S.nextMatchDay||7);
- const diff=md-S.day;
- const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
- m.innerHTML=`
- <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${esc(S.name||"Moja kariera")}</h1><p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
- <div class="pills"><span class="pill">💞 ${esc(S.orientation||"brak danych")}</span></div>
- <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill)}</span><span class="pill">🧠 Mental ${Math.round(S.mental)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health)}</span></div></div>
- <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
-   <div class="kicker">📅 PIERWSZY DZIEŃ</div>
-   <h2>Twoja kariera właśnie się zaczęła</h2>
-   <p>Wybierz dowolną czynność poniżej. Każda czynność przesuwa godzinę, zmienia energię i zapisuje się automatycznie.</p>
- </div>
- <div class="section-title"><b>Co robisz teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
- <div class="card"><div class="actions">
- <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • -18⚡ • rozwój większy</small></button>
- <button class="action" onclick="train(false)"><b>⏩ Symuluj trening</b><small>1h • -10⚡ • tylko po odblokowaniu</small></button>
- <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • wynik + statystyki</small></button>
- <button class="action" onclick="sleep()"><b>😴 Idź spać</b><small>regeneracja • następny dzień</small></button>
- </div></div>
- <div class="card"><div class="section-title"><b>Twój stan</b><span>zapis automatyczny</span></div>
- <div class="row"><span>Energia</span><b>${Math.round(S.energy)}/100</b></div><div class="progress"><i style="width:${S.energy}%"></i></div>
- <div class="row"><span>Forma</span><b>${Math.round(S.form)}/100</b></div><div class="progress"><i style="width:${S.form}%"></i></div>
- <div class="row"><span>Zdrowie</span><b>${Math.round(S.health)}/100</b></div><div class="progress"><i style="width:${S.health}%"></i></div>
- </div>
- <div class="card"><button class="choice" onclick="newGame()"><b>🔄 TEST: Nowa kariera od początku</b><span>Kasuje tylko zapis tej wersji prototypu.</span></button></div>
- <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs[0]?S.logs[0].day+". dzień":"—"}</span></div><div class="log">${S.logs[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div></div>`;
+  try{m.innerHTML=FL27_renderNews();}catch(e){m.innerHTML=""}
+  const md=Number(S.nextMatchDay||7), diff=md-S.day;
+  const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
+  const taskHtml=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
+  m.innerHTML+=`
+   <div class="card hero"><div class="kicker">⚽ ŻYCIE PIŁKARSKIE</div>
+     <h1>${esc(S.name||"Moja kariera")}</h1>
+     <p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos||"—")} • ${esc(S.club||"—")}</p>
+     <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill||0)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health||0)}</span><span class="pill">💶 ${Math.floor(S.money||0)}</span></div>
+   </div>
+   <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
+     <div class="kicker">📍 TERAZ</div>
+     <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
+     <p>${diff<=0?"Możesz wejść w mecz i podejmować decyzje boiskowe.":`Najbliższy mecz ${nextMatch}. W międzyczasie możesz wykonywać aktywności i reagować na wydarzenia.`}</p>
+   </div>
+   <div class="section-title"><b>Co możesz zrobić teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
+   <div class="card"><div class="actions">
+     <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • rozwój</small></button>
+     <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • decyzje meczowe</small></button>
+     <button class="action" onclick="sleep()"><b>😴 Sen</b><small>regeneracja • nowy dzień</small></button>
+     <button class="action" onclick="go('day')"><b>🕐 Otwórz Dzień</b><small>plan, czas i wydarzenia</small></button>
+   </div></div>
+   <div class="card"><div class="section-title"><b>Stan teraz</b><span>szczegóły w zakładkach</span></div>
+     <div class="row"><span>Energia</span><b>${Math.round(S.energy||0)}/100</b></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,S.energy||0))}%"></i></div>
+     <div class="row"><span>Forma</span><b>${Math.round(S.form||0)}/100</b></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,S.form||0))}%"></i></div>
+   </div>
+   ${taskHtml}
+   <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs?.[0]?S.logs[0].day+". dzień":"—"}</span></div>
+     <div class="log">${S.logs?.[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div>
+   </div>`;
 }
 function renderDay(m){
  m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
@@ -4657,7 +4662,7 @@ window.FL27_MASTER_FEATURES = [
   /* A new tutorial decision can unlock a different tutorial task.
      These are still randomly generated and never have to repeat in another career. */
   const BASE_TASK_POOL=[
-    {id:"home",name:"Poznaj ekran „Dziś”",desc:"Sprawdź aktualności i możliwości.",reward:2,kind:"tab"},
+    {id:"family",name:"Poznaj swoją rodzinę",desc:"Otwórz Rodzinę i sprawdź rodziców, ich sytuację, zawody, możliwości finansowe i relacje.",reward:4,kind:"tab"},
     {id:"day",name:"Sprawdź przebieg dnia",desc:"Zobacz, jak działa czas.",reward:2,kind:"tab"},
     {id:"career",name:"Zajrzyj do kariery",desc:"Sprawdź pozycję i rozwój.",reward:3,kind:"tab"},
     {id:"life",name:"Sprawdź swoje życie",desc:"Zobacz życie poza boiskiem.",reward:3,kind:"tab"},
@@ -4744,11 +4749,12 @@ window.FL27_MASTER_FEATURES = [
       <div class="v37-task-list">
         ${tasks.map((t,i)=>{
           const ok=!!P.panelTasks[t.id]?.done;
-          return `<div class="v37-task ${ok?'done':''}">
+          const route={family:"family",day:"day",career:"career",life:"life",history:"history",stats:"careerStats",shop:"store",settings:"settings",home:"home"}[t.id];
+          return `<button type="button" class="v37-task ${ok?'done':''}" ${route?`onclick="FL27_tutorialRoute('${route}')"`:""} style="width:100%;text-align:left;cursor:${route?"pointer":"default"}">
             <span class="v37-task-num">${ok?'✓':i+1}</span>
             <div><b>${t.name}</b><small>${t.desc}</small></div>
             <em>+${t.reward} 💎</em>
-          </div>`;
+          </button>`;
         }).join("")}
       </div>
       <div class="v37-gem-note">🎲 Każda nowa kariera losuje inny kontekst, wydarzenia i konsekwencje. Ta sama sytuacja może rozwinąć się inaczej przez wcześniejsze decyzje.</div>
@@ -4790,11 +4796,12 @@ window.FL27_MASTER_FEATURES = [
       <div class="v37-task-list">
         ${PANEL_TASKS.map((t,i)=>{
           const ok=!!P.panelTasks[t.id]?.done;
-          return `<div class="v37-task ${ok?'done':''}">
+          const route={family:"family",day:"day",career:"career",life:"life",history:"history",stats:"careerStats",shop:"store",settings:"settings",home:"home"}[t.id];
+          return `<button type="button" class="v37-task ${ok?'done':''}" ${route?`onclick="FL27_tutorialRoute('${route}')"`:""} style="width:100%;text-align:left;cursor:${route?"pointer":"default"}">
             <span class="v37-task-num">${ok?'✓':i+1}</span>
             <div><b>${t.name}</b><small>${t.desc}</small></div>
             <em>+${t.reward} 💎</em>
-          </div>`;
+          </button>`;
         }).join("")}
       </div>
       <div class="v37-gem-note">💎 Diamenty nie są zwykłą walutą. Zbierasz je za samouczek i później będziesz wydawać je na specjalne rzeczy, które dodamy do gry.</div>
@@ -6897,7 +6904,7 @@ window.FL27_confirmPlus=function(){
      if(window.S){
        S.firstName=first;S.lastName=last;S.name=playerName;
        S.avatar=av;S.gender=av.gender;S.orientation=orientation;
-       S.position=S.position||selectedAnswers[2];
+       S.position=S.pos;
      }
      saveSoon();
      document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
@@ -9856,5 +9863,212 @@ body:not(.creator-screen) .fl27-v35-bottom{
     runSequence(gf,ga,starter?"starter":"bench");
   };
   window.playMatch=window.FL27_playMatchWithDecisions;
+})();
+</script>
+
+
+<script id="fl27-v58-tutorial-routing">
+window.FL27_tutorialRoute=function(tab){
+  if(tab==="settings"){window.renderSettings?.();return}
+  if(typeof window.FL27_ROUTE==="function"){window.FL27_ROUTE(tab);return}
+  if(typeof window.go==="function"){window.go(tab);return}
+};
+</script>
+<style id="fl27-v58-tutorial-style">
+.v37-task{font:inherit;color:inherit}
+.v37-task:hover{border-color:rgba(118,169,255,.35)!important;transform:translateY(-1px)}
+</style>
+
+
+<script id="fl27-v58-family-economics">
+(function(){
+  window.FL27_familyEconomics=function(){
+    const parents=S.parents||{};
+    const wealth=Number(parents.wealth??S.familyWealth??50);
+    const weekly=Number(S.allowance||0);
+    const giftChance=Math.min(.55,Math.max(.08,wealth/180));
+    const gift= Math.random()<giftChance;
+    const amount=gift?Math.max(5,Math.round((8+Math.random()*35)*(0.6+wealth/100))):0;
+    return {wealth,gift,amount,weekly};
+  };
+})();
+</script>
+<style id="fl27-v58-family-card">
+.v58-family-note{padding:11px;border-radius:12px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.13);font-size:9px;line-height:1.5;color:#aeb8c6}
+</style>
+
+
+<script id="fl27-v59-position-sync">
+(function(){
+  const MAP=[
+    [/^Bramkarz\b/i,"BR"],[/^Środkowy obrońca\b/i,"ŚO"],[/^Lewy obrońca\b/i,"LO"],[/^Prawy obrońca\b/i,"PO"],
+    [/^Środkowy pomocnik\b/i,"ŚP"],[/^Lewy pomocnik\b/i,"LP"],[/^Prawy pomocnik\b/i,"PP"],
+    [/^Lewy skrzydłowy\b/i,"LS"],[/^Prawy skrzydłowy\b/i,"PS"],[/^Napastnik\b/i,"N"]
+  ];
+  function canonical(v){
+    const x=String(v||"").trim();
+    if(["BR","ŚO","LO","PO","ŚP","LP","PP","LS","PS","N"].includes(x))return x;
+    for(const [r,c] of MAP)if(r.test(x))return c;
+    if(/^pomocnik$/i.test(x))return "ŚP";
+    return x.replace(/\s*—.*$/,"").trim();
+  }
+  function sync(){
+    if(!window.S)return;
+    const p=canonical(S.pos||S.position);
+    if(p){
+      S.pos=p;
+      S.position=p; // ONE source of truth; no stale "Pomocnik" can survive.
+    }
+  }
+  window.FL27_SYNC_POSITION=sync;
+  const oldRender=window.render;
+  if(typeof oldRender==="function" && !window.__FL27_V59_RENDER){
+    window.__FL27_V59_RENDER=true;
+    window.render=function(){sync();return oldRender.apply(this,arguments)};
+  }
+  setTimeout(sync,100);
+})();
+</script>
+<style id="fl27-v59-position-style">
+.v59-position-badge{
+  display:inline-flex!important;align-items:center;gap:5px;padding:4px 8px;
+  border-radius:999px;background:rgba(85,216,138,.10);
+  border:1px solid rgba(85,216,138,.20);color:#7ee6a4;font-weight:900
+}
+</style>
+
+
+<style id="fl27-v60-family-support">
+.v60-support-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.v60-support-card{padding:10px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+.v60-support-card b{display:block;font-size:10px}.v60-support-card small{display:block;margin-top:3px;color:#8f9daf;font-size:8px;line-height:1.35}
+@media(max-width:520px){.v60-support-grid{grid-template-columns:1fr}}
+</style>
+<script id="fl27-v60-family-support">
+(function(){
+  function ensure(){
+    if(!window.S)return;
+    if(!S.familyProfile && typeof window.ensureFamily==="function")window.ensureFamily();
+    const f=S.familyProfile||{};
+    const A=window.FL27_familyArc;
+    if(A){
+      A.profile=A.profile||{};
+      if(A.profile.careerCommitment==null)A.profile.careerCommitment=Math.random();
+      if(A.profile.fatherCareerCommitment==null)A.profile.fatherCareerCommitment=.25+Math.random()*.7;
+      if(A.profile.motherCareerCommitment==null)A.profile.motherCareerCommitment=.25+Math.random()*.7;
+      if(A.profile.fatherSupport==="normal"||!A.profile.fatherSupport)A.profile.fatherSupport="occasional";
+      if(A.profile.motherSupport==="normal"||!A.profile.motherSupport)A.profile.motherSupport="occasional";
+    }
+  }
+
+  function wealthScore(){
+    const f=S.familyProfile||{};
+    const income=String(f.income||"").toLowerCase();
+    if(/niski|pracują/.test(income))return 20;
+    if(/dobrze|zamoż/.test(income))return 72;
+    return 48;
+  }
+
+  window.FL27_familyMoment=function(){
+    ensure();
+    const f=S.familyProfile||{}, A=window.FL27_familyArc?.profile||{};
+    const base=wealthScore();
+    const fatherCommit=Number(A.fatherCareerCommitment??.55);
+    const motherCommit=Number(A.motherCareerCommitment??.55);
+    const parentPool=[];
+    const fJob=String(f.father?.job||"");
+    const mJob=String(f.mother?.job||"");
+
+    /* Financial status and willingness are deliberately independent. */
+    if(base<35 && fatherCommit>.65) parentPool.push(
+      ["💶 Tata odkłada z własnej wypłaty na Twoje korki",12+Math.floor(Math.random()*34),"father","career"],
+      ["🚌 Tata rezygnuje z własnego wydatku, żeby zawieźć Cię na trening",0,"father","time"],
+      ["🏕️ Rodzic znajduje tani obóz i pomaga Ci go opłacić",8+Math.floor(Math.random()*22),"father","career"]
+    );
+    if(base<35 && motherCommit>.65) parentPool.push(
+      ["❤️ Mama bierze dodatkową zmianę, żeby pomóc opłacić wyjazd",15+Math.floor(Math.random()*45),"mother","career"],
+      ["🍽️ Mama przygotowuje Ci jedzenie na cały turniej, żebyś nie wydawał/a pieniędzy",0,"mother","career"]
+    );
+    if(base>=65 && fatherCommit<.35) parentPool.push(
+      ["🛑 Tata może sobie pozwolić na wydatek, ale mówi, że tym razem nie finansuje piłki",0,"father","boundary"],
+      ["💬 Tata proponuje pieniądze tylko jeśli przedstawisz mu konkretny plan",0,"father","boundary"]
+    );
+    if(base>=65 && motherCommit<.35) parentPool.push(
+      ["🛑 Mama mówi, że pieniądze są, ale nie chce opłacać kolejnego obozu",0,"mother","boundary"]
+    );
+
+    parentPool.push(
+      ["🪙 Dostajesz zwykłe kieszonkowe",3+Math.floor(Math.random()*13),"family","allowance"],
+      ["🎁 Rodzic kupuje Ci potrzebną rzecz, bo zauważył, że Twoja się zużyła",0,"family","gift"],
+      ["❤️ Rodzic zamiast pieniędzy poświęca Ci czas i pomaga przygotować się do treningu",0,"family","time"],
+      ["😐 Rodzice mówią, że tym razem musisz poradzić sobie sam/a",0,"family","none"]
+    );
+
+    /* A parent's profession can create an occasional non-cash advantage. */
+    if(/trener|sport|fizjoter|lekarz|diet|psych|nauczyc|informatyk/.test(fJob.toLowerCase()))
+      parentPool.push(["🧑‍🏫 Tata pomaga Ci dzięki swojemu zawodowi — bez płacenia za zewnętrzną poradę",0,"father","professional"]);
+    if(/trener|sport|fizjoter|lekarz|diet|psych|nauczyc|informatyk/.test(mJob.toLowerCase()))
+      parentPool.push(["🧑‍🏫 Mama pomaga Ci dzięki swojemu zawodowi — bez płacenia za zewnętrzną poradę",0,"mother","professional"]);
+
+    const pick=parentPool[Math.floor(Math.random()*parentPool.length)];
+    const [text,amount,parent,type]=pick;
+
+    if(amount){S.money=Math.max(0,(S.money||0)+amount);}
+    if(type==="career"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+3);S.mental=clamp((S.mental||50)+2);}
+    else if(type==="time"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+4);S.mental=clamp((S.mental||50)+3);}
+    else if(type==="gift"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+2);}
+    else if(type==="boundary"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)-1);S.mental=clamp((S.mental||50)+1);}
+    else if(type==="professional"){S.skill=clamp((S.skill||50)+1);S.rel.Rodzice=clamp((S.rel.Rodzice||50)+2);}
+    else if(type==="none"){S.mental=clamp((S.mental||50)-1);}
+
+    const title=amount?`${text} (+${amount}€)`:text;
+    if(window.log)log(title);
+    if(A){
+      A.events=A.events||[];
+      A.events.push({day:S.day,title:"👨‍👩‍👧 Rodzinne wsparcie",text:title,effects:{money:amount}});
+      if(A.events.length>80)A.events.shift();
+      A.profile.lastEventDay=S.day;
+      if(parent==="father"&&type==="career")A.profile.fatherSupport="financial";
+      if(parent==="mother"&&type==="career")A.profile.motherSupport="financial";
+      try{localStorage.setItem("FL27_FAMILY_ARC_V9",JSON.stringify(A))}catch(e){}
+    }
+    saveSoon();toast(amount?`Rodzina: +${amount}€ 💶`:"Rodzina: wydarzyło się coś ważnego ❤️");render();
+  };
+
+  /* Add a compact, always-visible explanation to the existing family panel. */
+  const oldRenderFamily=window.renderFamily;
+  if(typeof oldRenderFamily==="function"&&!window.__FL27_V60_FAMILY_RENDER){
+    window.__FL27_V60_FAMILY_RENDER=true;
+    window.renderFamily=function(m){
+      ensure();
+      oldRenderFamily.apply(this,arguments);
+      const card=document.createElement("div");
+      card.className="card";
+      const f=S.familyProfile||{}, A=window.FL27_familyArc?.profile||{};
+      const wealth=String(f.socialClass||"klasa średnia");
+      const fs=String(A.fatherSupport||"okazjonalne");
+      const ms=String(A.motherSupport||"okazjonalne");
+      card.innerHTML=`<div class="section-title"><b>❤️ Wsparcie dla Twojej kariery</b><span>niezależne od majątku</span></div>
+        <p class="sub">Rodzina może być biedna, ale rodzic może poświęcać bardzo dużo dla Twojej kariery. Zamożny rodzic może natomiast stawiać granice i nie finansować wszystkiego. Pieniądze i zaangażowanie są osobnymi cechami.</p>
+        <div class="v60-support-grid">
+          <div class="v60-support-card"><b>💰 Majątek rodziny</b><small>${esc(wealth)}</small></div>
+          <div class="v60-support-card"><b>⚽ Tata</b><small>wsparcie: ${esc(fs)}</small></div>
+          <div class="v60-support-card"><b>⚽ Mama</b><small>wsparcie: ${esc(ms)}</small></div>
+          <div class="v60-support-card"><b>🎲 Dzisiaj</b><small>wsparcie nie jest gwarantowane</small></div>
+        </div>`;
+      m.appendChild(card);
+    };
+  }
+  ensure();
+})();
+</script>
+
+
+<script id="fl27-v60-guards">
+(function(){
+  if(window.S){
+    S.rel=S.rel||{};
+    S.rel.Rodzice=Number.isFinite(Number(S.rel.Rodzice))?Number(S.rel.Rodzice):50;
+  }
 })();
 </script>
