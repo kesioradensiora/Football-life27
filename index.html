@@ -346,7 +346,67 @@ const EVENT_POOL=[
 ["Staję po stronie jednej osoby",()=>{S.mental-=1;log("Opowiadasz się po jednej stronie. Decyzja zostaje w historii.")}]]},
 {id:"small_sponsor",title:"Drobna oferta sprzętowa",text:"Lokalny sklep sportowy proponuje Ci zniżkę na sprzęt w zamian za zgodę na publikację zdjęcia.",choices:[
 ["Zgadzam się",()=>{S.pr+=3;S.money+=10;log("Przyjmujesz małą współpracę. PR +3 i 10€.")}],
-["Odmawiam — nie chcę reklamy",()=>{S.mental+=1;log("Odmawiasz współpracy, żeby skupić się na piłce.")}]]}
+["Odmawiam — nie chcę reklamy",()=>{S.mental+=1;log("Odmawiasz współpracy, żeby skupić się na piłce.")}]]},
+{id:"school_project",title:"Projekt w szkole",text:"Dostajesz projekt do zrobienia w grupie. Termin wypada tuż przed ważnym treningiem.",choices:[
+["Organizuję pracę grupy",()=>{S.mental+=2;S.rel.Rodzice+=1;log("Dobrze organizujesz projekt. Zyskujesz uznanie w grupie.")}],
+["Robię swoją część i idę na trening",()=>{S.skill+=1;S.mental+=1;log("Łączysz obowiązki szkolne z piłką.")}],
+["Odkładam projekt",()=>{S.mental-=2;S.pr-=1;log("Odkładasz projekt. Później może pojawić się problem.")}]]},
+{id:"school_teacher",title:"Nauczyciel zauważa Cię",text:"Nauczyciel proponuje Ci udział w dodatkowym projekcie szkolnym.",choices:[
+["Podejmuję się",()=>{S.mental+=3;S.pr+=1;log("Podejmujesz dodatkowe wyzwanie w szkole.")}],
+["Pytam o termin po treningu",()=>{S.mental+=1;S.rel.Trener+=1;log("Ustalasz termin tak, by nie kolidował z treningiem.")}],
+["Odmawiam",()=>{S.energy+=3;log("Oszczędzasz czas na regenerację.")}]]},
+{id:"class_outing",title:"Wyjście z klasą",text:"Kilka osób z klasy proponuje wyjście po lekcjach.",choices:[
+["Idę z nimi",()=>{S.mental+=3;S.family+=1;S.energy-=2;log("Spędzasz czas ze znajomymi ze szkoły.")}],
+["Idę tylko na chwilę",()=>{S.mental+=2;S.energy-=1;log("Krótki wypad poprawia humor.")}],
+["Wracam do domu",()=>{S.energy+=3;log("Wybierasz spokojny wieczór.")}]]},
+{id:"older_group_callup",title:"Trening ze starszym rocznikiem",text:"Starsza grupa ma braki kadrowe. Trener proponuje Ci jednorazowy trening z nimi.",choices:[
+["Jadę",()=>{S.skill+=3;S.energy-=8;S.mental+=2;log("Trening ze starszymi zawodnikami daje Ci dużo nauki.")}],
+["Jadę, ale proszę o mniejsze obciążenie",()=>{S.skill+=2;S.energy-=4;log("Ostrożnie korzystasz z okazji.")}],
+["Zostaję ze swoim rocznikiem",()=>{S.energy+=2;S.form+=1;log("Wybierasz spokojniejszy trening.")}]]},
+{id:"younger_help",title:"Pomagasz młodszym",text:"Trener prosi Cię o pokazanie młodszym zawodnikom jednego ćwiczenia.",choices:[
+["Pomagam",()=>{S.mental+=2;S.skill+=1;S.rel.Trener+=2;log("Uczysz się tłumaczyć ćwiczenie innym.")}],
+["Pomagam przez pół treningu",()=>{S.mental+=1;S.rel.Trener+=1;S.energy-=2;log("Pomagasz, ale zachowujesz czas dla siebie.")}],
+["Odmawiam",()=>{S.energy+=2;log("Dziś skupiasz się na własnym treningu.")}]]},
+{id:"bike",title:"Popołudnie na rowerze",text:"Pogoda jest świetna. Masz wolne dwie godziny.",choices:[
+["Spokojna przejażdżka",()=>{S.mental+=3;S.energy-=1;log("Lekki ruch poprawia samopoczucie.")}],
+["Dłuższa trasa",()=>{S.mental+=2;S.energy-=5;S.health+=1;log("Robisz dłuższą trasę. Trochę się męczysz.")}],
+["Zostaję w domu",()=>{S.energy+=4;log("Wybierasz regenerację.")}]]},
+{id:"family_cooking",title:"Wieczór z rodzicami",text:"Rodzice proponują wspólne gotowanie i rozmowę.",choices:[
+["Zostaję z nimi",()=>{S.family+=5;S.rel.Rodzice+=4;S.mental+=2;log("Dobry rodzinny wieczór.")}],
+["Pomagam tylko chwilę",()=>{S.family+=2;S.rel.Rodzice+=2;log("Pomagasz i wracasz do swoich zajęć.")}],
+["Odmawiam, jestem zmęczony/a",()=>{S.energy+=3;S.rel.Rodzice-=1;log("Potrzebujesz odpoczynku, ale rodzice są trochę zawiedzeni.")}]]},
+{id:"scout_stands",title:"Skaut na trybunach",text:"Po meczu trener wspomina, że na trybunach pojawiła się osoba obserwująca młodych zawodników.",choices:[
+["Pytam trenera o szczegóły",()=>{S.mental+=1;S.rel.Trener+=3;S.pr+=2;log("Trener tłumaczy Ci, jak działa obserwacja młodych zawodników.")}],
+["Nie nakręcam się",()=>{S.mental+=2;log("Zachowujesz spokój i skupiasz się na rozwoju.")}],
+["Pracuję jeszcze mocniej",()=>{S.skill+=2;S.energy-=4;log("Zainteresowanie skauta motywuje Cię do pracy.")}]]},
+{id:"school_scout",title:"Kontakt po treningu",text:"Ktoś przedstawia się jako skaut i pyta o Twoją sytuację w klubie.",choices:[
+["Odsyłam go do trenera",()=>{S.pr+=2;S.rel.Trener+=2;log("Zachowujesz profesjonalizm i informujesz trenera.")}],
+["Rozmawiam chwilę",()=>{S.pr+=3;S.mental+=1;log("Spokojnie opowiadasz o swojej karierze.")}],
+["Nie podaję żadnych danych",()=>{S.mental+=1;log("Zachowujesz ostrożność.")}]]},
+{id:"music_lesson",title:"Lekcja śpiewu",text:"Znajoma osoba proponuje Ci jedną próbną lekcję śpiewu.",choices:[
+["Spróbuję",()=>{S.mental+=2;S.energy-=1;log("Odkrywasz nową aktywność poza piłką.")}],
+["Tylko jedna lekcja z ciekawości",()=>{S.mental+=2;log("Fajne doświadczenie, nawet jeśli nie zostanie na dłużej.")}],
+["Nie teraz",()=>{S.energy+=1;log("Piłka ma dziś pierwszeństwo.")}]]},
+{id:"analysis_interest",title:"Zainteresowanie analizą",text:"Zaczynasz interesować się tym, jak trenerzy analizują mecze.",choices:[
+["Uczę się podstaw",()=>{S.skill+=1;S.mental+=2;log("Zaczynasz patrzeć na mecze bardziej analitycznie.")}],
+["Oglądam mecz z trenerem",()=>{S.skill+=2;S.rel.Trener+=2;log("Rozmowa z trenerem otwiera Ci oczy na taktykę.")}],
+["Na razie tylko gram",()=>{S.form+=1;log("Skupiasz się na boisku.")}]]},
+{id:"school_conflict",title:"Sytuacja w szkole",text:"W klasie dochodzi do spięcia między kilkoma osobami.",choices:[
+["Próbuję uspokoić sytuację",()=>{S.mental+=3;S.pr+=1;log("Pomagasz rozładować konflikt.")}],
+["Rozmawiam tylko z jedną osobą",()=>{S.mental+=1;S.family+=1;log("Pomagasz bez wchodzenia w sam środek konfliktu.")}],
+["Nie angażuję się",()=>{S.energy+=1;log("Oszczędzasz sobie stresu.")}]]},
+{id:"first_social_media",title:"Pierwszy pomysł na social media",text:"Masz 15 lat i znajomi namawiają Cię, żeby pokazywać część piłkarskiego życia w internecie.",choices:[
+["Zakładam konto FLgram",()=>{ensureSocial();S.social.unlocked=true;S.pr+=2;S.mental+=1;log("Zakładasz FLgram — fikcyjny profil społecznościowy zawodnika.")}],
+["Jeszcze poczekam",()=>{S.mental+=1;log("Na razie nie chcesz być obecny/a w social mediach.")}],
+["Tylko konto sportowe",()=>{ensureSocial();S.social.unlocked=true;S.pr+=1;log("Zakładasz sportowy profil bez prywatnych treści.")}]]},
+{id:"family_money_chance",title:"Rodzice proponują zarobek",text:"Rodzice potrzebują pomocy przy dodatkowej pracy i pytają, czy chcesz dorobić.",choices:[
+["Pomagam w weekend",()=>{S.money+=40;S.energy-=8;S.rel.Rodzice+=3;log("Pomagasz rodzicom i dostajesz 40€.")}],
+["Biorę krótszą zmianę",()=>{S.money+=20;S.energy-=4;S.rel.Rodzice+=2;log("Krótka pomoc daje Ci 20€.")}],
+["Odmawiam, mam regenerację",()=>{S.energy+=3;S.rel.Rodzice+=1;log("Wybierasz odpoczynek.")}]]},
+{id:"random_finance",title:"Niespodziewane pieniądze",text:"Dostajesz niewielką kwotę za pomoc, o której wcześniej nie wiedziałeś/aś.",choices:[
+["Odkładam",()=>{S.money+=20;log("Odkładasz 20€.")}],
+["Wydaję część na coś dla siebie",()=>{S.money+=10;S.mental+=2;log("Odkładasz część i wydajesz resztę na drobną przyjemność.")}],
+["Pytam rodziców, skąd się wzięły",()=>{S.money+=20;S.rel.Rodzice+=1;log("Rozmawiasz z rodzicami i dostajesz wyjaśnienie.")}]]}
 ];
 
 function fresh(){
@@ -356,7 +416,7 @@ function fresh(){
   gender:"",orientation:"",pos:"",foot:"",style:"",inspiration:"",club:"Akademia lokalna",dream:"",
   risk:"",priority:"",goal:"",school:"Szkoła",family:60,mental:60,health:90,injury:0,
   friends:["Rodzice","Trener"],rel:{Rodzice:60,Trener:35},matches:0,wins:0,draws:0,losses:0,goals:0,assists:0,
-  trainingLevel:0,trainingUnlocked:false,logs:[],usedEvents:[],
+  trainingLevel:0,trainingUnlocked:false,logs:[],usedEvents:[],eventHistory:{},nextMatchDay:7,lastJobWeekKey:"",
 origin:"",birthCountry:"",nationalities:[],residenceCountry:"",
 familyProfile:{father:{name:"",age:0,job:"",country:""},mother:{name:"",age:0,job:"",country:""},siblings:[],home:"",income:"",socialClass:"",familyNotes:""},
 partner:null,children:[],potential:{athletic:null,mental:null,technical:null,ceiling:null},geneticsResearch:null,
@@ -374,7 +434,8 @@ careerStats:{
   career:{apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0},
   trophies:[],awards:[],records:[],transfers:[],clubs:[]
 },
-store:{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]}
+store:{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]},
+social:{unlocked:true,handle:"FL27_"+Math.floor(1000+Math.random()*9000),followers:0,posts:[],lastPostDay:0}
  };
 }
 let S=state||fresh();
@@ -385,7 +446,7 @@ if(state){
   });
   S.version=7;
 }
-ensureWealth(); ensureStore();
+ensureWealth(); ensureStore(); ensureSocial();
 try{
  const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");
  if(d){
@@ -454,7 +515,7 @@ function render(){
  applyGenderGrammar();
 }
 function renderNav(){
- const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],["store","🛒","Sklep"],["wealth","💰","Finanse"]];
+ const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],["store","🛒","Sklep"],["wealth","💰","Finanse"],["social","📱","FLgram"]];
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
@@ -1059,7 +1120,7 @@ function startCareer(){
  if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
  S.club=pickRealLocalClub(S.familyProfile.residenceCity);
  S.pos=(S.pos||"").replace(/ —.*$/,"").replace(/.*\(([^)]+)\)$/,"$1");
- S.money=35;S.allowance=14;S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;S.age=15;S.birthMonth=11;S.birthDay=30;
+ S.money=35;S.allowance=14;S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;S.age=15;S.nextMatchDay=7;S.lastJobWeekKey="";S.eventHistory={};S.social={unlocked:true,handle:"FL27_"+Math.floor(1000+Math.random()*9000),followers:0,posts:[],lastPostDay:0};S.birthMonth=11;S.birthDay=30;
  S.logs=[];S.usedEvents=[];S.school=Math.random()<0.62?"Szkoła sportowa":"Szkoła";
  if(S.style.startsWith("Techniczny"))S.skill+=7;if(S.style.startsWith("Szybki"))S.form+=4;if(S.style.startsWith("Fizyczny"))S.health+=4;if(S.style.startsWith("Kreatywny"))S.pr+=2;
  if(S.pos==="BR")S.skill+=2;if(S.pos==="N")S.pr+=2;if(S.priority==="Rozwój i umiejętności")S.skill+=3;if(S.priority==="Trofea")S.mental+=2;if(S.priority==="Pieniądze")S.money+=10;
@@ -1133,6 +1194,13 @@ function train(real=true){
 }
 function playMatch(){
  if(S.injury>0){toast("Nie możesz zagrać z urazem.");return}
+ const target=Number(S.nextMatchDay||7);
+ if(S.day<target){
+   const left=target-S.day;
+   toast(`Mecz jest dopiero za ${left} ${left===1?"dzień":"dni"} ⚽`);
+   log(`Sprawdzasz terminarz — najbliższy mecz za ${left} dni.`);
+   saveSoon();render();return;
+ }
  if(S.energy<28){toast("Za mało energii na mecz.");return}
  S.energy-=28;
  const rating=S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12);
@@ -1141,12 +1209,20 @@ function playMatch(){
  let ga=Math.max(0,Math.round((opp/42)+Math.random()*1.4-0.5));
  S.matches++;
  let result=gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴";
- if(gf>ga){S.wins++;S.form=clamp(S.form+7);S.pr+=3}else if(gf===ga){S.draws++;S.form=clamp(S.form+2);S.pr+=1}else{S.losses++;S.form=clamp(S.form-5)}
+ if(gf>ga){S.wins++;S.form=clamp(S.form+7);S.pr+=3}
+ else if(gf===ga){S.draws++;S.form=clamp(S.form+2);S.pr+=1}
+ else{S.losses++;S.form=clamp(S.form-5)}
  const personal=Math.random();
- if(personal<.45){S.goals++;S.pr+=2;log(`Mecz ${gf}:${ga} — ${result}. Strzelasz gola! ⚽`)}
- else if(personal<.72){S.assists++;S.pr+=1;log(`Mecz ${gf}:${ga} — ${result}. Notujesz asystę.`)}
+ let st={apps:1,starts:1,minutes:90,goals:0,assists:0,yellow:0,red:0,cleanSheets:ga===0?1:0};
+ if(personal<.45){S.goals++;st.goals=1;S.pr+=2;log(`Mecz ${gf}:${ga} — ${result}. Strzelasz gola! ⚽`)}
+ else if(personal<.72){S.assists++;st.assists=1;S.pr+=1;log(`Mecz ${gf}:${ga} — ${result}. Notujesz asystę.`)}
  else log(`Mecz ${gf}:${ga} — ${result}.`);
- advance(2);toast(result);randomEventChance("match");render()
+ if(Math.random()<.16){st.yellow=1;log("Dostajesz żółtą kartkę.");}
+ if(ga===0 && S.pos==="BR"){log("Czyste konto! 🧤");}
+ recordMatchStats(st);
+ // Next fixture is a real in-game date, not a clickable label.
+ S.nextMatchDay=S.day+7+Math.floor(Math.random()*8); // 7–14 days later
+ advance(2);toast(`${result} • następny mecz: za ${S.nextMatchDay-S.day} dni`);randomEventChance("match");render()
 }
 function city(kind){
  const data=kind==="cafe"?[8,"Kawiarnia"]:kind==="cinema"?[15,"Kino"]:kind==="shop"?[25,"Sklep"]:[0,"Miasto"];
@@ -1165,10 +1241,15 @@ function askParents(){
  openModal("👨‍👩‍👧 Rodzice","Wybierz, jak chcesz rozwiązać sprawę pieniędzy:",options)
 }
 function job(){
- openModal("💼 Dorywcza praca","Masz kilka możliwości zarobienia pieniędzy:",[
-  ["Praca po szkole • +25€ • 4h",()=>{S.money+=25;S.energy=Math.max(0,S.energy-12);log("Dorywcza praca po szkole: +25€.");advance(4);toast("+25€ 💶");render()}],
-  ["Weekendowa robota • +60€ • 8h",()=>{S.money+=60;S.energy=Math.max(0,S.energy-20);log("Weekendowa praca: +60€.");advance(8);toast("+60€ 💶");render()}],
-  ["Odmów — regeneracja",()=>{S.form=clamp(S.form+3);log("Odmówiłeś/aś pracy, wybierając regenerację.");advance(2);render()}]
+ const key=`${S.year}-${S.week}`;
+ if(S.lastJobWeekKey===key){
+   toast("W tym tygodniu masz już za sobą jedną dorywczą pracę. Spróbuj ponownie w przyszłym tygodniu.");
+   return;
+ }
+ openModal("💼 Dorywcza praca","Możesz podjąć jedną dorywczą pracę w tym tygodniu. Wybierz świadomie — zabierze Ci realny czas.",[
+  ["Praca po szkole • +25€ • 4h",()=>{S.lastJobWeekKey=key;S.money+=25;S.energy=Math.max(0,S.energy-12);log("Dorywcza praca po szkole: +25€.");advance(4);toast("+25€ 💶");render()}],
+  ["Weekendowa robota • +60€ • 8h",()=>{S.lastJobWeekKey=key;S.money+=60;S.energy=Math.max(0,S.energy-20);log("Weekendowa robota: +60€. Wykorzystujesz tygodniowy limit dorywczej pracy.");advance(8);toast("+60€ 💶");render()}],
+  ["Odmów — regeneracja",()=>{S.lastJobWeekKey=key;S.form=clamp(S.form+3);log("Odmówiłeś/aś pracy, wybierając regenerację.");advance(2);render()}]
  ])
 }
 function addFriend(){
@@ -1178,17 +1259,31 @@ function addFriend(){
  S.friends.push(n);S.rel[n]=15;log(`Poznajesz ${n}. Relacja startuje od 15/100.`);toast(`Poznajesz ${n} 👋`)
 }
 function randomEventChance(context="day"){
- const used=S.usedEvents||[];
- let available=EVENT_POOL.filter(e=>!used.includes(e.id));
- if(!available.length){S.usedEvents=[];available=EVENT_POOL.slice();log("Wszystkie wydarzenia zostały wykorzystane — pula losowych sytuacji została odświeżona.")}
- if(context==="match"){
-  const media=available.find(e=>e.id==="first_media");
-  if(media && Math.random()<.72){S.usedEvents.push(media.id);saveSoon();return openEvent(media)}
- }
- if(Math.random()<.38){
-  const e=available[Math.floor(Math.random()*available.length)];
-  S.usedEvents.push(e.id);saveSoon();openEvent(e);
- }
+ ensureEventHistory();
+ // More events early in the career, but never the same event every few days.
+ const history=S.eventHistory||{};
+ const now=S.day;
+ let available=EVENT_POOL.filter(e=>{
+   const last=Number(history[e.id]||-9999);
+   const cooldown=e.id==="first_media"?365:(e.id==="equipment"||e.id==="small_sponsor"?120:90);
+   return now-last>=cooldown;
+ });
+ if(!available.length)return;
+ const chance=S.age===15 ? .52 : .38;
+ if(context==="match" && Math.random()<.35){
+   // Match-related event gets a chance, but it is NOT forced and can never be the same one repeatedly.
+   const matchEvents=available.filter(e=>e.id==="scout_stands"||e.id==="great_match"||e.id==="bad_match");
+   if(matchEvents.length)available=matchEvents;
+   else if(Math.random()>=chance)return;
+ }else if(Math.random()>=chance)return;
+ const e=available[Math.floor(Math.random()*available.length)];
+ history[e.id]=now;
+ S.eventHistory=history;
+ S.usedEvents=Object.keys(history);
+ saveSoon();openEvent(e);
+}
+function ensureEventHistory(){
+ if(!S.eventHistory || typeof S.eventHistory!=="object" || Array.isArray(S.eventHistory))S.eventHistory={};
 }
 function openEvent(e){openModal("🎲 "+e.title,e.text,e.choices)}
 
@@ -1206,6 +1301,39 @@ function buyCare(){
   ["Krioterapia • 90€ • +35 zdrowia",()=>{if(!spend(90,"Krioterapia"))return;S.health=clamp(S.health+35);S.form=clamp(S.form+5);S.energy=clamp(S.energy+20);advance(2);render()}]
  ])
 }
+function ensureSocial(){
+ if(!S.social)S.social={unlocked:S.age>=15,handle:"FL27_"+Math.floor(1000+Math.random()*9000),followers:0,posts:[],lastPostDay:0};
+ if(S.age>=15)S.social.unlocked=true;
+}
+function socialPost(){
+ ensureSocial();
+ if(S.age<15){toast("Social media odblokują się po ukończeniu 15 lat.");return}
+ if(S.social.lastPostDay && S.day-S.social.lastPostDay<7){
+   toast(`Nowy post możesz wrzucić za ${7-(S.day-S.social.lastPostDay)} dni.`);
+   return;
+ }
+ const pool=[
+  ["📸 Zdjęcie po treningu","Pokazujesz fragment treningu bez przechwalania się.",()=>{S.pr+=3;S.social.followers+=18;S.mental+=1;log("FLgram: wrzucasz zdjęcie po treningu. PR +3.")}],
+  ["⚽ Krótki film z treningu","Pokazujesz udaną akcję treningową.",()=>{S.pr+=4;S.social.followers+=25;S.skill+=1;S.energy-=1;log("FLgram: publikujesz fragment treningu. PR +4, umiejętność +1.")}],
+  ["🏠 Post z życia codziennego","Pokazujesz zwykły dzień poza boiskiem.",()=>{S.pr+=2;S.social.followers+=30;S.mental+=2;log("FLgram: dzielisz się normalnym życiem. PR +2.")}],
+  ["🎙️ Wypowiedź o marzeniach","Piszesz o klubie marzeń i swoich celach.",()=>{S.pr+=5;S.social.followers+=35;S.mental-=1;log("FLgram: piszesz o swoich ambicjach. PR +5.")}],
+  ["❤️ Podziękowanie dla rodziny","Publikujesz podziękowanie dla rodziców.",()=>{S.pr+=3;S.social.followers+=22;S.family+=3;log("FLgram: dziękujesz rodzinie. PR +3.")}],
+  ["😂 Luźny post ze znajomymi","Pokazujesz trochę życia poza piłką.",()=>{S.pr+=1;S.social.followers+=40;S.mental+=3;log("FLgram: luźny post ze znajomymi. Zyskujesz obserwujących.")}]
+ ];
+ const choices=pool.sort(()=>Math.random()-.5).slice(0,3).map(x=>[x[0],()=>{S.social.lastPostDay=S.day;S.social.posts=S.social.posts||[];S.social.posts.push({day:S.day,text:x[0]});x[2]();saveSoon();render()}]);
+ openModal("📱 FLgram","Masz trzy propozycje posta. Wybierz jedną — następny post dopiero za tydzień.",choices);
+}
+function renderSocial(m){
+ ensureSocial();
+ const posts=S.social.posts||[];
+ m.innerHTML=`<div class="card hero"><div class="kicker">📱 SOCIAL MEDIA</div><h1>FLgram</h1><p>@${esc(S.social.handle)} • ${Math.round(S.social.followers)} obserwujących</p>
+ <div class="pills"><span class="pill">📣 PR ${Math.round(S.pr)}</span><span class="pill">📸 ${posts.length} postów</span></div></div>
+ <div class="card"><div class="section-title"><b>Nowa publikacja</b><span>${S.social.lastPostDay&&S.day-S.social.lastPostDay<7?`za ${7-(S.day-S.social.lastPostDay)} dni`:"dostępna"}</span></div>
+ <button class="action" onclick="socialPost()"><b>➕ Wybierz post</b><small>3 losowe propozycje • konsekwencje dla PR, obserwujących i życia</small></button></div>
+ <div class="card"><div class="section-title"><b>Twój profil</b><span>fikcyjny social w grze</span></div>
+ <div class="notice">Nie ma prawdziwych kont ani publikowania w internecie. FLgram działa wyłącznie w świecie gry.</div>
+ ${posts.length?posts.slice().reverse().map(x=>`<div class="log"><em>${x.day}. dzień</em>${esc(x.text)}</div>`).join(""):"<div class='empty'>Jeszcze nic nie opublikowano.</div>"}</div>`;
+}
 function renderTab(tab){
  const m=document.getElementById("main");
  if(tab==="home")renderHome(m);
@@ -1217,9 +1345,12 @@ function renderTab(tab){
  if(tab==="careerStats")renderCareerHistory(m);
  if(tab==="wealth")renderWealth(m);
  if(tab==="store")renderStore(m);
+ if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
- const nextMatch=(S.day%7===0)?"DZIŚ":"za "+(7-(S.day%7))+" dni";
+ const md=Number(S.nextMatchDay||7);
+ const diff=md-S.day;
+ const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
  m.innerHTML=`
  <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${esc(S.name||"Moja kariera")}</h1><p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
  <div class="pills"><span class="pill">💞 ${esc(S.orientation||"brak danych")}</span></div>
