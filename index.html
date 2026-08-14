@@ -10720,3 +10720,76 @@ body:not(.creator-screen) #main{padding-top:76px!important;padding-bottom:24px!i
   setTimeout(clean,0);
 })();
 </script>
+
+
+<style id="fl27-v67-home-lock">
+/* Legacy home-only blocks from V9/V10/V49 are not allowed on Dziś.
+   They remain available to their owning systems but are removed from the
+   Home DOM, so versions cannot stack panels on top of the clean dashboard. */
+body:not(.creator-screen) #main.v67-clean-home .v9-news,
+body:not(.creator-screen) #main.v67-clean-home .v9-timebar,
+body:not(.creator-screen) #main.v67-clean-home .v9-section-title,
+body:not(.creator-screen) #main.v67-clean-home .v9-action-grid,
+body:not(.creator-screen) #main.v67-clean-home .fl27-v10-finance,
+body:not(.creator-screen) #main.v67-clean-home .v49-beta-reset,
+body:not(.creator-screen) #main.v67-clean-home .v9-identity,
+body:not(.creator-screen) #main.v67-clean-home .v9-stats,
+body:not(.creator-screen) #main.v67-clean-home .v9-life-grid,
+body:not(.creator-screen) #main.v67-clean-home .v9-finance,
+body:not(.creator-screen) #main.v67-clean-home .v9-social,
+body:not(.creator-screen) #main.v67-clean-home .v9-city,
+body:not(.creator-screen) #main.v67-clean-home .v9-school{
+  display:none!important;
+}
+</style>
+<script id="fl27-v67-home-lock-js">
+(function(){
+  const LEGACY=[
+    ".v9-news",".v9-timebar",".v9-section-title",".v9-action-grid",
+    ".fl27-v10-finance",".v49-beta-reset",".v9-identity",".v9-stats",
+    ".v9-life-grid",".v9-finance",".v9-social",".v9-city",".v9-school"
+  ];
+
+  function clean(){
+    if(document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main");
+    if(!main)return;
+    const tab=window.FL27_GET_TAB?.()||"home";
+    if(tab!=="home"){
+      main.classList.remove("v67-clean-home");
+      return;
+    }
+    main.classList.add("v67-clean-home");
+
+    /* Remove legacy blocks, not merely hide them. This is important because
+       old observers were appending them after every render. */
+    LEGACY.forEach(sel=>main.querySelectorAll(sel).forEach(el=>el.remove()));
+
+    /* Remove old home cards by their exact legacy markers if an older renderer
+       managed to insert them without a class. */
+    main.querySelectorAll(".card").forEach(card=>{
+      const txt=(card.textContent||"").trim();
+      if(
+        /FLgram/i.test(txt) ||
+        /Finanse\s*•|Finanse.*co możesz zrobić z pieniędzmi/i.test(txt) ||
+        /Znajomi.*Życie/i.test(txt) ||
+        /Miasto.*Spacer/i.test(txt)
+      ) card.remove();
+    });
+  }
+
+  /* Run after every DOM mutation because the legacy V9/V10 observers run too. */
+  const mo=new MutationObserver(()=>queueMicrotask(clean));
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(clean,0);setTimeout(clean,50);setTimeout(clean,150);setTimeout(clean,500);
+
+  /* Also neutralize the legacy window.renderHome entry point so old code
+     calling it directly cannot recreate the old dashboard. */
+  window.renderHome=function(m){
+    if(window.FL27_RENDER_HOME_FINAL) return window.FL27_RENDER_HOME_FINAL(m);
+    return false;
+  };
+
+  window.FL27_HOME_LOCKED=true;
+})();
+</script>
