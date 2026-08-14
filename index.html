@@ -8279,3 +8279,208 @@ html body{padding-top:62px!important;padding-bottom:58px!important}
 </style>
 </body>
 </html>
+
+<!-- ============================================================
+     FL27 V43 — SINGLE CHROME / NO DUPLICATE HEADERS OR DOCKS
+     One fixed player header + one fixed navigation bar.
+     Activities remain ONLY inside the main "Co możesz zrobić teraz?"
+     panel. Legacy V16/V17/V24/V25/V26/V27/V31 chrome is removed.
+     ============================================================ -->
+<script>
+(function(){
+  const LEGACY=[
+    '.fl27-v16-header-wrap',
+    '.fl27-v17-extra','.v17-bottom',
+    '.fl27-v24-extra','.v24-bottom',
+    '.fl27-v25-extra','.v25-bottom',
+    '.fl27-v26-extra','.v26-bottom',
+    '.fl27-v27-extra','.v27-bottom',
+    '.fl27-v31-extra','.v31-dock'
+  ];
+
+  function clean(){
+    LEGACY.forEach(sel=>{
+      document.querySelectorAll(sel).forEach(el=>el.remove());
+    });
+
+    /* The original app chrome is no longer visible in the game.
+       V35 owns the persistent chrome. Creator keeps its normal UI. */
+    if(!document.body.classList.contains('creator-screen')){
+      document.querySelector('.app>header')?.setAttribute('data-fl27-hidden','1');
+      document.querySelector('.app>#nav')?.setAttribute('data-fl27-hidden','1');
+    }
+
+    /* Never allow an old fixed dock to reserve a giant empty area. */
+    document.documentElement.style.setProperty('--fl27-chrome-top','62px');
+    document.documentElement.style.setProperty('--fl27-chrome-bottom',
+      'calc(58px + env(safe-area-inset-bottom))');
+  }
+
+  clean();
+
+  /* Old versions can try to mount themselves again after render().
+     Remove only their chrome — never touch the actual game panel. */
+  const mo=new MutationObserver(()=>{
+    let dirty=false;
+    LEGACY.forEach(sel=>{
+      document.querySelectorAll(sel).forEach(el=>{
+        el.remove(); dirty=true;
+      });
+    });
+    if(dirty)requestAnimationFrame(clean);
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
+
+  window.FL27_CLEAN_CHROME_V43=clean;
+})();
+</script>
+<style>
+/* -------- ONE AUTHORITATIVE GAME CHROME -------- */
+body:not(.creator-screen) .app>header[data-fl27-hidden="1"],
+body:not(.creator-screen) .app>#nav[data-fl27-hidden="1"]{
+  display:none!important;
+}
+
+/* Legacy docks can never reappear. */
+body:not(.creator-screen) .fl27-v16-header-wrap,
+body:not(.creator-screen) .fl27-v17-extra,
+body:not(.creator-screen) .v17-bottom,
+body:not(.creator-screen) .fl27-v24-extra,
+body:not(.creator-screen) .v24-bottom,
+body:not(.creator-screen) .fl27-v25-extra,
+body:not(.creator-screen) .v25-bottom,
+body:not(.creator-screen) .fl27-v26-extra,
+body:not(.creator-screen) .v26-bottom,
+body:not(.creator-screen) .fl27-v27-extra,
+body:not(.creator-screen) .v27-bottom,
+body:not(.creator-screen) .fl27-v31-extra,
+body:not(.creator-screen) .v31-dock{
+  display:none!important;
+}
+
+/* V35 is the only persistent header. */
+body:not(.creator-screen) .fl27-v35-top{
+  display:block!important;
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  z-index:2147483000!important;
+}
+
+/* V35 is the only persistent bottom navigation. */
+body:not(.creator-screen) .fl27-v35-bottom{
+  display:block!important;
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  width:100%!important;
+  z-index:2147483001!important;
+}
+
+/* The page gets exactly one reserved strip for each persistent bar. */
+body:not(.creator-screen){
+  padding-top:62px!important;
+  padding-bottom:calc(58px + env(safe-area-inset-bottom))!important;
+  overflow-x:hidden!important;
+}
+
+/* Main content must never slide underneath the chrome. */
+body:not(.creator-screen) .app{
+  min-height:calc(100vh - 120px);
+  box-sizing:border-box;
+}
+
+/* The action grid belongs to the page — NOT to the bottom dock. */
+body:not(.creator-screen) .v9-action-grid{
+  position:relative!important;
+  z-index:1!important;
+  margin-bottom:18px!important;
+}
+
+/* Make the main action area easier to use on a phone. */
+body:not(.creator-screen) .v9-action-grid button{
+  min-height:58px!important;
+  box-sizing:border-box!important;
+  touch-action:manipulation!important;
+}
+
+/* No accidental horizontal overflow from long labels. */
+body:not(.creator-screen) .v9-action-grid button b,
+body:not(.creator-screen) .v9-action-grid button small{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* V35 navigation: nine items always fit without clipping. */
+.v35-nav{
+  min-height:58px!important;
+  grid-template-columns:repeat(9,minmax(0,1fr))!important;
+  padding-left:5px!important;
+  padding-right:5px!important;
+}
+.v35-nav button{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.v35-nav button span,
+.v35-nav button b{
+  pointer-events:none!important;
+}
+.v35-nav button b{
+  max-width:100%!important;
+}
+
+/* Header: keep all information on one clean row. */
+.v35-header{
+  min-height:62px!important;
+  max-height:62px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.v35-person{
+  overflow:hidden!important;
+}
+.v35-stats{
+  flex-shrink:0!important;
+}
+@media(max-width:390px){
+  .v35-header{
+    min-height:60px!important;
+    max-height:60px!important;
+  }
+  body:not(.creator-screen){
+    padding-top:60px!important;
+    padding-bottom:calc(58px + env(safe-area-inset-bottom))!important;
+  }
+  .v35-brand{min-width:54px!important}
+  .v35-stats div{min-width:34px!important}
+}
+</style>
+<script>
+/* V43: re-mount only the one approved chrome after every render. */
+(function(){
+  if(!window.__FL27_V43_RENDER){
+    window.__FL27_V43_RENDER=true;
+    if(typeof window.render==="function"){
+      const oldRender=window.render;
+      window.render=function(){
+        const r=oldRender.apply(this,arguments);
+        requestAnimationFrame(()=>{
+          window.FL27_CLEAN_CHROME_V43?.();
+          /* V35's own mount is already attached; if it was removed,
+             recreate it through its public mount when available. */
+          if(!document.querySelector('.fl27-v35-top') &&
+             !document.body.classList.contains('creator-screen') &&
+             typeof window.FL27_V35_MOUNT==="function"){
+            window.FL27_V35_MOUNT();
+          }
+        });
+        return r;
+      };
+    }
+  }
+})();
+</script>
