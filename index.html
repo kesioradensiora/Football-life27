@@ -10232,104 +10232,7 @@ body.creator-screen #main > .fl27-v10-finance{
 }
 .fl27-welcome .hint{margin-top:10px;text-align:center;color:#687588;font-size:9px}
 </style>
-<script id="fl27-v74-start-flow">
-(function(){
-  const KEY="FL27_WELCOME_SEEN_V74";
 
-  function hasStarted(){
-    const st=window.S||{};
-    return !!(st.started || st.ready || (st.name && st.name!=="Zawodnik"));
-  }
-
-  function showModeChooser(){
-    if(document.querySelector(".fl27-start-mode-backdrop"))return;
-    document.querySelector(".fl27-welcome-backdrop")?.remove();
-
-    const d=document.createElement("div");
-    d.className="fl27-start-mode-backdrop fl27-welcome-backdrop";
-    d.innerHTML=`
-      <section class="fl27-welcome fl27-start-mode" role="dialog" aria-label="Wybór rozpoczęcia życia">
-        <div class="ball">🎮</div>
-        <div class="eyebrow">FOOTBALL LIFE 27</div>
-        <h1>Jak chcesz rozpocząć swoje życie?</h1>
-        <p>Wybierz sposób, w jaki powstanie Twój zawodnik i jego świat. Każda opcja prowadzi do innej historii.</p>
-
-        <div class="fl27-mode-list">
-          <button class="fl27-mode same" data-mode="new">
-            <span class="mode-icon">🔄</span>
-            <span><b>NOWA GRA</b><small>Ta sama osoba, nowa historia piłkarska. Zostają dane startowe: imię, nazwisko, pochodzenie, rodzina, pozycja, avatar itd. Zerowana jest cała historia futbolowa.</small></span>
-          </button>
-
-          <button class="fl27-mode auto" data-mode="auto">
-            <span class="mode-icon">🤖</span>
-            <span><b>NOWA GRA AUTO</b><small>Całe życie jest generowane od nowa: kraj, rodzice, imię i nazwisko z baz krajowych, rodzina, sytuacja materialna, 10 odpowiedzi, pozycja, avatar i pozostałe warunki startowe.</small></span>
-          </button>
-
-          <button class="fl27-mode plus" data-mode="plus">
-            <span class="mode-icon">✨</span>
-            <span><b>NOWA GRA +</b><small>Ty tworzysz zawodnika: wpisujesz imię i nazwisko, wybierasz płeć, pozycję, avatar i odpowiadasz na 10 pytań. Reszta świata powstaje na podstawie Twoich decyzji i losowości.</small></span>
-          </button>
-        </div>
-      </section>`;
-
-    document.body.appendChild(d);
-
-    d.querySelectorAll(".fl27-mode").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const mode=btn.dataset.mode;
-        d.remove();
-        if(mode==="new" && typeof window.FL27_startNewGame==="function")
-          return window.FL27_startNewGame();
-        if(mode==="auto" && typeof window.FL27_startAutoV65==="function")
-          return window.FL27_startAutoV65();
-        if(mode==="plus" && typeof window.FL27_startPlus==="function")
-          return window.FL27_startPlus();
-
-        /* Safe fallback to the existing hub if a legacy function is unavailable. */
-        if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function")
-          window.FL27_SHOW_NEW_GAME_FINAL();
-        else if(typeof window.FL27_showNewGame==="function")
-          window.FL27_showNewGame();
-      });
-    });
-  }
-
-  function showWelcome(){
-    if(localStorage.getItem(KEY)==="1" || hasStarted())return;
-    if(document.querySelector(".fl27-welcome-backdrop"))return;
-
-    const d=document.createElement("div");
-    d.className="fl27-welcome-backdrop";
-    d.innerHTML=`
-      <section class="fl27-welcome" role="dialog" aria-label="Witaj w Football Life 27">
-        <div class="ball">⚽</div>
-        <div class="eyebrow">WITAJ W FOOTBALL LIFE 27</div>
-        <h1>Twoja kariera. Twoje decyzje.</h1>
-        <p>Żyjesz życiem młodego zawodnika — od szkoły i rodziny, przez pierwszy klub, aż po wielką piłkę. To, co wybierzesz po drodze, może zmienić przyszłość.</p>
-        <div class="rules">
-          <div class="rule">⏱️ <span><b>Czas ma znaczenie</b> — każda aktywność kosztuje czas i energię.</span></div>
-          <div class="rule">🎲 <span><b>Każda gra jest inna</b> — wydarzenia, ludzie i skutki decyzji mogą się zmieniać.</span></div>
-          <div class="rule">⚽ <span><b>Życie to nie tylko futbol</b> — rodzina, szkoła, pieniądze i relacje też wpływają na karierę.</span></div>
-        </div>
-        <button class="go">ZACZYNAMY</button>
-        <div class="hint">Najpierw wybierzesz, jak chcesz rozpocząć swoje życie.</div>
-      </section>`;
-
-    document.body.appendChild(d);
-    d.querySelector(".go").addEventListener("click",()=>{
-      localStorage.setItem(KEY,"1");
-      d.remove();
-      showModeChooser();
-    });
-  }
-
-  window.FL27_SHOW_START_FLOW=showWelcome;
-  window.FL27_SHOW_MODE_CHOOSER=showModeChooser;
-
-  /* First launch only. Existing players are never interrupted. */
-  setTimeout(showWelcome,250);
-})();
-</script>
 
 
 <style id="fl27-v74-start-flow-style">
@@ -10353,3 +10256,101 @@ body.creator-screen #main > .fl27-v10-finance{
 .fl27-mode b{display:block;font-size:12px;letter-spacing:.35px}
 .fl27-mode small{display:block;color:#9ba8b9;font-size:9px;line-height:1.42;margin-top:4px}
 </style>
+
+
+<script id="fl27-v75-start-flow-fix">
+(function(){
+  "use strict";
+  var FLOW_KEY="FL27_WELCOME_SEEN_V75";
+
+  function playerExists(){
+    try{
+      var st=window.S||{};
+      return !!(st.started===true || st.ready===true || (st.name && st.name!=="Zawodnik"));
+    }catch(e){ return false; }
+  }
+
+  function safeNewGame(){
+    try{
+      if(typeof window.FL27_startNewGame==="function") return window.FL27_startNewGame();
+      alert("Opcja Nowa Gra nie jest jeszcze dostępna w tej wersji.");
+    }catch(e){ console.error(e); alert("Nie udało się uruchomić Nowej Gry."); }
+  }
+
+  function safeAuto(){
+    try{
+      if(typeof window.FL27_startAutoV65==="function") return window.FL27_startAutoV65();
+      if(typeof window.FL27_startAuto==="function") return window.FL27_startAuto();
+      alert("Opcja Nowa Gra Auto nie jest jeszcze dostępna w tej wersji.");
+    }catch(e){ console.error(e); alert("Nie udało się wygenerować Nowej Gry Auto."); }
+  }
+
+  function safePlus(){
+    try{
+      if(typeof window.FL27_startPlus==="function") return window.FL27_startPlus();
+      if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function") return window.FL27_SHOW_NEW_GAME_FINAL();
+      alert("Kreator Nowej Gry + nie jest jeszcze dostępny w tej wersji.");
+    }catch(e){ console.error(e); alert("Nie udało się otworzyć kreatora."); }
+  }
+
+  function chooser(){
+    if(document.querySelector(".fl27-v75-chooser")) return;
+
+    var d=document.createElement("div");
+    d.className="fl27-welcome-backdrop fl27-v75-chooser";
+    d.innerHTML=
+      '<section class="fl27-welcome fl27-start-mode">'+
+      '<div class="ball">🎮</div>'+
+      '<div class="eyebrow">FOOTBALL LIFE 27</div>'+
+      '<h1>Jak chcesz rozpocząć swoje życie?</h1>'+
+      '<p>Wybierz sposób stworzenia zawodnika i świata, w którym rozpocznie swoją historię.</p>'+
+      '<div class="fl27-mode-list">'+
+      '<button type="button" class="fl27-mode same" data-v75="new"><span class="mode-icon">🔄</span><span><b>NOWA GRA</b><small>Ta sama osoba i dane startowe. Zerujesz całą historię piłkarską i zaczynasz od zera.</small></span></button>'+
+      '<button type="button" class="fl27-mode auto" data-v75="auto"><span class="mode-icon">🤖</span><span><b>NOWA GRA AUTO</b><small>Wszystko jest generowane od początku: kraj, rodzice, imię, nazwisko, rodzina, pozycja, avatar i warunki życia.</small></span></button>'+
+      '<button type="button" class="fl27-mode plus" data-v75="plus"><span class="mode-icon">✨</span><span><b>NOWA GRA +</b><small>Ty wpisujesz imię i nazwisko oraz wybierasz płeć, pozycję, avatar i 10 odpowiedzi.</small></span></button>'+
+      '</div></section>';
+
+    document.body.appendChild(d);
+
+    d.querySelector('[data-v75="new"]').onclick=function(){d.remove();safeNewGame();};
+    d.querySelector('[data-v75="auto"]').onclick=function(){d.remove();safeAuto();};
+    d.querySelector('[data-v75="plus"]').onclick=function(){d.remove();safePlus();};
+  }
+
+  function welcome(){
+    var seen=false;
+    try{seen=localStorage.getItem(FLOW_KEY)==="1";}catch(e){}
+    if(seen || playerExists() || document.querySelector(".fl27-welcome-backdrop")) return;
+
+    var d=document.createElement("div");
+    d.className="fl27-welcome-backdrop fl27-v75-welcome";
+    d.innerHTML=
+      '<section class="fl27-welcome">'+
+      '<div class="ball">⚽</div>'+
+      '<div class="eyebrow">WITAJ W FOOTBALL LIFE 27</div>'+
+      '<h1>Twoja kariera. Twoje decyzje.</h1>'+
+      '<p>Żyjesz życiem młodego zawodnika — od rodziny i szkoły, przez pierwszy klub, aż po wielką piłkę. Twoje decyzje mogą zmienić przyszłość.</p>'+
+      '<div class="rules">'+
+      '<div class="rule">⏱️ <span><b>Czas ma znaczenie</b> — działania kosztują czas i energię.</span></div>'+
+      '<div class="rule">🎲 <span><b>Każda gra jest inna</b> — wydarzenia i ich skutki mogą się zmieniać.</span></div>'+
+      '<div class="rule">⚽ <span><b>Życie to nie tylko futbol</b> — rodzina, szkoła, pieniądze i relacje też mają znaczenie.</span></div>'+
+      '</div>'+
+      '<button type="button" class="go">ZACZYNAMY</button>'+
+      '<div class="hint">Najpierw wybierzesz sposób rozpoczęcia swojego życia.</div>'+
+      '</section>';
+
+    document.body.appendChild(d);
+    d.querySelector(".go").onclick=function(){
+      try{localStorage.setItem(FLOW_KEY,"1");}catch(e){}
+      d.remove();
+      chooser();
+    };
+  }
+
+  window.FL27_V75_SHOW_WELCOME=welcome;
+  window.FL27_V75_SHOW_CHOOSER=chooser;
+
+  /* Do not use a MutationObserver here: it could fight the game's render loop. */
+  setTimeout(welcome,500);
+})();
+</script>
