@@ -5098,5 +5098,445 @@ try{if(window.S?.started)render()}catch(e){}
 .v14-status{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:4px 2px 7px;font-size:10px;opacity:.86}
 .v14-status b{font-size:12px;color:#fff}.v14-status span{padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.045);white-space:nowrap}
 </style>
+
+<script>
+/* ============================================================
+   FL27 V15 — FIRST DAY EVENT / DECISION BUTTON FIX
+   Makes the first 1 September school event immediately clickable.
+   Also removes dependency on a possibly missing esc() helper.
+   ============================================================ */
+(function(){
+  const T=window.FL27_TUTORIAL || (window.FL27_TUTORIAL={});
+  const save=()=>{try{localStorage.setItem("FL27_V11_TUTORIAL",JSON.stringify(T))}catch(e){}};
+  const escV15=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+  /* Always make sure the first tutorial event has executable callbacks. */
+  window.FL27V15_prepareEvent=function(){
+    if(T.pending)return T.pending;
+
+    const age=Number(window.S?.age||15);
+    const day=Number(window.S?.day||1);
+
+    if(age>15 || T.year1Step>0)return null;
+
+    const id="tutorial_school_first_day";
+    const callbacks=[
+      function(){
+        try{window.FL27_changeFamilyRelation?.("mother",1,"pierwszy dzień szkoły")}
+        catch(e){}
+        try{window.FL27_changeFamilyRelation?.("father",1,"pierwszy dzień szkoły")}
+        catch(e){}
+        try{window.advance?.(1)}catch(e){}
+        try{window.log?.("🏫 Rozmawiasz z kilkoma osobami w klasie.")}
+        catch(e){}
+      },
+      function(){
+        try{window.advance?.(.5)}catch(e){}
+        try{window.log?.("👀 Obserwujesz klasę i poznajesz pierwsze osoby.")}
+        catch(e){}
+      },
+      function(){
+        try{
+          if(window.S){
+            S.pr=Number(S.pr||0)+1;
+            S.mental=Math.min(100,Number(S.mental||0)+2);
+          }
+        }catch(e){}
+        try{window.advance?.(1)}catch(e){}
+        try{window.log?.("⚽ Pytasz o szkolną drużynę i od razu zwracasz uwagę na sport.")}
+        catch(e){}
+      }
+    ];
+
+    window.__FL27_V15_CALLBACKS=window.__FL27_V15_CALLBACKS||{};
+    window.__FL27_V15_CALLBACKS[id]=callbacks;
+
+    T.pending={
+      eventId:id,
+      title:"🏫 Pierwszy dzień szkoły — 1 września",
+      text:"Wchodzisz pierwszy raz do nowej szkoły. Na przerwie masz kilka minut, zanim zacznie się kolejna lekcja. Możesz spróbować poznać ludzi, spokojnie rozejrzeć się albo od razu dowiedzieć się czegoś o szkolnym futbolu.",
+      choices:[
+        {label:"Podejdź do kilku osób i spróbuj się przedstawić",index:0},
+        {label:"Na razie obserwuj klasę i zobacz, z kim możesz się dogadać",index:1},
+        {label:"Zapytaj, czy w szkole jest drużyna piłkarska",index:2}
+      ],
+      meta:{tutorial:true,day:day}
+    };
+    save();
+    return T.pending;
+  };
+
+  window.FL27V15_choose=function(index){
+    const p=T.pending;
+    if(!p || !p.choices || index<0 || index>2)return;
+
+    const fn=window.__FL27_V15_CALLBACKS?.[p.eventId]?.[index];
+    try{if(typeof fn==="function")fn()}catch(e){console.error(e)}
+
+    T.completed=T.completed||[];
+    T.completed.push({id:p.eventId,day:Number(window.S?.day||1),choice:index});
+    T.year1Step=Math.max(Number(T.year1Step||0),1);
+    T.pending=null;
+    save();
+
+    try{window.saveSoon?.()}catch(e){}
+    try{window.render?.()}catch(e){location.reload()}
+  };
+
+  window.FL27V15_render=function(){
+    const p=FL27V15_prepareEvent();
+    if(!p)return "";
+
+    return `<section class="v15-event">
+      <div class="v15-kicker">📰 PIERWSZY DZIEŃ • WYBÓR WYMAGANY</div>
+      <h2>${escV15(p.title)}</h2>
+      <p>${escV15(p.text)}</p>
+      <div class="v15-choices">
+        ${p.choices.map((c,i)=>`
+          <button type="button" class="v15-choice" data-v15-choice="${i}">
+            <span>${i+1}</span>
+            <b>${escV15(c.label)}</b>
+          </button>`).join("")}
+      </div>
+      <small>Wybierz jedną z trzech możliwości — historia zacznie się od Twojej decyzji.</small>
+    </section>`;
+  };
+
+  /* Event delegation: works even if another render replaces the buttons. */
+  if(!window.__FL27_V15_LISTENER){
+    window.__FL27_V15_LISTENER=true;
+    document.addEventListener("click",function(ev){
+      const b=ev.target.closest?.("[data-v15-choice]");
+      if(!b)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      FL27V15_choose(Number(b.dataset.v15Choice));
+    },true);
+  }
+
+  /* Put the event at the very top and ensure it appears even if the older
+     tutorial renderer failed. */
+  if(window.render&&!window.__FL27_V15_RENDER){
+    const oldRender=window.render;
+    window.__FL27_V15_RENDER=true;
+    window.render=function(){
+      const result=oldRender.apply(this,arguments);
+      try{
+        const host=document.querySelector("main")||document.body;
+        document.querySelectorAll(".fl27-v15-extra").forEach(x=>x.remove());
+        const wrap=document.createElement("div");
+        wrap.className="fl27-v15-extra";
+        wrap.innerHTML=FL27V15_render();
+        host.insertBefore(wrap,host.firstChild);
+      }catch(e){console.error("V15 render",e)}
+      return result;
+    };
+  }
+
+  /* If the app is already on 1 September when this patch loads, render now. */
+  try{
+    if(Number(window.S?.age||15)<=15 && !T.pending && Number(T.year1Step||0)===0){
+      FL27V15_prepareEvent();
+      window.render?.();
+    }
+  }catch(e){}
+
+})();
+</script>
+<style>
+.v15-event{
+  margin:0 0 12px;padding:18px 19px;border-radius:18px;
+  border:1px solid rgba(230,57,70,.45);
+  background:linear-gradient(145deg,rgba(99,19,28,.72),rgba(12,16,23,.99));
+  box-shadow:0 16px 38px rgba(0,0,0,.25);
+}
+.v15-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;opacity:.72}
+.v15-event h2{font-size:21px;line-height:1.2;margin:6px 0 8px}
+.v15-event p{font-size:14px;line-height:1.52;color:#dce1e9;margin:0 0 14px}
+.v15-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.v15-choice{
+  min-height:74px;padding:11px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.13);background:#171d27;color:#fff;
+  text-align:left;cursor:pointer;transition:.15s;
+}
+.v15-choice:hover{border-color:rgba(230,57,70,.8);transform:translateY(-1px)}
+.v15-choice span{
+  display:inline-grid;place-items:center;width:23px;height:23px;
+  border-radius:50%;background:rgba(230,57,70,.22);margin-right:6px;font-size:11px
+}
+.v15-event>small{display:block;margin-top:10px;font-size:10px;opacity:.55}
+@media(max-width:650px){.v15-choices{grid-template-columns:1fr}}
+</style>
+
+<script>
+/* ============================================================
+   FL27 V16 — REAL TIME MODEL + FIXED STICKY PLAYER HEADER
+   24h/day, 7 days/week. Every activity has a declared duration.
+   Simulation advances instantly; it never asks the player to wait.
+   ============================================================ */
+(function(){
+ const K="FL27_V16_TIME";
+ let Q;try{Q=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){Q={}}
+ Q.lastAction??=null; Q.totalMinutesPlayed??=0; Q.weekMinutes??=0;
+ window.FL27_TIME=Q;
+ const save=()=>localStorage.setItem(K,JSON.stringify(Q));
+ const hour=()=>Number(S?.hour||0), day=()=>Number(S?.day||1);
+
+ window.FL27_TIME_FORMAT=function(minutes){
+   minutes=Math.max(0,Math.round(Number(minutes)||0));
+   const d=Math.floor(minutes/1440); minutes%=1440;
+   const h=Math.floor(minutes/60); const m=minutes%60;
+   if(d)return `${d}d ${h}h ${m}min`;
+   if(h)return `${h}h ${m?m+" min":""}`.trim();
+   return `${m} min`;
+ };
+
+ window.FL27_TIME_ACTION=function(minutes,label,cost=0){
+   minutes=Math.max(1,Math.round(minutes));
+   if(Number(S?.hour||0)*60+minutes>22*60){
+     toast?.(`⏰ Nie zdążysz przed 22:00. Ta czynność trwa ${FL27_TIME_FORMAT(minutes)}.`);
+     return false;
+   }
+   if(cost>0){
+     if(Number(S?.money||0)<cost){toast?.(`💰 Brakuje €${(cost-Number(S?.money||0)).toFixed(0)}.`);return false}
+     S.money-=cost;
+   }
+   if(typeof advance==="function")advance(minutes/60);
+   Q.lastAction={day:day(),startHour:hour(),duration:minutes,label,cost};
+   Q.totalMinutesPlayed+=minutes; Q.weekMinutes+=minutes;
+   save();
+   return true;
+ };
+
+ /* Canonical costs for common situations. They are examples/templates:
+    events can override them depending on city, transport, age and family. */
+ window.FL27_ACTIVITY_COSTS={
+   "spacer":{minutes:60,money:0},
+   "spotkanie_znajomych":{minutes:120,money:0},
+   "impreza":{minutes:240,money:25},
+   "mecz_domowy":{minutes:150,money:0},
+   "mecz_wyjazdowy":{minutes:240,money:10},
+   "trening_druzynowy":{minutes:120,money:0},
+   "trening_indywidualny":{minutes:90,money:20},
+   "szkola":{minutes:360,money:0},
+   "nauka":{minutes:90,money:0},
+   "zakupy":{minutes:90,money:60},
+   "kino":{minutes:150,money:35},
+   "urodziny":{minutes:210,money:30},
+   "podroz_miedzymiastowa":{minutes:240,money:20},
+   "sen":{minutes:480,money:0}
+ };
+
+ window.FL27_RENDER_COST=function(id){
+   const c=window.FL27_ACTIVITY_COSTS[id];
+   if(!c)return "";
+   return `<span class="v16-cost">⏱ ${FL27_TIME_FORMAT(c.minutes)}${c.money?` • 💰 €${c.money}`:""}</span>`;
+ };
+
+ /* Sticky player header: always visible while scrolling. */
+ window.FL27_RENDER_STICKY_HEADER=function(){
+   const name=S?.name||"Zawodnik";
+   const position=S?.pos||S?.position||"—";
+   const age=S?.age??15;
+   const money=Math.floor(Number(S?.money||0));
+   const health=Math.round(Number(S?.health||0));
+   const ovr=Math.round(Number(S?.ovr??S?.overall??S?.skill??0));
+   return `<header class="v16-player-header">
+      <div class="v16-logo">⚽ <span>FOOTBALL<br>LIFE <i>27</i></span></div>
+      <div class="v16-player-main">
+        <b>${escV16(name)}</b>
+        <span>${escV16(position)} • ${age} lat</span>
+      </div>
+      <div class="v16-stats">
+        <span><small>OVR</small><b>${ovr}</b></span>
+        <span><small>❤️ ZDROWIE</small><b>${health}</b></span>
+        <span><small>💰 KASA</small><b>€${money}</b></span>
+      </div>
+   </header>`;
+ };
+ const escV16=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+ if(window.render&&!window.__FL27_V16_RENDER){
+   const old=window.render;window.__FL27_V16_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     try{
+       const host=document.querySelector("main")||document.body;
+       document.querySelectorAll(".fl27-v16-header-wrap").forEach(x=>x.remove());
+       const d=document.createElement("div");d.className="fl27-v16-header-wrap";
+       d.innerHTML=FL27_RENDER_STICKY_HEADER();
+       document.body.prepend(d);
+     }catch(e){}
+     return r;
+   };
+ }
+ try{if(window.S)window.render?.()}catch(e){}
+ save();
+})();
+</script>
+<style>
+.v16-player-header{
+ position:sticky;top:0;z-index:1000;
+ width:100%;box-sizing:border-box;
+ display:flex;align-items:center;gap:12px;
+ padding:8px 13px;
+ background:rgba(11,14,20,.97);
+ border-bottom:1px solid rgba(230,57,70,.28);
+ box-shadow:0 7px 24px rgba(0,0,0,.25);
+ backdrop-filter:blur(12px);
+}
+.v16-logo{display:flex;align-items:center;gap:5px;font-weight:900;line-height:.86;font-size:10px;min-width:82px}
+.v16-logo:first-letter{font-size:18px}.v16-logo i{font-style:normal}
+.v16-player-main{min-width:0;display:grid;gap:2px}.v16-player-main b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v16-player-main span{font-size:10px;opacity:.62}
+.v16-stats{margin-left:auto;display:flex;gap:5px}.v16-stats span{display:grid;gap:1px;text-align:center;min-width:48px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.045)}.v16-stats small{font-size:7px;opacity:.55}.v16-stats b{font-size:12px}
+.v16-cost{display:inline-block;margin-top:4px;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.05);font-size:9px;color:#cbd3df}
+@media(max-width:600px){.v16-player-header{gap:7px;padding:7px 8px}.v16-logo{min-width:62px;font-size:8px}.v16-stats span{min-width:39px;padding:3px}.v16-stats small{font-size:6px}.v16-stats b{font-size:10px}.v16-player-main b{font-size:12px}}
+</style>
+
+<script>
+/* ============================================================
+   FL27 V17 — FIXED BOTTOM ACTIVITY BAR + MULTI-COST PREVIEW
+   Top = permanent player identity.
+   Bottom = permanent activity/time controls.
+   Every action can show time + money + energy + health + form
+   + mental consequences before the player commits.
+   ============================================================ */
+(function(){
+ const K="FL27_V17_ACTIVITY";
+ let V;try{V=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){V={}}
+ V.selected??=null; V.lastAction??=null;
+ window.FL27_V17=V;
+ const save=()=>localStorage.setItem(K,JSON.stringify(V));
+ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+ const hour=()=>Number(S?.hour||0);
+ const day=()=>Number(S?.day||1);
+ const val=k=>Math.round(Number(S?.[k]||0));
+
+ /* Action costs are templates; events can override them.
+    Negative values are costs, positive values are gains. */
+ const A=[
+  {id:"school",icon:"🏫",name:"Szkoła",min:360,money:0,energy:-10,health:0,form:-1,mental:-1},
+  {id:"team",icon:"⚽",name:"Trening",min:120,money:0,energy:-22,health:-1,form:5,mental:2},
+  {id:"extra",icon:"🏋️",name:"Dodatkowy",min:90,money:20,energy:-28,health:-2,form:7,mental:1},
+  {id:"study",icon:"📚",name:"Nauka",min:90,money:0,energy:-7,health:0,form:0,mental:2},
+  {id:"friends",icon:"👥",name:"Znajomi",min:120,money:10,energy:-5,health:0,form:0,mental:5},
+  {id:"family",icon:"❤️",name:"Rodzina",min:120,money:0,energy:-3,health:1,form:0,mental:6},
+  {id:"walk",icon:"🚶",name:"Spacer",min:60,money:0,energy:-4,health:2,form:1,mental:3},
+  {id:"bike",icon:"🚲",name:"Rower",min:90,money:0,energy:-9,health:2,form:3,mental:3},
+  {id:"hobby",icon:"🎵",name:"Hobby",min:60,money:0,energy:-3,health:0,form:0,mental:5},
+  {id:"city",icon:"🏙️",name:"Miasto",min:120,money:15,energy:-6,health:0,form:0,mental:3},
+  {id:"party",icon:"🎉",name:"Impreza",min:240,money:25,energy:-20,health:-3,form:-2,mental:9},
+  {id:"cinema",icon:"🎬",name:"Kino",min:150,money:35,energy:-4,health:0,form:0,mental:6},
+  {id:"rest",icon:"🧘",name:"Regeneracja",min:60,money:0,energy:5,health:2,form:2,mental:4},
+  {id:"sleep",icon:"🌙",name:"Sen",min:480,money:0,energy:55,health:6,form:4,mental:8}
+ ];
+
+ function fmt(m){
+   m=Math.round(m); const h=Math.floor(m/60),mm=m%60;
+   return h?`${h}h${mm?` ${mm} min`:""}`:`${mm} min`;
+ }
+ function can(a){
+   return hour()*60+a.min<=22*60;
+ }
+ function preview(a){
+   const parts=[`⏱ ${fmt(a.min)}`];
+   if(a.money)parts.push(`💰 ${a.money>0?"+":"−"}€${Math.abs(a.money)}`);
+   if(a.energy)parts.push(`⚡ ${a.energy>0?"+":"−"}${Math.abs(a.energy)}`);
+   if(a.health)parts.push(`❤️ ${a.health>0?"+":"−"}${Math.abs(a.health)}`);
+   if(a.form)parts.push(`🏃 ${a.form>0?"+":"−"}${Math.abs(a.form)}`);
+   if(a.mental)parts.push(`🧠 ${a.mental>0?"+":"−"}${Math.abs(a.mental)}`);
+   return parts.join("  ");
+ }
+
+ window.FL27_V17_ACTIONS=A;
+ window.FL27_V17_preview=preview;
+
+ window.FL27_V17_run=function(id){
+   const a=A.find(x=>x.id===id);if(!a)return;
+   if(!can(a)){toast?.(`⏰ Nie zdążysz wykonać „${a.name}” przed 22:00.`);return}
+   if(a.money>0 && Number(S?.money||0)<a.money){
+     toast?.(`💰 Potrzebujesz €${a.money}, a masz €${Math.floor(Number(S?.money||0))}.`);return;
+   }
+   /* Extra guard against impossible physical state. */
+   if(a.energy<0 && Number(S?.energy??100)+a.energy<0){
+     toast?.("⚡ Jesteś zbyt zmęczony/a. Najpierw odpocznij.");return;
+   }
+
+   if(a.money>0)S.money=Number(S.money||0)-a.money;
+   if(a.energy)S.energy=Math.max(0,Math.min(100,Number(S.energy??100)+a.energy));
+   if(a.health)S.health=Math.max(0,Math.min(100,Number(S.health??100)+a.health));
+   if(a.form)S.form=Math.max(0,Math.min(100,Number(S.form??100)+a.form));
+   if(a.mental)S.mental=Math.max(0,Math.min(100,Number(S.mental??100)+a.mental));
+
+   if(typeof advance==="function")advance(a.min/60);
+   V.lastAction={day:day(),hour:hour(),id:a.id,name:a.name,min:a.min};
+   V.selected=null;save();
+   /* Life events can happen after meaningful actions. */
+   try{window.FL27V9_maybeEvent?.("activity")}catch(e){}
+   try{window.FL27_CANONICAL_DAILY_EVENT?.()}catch(e){}
+   try{render?.()}catch(e){}
+ };
+
+ window.FL27_V17_select=function(id){
+   const a=A.find(x=>x.id===id);if(!a)return;
+   V.selected=id;save();
+   const el=document.querySelector(".v17-activity-detail");
+   if(el)el.innerHTML=window.FL27_V17_detailHTML(a);
+ };
+
+ window.FL27_V17_detailHTML=function(a){
+   const ok=can(a);
+   return `<div class="v17-detail">
+     <div><b>${a.icon} ${esc(a.name)}</b><span>${ok?"Możesz to teraz zrobić":"Za mało czasu do 22:00"}</span></div>
+     <small>${preview(a)}</small>
+     <button ${ok?"":"disabled"} onclick="FL27_V17_run('${a.id}')">WYKONAJ</button>
+   </div>`;
+ };
+
+ window.FL27_V17_bar=function(){
+   const rem=Math.max(0,22-hour());
+   return `<nav class="v17-bottom">
+    <div class="v17-time"><b>${String(hour()).padStart(2,"0")}:00</b><small>📅 dzień ${day()} • ⏳ ${rem}h do 22:00</small></div>
+    <div class="v17-actions">
+      ${A.filter(a=>a.id!=="sleep").slice(0,8).map(a=>`<button onclick="FL27_V17_select('${a.id}')"><i>${a.icon}</i><span>${esc(a.name)}</span></button>`).join("")}
+      <button onclick="FL27_V17_select('sleep')"><i>🌙</i><span>Sen</span></button>
+    </div>
+    <div class="v17-activity-detail">${V.selected?FL27_V17_detailHTML(A.find(a=>a.id===V.selected)):`
+      <div class="v17-hint"><b>Wybierz aktywność</b><small>Przed wykonaniem zobaczysz jej koszt czasu, pieniędzy, energii, zdrowia, formy i mentalu.</small></div>`}</div>
+   </nav>`;
+ };
+
+ if(window.render&&!window.__FL27_V17_RENDER){
+   const old=window.render;window.__FL27_V17_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     try{
+       document.querySelectorAll(".fl27-v17-extra").forEach(x=>x.remove());
+       const d=document.createElement("div");d.className="fl27-v17-extra";
+       d.innerHTML=FL27_V17_bar();
+       document.body.appendChild(d);
+     }catch(e){}
+     return r;
+   };
+ }
+ try{render?.()}catch(e){}
+ save();
+})();
+</script>
+<style>
+.v17-bottom{
+ position:fixed;left:0;right:0;bottom:0;z-index:1200;
+ background:rgba(9,12,18,.98);border-top:1px solid rgba(230,57,70,.32);
+ box-shadow:0 -12px 32px rgba(0,0,0,.32);backdrop-filter:blur(14px);
+ padding:7px max(8px,calc((100vw - 1100px)/2)) 8px;
+}
+.v17-time{display:flex;align-items:center;gap:8px;margin-bottom:5px}.v17-time b{font-size:14px}.v17-time small{font-size:9px;opacity:.58}
+.v17-actions{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px}
+.v17-actions button{border:1px solid rgba(255,255,255,.07);background:#141a23;color:#fff;border-radius:8px;padding:5px 3px;min-height:40px;cursor:pointer}
+.v17-actions button:hover{border-color:rgba(230,57,70,.65)}.v17-actions i{font-style:normal;font-size:15px;display:block}.v17-actions span{font-size:8px;display:block;margin-top:2px}
+.v17-activity-detail{min-height:42px;margin-top:5px}.v17-detail{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.045)}.v17-detail>div{display:grid;gap:2px}.v17-detail>div span{font-size:8px;opacity:.55}.v17-detail small{font-size:8px;color:#cbd3df}.v17-detail button{padding:8px 12px;border:0;border-radius:7px;background:#d93445;color:#fff;font-size:9px;font-weight:900}.v17-detail button:disabled{opacity:.35}.v17-hint{padding:4px 7px;display:flex;gap:8px;align-items:center}.v17-hint b{font-size:9px}.v17-hint small{font-size:8px;opacity:.55}
+body{padding-bottom:145px!important}
+@media(max-width:650px){.v17-actions{grid-template-columns:repeat(5,1fr)}.v17-detail{grid-template-columns:1fr auto}.v17-detail small{grid-column:1/-1}.v17-detail button{grid-column:2}.v17-bottom{padding-bottom:calc(8px + env(safe-area-inset-bottom))}}
+</style>
 </body>
 </html>
