@@ -378,13 +378,30 @@ store:{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]}
  };
 }
 let S=state||fresh();
+if(state){
+  const defaults=fresh();
+  Object.keys(defaults).forEach(k=>{
+    if(S[k]===undefined)S[k]=defaults[k];
+  });
+  S.version=7;
+}
+ensureWealth(); ensureStore();
 try{
  const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");
- if(d){selectedAnswers=d.answers||[];playerName=d.name||"";creatorStarted=!!d.started;originChoice=d.origin||"";}
+ if(d){
+    selectedAnswers=Array.isArray(d.answers)?d.answers:[];
+    playerName=d.name||"";
+    creatorStarted=!!d.started;
+    originChoice=d.origin||"";
+  }
 }catch(e){}
 function load(){
-  ensureWealth(); ensureStore();
- try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return x&&x.version===7?x:null}catch(e){return null}
+ try{
+   const x=JSON.parse(localStorage.getItem(KEY)||"null");
+   if(!x)return null;
+   // Accept older saves and merge them later with fresh defaults.
+   return (x.version===6||x.version===7)?x:null;
+ }catch(e){return null}
 }
 function save(){
  ensureStore();
@@ -437,7 +454,7 @@ function render(){
  applyGenderGrammar();
 }
 function renderNav(){
- const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],["store","🛒","Sklep"]];
+ const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],["store","🛒","Sklep"],["wealth","💰","Finanse"]];
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
