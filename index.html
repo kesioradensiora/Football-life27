@@ -8361,191 +8361,9 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
 </script>
 
 
-<style id="fl27-v53-side-nav">
-/* ============================================================
-   V53 — SIDE DRAWER NAVIGATION
-   Replaces the tiny bottom-tab targets with one large thumb-friendly
-   handle. The existing bottom nav is hidden; routing stays the same.
-   ============================================================ */
-body:not(.creator-screen){
-  padding-bottom:18px!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom{
-  display:none!important;
-}
 
-/* Floating handle */
-.fl27-v53-handle{
-  position:fixed!important;
-  right:0!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  width:42px!important;
-  min-height:142px!important;
-  z-index:2147483646!important;
-  border:1px solid rgba(255,255,255,.13)!important;
-  border-right:0!important;
-  border-radius:18px 0 0 18px!important;
-  background:linear-gradient(180deg,rgba(28,39,56,.97),rgba(12,18,28,.98))!important;
-  color:#fff!important;
-  box-shadow:-10px 0 30px rgba(0,0,0,.28)!important;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:8px!important;
-  cursor:pointer!important;
-  touch-action:manipulation!important;
-}
-.fl27-v53-handle .handle-icon{font-size:20px!important;line-height:1}
-.fl27-v53-handle .handle-lines{display:grid;gap:4px!important}
-.fl27-v53-handle .handle-lines i{
-  display:block;width:18px;height:2px;border-radius:4px;
-  background:#76a9ff;
-}
-.fl27-v53-handle small{
-  writing-mode:vertical-rl;
-  font-size:7px;font-weight:900;letter-spacing:1.4px;opacity:.62;
-}
 
-/* Drawer */
-.fl27-v53-drawer{
-  position:fixed!important;
-  top:0!important;right:0!important;bottom:0!important;
-  width:min(320px,88vw)!important;
-  z-index:2147483647!important;
-  transform:translateX(105%)!important;
-  transition:transform .22s ease!important;
-  background:linear-gradient(180deg,#111b29,#091019)!important;
-  border-left:1px solid rgba(255,255,255,.10)!important;
-  box-shadow:-24px 0 70px rgba(0,0,0,.52)!important;
-  overflow-y:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-  padding:20px 14px calc(24px + env(safe-area-inset-bottom))!important;
-  box-sizing:border-box!important;
-}
-.fl27-v53-drawer.open{transform:translateX(0)!important}
-.fl27-v53-drawer-backdrop{
-  position:fixed!important;inset:0!important;z-index:2147483645!important;
-  background:rgba(0,0,0,.48)!important;
-  opacity:0;pointer-events:none;transition:opacity .2s ease!important;
-}
-.fl27-v53-drawer-backdrop.open{opacity:1;pointer-events:auto}
 
-.v53-head{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;padding-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,.08)
-}
-.v53-head strong{font-size:14px}
-.v53-close{
-  width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.05);color:#fff;font-size:20px;cursor:pointer
-}
-.v53-nav-list{display:grid;gap:8px}
-.v53-nav-btn{
-  width:100%;min-height:58px;padding:9px 12px;
-  display:flex;align-items:center;gap:12px;text-align:left;
-  border:1px solid rgba(255,255,255,.07);border-radius:14px;
-  background:rgba(255,255,255,.035);color:#fff;cursor:pointer;
-  touch-action:manipulation;transition:.15s ease
-}
-.v53-nav-btn:active{transform:scale(.98)}
-.v53-nav-btn.active{
-  background:linear-gradient(90deg,rgba(118,169,255,.18),rgba(118,169,255,.05));
-  border-color:rgba(118,169,255,.36);
-  box-shadow:inset 4px 0 0 #76a9ff;
-}
-.v53-icon{
-  width:38px;height:38px;min-width:38px;border-radius:11px;
-  display:grid;place-items:center;font-size:20px;
-  background:var(--v53-bg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)
-}
-.v53-label{font-size:12px;font-weight:900}
-.v53-desc{font-size:8px;color:#8998aa;margin-top:2px}
-.v53-arrow{margin-left:auto;opacity:.45;font-size:18px}
-</style>
-
-<script id="fl27-v53-side-nav-js">
-(function(){
-  const ITEMS=[
-    ["home","🏠","Dziś","Co dzieje się teraz","#4f9cff"],
-    ["day","🕐","Dzień","Plan dnia i czas","#ffd166"],
-    ["career","⚽","Kariera","Klub, trening i rozwój","#55d88a"],
-    ["life","💬","Życie","Relacje i życie prywatne","#ff6fb5"],
-    ["family","👨‍👩‍👧","Rodzina","Rodzice i bliscy","#ff9f43"],
-    ["history","📖","Historia","Twoje decyzje i wydarzenia","#b18cff"],
-    ["careerStats","📊","Statystyki","Atrybuty i liczby","#45d6d6"],
-    ["store","🛍️","Sklep","Zakupy i rzeczy","#ffcf4a"],
-    ["settings","⚙️","Ustawienia","Gra i ustawienia","#aeb9c8"]
-  ];
-
-  function make(){
-    if(document.querySelector(".fl27-v53-handle"))return;
-    const backdrop=document.createElement("div");
-    backdrop.className="fl27-v53-drawer-backdrop";
-    backdrop.addEventListener("click",close);
-
-    const handle=document.createElement("button");
-    handle.className="fl27-v53-handle";
-    handle.type="button";
-    handle.innerHTML=`<span class="handle-icon">☰</span><span class="handle-lines"><i></i><i></i><i></i></span><small>MENU</small>`;
-    handle.addEventListener("click",open);
-
-    const drawer=document.createElement("aside");
-    drawer.className="fl27-v53-drawer";
-    drawer.setAttribute("aria-label","Nawigacja gry");
-    drawer.innerHTML=`<div class="v53-head"><strong>⚽ FOOTBALL LIFE 27</strong><button class="v53-close" type="button">×</button></div><div class="v53-nav-list"></div>`;
-    drawer.querySelector(".v53-close").addEventListener("click",close);
-
-    const list=drawer.querySelector(".v53-nav-list");
-    ITEMS.forEach(([key,icon,label,desc,color])=>{
-      const b=document.createElement("button");
-      b.className="v53-nav-btn";b.type="button";b.dataset.tab=key;
-      b.innerHTML=`<span class="v53-icon" style="--v53-bg:${color}22">${icon}</span><span><span class="v53-label">${label}</span><span class="v53-desc">${desc}</span></span><span class="v53-arrow">›</span>`;
-      b.addEventListener("click",()=>{
-        if(key==="settings"){
-          window.renderSettings?.();
-        }else{
-          window.FL27_ROUTE?.(key);
-        }
-        sync();
-        close();
-      });
-      list.appendChild(b);
-    });
-
-    document.body.append(backdrop,handle,drawer);
-    window.FL27_V53_OPEN=open;
-    window.FL27_V53_CLOSE=close;
-    sync();
-  }
-
-  function sync(){
-    const active=window.FL27_GET_TAB?.()||"home";
-    document.querySelectorAll(".v53-nav-btn").forEach(b=>{
-      b.classList.toggle("active",b.dataset.tab===active);
-    });
-  }
-  function open(){
-    document.querySelector(".fl27-v53-drawer")?.classList.add("open");
-    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.add("open");
-    sync();
-  }
-  function close(){
-    document.querySelector(".fl27-v53-drawer")?.classList.remove("open");
-    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.remove("open");
-  }
-
-  const mo=new MutationObserver(()=>requestAnimationFrame(()=>{
-    if(!document.body.classList.contains("creator-screen"))make();
-    sync();
-  }));
-  mo.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(make,100));
-  setTimeout(make,100);
-})();
-</script>
 
 
 <style id="fl27-v53-color-boost">
@@ -10258,299 +10076,249 @@ body.creator-screen #main > .fl27-v10-finance{
 </style>
 
 
-<script id="fl27-v75-start-flow-fix">
-(function(){
-  "use strict";
-  var FLOW_KEY="FL27_WELCOME_SEEN_V75";
-
-  function playerExists(){
-    try{
-      var st=window.S||{};
-      return !!(st.started===true || st.ready===true || (st.name && st.name!=="Zawodnik"));
-    }catch(e){ return false; }
-  }
-
-  function safeNewGame(){
-    try{
-      if(typeof window.FL27_startNewGame==="function") return window.FL27_startNewGame();
-      alert("Opcja Nowa Gra nie jest jeszcze dostępna w tej wersji.");
-    }catch(e){ console.error(e); alert("Nie udało się uruchomić Nowej Gry."); }
-  }
-
-  function safeAuto(){
-    try{
-      if(typeof window.FL27_startAutoV65==="function") return window.FL27_startAutoV65();
-      if(typeof window.FL27_startAuto==="function") return window.FL27_startAuto();
-      alert("Opcja Nowa Gra Auto nie jest jeszcze dostępna w tej wersji.");
-    }catch(e){ console.error(e); alert("Nie udało się wygenerować Nowej Gry Auto."); }
-  }
-
-  function safePlus(){
-    try{
-      if(typeof window.FL27_startPlus==="function") return window.FL27_startPlus();
-      if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function") return window.FL27_SHOW_NEW_GAME_FINAL();
-      alert("Kreator Nowej Gry + nie jest jeszcze dostępny w tej wersji.");
-    }catch(e){ console.error(e); alert("Nie udało się otworzyć kreatora."); }
-  }
-
-  function chooser(){
-    if(document.querySelector(".fl27-v75-chooser")) return;
-
-    var d=document.createElement("div");
-    d.className="fl27-welcome-backdrop fl27-v75-chooser";
-    d.innerHTML=
-      '<section class="fl27-welcome fl27-start-mode">'+
-      '<div class="ball">🎮</div>'+
-      '<div class="eyebrow">FOOTBALL LIFE 27</div>'+
-      '<h1>Jak chcesz rozpocząć swoje życie?</h1>'+
-      '<p>Wybierz sposób stworzenia zawodnika i świata, w którym rozpocznie swoją historię.</p>'+
-      '<div class="fl27-mode-list">'+
-      '<button type="button" class="fl27-mode same" data-v75="new"><span class="mode-icon">🔄</span><span><b>NOWA GRA</b><small>Ta sama osoba i dane startowe. Zerujesz całą historię piłkarską i zaczynasz od zera.</small></span></button>'+
-      '<button type="button" class="fl27-mode auto" data-v75="auto"><span class="mode-icon">🤖</span><span><b>NOWA GRA AUTO</b><small>Wszystko jest generowane od początku: kraj, rodzice, imię, nazwisko, rodzina, pozycja, avatar i warunki życia.</small></span></button>'+
-      '<button type="button" class="fl27-mode plus" data-v75="plus"><span class="mode-icon">✨</span><span><b>NOWA GRA +</b><small>Ty wpisujesz imię i nazwisko oraz wybierasz płeć, pozycję, avatar i 10 odpowiedzi.</small></span></button>'+
-      '</div></section>';
-
-    document.body.appendChild(d);
-
-    d.querySelector('[data-v75="new"]').onclick=function(){d.remove();safeNewGame();};
-    d.querySelector('[data-v75="auto"]').onclick=function(){d.remove();safeAuto();};
-    d.querySelector('[data-v75="plus"]').onclick=function(){d.remove();safePlus();};
-  }
-
-  function welcome(){
-    var seen=false;
-    try{seen=localStorage.getItem(FLOW_KEY)==="1";}catch(e){}
-    if(seen || playerExists() || document.querySelector(".fl27-welcome-backdrop")) return;
-
-    var d=document.createElement("div");
-    d.className="fl27-welcome-backdrop fl27-v75-welcome";
-    d.innerHTML=
-      '<section class="fl27-welcome">'+
-      '<div class="ball">⚽</div>'+
-      '<div class="eyebrow">WITAJ W FOOTBALL LIFE 27</div>'+
-      '<h1>Twoja kariera. Twoje decyzje.</h1>'+
-      '<p>Żyjesz życiem młodego zawodnika — od rodziny i szkoły, przez pierwszy klub, aż po wielką piłkę. Twoje decyzje mogą zmienić przyszłość.</p>'+
-      '<div class="rules">'+
-      '<div class="rule">⏱️ <span><b>Czas ma znaczenie</b> — działania kosztują czas i energię.</span></div>'+
-      '<div class="rule">🎲 <span><b>Każda gra jest inna</b> — wydarzenia i ich skutki mogą się zmieniać.</span></div>'+
-      '<div class="rule">⚽ <span><b>Życie to nie tylko futbol</b> — rodzina, szkoła, pieniądze i relacje też mają znaczenie.</span></div>'+
-      '</div>'+
-      '<button type="button" class="go">ZACZYNAMY</button>'+
-      '<div class="hint">Najpierw wybierzesz sposób rozpoczęcia swojego życia.</div>'+
-      '</section>';
-
-    document.body.appendChild(d);
-    d.querySelector(".go").onclick=function(){
-      try{localStorage.setItem(FLOW_KEY,"1");}catch(e){}
-      d.remove();
-      chooser();
-    };
-  }
-
-  window.FL27_V75_SHOW_WELCOME=welcome;
-  window.FL27_V75_SHOW_CHOOSER=chooser;
-
-  /* Do not use a MutationObserver here: it could fight the game's render loop. */
-  setTimeout(welcome,500);
-})();
-</script>
 
 
-<style id="fl27-v76-click-fix">
-/* V76: startup overlay is the top-most interactive layer. */
-.fl27-welcome-backdrop.fl27-v75-welcome,
-.fl27-welcome-backdrop.fl27-v75-chooser{
-  position:fixed!important;
-  inset:0!important;
-  z-index:2147483647!important;
-  pointer-events:auto!important;
-  touch-action:auto!important;
+
+
+
+
+
+
+
+
+
+
+
+<style id="fl27-v78-interaction-reset">
+/* V78 — ONE interaction layer. Closed drawer cannot intercept a single tap. */
+#fl27-v78-menu{
+ position:fixed;right:0;top:50%;transform:translateY(-50%);
+ z-index:2147483000;width:50px;height:142px;border:0;border-radius:17px 0 0 17px;
+ background:linear-gradient(180deg,#1d2d45,#0b131f);color:#fff;
+ box-shadow:-10px 0 30px rgba(0,0,0,.35);display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:7px;cursor:pointer;
+ pointer-events:auto;touch-action:manipulation;
 }
-.fl27-welcome-backdrop.fl27-v75-welcome *,
-.fl27-welcome-backdrop.fl27-v75-chooser *{
-  pointer-events:auto!important;
+#fl27-v78-menu .bars{display:grid;gap:4px}#fl27-v78-menu i{width:21px;height:2px;background:#79adff;border-radius:3px}
+#fl27-v78-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.65}
+#fl27-v78-back{
+ position:fixed;inset:0;z-index:2147483001;background:rgba(0,0,0,.52);
+ opacity:0;pointer-events:none;transition:opacity .2s;
 }
-.fl27-v75-welcome .go,
-.fl27-v75-chooser .fl27-mode{
-  position:relative!important;
-  z-index:2147483647!important;
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
-  -webkit-tap-highlight-color:rgba(255,255,255,.15)!important;
+#fl27-v78-back.open{opacity:1;pointer-events:auto}
+#fl27-v78-drawer{
+ position:fixed;top:0;right:0;bottom:0;width:min(330px,88vw);
+ z-index:2147483002;transform:translateX(105%);transition:transform .22s ease;
+ background:linear-gradient(180deg,#121d2c,#080e16);border-left:1px solid rgba(255,255,255,.1);
+ box-shadow:-25px 0 70px rgba(0,0,0,.55);padding:18px 14px;box-sizing:border-box;
+ overflow:auto;pointer-events:none;
 }
+#fl27-v78-drawer.open{transform:translateX(0);pointer-events:auto}
+.fl27-v78-item{
+ width:100%;min-height:58px;border:1px solid rgba(255,255,255,.07);border-radius:15px;
+ background:rgba(255,255,255,.04);color:#fff;display:flex;align-items:center;gap:12px;
+ padding:9px 12px;margin:0 0 8px;text-align:left;cursor:pointer;pointer-events:auto;
+ touch-action:manipulation;
+}
+.fl27-v78-item.active{border-color:rgba(118,169,255,.45);background:rgba(118,169,255,.13);box-shadow:inset 4px 0 #76a9ff}
+.fl27-v78-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:rgba(118,169,255,.12)}
+.fl27-v78-close{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:20px}
 </style>
-<script id="fl27-v76-click-fix-js">
+
+<script id="fl27-v78-interaction-reset-js">
 (function(){
   "use strict";
 
-  function clearStaleOverlays(){
-    /* Remove old startup/legacy overlays that can sit above the page invisibly. */
+  /* Remove every stale overlay generated by the broken V74-V77 startup attempts.
+     This is deliberately a one-time cleanup, not an observer. */
+  function removeBrokenOverlays(){
     document.querySelectorAll(
-      ".fl27-welcome-backdrop:not(.fl27-v75-welcome):not(.fl27-v75-chooser),"+
-      ".v66-mode-overlay,.v20-hub-overlay"
+      ".fl27-v75-welcome,.fl27-v75-chooser,.fl27-v74-start-flow,.fl27-v73-welcome,"+
+      ".v20-hub-overlay,.v66-mode-overlay"
     ).forEach(function(el){el.remove();});
   }
 
-  function forceStartupLayer(){
-    clearStaleOverlays();
-    var welcome=document.querySelector(".fl27-v75-welcome");
-    var chooser=document.querySelector(".fl27-v75-chooser");
-    var active=welcome||chooser;
-    if(active){
-      active.style.zIndex="2147483647";
-      active.style.pointerEvents="auto";
-      active.querySelectorAll("button").forEach(function(b){
-        b.style.pointerEvents="auto";
-        b.style.position="relative";
-        b.style.zIndex="2147483647";
-      });
-    }
-  }
-
-  /* One-time cleanup of a bad V74/V75 state. The current game's actual save
-     is untouched; only stale startup flags are cleared if no player exists. */
-  try{
-    var st=window.S||{};
-    var hasPlayer=!!(st.started===true || st.ready===true || (st.name&&st.name!=="Zawodnik"));
-    if(!hasPlayer){
-      localStorage.removeItem("FL27_WELCOME_SEEN_V74");
-      localStorage.removeItem("FL27_WELCOME_SEEN_V75");
-    }
-  }catch(e){}
-
-  clearStaleOverlays();
-  setTimeout(forceStartupLayer,100);
-  setTimeout(forceStartupLayer,500);
-  setTimeout(forceStartupLayer,1200);
-})();
-</script>
-
-
-<style id="fl27-v77-stable-ui">
-/* Final navigation: one thumb-friendly side handle, no tiny bottom tabs. */
-#nav,.fl27-v35-bottom{display:none!important}
-.fl27-v77-menu{
- position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
- z-index:100000!important;width:48px!important;height:150px!important;border:0!important;
- border-radius:18px 0 0 18px!important;background:linear-gradient(180deg,#1b2a40,#0c1420)!important;
- color:#fff!important;box-shadow:-8px 0 30px rgba(0,0,0,.35)!important;
- display:flex!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;
- gap:8px!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important
-}
-.fl27-v77-menu .bars{display:grid;gap:4px}.fl27-v77-menu i{width:20px;height:2px;background:#76a9ff;border-radius:3px}
-.fl27-v77-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.7}
-.fl27-v77-drawer{
- position:fixed!important;top:0!important;right:0!important;bottom:0!important;width:min(330px,88vw)!important;
- z-index:100001!important;transform:translateX(105%)!important;transition:transform .22s ease!important;
- background:linear-gradient(180deg,#121d2c,#080e16)!important;border-left:1px solid rgba(255,255,255,.1)!important;
- box-shadow:-25px 0 70px rgba(0,0,0,.55)!important;padding:18px 14px!important;box-sizing:border-box!important;
- overflow:auto!important;pointer-events:auto!important
-}
-.fl27-v77-drawer.open{transform:translateX(0)!important}
-.fl27-v77-back{
- position:fixed!important;inset:0!important;z-index:100000!important;background:rgba(0,0,0,.5)!important;
- opacity:0!important;pointer-events:none!important;transition:.2s
-}
-.fl27-v77-back.open{opacity:1!important;pointer-events:auto!important}
-.fl27-v77-item{
- width:100%!important;min-height:58px!important;border:1px solid rgba(255,255,255,.07)!important;
- border-radius:15px!important;background:rgba(255,255,255,.04)!important;color:#fff!important;
- display:flex!important;align-items:center!important;gap:12px!important;padding:9px 12px!important;
- margin:0 0 8px!important;text-align:left!important;cursor:pointer!important;pointer-events:auto!important;
- touch-action:manipulation!important
-}
-.fl27-v77-item.active{border-color:rgba(118,169,255,.45)!important;background:rgba(118,169,255,.13)!important;box-shadow:inset 4px 0 #76a9ff!important}
-.fl27-v77-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:rgba(118,169,255,.12)}
-</style>
-<script id="fl27-v77-stable-ui-js">
-(function(){
-  "use strict";
-  var ITEMS=[
-    ["home","🏠","Dziś"],["day","🕐","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],
-    ["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],
-    ["store","🛍️","Sklep"],["wealth","💰","Finanse"],["social","📱","FLgram"],["settings","⚙️","Ustawienia"]
-  ];
-
-  function route(key){
+  function route(tab){
     try{
-      if(key==="settings"){
-        if(typeof window.renderSettings==="function")return window.renderSettings();
-        if(typeof window.go==="function")return window.go("settings");
+      if(tab==="settings" && typeof window.renderSettings==="function"){
+        window.renderSettings(); return;
       }
-      if(typeof window.FL27_ROUTE==="function")return window.FL27_ROUTE(key);
-      if(typeof window.go==="function")return window.go(key);
-    }catch(e){console.error(e)}
-  }
-
-  function sync(){
-    var active=window.FL27_GET_TAB?window.FL27_GET_TAB():"home";
-    document.querySelectorAll(".fl27-v77-item").forEach(function(b){
-      b.classList.toggle("active",b.getAttribute("data-tab")===active);
-    });
-  }
-
-  function close(){
-    document.querySelector(".fl27-v77-drawer")?.classList.remove("open");
-    document.querySelector(".fl27-v77-back")?.classList.remove("open");
-  }
-
-  function open(){
-    document.querySelector(".fl27-v77-drawer")?.classList.add("open");
-    document.querySelector(".fl27-v77-back")?.classList.add("open");
-    sync();
+      if(typeof window.FL27_ROUTE==="function"){window.FL27_ROUTE(tab);return;}
+      if(typeof window.go==="function"){window.go(tab);return;}
+    }catch(e){console.error("FL27 route",e);}
   }
 
   function build(){
-    if(document.querySelector(".fl27-v77-menu")){sync();return}
+    if(document.getElementById("fl27-v78-menu"))return;
 
-    var back=document.createElement("div");back.className="fl27-v77-back";back.onclick=close;
-    var menu=document.createElement("button");menu.type="button";menu.className="fl27-v77-menu";
+    var back=document.createElement("div");
+    back.id="fl27-v78-back";
+
+    var menu=document.createElement("button");
+    menu.id="fl27-v78-menu";menu.type="button";
     menu.innerHTML='<span style="font-size:20px">☰</span><span class="bars"><i></i><i></i><i></i></span><small>MENU</small>';
-    menu.onclick=open;
 
-    var drawer=document.createElement("aside");drawer.className="fl27-v77-drawer";
-    drawer.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><b style="font-size:14px">⚽ FOOTBALL LIFE 27</b><button type="button" class="fl27-v77-close" style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:20px">×</button></div>';
-    drawer.querySelector(".fl27-v77-close").onclick=close;
+    var drawer=document.createElement("aside");
+    drawer.id="fl27-v78-drawer";
+    drawer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><b style="font-size:14px">⚽ FOOTBALL LIFE 27</b><button type="button" class="fl27-v78-close">×</button></div>';
 
-    ITEMS.forEach(function(item){
-      var b=document.createElement("button");b.type="button";b.className="fl27-v77-item";b.dataset.tab=item[0];
-      b.innerHTML='<span class="fl27-v77-ico">'+item[1]+'</span><b>'+item[2]+'</b><span style="margin-left:auto;opacity:.4;font-size:20px">›</span>';
-      b.onclick=function(){route(item[0]);close();setTimeout(sync,30)};
+    var items=[
+      ["home","🏠","Dziś"],["day","🕐","Dzień"],["career","⚽","Kariera"],
+      ["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],
+      ["careerStats","📊","Statystyki"],["store","🛍️","Sklep"],["wealth","💰","Finanse"],
+      ["social","📱","FLgram"],["settings","⚙️","Ustawienia"]
+    ];
+
+    function close(){
+      drawer.classList.remove("open");back.classList.remove("open");
+    }
+    function sync(){
+      var active=typeof window.FL27_GET_TAB==="function"?window.FL27_GET_TAB():"home";
+      drawer.querySelectorAll(".fl27-v78-item").forEach(function(b){
+        b.classList.toggle("active",b.dataset.tab===active);
+      });
+    }
+
+    items.forEach(function(it){
+      var b=document.createElement("button");b.type="button";b.className="fl27-v78-item";b.dataset.tab=it[0];
+      b.innerHTML='<span class="fl27-v78-icon">'+it[1]+'</span><b>'+it[2]+'</b><span style="margin-left:auto;opacity:.4;font-size:20px">›</span>';
+      b.addEventListener("click",function(){route(it[0]);close();setTimeout(sync,50);});
       drawer.appendChild(b);
     });
 
-    document.body.append(back,menu,drawer);
+    menu.addEventListener("click",function(){drawer.classList.add("open");back.classList.add("open");sync();});
+    back.addEventListener("click",close);
+    drawer.querySelector(".fl27-v78-close").addEventListener("click",close);
+
+    document.body.appendChild(back);document.body.appendChild(menu);document.body.appendChild(drawer);
     sync();
   }
 
-  /* Build after body exists. Do not use a body-wide MutationObserver. */
   function boot(){
     if(!document.body)return;
+    removeBrokenOverlays();
     build();
-    setTimeout(build,250);
-    setTimeout(sync,500);
   }
+
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
   else boot();
 
-  /* Remove transparent legacy startup layers which were blocking taps. */
-  function clearBlockers(){
-    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay").forEach(function(x){x.remove()});
-  }
-  setTimeout(clearBlockers,50);
-  setTimeout(clearBlockers,300);
-
-  window.FL27_V77_OPEN=open;
-  window.FL27_V77_CLOSE=close;
+  /* Give the normal game one clean startup. */
+  window.FL27_V78_RESET_INTERACTION=boot;
 })();
 </script>
 
-<script id="fl27-v77-overlay-clean">
+
+<style id="fl27-v79-start-style">
+.fl27-v79-backdrop{
+ position:fixed!important;inset:0!important;z-index:2147483646!important;
+ display:grid!important;place-items:center!important;padding:20px!important;
+ background:rgba(3,6,11,.82)!important;backdrop-filter:blur(14px)!important;
+ pointer-events:auto!important;touch-action:auto!important
+}
+.fl27-v79-card{
+ width:min(430px,100%)!important;max-height:88vh!important;overflow:auto!important;
+ box-sizing:border-box!important;padding:25px 21px 21px!important;border-radius:27px!important;
+ border:1px solid rgba(115,169,255,.24)!important;
+ background:linear-gradient(150deg,#172131,#0b111b)!important;
+ box-shadow:0 28px 70px rgba(0,0,0,.58)!important;color:#fff!important;
+ pointer-events:auto!important
+}
+.fl27-v79-card h1{margin:7px 0 10px;font-size:27px;line-height:1.05}
+.fl27-v79-card p{color:#a4afbf;font-size:13px;line-height:1.5;margin:0 0 17px}
+.fl27-v79-eyebrow{font-size:9px;font-weight:900;letter-spacing:1.8px;color:#73a9ff}
+.fl27-v79-go,.fl27-v79-mode{
+ width:100%!important;box-sizing:border-box!important;cursor:pointer!important;
+ pointer-events:auto!important;touch-action:manipulation!important;color:#fff!important;
+ -webkit-appearance:none!important
+}
+.fl27-v79-go{
+ height:52px!important;border:0!important;border-radius:16px!important;
+ background:linear-gradient(135deg,#e84761,#b72e47)!important;font-weight:900!important;font-size:14px!important
+}
+.fl27-v79-modes{display:grid;gap:10px}
+.fl27-v79-mode{
+ display:grid!important;grid-template-columns:44px 1fr!important;gap:11px!important;
+ align-items:center!important;text-align:left!important;padding:13px!important;
+ border:1px solid rgba(255,255,255,.09)!important;border-radius:16px!important;
+ background:rgba(255,255,255,.045)!important
+}
+.fl27-v79-mode .ico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:21px;background:rgba(255,255,255,.06)}
+.fl27-v79-mode b{display:block;font-size:12px}.fl27-v79-mode small{display:block;color:#9ba8b9;font-size:9px;line-height:1.4;margin-top:4px}
+</style>
+<script id="fl27-v79-start-and-click-fix">
 (function(){
-  setTimeout(function(){
-    document.querySelectorAll(".fl27-welcome-backdrop").forEach(function(el){
-      if(!el.querySelector("button")) el.remove();
+  "use strict";
+
+  function noPlayer(){
+    var st=window.S||{};
+    return !(st.started===true || st.ready===true || (st.name&&st.name!=="Zawodnik"));
+  }
+
+  function clean(){
+    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay,.fl27-v75-welcome,.fl27-v75-chooser").forEach(function(x){x.remove();});
+  }
+
+  function run(mode){
+    clean();
+    try{
+      if(mode==="new" && typeof window.FL27_startNewGame==="function")return window.FL27_startNewGame();
+      if(mode==="auto" && typeof window.FL27_startAutoV65==="function")return window.FL27_startAutoV65();
+      if(mode==="auto" && typeof window.FL27_startAuto==="function")return window.FL27_startAuto();
+      if(mode==="plus" && typeof window.FL27_startPlus==="function")return window.FL27_startPlus();
+      if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function")return window.FL27_SHOW_NEW_GAME_FINAL();
+    }catch(e){console.error(e);}
+  }
+
+  function chooser(){
+    clean();
+    if(document.querySelector(".fl27-v79-backdrop"))return;
+    var d=document.createElement("div");d.className="fl27-v79-backdrop";
+    d.innerHTML='<section class="fl27-v79-card">'+
+      '<div style="font-size:30px">🎮</div><div class="fl27-v79-eyebrow">FOOTBALL LIFE 27</div>'+
+      '<h1>Jak chcesz rozpocząć swoje życie?</h1>'+
+      '<p>Wybierz sposób stworzenia zawodnika. Każda opcja prowadzi do innej historii.</p>'+
+      '<div class="fl27-v79-modes">'+
+      '<button type="button" class="fl27-v79-mode" data-mode="new"><span class="ico">🔄</span><span><b>NOWA GRA</b><small>Ta sama osoba i dane startowe. Zerowana jest cała historia piłkarska.</small></span></button>'+
+      '<button type="button" class="fl27-v79-mode" data-mode="auto"><span class="ico">🤖</span><span><b>NOWA GRA AUTO</b><small>Gra losuje całe życie: kraj, rodziców, imię, nazwisko, rodzinę, pozycję, avatar i warunki startowe.</small></span></button>'+
+      '<button type="button" class="fl27-v79-mode" data-mode="plus"><span class="ico">✨</span><span><b>NOWA GRA +</b><small>Ty wpisujesz dane, wybierasz płeć, pozycję, avatar i odpowiadasz na 10 pytań.</small></span></button>'+
+      '</div></section>';
+    document.body.appendChild(d);
+    d.querySelectorAll(".fl27-v79-mode").forEach(function(b){
+      b.addEventListener("click",function(){run(b.dataset.mode);});
     });
-  },800);
+  }
+
+  function welcome(){
+    clean();
+    if(document.querySelector(".fl27-v79-backdrop"))return;
+    var d=document.createElement("div");d.className="fl27-v79-backdrop";
+    d.innerHTML='<section class="fl27-v79-card">'+
+      '<div style="font-size:34px">⚽</div><div class="fl27-v79-eyebrow">WITAJ W FOOTBALL LIFE 27</div>'+
+      '<h1>Twoja kariera. Twoje decyzje.</h1>'+
+      '<p>Żyjesz życiem młodego zawodnika — od rodziny i szkoły, przez pierwszy klub, aż po wielką piłkę. Twoje decyzje mogą zmienić przyszłość.</p>'+
+      '<div style="display:grid;gap:8px;margin-bottom:20px">'+
+      '<div class="fl27-v79-mode"><span class="ico">⏱️</span><span><b>Czas ma znaczenie</b><small>Aktywności kosztują czas i energię.</small></span></div>'+
+      '<div class="fl27-v79-mode"><span class="ico">🎲</span><span><b>Każda gra jest inna</b><small>Wydarzenia i ich skutki mogą się zmieniać.</small></span></div>'+
+      '<div class="fl27-v79-mode"><span class="ico">⚽</span><span><b>Życie to nie tylko futbol</b><small>Rodzina, szkoła, pieniądze i relacje też wpływają na karierę.</small></span></div>'+
+      '</div><button type="button" class="fl27-v79-go">ZACZYNAMY</button></section>';
+    document.body.appendChild(d);
+    d.querySelector(".fl27-v79-go").addEventListener("click",chooser);
+  }
+
+  /* Critical fix: the old boot timer calls FL27_showNewGame().
+     Override it BEFORE that timer fires, so the legacy fullscreen hub can never
+     cover the game and steal touch input. */
+  var legacy=window.FL27_showNewGame;
+  window.FL27_showNewGame=function(){
+    if(noPlayer()){chooser();return false;}
+    if(typeof legacy==="function")return legacy.apply(this,arguments);
+  };
+
+  if(noPlayer())setTimeout(welcome,20);
+
+  /* Expose the same entry point used by Reset Player / settings. */
+  window.FL27_SHOW_NEW_GAME_FINAL=chooser;
+  window.FL27_V79_START=welcome;
 })();
 </script>
