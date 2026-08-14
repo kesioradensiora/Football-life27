@@ -208,7 +208,7 @@ h3{font-size:16px}
 /* NAV */
 nav{
  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
- width:min(620px,100%);display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
+ width:min(620px,100%);display:grid;grid-template-columns:repeat(8,1fr);gap:1px;
  padding:8px 9px calc(8px + env(safe-area-inset-bottom));
  background:rgba(8,10,15,.94);
  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
@@ -359,7 +359,22 @@ function fresh(){
   trainingLevel:0,trainingUnlocked:false,logs:[],usedEvents:[],
 origin:"",birthCountry:"",nationalities:[],residenceCountry:"",
 familyProfile:{father:{name:"",age:0,job:"",country:""},mother:{name:"",age:0,job:"",country:""},siblings:[],home:"",income:"",socialClass:"",familyNotes:""},
-partner:null,children:[],potential:{athletic:null,mental:null,technical:null,ceiling:null},geneticsResearch:null
+partner:null,children:[],potential:{athletic:null,mental:null,technical:null,ceiling:null},geneticsResearch:null,
+wealth:{
+  businesses:[],
+  investments:[],
+  portfolio:[],
+  charityTotal:0,
+  assets:[],
+  lastMarketUpdate:0
+},
+careerStats:{
+  seasons:[],
+  currentSeason:null,
+  career:{apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0},
+  trophies:[],awards:[],records:[],transfers:[],clubs:[]
+},
+store:{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]}
  };
 }
 let S=state||fresh();
@@ -368,9 +383,11 @@ try{
  if(d){selectedAnswers=d.answers||[];playerName=d.name||"";creatorStarted=!!d.started;originChoice=d.origin||"";}
 }catch(e){}
 function load(){
+  ensureWealth(); ensureStore();
  try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return x&&x.version===7?x:null}catch(e){return null}
 }
 function save(){
+ ensureStore();
  localStorage.setItem(KEY,JSON.stringify(S));
  const el=document.getElementById("saveState");if(el){el.textContent="● Zapisano";el.style.color="#79e6ae";}
 }
@@ -420,7 +437,7 @@ function render(){
  applyGenderGrammar();
 }
 function renderNav(){
- const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"]];
+ const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],["store","🛒","Sklep"]];
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
@@ -563,6 +580,26 @@ function makeFamily(){
   const fatherAge=35+Math.floor(Math.random()*13), motherAge=34+Math.floor(Math.random()*12);
   const homeTypes=["mieszkanie w mieście","dom na przedmieściach","mieszkanie w mniejszym mieście","dom w spokojnej dzielnicy"];
   const home=homeTypes[Math.floor(Math.random()*homeTypes.length)];
+  const cities={
+    "Polska":["Poznań","Warszawa","Wrocław","Gdańsk","Kraków"],
+    "Portugalia":["Lizbona","Porto","Braga","Coimbra"],
+    "Francja":["Paryż","Lyon","Marsylia","Tuluza"],
+    "Hiszpania":["Madryt","Barcelona","Walencja","Sewilla"],
+    "Niemcy":["Berlin","Monachium","Hamburg","Kolonia"],
+    "Włochy":["Rzym","Mediolan","Turyn","Bolonia"],
+    "Anglia":["Londyn","Manchester","Liverpool","Birmingham"],
+    "Holandia":["Amsterdam","Rotterdam","Utrecht"],
+    "Belgia":["Bruksela","Antwerpia","Gandawa"],
+    "Brazylia":["São Paulo","Rio de Janeiro","Curitiba"],
+    "USA":["Miami","Boston","Chicago","Los Angeles"],
+    "Czechy":["Praga","Brno","Ostrawa"],
+    "Argentyna":["Buenos Aires","Córdoba","Rosario"],
+    "Chorwacja":["Zagrzeb","Split","Rijeka"],
+    "Szwecja":["Sztokholm","Göteborg","Malmö"]
+  };
+  const residenceCountry = Math.random()<0.82 ? birthCountry : countries[Math.floor(Math.random()*countries.length)];
+  const cityPool=cities[residenceCountry]||cities["Polska"];
+  const residenceCity=cityPool[Math.floor(Math.random()*cityPool.length)];
   const income=["niski","stabilny","średni","dobrze zarabiający"][Math.floor(Math.random()*4)];
   const namesF=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
   const namesM=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
@@ -571,7 +608,7 @@ function makeFamily(){
     mother:{name:namesM[Math.floor(Math.random()*namesM.length)],age:motherAge,job:pair[1],country:motherCountry},
     siblings:Math.random()<.62?[{name:"rodzeństwo",age:8+Math.floor(Math.random()*10)}]:[],
     home,country:fatherCountry===motherCountry?fatherCountry:"rodzina międzynarodowa",
-    income,socialClass:income==="niski"?"pracująca rodzina":income==="dobrze zarabiający"?"zamożna rodzina":"klasa średnia",
+    residenceCountry,residenceCity,income,socialClass:income==="niski"?"pracująca rodzina":income==="dobrze zarabiający"?"zamożna rodzina":"klasa średnia",
     homeCountry:birthCountry,
     notes:"Rodzina jest generowana losowo i będzie wpływać na wydarzenia, ale nie determinuje Twojej kariery."
   };
@@ -580,15 +617,21 @@ function ensureFamily(){
   if(!S.familyProfile || !S.familyProfile.father || !S.familyProfile.father.name){
     S.familyProfile=makeFamily();
     S.birthCountry=S.familyProfile.homeCountry;
-    S.residenceCountry=S.familyProfile.homeCountry;
+    S.residenceCountry=S.familyProfile.residenceCountry||S.familyProfile.homeCountry;
     S.nationalities=[S.familyProfile.father.country];
     if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
   }
 }
 function requestGeneticsResearch(){
-  if(S.geneticsResearch){toast("Badanie jest już w toku.");return;}
-  S.geneticsResearch={startedDay:S.day,readyDay:S.day+7,status:"w trakcie",results:null};
-  log("Zlecono analizę predyspozycji. Laboratorium potrzebuje około tygodnia.");
+  if(S.geneticsResearch){toast("Badanie jest już zlecone lub wykonane.");return;}
+  const cost=120;
+  if(Number(S.money||0)<cost){
+    toast(`Badanie kosztuje ${cost}€. Brakuje Ci ${Math.ceil(cost-Number(S.money||0))}€.`);
+    return;
+  }
+  S.money-=cost;
+  S.geneticsResearch={startedDay:S.day,readyDay:S.day+7,status:"w trakcie",results:null,cost};
+  log(`Zlecono analizę predyspozycji za ${cost}€. Laboratorium potrzebuje około tygodnia.`);
   saveSoon();render();
 }
 function checkGeneticsResearch(){
@@ -602,6 +645,283 @@ function checkGeneticsResearch(){
     saveSoon();
   }
 }
+
+
+function ensureWealth(){
+  if(!S.wealth)S.wealth={businesses:[],investments:[],portfolio:[],charityTotal:0,assets:[],lastMarketUpdate:0};
+  ["businesses","investments","portfolio","assets"].forEach(k=>{if(!Array.isArray(S.wealth[k]))S.wealth[k]=[]});
+  S.wealth.charityTotal=Number(S.wealth.charityTotal||0);
+}
+function changePR(amount,reason){
+  S.pr=Math.max(0,Math.min(100,Number(S.pr||0)+Number(amount||0)));
+  if(reason)log(`📣 PR ${amount>=0?"+":""}${amount}: ${reason}`);
+}
+function buyBusiness(name,cost,kind){
+  ensureWealth(); cost=Number(cost);
+  if(Number(S.money||0)<cost){toast(`Brakuje Ci ${Math.ceil(cost-S.money)}€.`);return false;}
+  S.money-=cost;
+  const b={name,kind,cost,value:cost,weeklyProfit:Math.round(cost*(0.002+Math.random()*0.006)),pr:0};
+  S.wealth.businesses.push(b); S.wealth.assets.push({type:"business",name,value:cost});
+  changePR(1,"zainwestowano we własny biznes");
+  log(`🏢 Założono biznes: ${name} za ${cost}€.`);
+  saveSoon();render();return true;
+}
+function buyMarketAsset(name,ticker,cost,risk){
+  ensureWealth(); cost=Number(cost);
+  if(Number(S.money||0)<cost){toast(`Brakuje Ci ${Math.ceil(cost-S.money)}€.`);return false;}
+  S.money-=cost;
+  S.wealth.portfolio.push({name,ticker,cost,shares:1,currentValue:cost,risk:Number(risk||.1)});
+  log(`📈 Kupiono automatycznie aktywo ${name} (${ticker}) za ${cost}€.`);
+  saveSoon();render();return true;
+}
+function updateMarket(){
+  ensureWealth();
+  const now=Date.now();
+  if(S.wealth.lastMarketUpdate && now-S.wealth.lastMarketUpdate<86400000)return;
+  S.wealth.lastMarketUpdate=now;
+  S.wealth.portfolio.forEach(a=>{
+    const drift=(Math.random()-.48)*(Number(a.risk||.1)*2);
+    a.currentValue=Math.max(0,Math.round(a.currentValue*(1+drift)));
+  });
+  // Businesses produce small passive income, with realistic variability.
+  S.wealth.businesses.forEach(b=>{
+    const income=Math.max(0,Math.round(Number(b.weeklyProfit||0)*(0.75+Math.random()*.5)));
+    S.money+=income;
+    if(income)log(`🏢 Twój biznes przyniósł ${income}€.`);
+  });
+  saveSoon();
+}
+function donateMoney(amount,cause){
+  ensureWealth(); amount=Number(amount);
+  if(amount<=0||Number(S.money||0)<amount){toast("Nie masz wystarczających środków.");return false;}
+  S.money-=amount; S.wealth.charityTotal+=amount;
+  const bonus=amount>=5000?4:amount>=1000?3:amount>=250?2:1;
+  changePR(bonus,`przekazano ${amount}€ na cel: ${cause}`);
+  log(`❤️ Przekazano ${amount}€ na ${cause}.`);
+  saveSoon();render();return true;
+}
+function investAutomatic(){
+  ensureWealth();
+  const options=[
+    ["ETF globalny","WORLD",500,.08],
+    ["Fundusz technologiczny","TECH",750,.14],
+    ["Energia odnawialna","GREEN",600,.12],
+    ["Fundusz infrastruktury","INFRA",1000,.07],
+    ["Indeks europejski","EURO",500,.09]
+  ];
+  const o=options[Math.floor(Math.random()*options.length)];
+  return buyMarketAsset(o[0],o[1],o[2],o[3]);
+}
+function businessCatalog(){
+  return [
+    ["Sklep internetowy z odzieżą sportową",5000,"e-commerce"],
+    ["Akademia piłkarska dla dzieci",15000,"sport"],
+    ["Kawiarnia",25000,"gastronomia"],
+    ["Studio treningu personalnego",35000,"fitness"],
+    ["Firma technologiczna",75000,"technologia"]
+  ];
+}
+
+function ensureCareerStats(){
+  if(!S.careerStats)S.careerStats={seasons:[],currentSeason:null,career:{apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0},trophies:[],awards:[],records:[],transfers:[],clubs:[]};
+  const c=S.careerStats.career;
+  ["apps","starts","minutes","goals","assists","yellow","red","cleanSheets","penaltiesScored","penaltiesMissed","ownGoals"].forEach(k=>{c[k]=Number(c[k]||0)});
+}
+function startCareerSeason(year,club){
+  ensureCareerStats();
+  if(!S.careerStats.currentSeason){
+    S.careerStats.currentSeason={year,club,apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0,trophies:[]};
+    if(club && !S.careerStats.clubs.includes(club))S.careerStats.clubs.push(club);
+  }
+}
+function recordMatchStats(st){
+  ensureCareerStats();
+  const c=S.careerStats.career;
+  const s=S.careerStats.currentSeason;
+  if(!s)return;
+  const keys=["apps","starts","minutes","goals","assists","yellow","red","cleanSheets","penaltiesScored","penaltiesMissed","ownGoals"];
+  keys.forEach(k=>{
+    const v=Math.max(0,Number(st[k]||0));
+    s[k]+=v;c[k]+=v;
+  });
+  saveSoon();
+}
+function finishCareerSeason(label,trophies=[]){
+  ensureCareerStats();
+  const s=S.careerStats.currentSeason;
+  if(!s)return;
+  s.trophies=[...trophies];
+  S.careerStats.seasons.push({...s});
+  evaluateYouthAwards();
+  trophies.forEach(t=>{if(!S.careerStats.trophies.includes(t))S.careerStats.trophies.push(t)});
+  S.careerStats.currentSeason=null;
+  saveSoon();
+}
+function addCareerAward(name,season){
+  ensureCareerStats();
+  S.careerStats.awards.push({name,season});
+  saveSoon();
+}
+function calculateSeasonAwards(){
+  ensureCareerStats();
+  const s=S.careerStats.seasons[S.careerStats.seasons.length-1];
+  if(!s)return;
+  if(s.goals>=25)addCareerAward("Złoty But — najlepszy strzelec sezonu",s.year);
+  if(s.assists>=15)addCareerAward("Król asyst",s.year);
+  if(s.cleanSheets>=15)addCareerAward("Nagroda za czyste konta",s.year);
+}
+function renderWealth(m){
+  ensureWealth(); updateMarket();
+  const w=S.wealth, total=w.portfolio.reduce((a,x)=>a+Number(x.currentValue||0),0);
+  m.innerHTML=`<div class="card hero"><div class="kicker">💰 FINANSE</div><h1>Twoje pieniądze i inwestycje</h1>
+  <div class="pills"><span class="pill">💶 ${Math.round(S.money||0)}€</span><span class="pill">📈 Portfel ${Math.round(total)}€</span><span class="pill">📣 PR ${Math.round(S.pr||0)}</span></div></div>
+  <div class="card"><div class="section-title"><b>🏢 Własny biznes</b></div>
+  ${businessCatalog().map(b=>`<button class="action" onclick="buyBusiness('${b[0].replace(/'/g,"\\'")}',${b[1]},'${b[2]}')"><b>${esc(b[0])}</b><small>Start: ${b[1]}€ • dochód zmienny • wpływ na PR</small></button>`).join("")}
+  ${w.businesses.length?w.businesses.map(b=>`<div class="row"><span>🏢 ${esc(b.name)}</span><b>${b.weeklyProfit}€/tydz.</b></div>`).join(""):""}</div>
+  <div class="card"><div class="section-title"><b>📈 Giełda / inwestycje</b><span>automatyczne</span></div>
+  <button class="action" onclick="investAutomatic()"><b>📊 Zainwestuj 500–1000€</b><small>Gra sama dobierze instrument. Wartość portfela zmienia się automatycznie.</small></button>
+  ${w.portfolio.length?w.portfolio.map(a=>`<div class="row"><span>${esc(a.name)} (${esc(a.ticker)})</span><b>${Math.round(a.currentValue)}€</b></div>`).join(""):"<div class='empty'>Nie masz jeszcze inwestycji.</div>"}</div>
+  <div class="card"><div class="section-title"><b>❤️ Działalność charytatywna</b></div>
+  <button class="action" onclick="donateMoney(250,'lokalną akademię dziecięcą')"><b>Wpłać 250€</b><small>Pomoc lokalnej akademii • pozytywny wpływ na PR</small></button>
+  <button class="action" onclick="donateMoney(1000,'fundację sportową')"><b>Wpłać 1000€</b><small>Wsparcie fundacji sportowej • większy wpływ na PR</small></button>
+  <div class="row"><span>Łącznie przekazano</span><b>${Math.round(w.charityTotal)}€</b></div></div>`;
+}
+function renderCareerHistory(m){
+  ensureCareerStats();
+  const c=S.careerStats.career, seasons=S.careerStats.seasons;
+  const seasonRows=seasons.length?seasons.slice().reverse().map(s=>`
+    <div class="card">
+      <div class="section-title"><b>${esc(String(s.year))} • ${esc(s.club||"Klub")}</b><span>${s.apps} wyst.</span></div>
+      <div class="row"><span>Minuty</span><b>${s.minutes}</b></div>
+      <div class="row"><span>Gole</span><b>${s.goals}</b></div>
+      <div class="row"><span>Asysty</span><b>${s.assists}</b></div>
+      <div class="row"><span>Żółte / czerwone</span><b>${s.yellow} / ${s.red}</b></div>
+      <div class="row"><span>Czyste konta</span><b>${s.cleanSheets}</b></div>
+      <div class="row"><span>Karne</span><b>${s.penaltiesScored} trafione / ${s.penaltiesMissed} nietrafione</b></div>
+      <div class="row"><span>Samobójcze</span><b>${s.ownGoals}</b></div>
+      ${s.trophies?.length?`<div class="pills">${s.trophies.map(t=>`<span class="pill">🏆 ${esc(t)}</span>`).join("")}</div>`:""}
+    </div>`).join(""):`<div class="notice">📖 Profesjonalna historia jeszcze się nie rozpoczęła. Mecze młodzieżowe mogą być zapisywane osobno, a statystyki seniorskie zaczną się od pierwszego profesjonalnego występu.</div>`;
+  m.innerHTML=`<div class="card hero">
+    <div class="kicker">📊 HISTORIA KARIERY</div><h1>Twoje liczby</h1>
+    <p>Każdy profesjonalny mecz będzie aktualizował statystyki. Bez resetowania przy transferze.</p>
+    <div class="pills"><span class="pill">⚽ ${c.goals} goli</span><span class="pill">🎯 ${c.assists} asyst</span><span class="pill">🟨 ${c.yellow}</span><span class="pill">🟥 ${c.red}</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>🏆 Kariera — łącznie</b><span>${c.apps} występów</span></div>
+    <div class="row"><span>Występy</span><b>${c.apps}</b></div>
+    <div class="row"><span>Podstawowy skład</span><b>${c.starts}</b></div>
+    <div class="row"><span>Minuty</span><b>${c.minutes}</b></div>
+    <div class="row"><span>Gole</span><b>${c.goals}</b></div>
+    <div class="row"><span>Asysty</span><b>${c.assists}</b></div>
+    <div class="row"><span>Żółte kartki</span><b>${c.yellow}</b></div>
+    <div class="row"><span>Czerwone kartki</span><b>${c.red}</b></div>
+    <div class="row"><span>Czyste konta</span><b>${c.cleanSheets}</b></div>
+    <div class="row"><span>Karne</span><b>${c.penaltiesScored} / ${c.penaltiesMissed}</b></div>
+    <div class="row"><span>Samobójcze</span><b>${c.ownGoals}</b></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>🏅 Nagrody i trofea</b><span>${S.careerStats.awards.length}</span></div>
+    ${S.careerStats.awards.length?S.careerStats.awards.slice().reverse().map(a=>`<div class="log"><em>${esc(String(a.season||""))}</em>🏆 ${esc(a.name)}</div>`).join(""):`<div class="empty">Jeszcze żadnych nagród. Najpierw trzeba na nie zapracować.</div>`}
+    ${S.careerStats.trophies.length?`<div class="pills">${S.careerStats.trophies.map(t=>`<span class="pill">🏆 ${esc(t)}</span>`).join("")}</div>`:""}
+  </div>
+  ${seasonRows}`;
+}
+
+
+const STORE_ITEMS={
+ homes:[
+  {id:"apt_basic",cat:"home",name:"Małe mieszkanie",price:65000,boost:{mental:1}},
+  {id:"apt_city",cat:"home",name:"Nowoczesne mieszkanie",price:180000,boost:{mental:2}},
+  {id:"house_suburb",cat:"home",name:"Dom na przedmieściach",price:350000,boost:{mental:3,health:1}},
+  {id:"house_modern",cat:"home",name:"Nowoczesny dom",price:750000,boost:{mental:4,pr:1}},
+  {id:"villa",cat:"home",name:"Luksusowa willa",price:1850000,boost:{mental:5,pr:2}}
+ ],
+ cars:[
+  {id:"car1",cat:"car",name:"Peugeot 208",price:20000,boost:{mobility:1}},
+  {id:"car2",cat:"car",name:"Renault Clio",price:25000,boost:{mobility:1}},
+  {id:"car3",cat:"car",name:"BMW 118i",price:35000,boost:{pr:1,mobility:1}},
+  {id:"car4",cat:"car",name:"Audi A3",price:45000,boost:{pr:1,mobility:1}},
+  {id:"car5",cat:"car",name:"Mercedes A-Class",price:55000,boost:{pr:2,mobility:1}},
+  {id:"car6",cat:"car",name:"BMW M4",price:85000,boost:{pr:3,mobility:2}}
+ ],
+ boots:[
+  {id:"boot1",cat:"boots",name:"Nike Phantom",price:220,boost:{skill:2}},
+  {id:"boot2",cat:"boots",name:"adidas Predator",price:230,boost:{power:2}},
+  {id:"boot3",cat:"boots",name:"Puma Future",price:210,boost:{agility:2}},
+  {id:"boot4",cat:"boots",name:"Nike Mercurial",price:250,boost:{speed:2}}
+ ],
+ accessories:[
+  {id:"acc1",cat:"accessory",name:"Rękawice treningowe",price:45,boost:{skill:1}},
+  {id:"acc2",cat:"accessory",name:"Plecak sportowy",price:60,boost:{organization:1}},
+  {id:"acc3",cat:"accessory",name:"Słuchawki sportowe",price:220,boost:{mental:1}},
+  {id:"acc4",cat:"accessory",name:"Zegarek sportowy",price:350,boost:{health:1,trainingLevel:1}}
+ ]
+};
+function ensureStore(){
+ if(!S.store)S.store={owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]};
+}
+function storeBuy(itemId){
+ ensureStore();
+ const all=[...STORE_ITEMS.homes,...STORE_ITEMS.cars,...STORE_ITEMS.boots,...STORE_ITEMS.accessories];
+ const it=all.find(x=>x.id===itemId); if(!it)return;
+ if(S.store.owned.includes(it.id)){toast("Już to posiadasz.");return}
+ if(!spend(it.price,`Zakup: ${it.name}`))return;
+ S.store.owned.push(it.id);
+ if(it.cat==="home")S.store.home=it.id;
+ if(it.cat==="car")S.store.car=it.id;
+ if(it.cat==="boots")S.store.boots=it.id;
+ if(it.cat==="accessory")S.store.accessories.push(it.id);
+ Object.entries(it.boost||{}).forEach(([k,v])=>{
+   if(k==="skill")S.skill=clamp(S.skill+v);
+   else if(k==="mental")S.mental=clamp(S.mental+v);
+   else if(k==="pr")S.pr=clamp(S.pr+v);
+   else if(k==="health")S.health=clamp(S.health+v);
+   else if(k==="trainingLevel")S.trainingLevel+=v;
+ });
+ log(`Kupujesz ${it.name}. ${Object.entries(it.boost||{}).map(([k,v])=>`+${v} ${k}`).join(", ")}`);
+ saveSoon();render();
+}
+function grantSponsoredItem(itemId,brand,expiresDay){
+ ensureStore();
+ const all=[...STORE_ITEMS.boots,...STORE_ITEMS.accessories];
+ const it=all.find(x=>x.id===itemId); if(!it)return;
+ S.store.owned.push(it.id);
+ S.store.sponsors.push({brand,itemId,expiresDay});
+ log(`Współpraca: ${brand} przekazuje Ci ${it.name} bezpłatnie.`);
+ saveSoon();render();
+}
+function checkSponsors(){
+ ensureStore();
+ S.store.sponsors=(S.store.sponsors||[]).filter(s=>{
+   if(S.day>s.expiresDay){S.store.owned=S.store.owned.filter(id=>id!==s.itemId);log(`Wygasła współpraca sponsorska z ${s.brand}. Sprzęt wraca do sponsora.`);return false}
+   return true;
+ });
+}
+function renderStore(m){
+ ensureStore();checkSponsors();
+ const card=(it)=>`<div class="card" style="margin:0"><div class="section-title"><b>${esc(it.name)}</b><span>${it.price.toLocaleString("pl-PL")}€</span></div><p class="sub">Wpływ: ${Object.entries(it.boost||{}).map(([k,v])=>`+${v} ${k}`).join(" • ")}</p><button class="action ${S.store.owned.includes(it.id)?"":"red"}" style="width:100%" onclick="storeBuy('${it.id}')"><b>${S.store.owned.includes(it.id)?"✓ Posiadasz":"Kup"}</b><small>${it.cat==="home"?"Nieruchomość":it.cat==="car"?"Samochód":it.cat==="boots"?"Buty piłkarskie":"Akcesorium"}</small></button></div>`;
+ m.innerHTML=`<div class="card hero"><div class="kicker">🛒 RYNEK</div><h1>Twój sprzęt i styl życia</h1><p>Im więcej zarabiasz, tym więcej możesz kupić. Ceny są realnym ograniczeniem — a sponsor może czasem dać Ci sprzęt za darmo.</p></div>
+ <div class="card"><div class="section-title"><b>🏠 Nieruchomości</b><span>${S.store.home?"wybrany":"brak"}</span></div><div class="grid2">${STORE_ITEMS.homes.map(card).join("")}</div></div>
+ <div class="card"><div class="section-title"><b>🚗 Samochody</b><span>${S.store.car?"wybrany":"brak"}</span></div><div class="grid2">${STORE_ITEMS.cars.map(card).join("")}</div></div>
+ <div class="card"><div class="section-title"><b>👟 Buty piłkarskie</b><span>${S.store.boots?"wybrane":"brak"}</span></div><div class="grid2">${STORE_ITEMS.boots.map(card).join("")}</div></div>
+ <div class="card"><div class="section-title"><b>🎧 Akcesoria</b><span>${S.store.accessories.length}</span></div><div class="grid2">${STORE_ITEMS.accessories.map(card).join("")}</div></div>
+ <div class="card"><div class="section-title"><b>🤝 Współprace</b></div>${(S.store.sponsors||[]).length?S.store.sponsors.map(s=>`<div class="log">🤝 ${esc(s.brand)} • sprzęt do dnia ${s.expiresDay}</div>`).join(""):"<div class='empty'>Brak aktywnych współprac. Mogą pojawić się losowo wraz z rosnącym PR i poziomem sportowym.</div>"}</div>`;
+}
+function evaluateYouthAwards(){
+ ensureCareerStats();
+ const year=S.year, age=S.age, s=S.careerStats.currentSeason;
+ if(!s)return;
+ // Real-world award concepts, gated by age/year/competition.
+ if(S.gender==="Mężczyzna" && age<=20 && year>=2003 && s.goals>=18 && S.pr>=45 && !S.careerStats.awards.some(a=>a.name==="Golden Boy"&&a.season===year))
+   addCareerAward("Golden Boy — nominacja/rozważany kandydat",year);
+ if(S.gender==="Kobieta" && age<=20 && year>=2022 && s.goals>=15 && S.pr>=40 && !S.careerStats.awards.some(a=>a.name==="Golden Girl"&&a.season===year))
+   addCareerAward("Golden Girl — nominacja/rozważana kandydatka",year);
+ if(year>=2018 && age<=20 && s.apps>=20 && s.goals+s.assists>=20)
+   addCareerAward("Kopa Trophy — kandydatura młodego zawodnika",year);
+ if(s.goals>=20)addCareerAward("Król strzelców rozgrywek młodzieżowych",year);
+ if(s.apps>=10 && s.minutes>=700 && S.form>=75)addCareerAward("Zawodnik turnieju młodzieżowego — kandydatura",year);
+}
+
 function renderFamily(m){
   ensureFamily(); checkGeneticsResearch();
   const f=S.familyProfile;
@@ -611,7 +931,7 @@ function renderFamily(m){
   m.innerHTML=`<div class="card hero">
     <div class="kicker">👨‍👩‍👧 AKTUALNE ŻYCIE</div><h1>Twoja rodzina i sytuacja</h1>
     <p>To nie jest tylko statystyka. Rodzina, miejsce zamieszkania, pieniądze i relacje mogą generować wydarzenia w kolejnych latach.</p>
-    <div class="pills"><span class="pill">🌍 ${esc(nat)}</span><span class="pill">🏠 ${esc(S.residenceCountry||f.homeCountry)}</span><span class="pill">💶 ${Math.round(S.money)}€</span></div>
+    <div class="pills"><span class="pill">🌍 ${esc(nat)}</span><span class="pill">🏠 ${esc(f.residenceCity||"")}, ${esc(S.residenceCountry||f.homeCountry)}</span><span class="pill">⚽ ${esc(S.club||"akademia")}</span><span class="pill">💶 ${Math.round(S.money)}€</span></div>
   </div>
   <div class="card">
     <div class="section-title"><b>👨‍👩‍👧 Rodzina</b><span>zawsze aktualna</span></div>
@@ -622,6 +942,7 @@ function renderFamily(m){
     <div class="row"><span>Zawód</span><b>${esc(f.mother.job)}</b></div>
     <div class="row"><span>Pochodzenie</span><b>${esc(f.mother.country)}</b></div>
     <div class="row"><span>Dom</span><b>${esc(f.home)}</b></div>
+    <div class="row"><span>Miasto</span><b>${esc(f.residenceCity)}, ${esc(f.residenceCountry)}</b></div>
     <div class="row"><span>Sytuacja finansowa rodziny</span><b>${esc(f.socialClass)}</b></div>
     <div class="row"><span>Rodzeństwo</span><b>${f.siblings.length?"tak":"brak"}</b></div>
   </div>
@@ -629,6 +950,8 @@ function renderFamily(m){
     <div class="section-title"><b>❤️ Twoje życie teraz</b><span>aktualne</span></div>
     <div class="row"><span>Partner/partnerka</span><b>${partner}</b></div>
     <div class="row"><span>Dzieci</span><b>${kids}</b></div>
+    <div class="row"><span>Klub / akademia</span><b>${esc(S.club||"losowanie w toku")}</b></div>
+    <div class="row"><span>Pozycja</span><b>${esc(S.pos||"nieustalona")}</b></div>
     <div class="row"><span>Pieniądze</span><b>${Math.round(S.money)}€</b></div>
     <div class="row"><span>Potencjał</span><b>${S.potential&&S.potential.ceiling?S.potential.ceiling+"/100":"nieznany"}</b></div>
   </div>
@@ -642,8 +965,58 @@ function renderFamily(m){
            <div class="row"><span>Potencjał mentalny</span><b>${S.potential.mental}/100</b></div>
            <div class="row"><span>Potencjał techniczny</span><b>${S.potential.technical}/100</b></div>
            <div class="notice">📞 Lekarz skontaktował się z rodziną. Wyniki są gotowe do omówienia.</div>`
-        : `<button class="action red" style="width:100%" onclick="requestGeneticsResearch()"><b>🧬 Zleć badanie predyspozycji</b><small>Wynik po około 7 dniach. Koszt zostanie określony w zależności od sytuacji rodziny.</small></button>`}
+        : `<button class="action red" style="width:100%" onclick="requestGeneticsResearch()"><b>🧬 Zleć badanie predyspozycji • 120€</b><small>Analiza trwa około 7 dni. Jeśli nie masz pieniędzy, musisz najpierw je odłożyć lub zarobić.</small></button>`}
   </div>`;
+}
+
+
+const REAL_CLUBS={
+"Porto":["FC Porto","Boavista FC","SC Salgueiros","Leixões SC"],
+"Lizbona":["SL Benfica","Sporting CP","CF Os Belenenses","Casa Pia AC"],
+"Braga":["SC Braga","Merelinense FC","GD Prado"],
+"Coimbra":["Académica de Coimbra","Clube União 1919"],
+"Paris":["Paris Saint-Germain","Paris FC","Red Star FC"],
+"Lyon":["Olympique Lyonnais","AS Saint-Priest"],
+"Marsylia":["Olympique de Marseille","Aubagne FC"],
+"Tuluza":["Toulouse FC","Blagnac FC"],
+"Madryt":["Real Madrid","Atlético de Madrid","Rayo Vallecano","Getafe CF"],
+"Barcelona":["FC Barcelona","RCD Espanyol","CE Europa"],
+"Walencja":["Valencia CF","Levante UD","Villarreal CF"],
+"Sewilla":["Sevilla FC","Real Betis","Córdoba CF"],
+"Berlin":["Hertha BSC","1. FC Union Berlin","BFC Dynamo"],
+"Monachium":["FC Bayern München","TSV 1860 München"],
+"Hamburg":["Hamburger SV","FC St. Pauli"],
+"Kolonia":["1. FC Köln","Fortuna Köln"],
+"Rzym":["AS Roma","SS Lazio","AS Roma"],
+"Mediolan":["AC Milan","Inter Milan"],
+"Turyn":["Juventus","Torino FC"],
+"Bolonia":["Bologna FC"],
+"Londyn":["Arsenal","Chelsea","Tottenham Hotspur","West Ham United","Fulham"],
+"Manchester":["Manchester United","Manchester City","Bolton Wanderers"],
+"Liverpool":["Liverpool FC","Everton FC"],
+"Birmingham":["Aston Villa","Birmingham City","West Bromwich Albion"],
+"Amsterdam":["Ajax","FC Volendam"],
+"Rotterdam":["Feyenoord","Sparta Rotterdam"],
+"Utrecht":["FC Utrecht"],
+"Bruksela":["RSC Anderlecht","Union Saint-Gilloise"],
+"Antwerpia":["Royal Antwerp FC","Beerschot"],
+"Gandawa":["KAA Gent"],
+"Sztokholm":["AIK","Hammarby IF","Djurgårdens IF"],
+"Göteborg":["IFK Göteborg","BK Häcken"],
+"Malmö":["Malmö FF"],
+"Buenos Aires":["Boca Juniors","River Plate","San Lorenzo","Racing Club"],
+"São Paulo":["São Paulo FC","Palmeiras","Corinthians","Santos FC"],
+"Rio de Janeiro":["Flamengo","Fluminense","Vasco da Gama","Botafogo"],
+"Curitiba":["Athletico Paranaense","Coritiba"],
+"Warszawa":["Legia Warszawa","Polonia Warszawa"],
+"Poznań":["Lech Poznań","Warta Poznań"],
+"Wrocław":["Śląsk Wrocław"],
+"Gdańsk":["Lechia Gdańsk"],
+"Kraków":["Wisła Kraków","Cracovia"]
+};
+function pickRealLocalClub(city){
+ const a=REAL_CLUBS[city];
+ return a&&a.length?a[Math.floor(Math.random()*a.length)]:"lokalny klub młodzieżowy";
 }
 
 function answer(v){
@@ -664,10 +1037,10 @@ function startCareer(){
  S.origin="generated";
  S.familyProfile=makeFamily();
  S.birthCountry=S.familyProfile.homeCountry;
- S.residenceCountry=S.familyProfile.homeCountry;
+ S.residenceCountry=S.familyProfile.residenceCountry||S.familyProfile.homeCountry;
  S.nationalities=[S.familyProfile.father.country];
  if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
- S.club=START_CLUBS[Math.floor(Math.random()*START_CLUBS.length)];
+ S.club=pickRealLocalClub(S.familyProfile.residenceCity);
  S.pos=(S.pos||"").replace(/ —.*$/,"").replace(/.*\(([^)]+)\)$/,"$1");
  S.money=35;S.allowance=14;S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;S.age=15;S.birthMonth=11;S.birthDay=30;
  S.logs=[];S.usedEvents=[];S.school=Math.random()<0.62?"Szkoła sportowa":"Szkoła";
@@ -682,6 +1055,7 @@ function spend(cost,label){
  S.money-=cost;log(`${label}: -${cost}€`);return true
 }
 function advance(hours){
+  ensureStore(); checkSponsors();
   const whole=Math.max(0,Math.floor(hours));
   S.hour+=whole;
   let daysPassed=0;
@@ -823,6 +1197,9 @@ function renderTab(tab){
  if(tab==="life")renderLife(m);
  if(tab==="history")renderHistory(m);
  if(tab==="family")renderFamily(m);
+ if(tab==="careerStats")renderCareerHistory(m);
+ if(tab==="wealth")renderWealth(m);
+ if(tab==="store")renderStore(m);
 }
 function renderHome(m){
  const nextMatch=(S.day%7===0)?"DZIŚ":"za "+(7-(S.day%7))+" dni";
@@ -1316,6 +1693,14 @@ window.finishFL27Training=function(i,type){
  const box=document.getElementById("fl27-train-options");
  if(box)box.innerHTML=`<div class="fl27-train-result"><b>${r[0]}</b><br>${r[1]}</div>
  <button class="action green" style="width:100%;margin-top:10px" onclick="this.closest('.fl27-mini-modal').remove()">Zakończ trening ✓</button>`;
+};
+</script>
+
+<script>
+window.recordProfessionalMatch=function(stats){
+  recordMatchStats(stats||{apps:1,starts:1,minutes:90});
+  toast("Statystyki meczu zapisane ✓");
+  render();
 };
 </script>
 </body>
