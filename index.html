@@ -208,7 +208,7 @@ h3{font-size:16px}
 /* NAV */
 nav{
  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
- width:min(620px,100%);display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
+ width:min(620px,100%);display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
  padding:8px 9px calc(8px + env(safe-area-inset-bottom));
  background:rgba(8,10,15,.94);
  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
@@ -280,6 +280,7 @@ let currentTab="home";
 let creatorStarted=false;
 let selectedAnswers=[];
 let playerName="";
+let originChoice="";
 
 const QUESTIONS=[
  ["Płeć",["Kobieta","Mężczyzna"]],
@@ -355,13 +356,16 @@ function fresh(){
   gender:"",orientation:"",pos:"",foot:"",style:"",inspiration:"",club:"Akademia lokalna",dream:"",
   risk:"",priority:"",goal:"",school:"Szkoła",family:60,mental:60,health:90,injury:0,
   friends:["Rodzice","Trener"],rel:{Rodzice:60,Trener:35},matches:0,wins:0,draws:0,losses:0,goals:0,assists:0,
-  trainingLevel:0,trainingUnlocked:false,logs:[],usedEvents:[]
+  trainingLevel:0,trainingUnlocked:false,logs:[],usedEvents:[],
+origin:"",birthCountry:"",nationalities:[],residenceCountry:"",
+familyProfile:{father:{name:"",age:0,job:"",country:""},mother:{name:"",age:0,job:"",country:""},siblings:[],home:"",income:"",socialClass:"",familyNotes:""},
+partner:null,children:[],potential:{athletic:null,mental:null,technical:null,ceiling:null},geneticsResearch:null
  };
 }
 let S=state||fresh();
 try{
  const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");
- if(d){selectedAnswers=d.answers||[];playerName=d.name||"";creatorStarted=!!d.started;}
+ if(d){selectedAnswers=d.answers||[];playerName=d.name||"";creatorStarted=!!d.started;originChoice=d.origin||"";}
 }catch(e){}
 function load(){
  try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return x&&x.version===7?x:null}catch(e){return null}
@@ -416,7 +420,7 @@ function render(){
  applyGenderGrammar();
 }
 function renderNav(){
- const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["history","📖","Historia"]];
+ const items=[["home","🏠","Dziś"],["day","⏱️","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"]];
  document.getElementById("nav").innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join("");
 }
 function go(tab){currentTab=tab;render()}
@@ -470,7 +474,7 @@ function grammar(text){
 
 function saveCreatorDraft(){
   localStorage.setItem(DRAFT_KEY,JSON.stringify({
-    started:creatorStarted,name:playerName,answers:selectedAnswers
+    started:creatorStarted,name:playerName,answers:selectedAnswers,origin:originChoice
   }));
   const el=document.getElementById("saveState");
   if(el){el.textContent="● Zapisano";el.style.color="#79e6ae";}
@@ -513,7 +517,9 @@ function renderCreator(){
   </div>`;
   return;
  }
- if(selectedAnswers.length>=QUESTIONS.length){
+ 
+
+if(selectedAnswers.length>=QUESTIONS.length){
   main.innerHTML=`<div class="card hero"><div class="kicker">Tworzenie zakończone</div><h1>${esc(playerName||`Twój ${genderLabel()}`)}</h1><p>Profil gotowy. Teraz gra wylosuje klub startowy i warunki początku kariery.</p>
    <div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${esc(QUESTIONS[i][0])}: ${esc(x).split(" — ")[0]}</span>`).join("")}</div>
    <button class="action green" style="width:100%;margin-top:12px;text-align:center" onclick="startCareer()"><b>⚽ ROZPOCZNIJ KARIERĘ</b><small>Losujemy klub i szkołę.</small></button>
@@ -533,6 +539,113 @@ function renderCreator(){
   ${options}${selectedAnswers.length>0?`<button class="choice" style="background:#0a1626" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()">← Wróć do poprzedniego pytania</button>`:""}
  </div>`;
 }
+
+function chooseOrigin(v){
+  originChoice=v;
+  saveCreatorDraft();
+  toast("Pochodzenie zapisane ✓");
+  renderCreator();
+}
+function makeFamily(){
+  const countries=["Polska","Hiszpania","Niemcy","Francja","Anglia","Włochy","Portugalia","Brazylia","USA","Czechy","Holandia","Belgia","Argentyna","Chorwacja","Szwecja"];
+  let fatherCountry=countries[Math.floor(Math.random()*countries.length)];
+  let motherCountry=Math.random()<0.38?countries[Math.floor(Math.random()*countries.length)]:fatherCountry;
+  // Rodzice mogą pochodzić z różnych krajów, ale nie musi tak być.
+  const birthCountry=Math.random()<0.72
+    ? (Math.random()<0.55?fatherCountry:motherCountry)
+    : countries[Math.floor(Math.random()*countries.length)];
+  const jobs=[
+    ["nauczyciel","pielęgniarka"],["inżynier","księgowa"],["kierowca","nauczycielka"],
+    ["policjant","farmaceutka"],["przedsiębiorca","pracownica biurowa"],["mechanik","fizjoterapeutka"],
+    ["trener sportowy","sprzedawczyni"],["informatyk","architektka"],["pracownik budowlany","nauczycielka"]
+  ];
+  const pair=jobs[Math.floor(Math.random()*jobs.length)];
+  const fatherAge=35+Math.floor(Math.random()*13), motherAge=34+Math.floor(Math.random()*12);
+  const homeTypes=["mieszkanie w mieście","dom na przedmieściach","mieszkanie w mniejszym mieście","dom w spokojnej dzielnicy"];
+  const home=homeTypes[Math.floor(Math.random()*homeTypes.length)];
+  const income=["niski","stabilny","średni","dobrze zarabiający"][Math.floor(Math.random()*4)];
+  const namesF=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
+  const namesM=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
+  return {
+    father:{name:namesF[Math.floor(Math.random()*namesF.length)],age:fatherAge,job:pair[0],country:fatherCountry},
+    mother:{name:namesM[Math.floor(Math.random()*namesM.length)],age:motherAge,job:pair[1],country:motherCountry},
+    siblings:Math.random()<.62?[{name:"rodzeństwo",age:8+Math.floor(Math.random()*10)}]:[],
+    home,country:fatherCountry===motherCountry?fatherCountry:"rodzina międzynarodowa",
+    income,socialClass:income==="niski"?"pracująca rodzina":income==="dobrze zarabiający"?"zamożna rodzina":"klasa średnia",
+    homeCountry:birthCountry,
+    notes:"Rodzina jest generowana losowo i będzie wpływać na wydarzenia, ale nie determinuje Twojej kariery."
+  };
+}
+function ensureFamily(){
+  if(!S.familyProfile || !S.familyProfile.father || !S.familyProfile.father.name){
+    S.familyProfile=makeFamily();
+    S.birthCountry=S.familyProfile.homeCountry;
+    S.residenceCountry=S.familyProfile.homeCountry;
+    S.nationalities=[S.familyProfile.father.country];
+    if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
+  }
+}
+function requestGeneticsResearch(){
+  if(S.geneticsResearch){toast("Badanie jest już w toku.");return;}
+  S.geneticsResearch={startedDay:S.day,readyDay:S.day+7,status:"w trakcie",results:null};
+  log("Zlecono analizę predyspozycji. Laboratorium potrzebuje około tygodnia.");
+  saveSoon();render();
+}
+function checkGeneticsResearch(){
+  if(!S.geneticsResearch)return;
+  if(S.geneticsResearch.status==="w trakcie" && S.day>=S.geneticsResearch.readyDay){
+    const athletic=Math.round(55+Math.random()*40), mental=Math.round(45+Math.random()*45), technical=Math.round(50+Math.random()*42);
+    S.geneticsResearch.status="gotowe";
+    S.geneticsResearch.results={athletic,mental,technical,ceiling:Math.round((athletic+mental+technical)/3)};
+    S.potential=S.geneticsResearch.results;
+    log("Lekarz/laboratorium skontaktowało się z rodziną: wyniki analizy predyspozycji są gotowe. Trzeba umówić odbiór wyników.");
+    saveSoon();
+  }
+}
+function renderFamily(m){
+  ensureFamily(); checkGeneticsResearch();
+  const f=S.familyProfile;
+  const partner=S.partner?`${esc(S.partner.name)} • ${esc(S.partner.status||"partner/partnerka")}`:"brak partnera/partnerki";
+  const kids=S.children&&S.children.length?S.children.map(c=>`${esc(c.name)} (${c.age} lat)`).join(", "):"brak";
+  const nat=(S.nationalities||[]).join(" + ")||"jeszcze nieustalone";
+  m.innerHTML=`<div class="card hero">
+    <div class="kicker">👨‍👩‍👧 AKTUALNE ŻYCIE</div><h1>Twoja rodzina i sytuacja</h1>
+    <p>To nie jest tylko statystyka. Rodzina, miejsce zamieszkania, pieniądze i relacje mogą generować wydarzenia w kolejnych latach.</p>
+    <div class="pills"><span class="pill">🌍 ${esc(nat)}</span><span class="pill">🏠 ${esc(S.residenceCountry||f.homeCountry)}</span><span class="pill">💶 ${Math.round(S.money)}€</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>👨‍👩‍👧 Rodzina</b><span>zawsze aktualna</span></div>
+    <div class="row"><span>Ojciec</span><b>${esc(f.father.name)} • ${f.father.age} lat</b></div>
+    <div class="row"><span>Zawód</span><b>${esc(f.father.job)}</b></div>
+    <div class="row"><span>Pochodzenie</span><b>${esc(f.father.country)}</b></div>
+    <div class="row"><span>Matka</span><b>${esc(f.mother.name)} • ${f.mother.age} lat</b></div>
+    <div class="row"><span>Zawód</span><b>${esc(f.mother.job)}</b></div>
+    <div class="row"><span>Pochodzenie</span><b>${esc(f.mother.country)}</b></div>
+    <div class="row"><span>Dom</span><b>${esc(f.home)}</b></div>
+    <div class="row"><span>Sytuacja finansowa rodziny</span><b>${esc(f.socialClass)}</b></div>
+    <div class="row"><span>Rodzeństwo</span><b>${f.siblings.length?"tak":"brak"}</b></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>❤️ Twoje życie teraz</b><span>aktualne</span></div>
+    <div class="row"><span>Partner/partnerka</span><b>${partner}</b></div>
+    <div class="row"><span>Dzieci</span><b>${kids}</b></div>
+    <div class="row"><span>Pieniądze</span><b>${Math.round(S.money)}€</b></div>
+    <div class="row"><span>Potencjał</span><b>${S.potential&&S.potential.ceiling?S.potential.ceiling+"/100":"nieznany"}</b></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><b>🧬 Predyspozycje</b><span>nie musisz ich badać</span></div>
+    <p class="sub">Wyniki nie są gwarancją kariery. To ukryty potencjał, który możesz odkrywać badaniem. Analiza trwa około 7 dni.</p>
+    ${S.geneticsResearch?.status==="w trakcie"
+      ? `<div class="notice">🧪 Analiza w toku. Laboratorium powinno skontaktować się po około tygodniu. <b>Dzień ${S.geneticsResearch.readyDay}</b>.</div>`
+      : S.geneticsResearch?.status==="gotowe"
+        ? `<div class="row"><span>Potencjał sportowy</span><b>${S.potential.athletic}/100</b></div>
+           <div class="row"><span>Potencjał mentalny</span><b>${S.potential.mental}/100</b></div>
+           <div class="row"><span>Potencjał techniczny</span><b>${S.potential.technical}/100</b></div>
+           <div class="notice">📞 Lekarz skontaktował się z rodziną. Wyniki są gotowe do omówienia.</div>`
+        : `<button class="action red" style="width:100%" onclick="requestGeneticsResearch()"><b>🧬 Zleć badanie predyspozycji</b><small>Wynik po około 7 dniach. Koszt zostanie określony w zależności od sytuacji rodziny.</small></button>`}
+  </div>`;
+}
+
 function answer(v){
   const input=document.getElementById("creatorName");
   if(input) playerName=input.value.trim();
@@ -548,6 +661,12 @@ function startCareer(){
  const a=selectedAnswers;S=fresh();S.started=true;S.name=playerName;
  [S.gender,S.orientation,S.pos,S.foot,S.style,S.inspiration,S.dream,S.risk,S.priority,S.goal]=a;
  S.gender=normalizeGender(S.gender);
+ S.origin="generated";
+ S.familyProfile=makeFamily();
+ S.birthCountry=S.familyProfile.homeCountry;
+ S.residenceCountry=S.familyProfile.homeCountry;
+ S.nationalities=[S.familyProfile.father.country];
+ if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
  S.club=START_CLUBS[Math.floor(Math.random()*START_CLUBS.length)];
  S.pos=(S.pos||"").replace(/ —.*$/,"").replace(/.*\(([^)]+)\)$/,"$1");
  S.money=35;S.allowance=14;S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;S.age=15;S.birthMonth=11;S.birthDay=30;
@@ -703,6 +822,7 @@ function renderTab(tab){
  if(tab==="career")renderCareer(m);
  if(tab==="life")renderLife(m);
  if(tab==="history")renderHistory(m);
+ if(tab==="family")renderFamily(m);
 }
 function renderHome(m){
  const nextMatch=(S.day%7===0)?"DZIŚ":"za "+(7-(S.day%7))+" dni";
@@ -756,7 +876,7 @@ function renderHistory(m){
 }
 function newGame(){
  if(!confirm("Na pewno usunąć obecną karierę?"))return;
- localStorage.removeItem(KEY);localStorage.removeItem(DRAFT_KEY);S=fresh();selectedAnswers=[];playerName="";creatorStarted=false;currentTab="home";toast("Zapis usunięty");render()
+ localStorage.removeItem(KEY);localStorage.removeItem(DRAFT_KEY);S=fresh();selectedAnswers=[];playerName="";originChoice="";creatorStarted=false;currentTab="home";toast("Zapis usunięty");render()
 }
 
 render();
@@ -1067,5 +1187,136 @@ render();
 })();
 </script>
 
+
+<script>
+/* FL27 GAMEPLAY PATCH — weekly jobs + richer school events + playable training */
+(function(){
+  const K="FL27_GAMEPLAY_PATCH_V1";
+  const load=()=>{try{return JSON.parse(localStorage.getItem(K)||"{}")}catch(e){return{}}};
+  const save=x=>localStorage.setItem(K,JSON.stringify(x));
+  let P=load();
+  P.jobsWeek ??= {};
+  P.eventDay ??= {};
+  P.trainingWins ??= 0;
+
+  window.FL27_canDoWeeklyJob=function(id,year,week){
+    const k=year+"-"+week;
+    return P.jobsWeek[k]!==id;
+  };
+  window.FL27_markWeeklyJob=function(id,year,week){
+    const k=year+"-"+week;
+    P.jobsWeek[k]=id;save(P);
+  };
+  window.FL27_trainingGame=function(type="shot"){
+    const challenges={
+      shot:{
+        title:"🎯 Sytuacja treningowa: strzał",
+        text:"Masz trzy próby. Wybierz miejsce, w które kierujesz piłkę.",
+        options:["Lewy dolny róg","Prawy dolny róg","Lewy górny róg","Prawy górny róg"]
+      },
+      pass:{
+        title:"🧠 Sytuacja treningowa: podanie",
+        text:"Partner wychodzi na wolną pozycję. Wybierz rozwiązanie.",
+        options:["Prostopadłe podanie","Krótko do najbliższego","Przerzut","Prowadzę dalej"]
+      },
+      duel:{
+        title:"🔥 Sytuacja treningowa: pojedynek",
+        text:"Obrońca rusza do Ciebie. Wybierz reakcję.",
+        options:["Zmiana kierunku","Sprint","Zwód","Podanie"]
+      }
+    };
+    return challenges[type]||challenges.shot;
+  };
+  window.FL27_saveTrainingWin=function(){P.trainingWins++;save(P)};
+  window.FL27_getTrainingWins=function(){return P.trainingWins||0};
+
+  // Richer early-life event pool. IDs prevent repeats.
+  window.FL27_EARLY_EVENTS=[
+    {id:"school_project",tag:"SZKOŁA",title:"Projekt na jutro",text:"Nauczyciel daje Ci projekt, który trzeba zrobić z grupą.",choices:[
+      ["Robię swoją część od razu","school:+2|rel:+2|mental:+1","Dobra organizacja pomaga całej grupie."],
+      ["Proponuję podział zadań","school:+2|rel:+3","Grupa szybko ustala plan."],
+      ["Odkładam to na później","school:-1|mental:-1","Później robi się nerwowo."]
+    ]},
+    {id:"school_teacher",tag:"SZKOŁA",title:"Nauczyciel zauważa potencjał",text:"Nauczyciel proponuje Ci udział w dodatkowym szkolnym projekcie.",choices:[
+      ["Podejmuję się","school:+3|mental:+2","Zdobywasz doświadczenie poza boiskiem."],
+      ["Pytam, czy mogę zrobić to w innym terminie","school:+1|rel:+1","Udaje się dopasować obowiązki."],
+      ["Odmawiam","energy:+2","Masz więcej czasu na odpoczynek."]
+    ]},
+    {id:"class_break",tag:"SZKOŁA",title:"Przerwa z klasą",text:"Kilka osób z klasy proponuje wspólne wyjście po lekcjach.",choices:[
+      ["Idę","rel:+3|mental:+3|energy:-1","Poznajesz ludzi lepiej poza szkołą."],
+      ["Idę na chwilę","rel:+2|mental:+2","Krótki wypad poprawia humor."],
+      ["Wracam do domu","energy:+3|mental:+1","Spokojny wieczór."]
+    ]},
+    {id:"coach_talk",tag:"PIŁKA",title:"Rozmowa z trenerem",text:"Trener pyta, co najbardziej chcesz poprawić.",choices:[
+      ["Wykończenie akcji","skill:+2|coach:+1","Dostajesz konkretne wskazówki."],
+      ["Szybkość","fitness:+2|coach:+1","Ustalacie prosty plan."],
+      ["Mental","mental:+2|coach:+1","Rozmawiacie o presji i pewności siebie."]
+    ]},
+    {id:"school_scout",tag:"SKAUT",title:"Skaut pyta o Ciebie",text:"Po zajęciach ktoś przedstawia się jako osoba obserwująca młodych zawodników.",choices:[
+      ["Rozmawiam","career:+2|mental:+1","Wymieniacie się kontaktem."],
+      ["Pytam trenera, czy zna tę osobę","career:+1|coach:+2","Najpierw sprawdzasz sytuację."],
+      ["Nie angażuję się","mental:+1","Wolisz poczekać."]
+    ]},
+    {id:"music_lesson",tag:"TALENT",title:"Lekcja śpiewu?",text:"Znajoma osoba zaprasza Cię na jedną próbną lekcję śpiewu.",choices:[
+      ["Spróbuję","talent:+2|mental:+2|energy:-1","Okazuje się, że masz niezłe wyczucie rytmu."],
+      ["Pójdę tylko z ciekawości","talent:+1|mental:+2","Dobre doświadczenie."],
+      ["Nie teraz","energy:+1","Piłka ma pierwszeństwo."]
+    ]},
+    {id:"family_cooking",tag:"RODZINA",title:"Wieczór z rodzicami",text:"Rodzice proponują wspólne gotowanie i rozmowę.",choices:[
+      ["Zostaję z nimi","rel:+3|mental:+3","Spokojny rodzinny wieczór."],
+      ["Pomagam chwilę","rel:+2|mental:+2","Udaje się połączyć obowiązki i odpoczynek."],
+      ["Mam inne plany","rel:-1|energy:+1","Rodzice rozumieją, ale szkoda im wspólnego czasu."]
+    ]},
+    {id:"street_game",tag:"ŻYCIE",title:"Mecz na dworze",text:"Znajomi grają na boisku niedaleko domu.",choices:[
+      ["Gram","rel:+2|mental:+3|energy:-2|fitness:+1","Luźna gra daje dużo frajdy."],
+      ["Kibicuję i rozmawiam","rel:+2|mental:+2","Dobrze spędzasz czas bez dużego wysiłku."],
+      ["Idę do domu odpocząć","energy:+3","Regenerujesz się."]
+    ]}
+  ];
+
+  window.FL27_getEarlyEvent=function(used){
+    used=Array.isArray(used)?used:[];
+    const pool=FL27_EARLY_EVENTS.filter(e=>!used.includes(e.id));
+    if(!pool.length)return null;
+    return pool[Math.floor(Math.random()*pool.length)];
+  };
+})();
+</script>
+
+<style>
+.fl27-mini-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:flex;align-items:flex-end;justify-content:center}
+.fl27-mini-card{width:min(620px,100%);background:linear-gradient(160deg,#171d29,#0d1118);border:1px solid rgba(255,255,255,.12);border-radius:25px 25px 0 0;padding:20px 16px 28px;box-shadow:0 -25px 70px rgba(0,0,0,.55)}
+.fl27-mini-card h2{margin:0 0 7px}.fl27-mini-card p{font-size:12px;color:#aab4c3;line-height:1.45}
+.fl27-train-option{width:100%;margin:6px 0;padding:13px;border-radius:15px;border:1px solid rgba(255,255,255,.10);background:#171e29;text-align:left}
+.fl27-train-option:hover{border-color:rgba(230,57,70,.5);background:#24171d}
+.fl27-train-result{padding:12px;border-radius:14px;background:#111722;border:1px solid rgba(255,255,255,.08);margin-top:10px;font-size:12px;line-height:1.45}
+</style>
+
+<script>
+window.openFL27Training=function(type){
+ const c=FL27_trainingGame(type||"shot");
+ const modal=document.createElement("div");
+ modal.className="fl27-mini-modal";
+ modal.innerHTML=`<div class="fl27-mini-card">
+   <div class="kicker">${c.title}</div><h2>${c.text}</h2>
+   <p>To jest krótka aktywność treningowa. Wynik wpłynie na rozwój, ale jedna próba nie przesądza o karierze.</p>
+   <div id="fl27-train-options">${c.options.map((o,i)=>`<button class="fl27-train-option" onclick="finishFL27Training(${i},'${type||"shot"}')"><b>${o}</b></button>`).join("")}</div>
+   <button class="choice" style="margin-top:10px" onclick="this.closest('.fl27-mini-modal').remove()">Zamknij trening</button>
+ </div>`;
+ document.body.appendChild(modal);
+};
+window.finishFL27Training=function(i,type){
+ const outcomes={
+  shot:[["Trafiasz w róg! 🎯","skill:+2|mental:+1"],["Bramkarz broni! 🧤","skill:+1"],["Poprzeczka!","skill:+1|mental:+1"],["Świetne wykończenie! 🔥","skill:+2|career:+1"]],
+  pass:[["Idealne podanie! 🧠","skill:+2"],["Partner przyjmuje piłkę","skill:+1"],["Przerzut jest za mocny","skill:0|mental:-1"],["Dobra decyzja pod presją","skill:+1|mental:+1"]],
+  duel:[["Mijasz rywala! 🔥","skill:+2"],["Obrońca czyta Twój ruch","skill:+1"],["Zwód się udał","skill:+2"],["Oddajesz piłkę w dobrym momencie","skill:+1|coach:+1"]]
+ };
+ const r=(outcomes[type]||outcomes.shot)[i%4];
+ if(window.FL27_saveTrainingWin) FL27_saveTrainingWin();
+ const box=document.getElementById("fl27-train-options");
+ if(box)box.innerHTML=`<div class="fl27-train-result"><b>${r[0]}</b><br>${r[1]}</div>
+ <button class="action green" style="width:100%;margin-top:10px" onclick="this.closest('.fl27-mini-modal').remove()">Zakończ trening ✓</button>`;
+};
+</script>
 </body>
 </html>
