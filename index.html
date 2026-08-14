@@ -6753,18 +6753,23 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
    </svg>`;
  };
  window.FL27_saveAvatar=function(){
-   const a={
-     skin:document.getElementById("v20-skin")?.value,
-     hair:document.getElementById("v20-hair")?.value,
-     hairColor:document.getElementById("v20-hairColor")?.value,
-     eyes:document.getElementById("v20-eyes")?.value,
-     jersey:document.getElementById("v20-jersey")?.value,
-     gender:document.getElementById("v20-gender")?.value
-   };
-   const box=document.getElementById("v20-avatar-preview");
-   if(box)box.innerHTML=FL27_avatarSvg(a);
-   return a;
- };
+    const genderAnswer=selectedAnswers?.[0]||"Kobieta";
+    const orientationAnswer=selectedAnswers?.[1]||"Na razie nikim — nie szukam związku";
+    const gender=genderAnswer.startsWith("K")?"K":"M";
+    const orientation=orientationAnswer.startsWith("Kobiety i")?"B":orientationAnswer.startsWith("Kobiety")?"K":orientationAnswer.startsWith("Mężczyźni")?"M":"N";
+    const a={
+      skin:document.getElementById("v20-skin")?.value||AVATAR_OPTIONS.skin[1],
+      hair:document.getElementById("v20-hair")?.value||"short",
+      hairColor:document.getElementById("v20-hairColor")?.value||AVATAR_OPTIONS.hairColor[0],
+      eyes:document.getElementById("v20-eyes")?.value||AVATAR_OPTIONS.eyes[0],
+      jersey:document.getElementById("v20-jersey")?.value||AVATAR_OPTIONS.jersey[0],
+      gender,orientation
+    };
+    const box=document.getElementById("v20-avatar-preview");
+    if(box)box.innerHTML=FL27_avatarSvg(a);
+    window.__FL27_AVATAR_CONFIG=a;
+    return a;
+  }
  window.FL27_randomAvatar=function(){
    const pick=(x)=>x[Math.floor(Math.random()*x.length)];
    const a={skin:pick(AVATAR_OPTIONS.skin),hair:pick(AVATAR_OPTIONS.hair),hairColor:pick(AVATAR_OPTIONS.hairColor),eyes:pick(AVATAR_OPTIONS.eyes),jersey:pick(AVATAR_OPTIONS.jersey),gender:document.getElementById("v20-gender")?.value||"M"};
@@ -6836,8 +6841,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
          <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">🎲 LOSOWY</button></div>
          <div class="v20-avatar-help">Płeć, karnacja, fryzura, kolor włosów, oczy i strój. Możesz zmieniać wszystko przed startem.</div>
          <div class="v20-grid">
-          <label>Płeć<select id="v20-gender" onchange="FL27_saveAvatar()"><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
-          <label>Osoby, które Cię interesują<select id="v20-orientation"><option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na razie nikim</option></select></label>
+          <div class="v57-inherited">👤 Płeć i osoby, którymi zawodnik może być zainteresowany zostały już wybrane w 10 pytaniach.</div>
           <label>Karnacja<select id="v20-skin" onchange="FL27_saveAvatar()">
             <option value="#f8dcc3">Bardzo jasna</option><option value="#f1c9a8">Jasna</option><option value="#e7b58f" selected>Średnia</option><option value="#d7a07a">Ciepła</option><option value="#c98f68">Oliwkowa</option><option value="#a97452">Brązowa</option><option value="#9a6345">Ciemnobrązowa</option><option value="#6b402d">Ciemna</option><option value="#4b2b1e">Bardzo ciemna</option>
           </select></label>
@@ -6871,26 +6875,38 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
   }
 })();
 window.FL27_confirmPlus=function(){
-   const first=playerName.split(" ")[0], last=playerName.split(" ").slice(1).join(" ");
+   if(window.__FL27_STARTING)return;
+   const first=(playerName||"").split(" ")[0], last=(playerName||"").split(" ").slice(1).join(" ");
    if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
-   const av=window.FL27_saveAvatar?.()||{};
-   const orientation=document.getElementById("v20-orientation")?.value||"N";
-   window.__FL27_AVATAR_CONFIG={...av,orientation};
-   /*
-    * The original 10-question startCareer remains authoritative for career
-    * generation. We add avatar data after it initializes S.
-    */
-   if(selectedAnswers.length!==QUESTIONS.length){alert("Odpowiedz na wszystkie 10 pytań.");return}
-   if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
-     window.__FL27_ORIGINAL_START_CAREER();
-   }else{
-     startCareer();
+   if(!Array.isArray(selectedAnswers)||selectedAnswers.length!==QUESTIONS.length){
+     alert("Odpowiedz na wszystkie 10 pytań.");return;
    }
+   const av=window.FL27_saveAvatar()||{};
+   const orientation=av.orientation||"N";
+   window.__FL27_AVATAR_CONFIG={...av,orientation};
+   window.__FL27_STARTING=true;
+
    try{
-     S.firstName=first;S.lastName=last;S.name=playerName;
-     S.avatar=av;S.orientation=orientation;
-     saveSoon();render();
-   }catch(e){}
+     if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
+       window.__FL27_ORIGINAL_START_CAREER();
+     }else if(typeof startCareer==="function"){
+       startCareer();
+     }else{
+       throw new Error("Brak funkcji startCareer");
+     }
+     if(window.S){
+       S.firstName=first;S.lastName=last;S.name=playerName;
+       S.avatar=av;S.gender=av.gender;S.orientation=orientation;
+       S.position=S.position||selectedAnswers[2];
+     }
+     saveSoon();
+     document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+     render();
+   }catch(e){
+     window.__FL27_STARTING=false;
+     console.error(e);
+     alert("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+   }
  };
 
 
@@ -9612,6 +9628,20 @@ body:not(.creator-screen) .fl27-v35-bottom{
   border:1px solid rgba(255,255,255,.08);font-size:10px;line-height:1.5
 }
 .v56-live-tag{font-size:8px;font-weight:900;letter-spacing:.12em;color:#ffd166}
+
+<style id="fl27-v57-creator-fix">
+.v57-inherited{
+  grid-column:1/-1;padding:9px 11px;border-radius:10px;
+  background:rgba(118,169,255,.06);border:1px solid rgba(118,169,255,.12);
+  color:#9eabbc;font-size:9px;line-height:1.4;margin-top:6px
+}
+.v52-creator .v20-confirm{
+  position:relative!important;z-index:20!important;pointer-events:auto!important;
+  cursor:pointer!important;touch-action:manipulation!important;
+  min-height:48px!important;width:100%!important;
+}
+.v52-creator .v20-back{position:relative!important;z-index:20!important}
+.v52-avatar-editor{overflow:visible!important}
 </style>
 <script id="fl27-v56-match-scenarios">
 (function(){
