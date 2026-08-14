@@ -3082,25 +3082,6 @@ window.fatherCoachOpportunity=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V3_RENDER){
-  window.__FL27_V3_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v3-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v3-extra";
-      wrap.innerHTML=(window.FL27_renderFLgram?FL27_renderFLgram():"")+(window.FL27_renderMoneyChoices?FL27_renderMoneyChoices():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3351,27 +3332,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V5_RENDER){
-  window.__FL27_V5_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v5-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v5-extra";
-      wrap.innerHTML=(window.FL27_renderStars?FL27_renderStars():"")+
-                     (window.FL27_renderSideCareers?FL27_renderSideCareers():"")+
-                     (window.FL27_renderSocialNotifications?FL27_renderSocialNotifications():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3535,26 +3495,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V6_RENDER){
-  window.__FL27_V6_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v6-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v6-extra";
-      wrap.innerHTML=(window.FL27_renderFamilyRelationship?FL27_renderFamilyRelationship():"")+
-                     (window.FL27_renderStarEncounters?FL27_renderStarEncounters():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3607,25 +3547,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V7_RENDER){
-  window.__FL27_V7_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v7-extra").forEach(x=>x.remove());
-      const d=document.createElement("div");d.className="fl27-v7-extra";
-      d.innerHTML=window.FL27_renderReplayStats?FL27_renderReplayStats():"";
-      host.appendChild(d);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -6544,20 +6465,7 @@ window.FL27_confirmPlus=function(){
    };
  }
 
- if(window.render&&!window.__FL27_V22_RENDER){
-   const old=window.render;window.__FL27_V22_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v22-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v22-extra";
-       d.innerHTML=FL27_renderCareerMarket()+FL27_renderLuxury();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
+ /* V70: feature renderer is tab-owned; never inject into global main. */
  save();
 })();
 </script>
@@ -6694,20 +6602,7 @@ window.FL27_confirmPlus=function(){
      return r;
    };
  }
- if(window.render&&!window.__FL27_V23_RENDER){
-   const old=window.render;window.__FL27_V23_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v23-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v23-extra";
-       d.innerHTML=FL27_marketSummary();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
+ /* V70: feature renderer is tab-owned; never inject into global main. */
  save();
 })();
 </script>
@@ -10059,5 +9954,35 @@ body:not(.creator-screen) #main.v67-clean-home .v9-school{
 
   /* No global render observer is allowed to append panels. */
   window.FL27_PANEL_ROUTING_LOCKED=true;
+})();
+</script>
+
+<style id="fl27-v70-creator-isolation">
+body.creator-screen #main > .fl27-v3-extra,
+body.creator-screen #main > .fl27-v5-extra,
+body.creator-screen #main > .fl27-v6-extra,
+body.creator-screen #main > .fl27-v7-extra,
+body.creator-screen #main > .fl27-v22-extra,
+body.creator-screen #main > .fl27-v23-extra,
+body.creator-screen #main > .fl27-v12-extra,
+body.creator-screen #main > .fl27-v10-finance{
+  display:none!important;
+}
+</style>
+<script id="fl27-v70-final">
+(function(){
+  /* Creator is a hard UI boundary. It owns #main until startCareer(). */
+  const cleanCreator=function(){
+    if(!document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main");
+    if(!main)return;
+    [
+      ".fl27-v3-extra",".fl27-v5-extra",".fl27-v6-extra",".fl27-v7-extra",
+      ".fl27-v22-extra",".fl27-v23-extra",".fl27-v12-extra",".fl27-v10-finance"
+    ].forEach(sel=>main.querySelectorAll(sel).forEach(el=>el.remove()));
+  };
+  const mo=new MutationObserver(cleanCreator);
+  mo.observe(document.body,{childList:true,subtree:true});
+  cleanCreator();
 })();
 </script>
