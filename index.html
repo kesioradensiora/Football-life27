@@ -6523,7 +6523,7 @@ html body{padding-bottom:137px!important}
     const actionHTML=selected ? `
       <div class="v26-context">
         <div class="v26-context-text">
-          <strong>${selected.icon||"📋"} ${selected.name||"Aktywność"}</strong>
+          <strong><span class="v29-inline-icon">${window.FL27_ICON("activity")}</span>${selected.name||"Aktywność"}</strong>
           <small>${window.FL27_V17_preview ? window.FL27_V17_preview(selected) : "Sprawdź koszt i efekt przed wykonaniem."}</small>
         </div>
         <button class="v26-execute" type="button"
@@ -6701,6 +6701,519 @@ html body{padding-bottom:122px!important}
   .v26-clock span{font-size:7px}
   .v26-actions button{flex-basis:61px}
 }
+</style>
+
+<script>
+/* ============================================================
+ FL27 V27
+ 1) Both parents can have partners/spouses.
+ 2) Family structure is dynamic: custody/residence can be with
+    mother, father, both, alternating, grandparents or another
+    guardian where appropriate.
+ 3) Bottom UI is rebuilt as a single 3-zone panel:
+       NAVIGATION / ACTIVITIES / SELECTED ACTIVITY
+    so it cannot overlap or create a second hidden bar.
+ ============================================================ */
+(function(){
+  const FAMILY_KEY = "FL27_V27_FAMILY";
+  let F;
+  try { F = JSON.parse(localStorage.getItem(FAMILY_KEY) || "{}"); }
+  catch(e){ F = {}; }
+
+  F.mother ??= { alive:true, partner:null };
+  F.father ??= { alive:true, partner:null };
+  F.residence ??= "both";
+  F.guardian ??= "both";
+  F.history ??= [];
+  window.FL27_FAMILY = F;
+
+  const saveFamily = () =>
+    localStorage.setItem(FAMILY_KEY, JSON.stringify(F));
+
+  /* Both mother and father can form new relationships.
+     The relationship can change independently and does not imply
+     that the other parent must also have a new partner. */
+  window.FL27_setParentPartner = function(parent, data){
+    if(!["mother","father"].includes(parent)) return;
+    F[parent].partner = data || null;
+    F.history.push({
+      day: Number(window.S?.day || 1),
+      parent,
+      event: data ? "new_partner" : "partner_ended",
+      partner: data || null
+    });
+    saveFamily();
+    try { window.render?.(); } catch(e){}
+  };
+
+  window.FL27_setResidence = function(value){
+    const allowed = ["both","mother","father","alternating","grandparents","guardian"];
+    if(!allowed.includes(value)) return;
+    F.residence = value;
+    F.guardian = value;
+    F.history.push({
+      day:Number(window.S?.day || 1),
+      event:"residence_changed",
+      residence:value
+    });
+    saveFamily();
+    try { window.render?.(); } catch(e){}
+  };
+
+  window.FL27_familySummary = function(){
+    const m = F.mother.partner ? `z ${F.mother.partner.name || "nowym partnerem / partnerką"}` : "bez nowego partnera / partnerki";
+    const f = F.father.partner ? `z ${F.father.partner.name || "nowym partnerem / partnerką"}` : "bez nowego partnera / partnerki";
+    const residence = {
+      both:"z obojgiem rodziców",
+      mother:"głównie z mamą",
+      father:"głównie z tatą",
+      alternating:"naprzemiennie u mamy i taty",
+      grandparents:"u dalszej rodziny / dziadków",
+      guardian:"u innego opiekuna"
+    }[F.residence] || "z rodziną";
+    return `Mama: ${m} • Tata: ${f} • Mieszkasz: ${residence}`;
+  };
+
+  /* ------------------------------------------------------------
+     Replace legacy bottom bars with ONE panel.
+     The navigation is fixed at the bottom; the activity selector
+     sits above it; the selected activity details sit above that.
+     ------------------------------------------------------------ */
+  function mountBottom(){
+    document.querySelectorAll(
+      ".v17-bottom,.v24-bottom,.v25-bottom,.v26-bottom," +
+      ".fl27-v17-extra,.fl27-v24-extra,.fl27-v25-extra," +
+      ".fl27-v26-extra,.fl27-v27-extra"
+    ).forEach(x=>x.remove());
+
+    const A = window.FL27_V17_ACTIONS || [];
+    const V = window.FL27_V17 || {};
+    const hour = Math.floor(Number(window.S?.hour || 0));
+    const day = Math.round(Number(window.S?.day || 1));
+    const selected = V.selected ? A.find(a => a.id === V.selected) : null;
+    const timeLeft = Math.max(0, 22 - hour);
+
+    const nav = [
+      ["🏠","Dziś","render()"],
+      ["⏱️","Dzień","window.scrollTo({top:0,behavior:'smooth'})"],
+      ["⚽","Kariera","window.FL27_openTab?.('career')"],
+      ["❤️","Życie","window.FL27_openTab?.('life')"],
+      ["👨‍👩‍👧","Rodzina","window.FL27_openTab?.('family')"],
+      ["📖","Historia","window.FL27_openTab?.('history')"],
+      ["📊","Statystyki","window.FL27_openTab?.('stats')"],
+      ["🛒","Sklep","window.FL27_openTab?.('shop')"],
+      ["⚙️","Ustawienia","renderSettings()"]
+    ];
+
+    const activityHTML = A.length ? A.map(a => `
+      <button class="v27-activity ${selected && selected.id===a.id ? "active":""}"
+        type="button" onclick="FL27_V17_select('${a.id}')">
+        <span>${a.icon || "•"}</span>
+        <b>${a.name || "Aktywność"}</b>
+      </button>
+    `).join("") : `<div class="v27-no-actions">Brak aktywności</div>`;
+
+    let selectedHTML = `
+      <div class="v27-selected-empty">
+        <span>📋</span>
+        <div><b>Wybierz aktywność</b><small>Po wyborze zobaczysz dokładny koszt czasu i konsekwencje.</small></div>
+      </div>`;
+
+    if(selected){
+      const preview = window.FL27_V17_preview
+        ? window.FL27_V17_preview(selected)
+        : "Sprawdź koszt przed wykonaniem.";
+
+      selectedHTML = `
+        <div class="v27-selected">
+          <div class="v27-selected-info">
+            <b>${selected.icon || "📋"} ${selected.name || "Aktywność"}</b>
+            <small>${preview}</small>
+          </div>
+          <button class="v27-run" type="button"
+            onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>
+        </div>`;
+    }
+
+    const el = document.createElement("div");
+    el.className = "fl27-v27-extra";
+    el.innerHTML = `
+      <div class="v27-bottom">
+        <div class="v27-status">
+          <div><b>${String(hour).padStart(2,"0")}:00</b><span>Dzień ${day}</span></div>
+          <div><span>⏳ ${timeLeft} h do 22:00</span></div>
+        </div>
+
+        <div class="v27-activities">${activityHTML}</div>
+
+        <div class="v27-selected-row">${selectedHTML}</div>
+
+        <div class="v27-navigation">
+          ${nav.map((x,i)=>`
+            <button type="button" class="${i===0 ? "active":""}" onclick="${x[2]}">
+              <span>${x[0]}</span><b>${x[1]}</b>
+            </button>
+          `).join("")}
+        </div>
+      </div>`;
+
+    document.body.appendChild(el);
+  }
+
+  if(window.render && !window.__FL27_V27_RENDER){
+    const oldRender = window.render;
+    window.__FL27_V27_RENDER = true;
+    window.render = function(){
+      const result = oldRender.apply(this, arguments);
+      requestAnimationFrame(mountBottom);
+      return result;
+    };
+  }
+
+  setTimeout(mountBottom, 100);
+  saveFamily();
+})();
+</script>
+
+<style>
+/* V27 — one compact, non-overlapping bottom system */
+html body .fl27-v27-extra{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  width:100%!important;
+  z-index:2147483647!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+
+.v27-bottom{
+  width:100%;
+  box-sizing:border-box;
+  background:rgba(8,10,15,.985);
+  border-top:1px solid rgba(224,48,66,.38);
+  box-shadow:0 -12px 35px rgba(0,0,0,.48);
+  color:#fff;
+  padding:5px 7px calc(6px + env(safe-area-inset-bottom));
+}
+
+.v27-status{
+  height:22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 4px;
+  box-sizing:border-box;
+}
+.v27-status div{display:flex;align-items:center;gap:8px}
+.v27-status b{font-size:14px}
+.v27-status span{font-size:8px;opacity:.55}
+
+.v27-activities{
+  display:flex;
+  gap:5px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  padding:3px 1px 5px;
+}
+.v27-activities::-webkit-scrollbar{display:none}
+
+.v27-activity{
+  flex:0 0 68px;
+  height:43px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;
+  background:#151a23;
+  color:#fff;
+  padding:3px;
+  box-sizing:border-box;
+}
+.v27-activity.active{
+  border-color:#df3447;
+  background:rgba(223,52,71,.13);
+}
+.v27-activity span{
+  display:block;
+  font-size:15px;
+  line-height:16px;
+}
+.v27-activity b{
+  display:block;
+  font-size:7px;
+  line-height:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.v27-selected-row{
+  min-height:45px;
+  margin-bottom:4px;
+}
+.v27-selected,
+.v27-selected-empty{
+  min-height:45px;
+  width:100%;
+  box-sizing:border-box;
+  border-radius:9px;
+  background:#121720;
+  border:1px solid rgba(255,255,255,.06);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 7px;
+}
+.v27-selected-info{
+  flex:1;
+  min-width:0;
+}
+.v27-selected-info b{
+  display:block;
+  font-size:9px;
+}
+.v27-selected-info small{
+  display:block;
+  font-size:7px;
+  line-height:9px;
+  opacity:.6;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.v27-selected-empty{
+  justify-content:center;
+  text-align:left;
+  gap:7px;
+}
+.v27-selected-empty span{font-size:17px}
+.v27-selected-empty b{display:block;font-size:9px}
+.v27-selected-empty small{display:block;font-size:7px;opacity:.5}
+.v27-run{
+  flex:0 0 auto;
+  min-width:82px;
+  height:34px;
+  border:0;
+  border-radius:7px;
+  background:#df3447;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+}
+
+.v27-navigation{
+  display:flex;
+  justify-content:space-between;
+  gap:2px;
+  overflow:hidden;
+}
+.v27-navigation button{
+  flex:1 1 0;
+  min-width:0;
+  height:48px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#fff;
+  padding:2px 1px;
+}
+.v27-navigation button.active{
+  background:rgba(223,52,71,.14);
+}
+.v27-navigation span{
+  display:block;
+  font-size:17px;
+  line-height:20px;
+}
+.v27-navigation b{
+  display:block;
+  font-size:7px;
+  line-height:9px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.v27-no-actions{
+  font-size:8px;
+  opacity:.45;
+  padding:10px;
+}
+
+/* Enough room for the complete fixed panel, never cover game content. */
+html body{padding-bottom:170px!important}
+@media(max-width:650px){
+  html body{padding-bottom:174px!important}
+  .v27-activity{flex-basis:64px}
+  .v27-navigation span{font-size:16px}
+}
+</style>
+
+
+<script>
+/* FL27 V29 — offline SVG icon set, no external libraries */
+(function(){
+  const icons={
+    home:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.8 12 3l9 7.8"/><path d="M5.5 10.2V21h13V10.2"/><path d="M9.5 21v-6h5v6"/></svg>`,
+    clock:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>`,
+    ball:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 4.7 3.4-1.8 5.5h-5.8L7.3 6.4z"/><path d="m7.3 6.4-4 2.9 1.5 5.1 4.9 1.6M16.7 6.4l4 2.9-1.5 5.1-4.9 1.6M9.7 20.5l2.3-4.5 2.3 4.5M6.1 15.9 4.2 19M17.9 15.9l1.9 3"/></svg>`,
+    heart:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 5.8a4.6 4.6 0 0 0-6.5 0L12 7.7l-1.9-1.9a4.6 4.6 0 0 0-6.5 6.5L12 20.5l8.4-8.2a4.6 4.6 0 0 0 0-6.5Z"/></svg>`,
+    family:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><circle cx="12" cy="5" r="2.2"/><path d="M3.5 19c.3-3 2-4.5 4.5-4.5s4.2 1.5 4.5 4.5M11.5 19c.3-3 2-4.5 4.5-4.5s4.2 1.5 4.5 4.5M8.5 11.5c.7-1.1 1.9-1.7 3.5-1.7s2.8.6 3.5 1.7"/></svg>`,
+    book:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 4.5v17M8 6h8M8 9h8"/></svg>`,
+    chart:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/><path d="m4 8 5-3 5 4 6-6"/></svg>`,
+    shop:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1 11H5z"/><path d="M6 9 8 4h8l2 5M9 13h6"/><circle cx="9" cy="21" r="1"/><circle cx="17" cy="21" r="1"/></svg>`,
+    settings:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .2.1 1.4 1.1-1.8 3.1-1.7-.7a8 8 0 0 1-1.8 1l-.2 1.8h-3.6l-.2-1.8a8 8 0 0 1-1.8-1l-1.7.7-1.8-3.1L7.8 15a7.6 7.6 0 0 1 0-2l-1.6-1.1L8 8.8l1.7.7a8 8 0 0 1 1.8-1l.2-1.8h3.6l.2 1.8a8 8 0 0 1 1.8 1l1.7-.7 1.8 3.1-1.6 1.1a7.6 7.6 0 0 1 .2 2Z"/></svg>`,
+    activity:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>`
+  };
+  window.FL27_ICON=key=>icons[key]||icons.activity;
+})();
+</script>
+
+
+<script>
+/* FL27 V31 — FINAL BOTTOM UI
+   Compact, fixed, safe-area aware, no overlap/overflow.
+   Custom SVG icons, contextual activity card, permanent navigation.
+*/
+(function(){
+  const ICONS={
+    home:'<svg viewBox="0 0 24 24"><path d="M3.5 10.8 12 3.5l8.5 7.3"/><path d="M5.5 10.2V21h13V10.2M9.5 21v-5.5h5V21"/></svg>',
+    time:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>',
+    career:'<svg viewBox="0 0 24 24"><path d="m12 3 4.5 3.2-1.7 5.2h-5.6L7.5 6.2z"/><path d="m7.5 6.2-4 3 1.5 5 4.8 1.5M16.5 6.2l4 3-1.5 5-4.8 1.5M9.5 20.5l2.5-4.8 2.5 4.8"/></svg>',
+    life:'<svg viewBox="0 0 24 24"><path d="M20.3 5.8a4.5 4.5 0 0 0-6.4 0L12 7.7l-1.9-1.9a4.5 4.5 0 0 0-6.4 6.4L12 20.5l8.3-8.3a4.5 4.5 0 0 0 0-6.4Z"/></svg>',
+    family:'<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.3"/><circle cx="7" cy="9" r="2.1"/><circle cx="17" cy="9" r="2.1"/><path d="M7.5 19c.2-3 1.8-4.6 4.5-4.6s4.3 1.6 4.5 4.6M2.8 19c.2-2.5 1.5-3.8 4.2-3.8M17 15.2c2.7 0 4 1.3 4.2 3.8"/></svg>',
+    history:'<svg viewBox="0 0 24 24"><path d="M5 4h14v17H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+    stats:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-8M22 20H2"/><path d="m4 8 5-3 5 4 6-6"/></svg>',
+    shop:'<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5zM6 9l2-5h8l2 5"/><path d="M9 13h6"/></svg>',
+    settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.2 14.8 1.4 1.1-1.8 3-1.7-.7a8 8 0 0 1-1.8 1l-.2 1.8h-3.6l-.2-1.8a8 8 0 0 1-1.8-1l-1.7.7-1.8-3 1.4-1.1a7.5 7.5 0 0 1 0-2L6.2 11.7l1.8-3 1.7.7a8 8 0 0 1 1.8-1l.2-1.8h3.6l.2 1.8a8 8 0 0 1 1.8 1l1.7-.7 1.8 3-1.4 1.1a7.5 7.5 0 0 1 0 2Z"/></svg>',
+    action:'<svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h5"/></svg>'
+  };
+
+  const nav=[
+    ['home','Dziś','render()'],
+    ['time','Dzień',"window.scrollTo({top:0,behavior:'smooth'})"],
+    ['career','Kariera',"window.FL27_openTab?.('career')"],
+    ['life','Życie',"window.FL27_openTab?.('life')"],
+    ['family','Rodzina',"window.FL27_openTab?.('family')"],
+    ['history','Historia',"window.FL27_openTab?.('history')"],
+    ['stats','Statystyki',"window.FL27_openTab?.('stats')"],
+    ['shop','Sklep',"window.FL27_openTab?.('shop')"],
+    ['settings','Ustawienia','renderSettings()']
+  ];
+
+  function mount(){
+    document.querySelectorAll(
+      '.v17-bottom,.v24-bottom,.v25-bottom,.v26-bottom,.v27-bottom,.v28-bottom,.v30-dock,'+
+      '.fl27-v17-extra,.fl27-v24-extra,.fl27-v25-extra,.fl27-v26-extra,.fl27-v27-extra,'+
+      '.fl27-v28-extra,.fl27-v30-extra,.fl27-v31-extra'
+    ).forEach(e=>e.remove());
+
+    const A=window.FL27_V17_ACTIONS||[], V=window.FL27_V17||{};
+    const hour=Math.floor(Number(window.S?.hour||0));
+    const day=Math.round(Number(window.S?.day||1));
+    const left=Math.max(0,22-hour);
+    const selected=V.selected?A.find(a=>a.id===V.selected):null;
+
+    const activities=A.length?A.map(a=>`
+      <button class="v31-action ${selected?.id===a.id?'selected':''}" type="button"
+        onclick="FL27_V17_select('${a.id}')">
+        <span class="v31-action-icon">${ICONS.action}</span>
+        <b>${a.name||'Aktywność'}</b>
+      </button>`).join(''):'<div class="v31-no-actions">Brak dostępnych aktywności</div>';
+
+    let detail=`<div class="v31-empty"><span class="v31-big-icon">${ICONS.action}</span><div><b>Wybierz aktywność</b><small>Koszt czasu i konsekwencje pokażą się tutaj.</small></div></div>`;
+    if(selected){
+      const preview=window.FL27_V17_preview?window.FL27_V17_preview(selected):'Sprawdź koszt i efekt.';
+      detail=`<div class="v31-selected">
+        <span class="v31-selected-icon">${ICONS.action}</span>
+        <div class="v31-selected-copy"><b>${selected.name||'Aktywność'}</b><small>${preview}</small></div>
+        <button class="v31-run" type="button" onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>
+      </div>`;
+    }
+
+    const root=document.createElement('div');
+    root.className='fl27-v31-extra';
+    root.innerHTML=`<section class="v31-dock">
+      <div class="v31-topline">
+        <div class="v31-clock">${String(hour).padStart(2,'0')}:00</div>
+        <div class="v31-date">DZIEŃ ${day}</div>
+        <div class="v31-left">⏳ ${left} h do 22:00</div>
+      </div>
+      <div class="v31-detail-row">${detail}</div>
+      <div class="v31-activity-box">
+        <div class="v31-activity-title"><span>AKTYWNOŚCI</span><span>PRZESUŃ →</span></div>
+        <div class="v31-activities">${activities}</div>
+      </div>
+      <nav class="v31-nav">${nav.map((n,i)=>`
+        <button type="button" class="${i===0?'active':''}" onclick="${n[2]}">
+          <span>${ICONS[n[0]]}</span><b>${n[1]}</b>
+        </button>`).join('')}</nav>
+    </section>`;
+    document.body.appendChild(root);
+  }
+
+  if(window.render&&!window.__FL27_V31_RENDER){
+    const old=window.render;
+    window.__FL27_V31_RENDER=true;
+    window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(mount);return r;};
+  }
+  window.FL27_mountV31=mount;
+  setTimeout(mount,120);
+})();
+</script>
+<style>
+html,body{overflow-x:hidden!important}
+html body .fl27-v31-extra{
+ position:fixed!important;left:0!important;right:0!important;bottom:0!important;
+ width:100%!important;max-width:100vw!important;z-index:2147483647!important;
+ margin:0!important;padding:0!important;box-sizing:border-box!important;overflow:hidden!important;
+}
+.v31-dock{
+ width:100%;box-sizing:border-box;color:#fff;
+ background:linear-gradient(180deg,#151923 0%,#0b0e14 100%);
+ border-top:1px solid rgba(229,55,73,.42);
+ box-shadow:0 -12px 34px rgba(0,0,0,.48);
+ padding:5px 7px calc(5px + env(safe-area-inset-bottom));
+}
+.v31-topline{height:19px;display:flex;align-items:center;gap:8px;padding:0 3px}
+.v31-clock{font-size:13px;font-weight:900}.v31-date,.v31-left{font-size:6.5px;letter-spacing:.35px;opacity:.55}
+.v31-left{margin-left:auto}
+.v31-detail-row{height:40px;margin-bottom:5px}
+.v31-selected,.v31-empty{
+ height:40px;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:7px;
+ padding:4px 6px;border-radius:9px;background:rgba(255,255,255,.045);
+ border:1px solid rgba(255,255,255,.065);overflow:hidden;
+}
+.v31-selected{border-color:rgba(229,55,73,.24);background:linear-gradient(90deg,rgba(88,25,36,.35),rgba(255,255,255,.035))}
+.v31-selected-icon,.v31-big-icon{
+ width:27px;height:27px;min-width:27px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+ background:rgba(229,55,73,.13);color:#ff6576;
+}
+.v31-selected-icon svg,.v31-big-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v31-selected-copy{min-width:0;flex:1}.v31-selected-copy b,.v31-empty b{display:block;font-size:8px;line-height:10px}
+.v31-selected-copy small,.v31-empty small{display:block;font-size:6.3px;line-height:8px;opacity:.52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v31-run{height:28px;min-width:73px;border:0;border-radius:7px;background:#dd3347;color:#fff;font-size:7px;font-weight:900}
+.v31-empty{justify-content:flex-start}.v31-empty>div{min-width:0}
+.v31-activity-box{border-radius:9px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.045);padding:3px 3px 2px;margin-bottom:5px;overflow:hidden}
+.v31-activity-title{height:11px;display:flex;justify-content:space-between;padding:0 3px;color:rgba(255,255,255,.38);font-size:5.5px;letter-spacing:.6px}
+.v31-activities{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:1px 0}
+.v31-activities::-webkit-scrollbar{display:none}
+.v31-action{flex:0 0 57px;width:57px;height:36px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:#151a23;color:#fff;padding:2px;box-sizing:border-box}
+.v31-action.selected{border-color:#e0394d;background:rgba(224,57,77,.14)}
+.v31-action-icon{display:flex;align-items:center;justify-content:center;height:15px;color:#dfe5ef}
+.v31-action-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v31-action b{display:block;font-size:6px;line-height:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v31-no-actions{font-size:7px;opacity:.45;padding:7px}
+.v31-nav{width:100%;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:1px;overflow:hidden}
+.v31-nav button{min-width:0;width:100%;height:41px;border:0;border-radius:7px;background:transparent;color:#fff;padding:1px 0;box-sizing:border-box}
+.v31-nav button.active{background:rgba(224,57,77,.13)}
+.v31-nav button span{height:20px;display:flex;align-items:center;justify-content:center;color:#cfd6e2}
+.v31-nav button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.v31-nav button b{display:block;font-size:5.2px;line-height:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body{padding-bottom:151px!important}
+@media(max-width:650px){html body{padding-bottom:151px!important}}
+@media(max-width:380px){.v31-nav button svg{width:15px;height:15px}.v31-nav button b{font-size:4.8px}.v31-action{flex-basis:54px;width:54px}}
 </style>
 </body>
 </html>
