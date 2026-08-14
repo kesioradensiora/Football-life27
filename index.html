@@ -1474,45 +1474,32 @@ function renderTab(tab){
  if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
-  const md=Number(S.nextMatchDay||7), diff=md-S.day;
-  const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
-  const taskHtml=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
+  const diff=Number(S.nextMatchDay||7)-Number(S.day||1);
+  const next=diff<=0?"DZIŚ":`za ${diff} ${diff===1?"dzień":"dni"}`;
+  const task=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
   const event=S.logs?.[0]?.text||"Brak nowych wydarzeń.";
-  const age=Number(S.age||15);
-  const status=S.injury>0?"⚠️ Uraz":"🟢 Dostępny/a";
-
   m.innerHTML=`
     <div class="card hero">
       <div class="kicker">📅 DZISIAJ</div>
       <h1>${esc(S.name||"Moja kariera")}</h1>
-      <p>${status} • ${age} lat • ${esc(S.club||"—")}</p>
+      <p>${Number(S.age||15)} lat • ${esc(S.club||"Bez klubu")}</p>
     </div>
-
-    <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
-      <div class="kicker">⚡ CO TERAZ?</div>
-      <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
-      <p>${diff<=0?"Mecz jest gotowy. Otwórz go, aby podejmować decyzje boiskowe."
-        :`Najbliższy mecz: <b>${nextMatch}</b>. W zakładce <b>Dzień</b> zaplanujesz pozostały czas.`}</p>
-    </div>
-
     <div class="card">
-      <div class="section-title"><b>🎲 Najnowsze wydarzenie</b><span>Historia → szczegóły</span></div>
-      <div class="log">${esc(event)}</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title"><b>🎓 Samouczek</b><span>💎 uczysz się gry</span></div>
-      ${taskHtml}
-    </div>
-
-    <div class="card">
-      <div class="section-title"><b>⚡ Szybki dostęp</b><span>tylko najważniejsze</span></div>
+      <div class="section-title"><b>⚡ TERAZ</b><span>${next}</span></div>
+      <p>${diff<=0?"Mecz jest dostępny — wejdź, aby podejmować decyzje boiskowe.":"Sprawdź <b>Dzień</b>, aby zobaczyć dostępne czynności i czas."}</p>
       <div class="actions">
-        <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch}</small></button>
-        <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>plan i czas</small></button>
+        <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${next}</small></button>
+        <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>plan dnia</small></button>
       </div>
     </div>
-  `;
+    <div class="card">
+      <div class="section-title"><b>🎲 Ostatnie wydarzenie</b><span>Historia →</span></div>
+      <div class="log">${esc(event)}</div>
+    </div>
+    <div class="card">
+      <div class="section-title"><b>🎓 Samouczek</b><span>💎</span></div>
+      ${task}
+    </div>`;
 }
 function renderDay(m){
  m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
@@ -10666,5 +10653,70 @@ body:not(.creator-screen) #main{padding-top:76px!important;padding-bottom:24px!i
     </div>`;
     document.body.appendChild(d);
   };
+})();
+</script>
+
+
+<style id="fl27-v66-final-ui">
+.v66-mode button{pointer-events:auto!important;touch-action:manipulation!important;position:relative!important;z-index:10001!important}
+.v66-mode{pointer-events:auto!important}
+.v66-mode-overlay{pointer-events:auto!important;z-index:10000!important}
+</style>
+<script id="fl27-v66-final">
+(function(){
+  function showError(e){console.error(e);alert("Nie udało się uruchomić tego trybu. Sprawdź konsolę gry.");}
+  function call(name){
+    try{
+      if(typeof window[name]!=="function")throw new Error(name+" is not available");
+      return window[name]();
+    }catch(e){showError(e)}
+  }
+
+  /* Make Auto robust: if the rich country/name generator cannot complete,
+     fall back to the existing tested Auto path instead of doing nothing. */
+  window.FL27_START_AUTO_SAFE=function(){
+    try{
+      if(typeof window.FL27_startAutoV65==="function"){
+        const r=window.FL27_startAutoV65();
+        return r;
+      }
+    }catch(e){console.warn("V65 auto fallback",e)}
+    return call("FL27_startAuto");
+  };
+
+  window.FL27_SHOW_NEW_GAME_FINAL=function(){
+    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay").forEach(x=>x.remove());
+    const d=document.createElement("div");
+    d.className="v66-mode-overlay v20-hub-overlay";
+    d.innerHTML=`<div class="v20-hub v66-mode">
+      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
+      <div class="v20-kicker">NOWA KARIERA</div>
+      <h1>Wybierz sposób rozpoczęcia</h1>
+      <p>Tylko trzy tryby. Każdy robi coś innego.</p>
+      <div class="v65-mode-grid">
+        <button id="v66-new"><strong>🔄 NOWA GRA</strong><span>Ten sam zawodnik i jego dane startowe: pochodzenie, imię, nazwisko, płeć, pozycja, avatar, rodzina itd. Zerowana jest cała historia piłkarska i zaczynasz od początku.</span></button>
+        <button id="v66-auto" class="auto"><strong>🤖 NOWA GRA AUTO</strong><span>Wszystko od nowa i losowo. Najpierw kraj urodzenia i rodzice, potem imię/nazwisko z odpowiednich baz krajowych; przy rodzicach z różnych krajów pula się łączy. Losowane są też 10 pytań, pozycja, avatar i reszta startu.</span></button>
+        <button id="v66-plus" class="plus"><strong>✨ NOWA GRA +</strong><span>Ty wpisujesz imię i nazwisko oraz wybierasz płeć, 10 odpowiedzi, pozycję, avatar i pozostałe elementy kreatora.</span></button>
+      </div>
+      <small>Ustawienia gry pozostają zachowane.</small>
+    </div>`;
+    document.body.appendChild(d);
+    d.querySelector("#v66-new").addEventListener("click",()=>call("FL27_startNewGame"));
+    d.querySelector("#v66-auto").addEventListener("click",()=>window.FL27_START_AUTO_SAFE());
+    d.querySelector("#v66-plus").addEventListener("click",()=>call("FL27_startPlus"));
+  };
+
+  /* This is the last definition, so old V20/V64/V65 hubs cannot overwrite it. */
+  window.FL27_showNewGame=window.FL27_SHOW_NEW_GAME_FINAL;
+
+  /* Prevent old hidden nav/panels from returning after a render. */
+  const clean=function(){
+    if(document.body.classList.contains("creator-screen"))return;
+    document.querySelectorAll("#nav,.fl27-v35-bottom,.v17-bottom,.v19-settings-btn").forEach(el=>{
+      el.style.display="none";
+    });
+  };
+  new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
+  setTimeout(clean,0);
 })();
 </script>
