@@ -1751,6 +1751,8 @@ function newGame(){
 }
 
 render();
+
+window.FL27_INTERNAL_START_CAREER=startCareer;
 </script>
 
 <style>
@@ -13001,3 +13003,478 @@ setTimeout(repairDrawer,500);
  .fl136-row{font-size:6.7px}
 }
 </style>
+
+<!-- FL27 V137 — START FIX / ACTIVITY RECOVERY / SINGLE SIDEBAR / NO HOME FLGRAM -->
+<style id="fl27-v137-final">
+/* There is no FLgram feed on the home screen. FLgram exists only as a sidebar section. */
+body:not(.creator-screen) .fl27-v12-extra,
+body:not(.creator-screen) .fl27-v12-extra .flgram-profile,
+body:not(.creator-screen) .fl27-v12-extra .post-grid{
+  display:none!important;
+}
+/* Remove the old bottom navigation: the slide-out catalogue is the navigation. */
+body:not(.creator-screen) .fl27-v35-bottom,
+body:not(.creator-screen) .v35-nav{
+  display:none!important;
+}
+body:not(.creator-screen){
+  padding-bottom:18px!important;
+}
+/* Make the side catalogue unambiguously tappable above every legacy layer. */
+body:not(.creator-screen) .fl133-drawer{
+  z-index:2147483646!important;
+  pointer-events:auto!important;
+}
+body:not(.creator-screen) .fl133-drawer *{
+  pointer-events:auto!important;
+}
+/* Activity cards must never become permanently disabled because of fractional legacy time rules. */
+body:not(.creator-screen) .v9-action-grid button{
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+</style>
+
+<script id="fl27-v137-final">
+(function(){
+"use strict";
+const W=window;
+
+function S(){return W.S||{}}
+function hour(){return Number(S().hour??8)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function toast(x){try{W.toast?.(x)}catch(e){}}
+function save(){try{W.saveSoon?.();W.save?.()}catch(e){}}
+function clamp(v){return Math.max(0,Math.min(100,Number(v)||0))}
+
+/* ---------- New Game+ confirmation: use the real original engine ----------
+   The previous wrapper called the lexical startCareer() from another IIFE,
+   which is not visible there. The original script now exports it. */
+W.FL27_confirmPlus=function(){
+  try{
+    const root=document.querySelector(".v20-hub-overlay");
+    const first=String(root?.querySelector("#creatorName")?.value||"").trim();
+    const last=String(root?.querySelector("#creatorSurname")?.value||"").trim();
+    if(!first||!last){toast("Wpisz imię i nazwisko zawodnika.");return false}
+    if(!Array.isArray(W.selectedAnswers)){
+      /* selectedAnswers is lexical in the original creator. The canonical
+         click handler below talks to the original creator renderer instead. */
+    }
+    const bd=String(root?.querySelector("#creatorBirthDate")?.value||"").trim();
+    W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+    W.FL27_NEW_GAME.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+    W.FL27_NEW_GAME.birthDate=bd;
+    W.FL27_NEW_GAME.ready=true;
+    W.__FL27_PLUS_CREATOR_ACTIVE=false;
+    try{W.saveCreatorDraft?.()}catch(e){}
+
+    if(typeof W.FL27_INTERNAL_START_CAREER==="function"){
+      W.FL27_INTERNAL_START_CAREER();
+    }else{
+      throw new Error("Brak eksportu silnika startu kariery");
+    }
+
+    if(W.S?.started){
+      W.S.firstName=first; W.S.lastName=last; W.S.name=W.FL27_NEW_GAME.playerName;
+      if(bd){W.S.birthDate=bd;W.S.birthMonth=Number(bd.slice(5,7));W.S.birthDay=Number(bd.slice(8,10))}
+      W.__FL27_PLUS_CREATOR_ACTIVE=false;
+      document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+      save(); W.render?.(); toast("⚽ Kariera rozpoczęta!");
+      return true;
+    }
+    throw new Error("Silnik nie ustawił stanu rozpoczętej kariery");
+  }catch(e){
+    console.error("V137 Plus start",e);
+    toast("Nie udało się rozpocząć kariery — sprawdź odpowiedzi i spróbuj ponownie.");
+    return false;
+  }
+};
+
+/* ---------- Whole-hour activity engine ----------
+   No 30 min / 1.5 h actions. Every normal activity consumes 1–4 full hours.
+   A final 1-hour "przygotowanie do snu" prevents a deadlock before 22:00. */
+const ACT={
+ training:[2,"⚽ Trening drużynowy",3,1,0],
+ homework:[1,"📚 Nauka do sprawdzianu",0,0,2],
+ friends:[2,"👥 Trening / spotkanie z kolegami",1,1,2],
+ family:[2,"❤️ Czas z rodziną",0,1,3],
+ bike:[2,"🚲 Jazda na rowerze",0,2,1],
+ pool:[2,"🏊 Basen",0,3,2],
+ hobby:[1,"🎵 Hobby",0,2,2],
+ free:[2,"🎮 Czas wolny",0,3,2],
+ city:[3,"🏙️ Wyjście do miasta",10,2,2],
+ recovery:[1,"🧘 Regeneracja",0,4,3],
+ preSleep:[1,"🌙 Przygotowanie do snu",0,2,2]
+};
+function doWholeActivity(key){
+  const s=S(), a=ACT[key];
+  if(!a||!s.started)return;
+  const h=Number(s.hour??8), dur=a[0];
+  if(h+dur>22){toast(`Ta aktywność trwa ${dur} h i nie zmieści się przed 22:00.`);return}
+  if(key==="city" && Number(s.money||0)<a[2]){toast("Nie masz wystarczająco pieniędzy.");return}
+  if(key==="city")s.money-=a[2];
+  s.energy=clamp(Number(s.energy??80)-dur*7);
+  s.health=clamp(Number(s.health??90)+a[4]);
+  s.mental=clamp(Number(s.mental??60)+a[3]);
+  s.happiness=clamp(Number(s.happiness??60)+a[3]);
+  /* use the real calendar engine so dates/weekends/events continue to work */
+  if(typeof W.spendTime==="function") W.spendTime(dur,a[1]);
+  else if(typeof W.advance==="function") W.advance(dur);
+  else s.hour=h+dur;
+  try{W.log?.(`${a[1]} • ${dur}h`)}catch(e){}
+  try{W.FL27V9_maybeEvent?.("activity")}catch(e){}
+  save(); W.render?.();
+}
+W.FL27V137_activity=doWholeActivity;
+
+/* Replace the home shortcuts' old fractional inline handlers with real buttons. */
+function bindHomeActivities(){
+  const grid=document.querySelector(".v9-action-grid");
+  if(!grid)return;
+  const buttons=[...grid.querySelectorAll("button")];
+  const map=[
+    ["Trening drużynowy","training"],
+    ["Nauka","homework"],
+    ["Spotkaj się ze znajomymi","friends"],
+    ["Czas z rodziną","family"],
+    ["Drobna praca","job"],
+    ["Miasto","city"],
+    ["Idź spać","sleep"],
+    ["Najbliższy mecz","match"]
+  ];
+  buttons.forEach(btn=>{
+    const text=btn.textContent||"";
+    const hit=map.find(x=>text.includes(x[0]));
+    if(!hit)return;
+    btn.disabled=false;
+    btn.onclick=function(ev){
+      ev.preventDefault();ev.stopPropagation();
+      const k=hit[1];
+      if(k==="sleep"){
+        if(hour()<22){toast("Sen jest dostępny od 22:00. Została Ci jeszcze chwila na krótką aktywność.");return}
+        if(typeof W.sleep==="function")W.sleep();else{S().hour=22;W.advance?.(10);save();W.render?.()}
+        return;
+      }
+      if(k==="match"){if(typeof W.playMatch==="function")W.playMatch();return}
+      if(k==="job"){
+        if(hour()+2>22){toast("Drobna praca trwa 2 h i dziś już się nie zmieści.");return}
+        if(typeof W.job==="function"){W.job();return}
+      }
+      doWholeActivity(k);
+    };
+  });
+
+  /* Add a final one-hour option whenever the player is stuck between the last
+     usable activity and the 22:00 sleep boundary. */
+  if(hour()===21 && !grid.querySelector(".v137-presleep")){
+    const b=document.createElement("button");
+    b.className="v137-presleep";
+    b.innerHTML="🌙 <b>Przygotuj się do snu</b><small>1h • odpoczynek • potem możesz iść spać</small>";
+    b.onclick=()=>doWholeActivity("preSleep");
+    grid.appendChild(b);
+  }
+}
+
+/* ---------- Remove the old V12 FLgram/stars feed on every render ---------- */
+function cleanHomeExtras(){
+  document.querySelectorAll(".fl27-v12-extra").forEach(x=>x.remove());
+  document.querySelectorAll("#main .flgram-profile,#main .post-grid").forEach(x=>x.remove());
+}
+
+/* ---------- Sidebar that actually routes ----------
+   Capture clicks before legacy handlers and use the authoritative game router. */
+function route(kind){
+  if(kind==="finance"){W.FL27_OPEN_FINANCE?.();return}
+  if(kind==="flgram"){W.FL27_OPEN_FLGRAM?.();return}
+  if(kind==="settings"){W.renderSettings?.();return}
+  const map={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",stats:"careerStats",shop:"store"};
+  const target=map[kind]||kind;
+  if(typeof W.go==="function")W.go(target);
+  else if(typeof W.FL27_ROUTE==="function")W.FL27_ROUTE(target);
+}
+document.addEventListener("click",function(ev){
+  const b=ev.target.closest?.(".fl133-nav-item");
+  if(!b)return;
+  ev.preventDefault();ev.stopImmediatePropagation();
+  route(b.dataset.k);
+},true);
+
+function ensureSidebar(){
+  if(!W.S?.started)return;
+  let d=document.querySelector(".fl133-drawer");
+  if(!d)return;
+  d.style.pointerEvents="auto";
+  d.style.zIndex="2147483646";
+  d.querySelectorAll(".fl133-nav-item").forEach(b=>b.style.pointerEvents="auto");
+}
+
+/* Keep activities and cleanup after every authoritative render. */
+if(typeof W.render==="function"&&!W.__FL27_V137_RENDER){
+  const old=W.render; W.__FL27_V137_RENDER=true;
+  W.render=function(){
+    const r=old.apply(this,arguments);
+    requestAnimationFrame(()=>{cleanHomeExtras();bindHomeActivities();ensureSidebar()});
+    return r;
+  };
+}
+function boot(){
+  cleanHomeExtras();bindHomeActivities();ensureSidebar();
+  setTimeout(()=>{cleanHomeExtras();bindHomeActivities();ensureSidebar()},250);
+  setTimeout(()=>{cleanHomeExtras();bindHomeActivities();ensureSidebar()},800);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else setTimeout(boot,100);
+})();
+</script>
+<style id="fl27-v137-activity-css">
+.v137-presleep{border:1px solid rgba(217,170,77,.28)!important;background:rgba(217,170,77,.07)!important}
+.v137-presleep b{display:block}.v137-presleep small{display:block;color:#969aa2}
+</style>
+
+<!-- FL27 V138 — HOME PANEL IS THE ACTIVITY HUB -->
+<style id="fl27-v138-home-activities">
+/* The home panel is intentionally the place for playable everyday actions. */
+html body #main > .v9-action-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+/* V136 hid old buttons by nth-child. Undo that — V138 replaces their contents. */
+html body #main > .v9-action-grid button{
+  display:block!important;
+  min-height:55px!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+@media(min-width:760px){
+  html body #main > .v9-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+</style>
+<script id="fl27-v138-home-activities-js">
+(function(){
+"use strict";
+const W=window;
+const A=[
+ ["training","⚽","Trening drużynowy","2 h","Rozwój sportowy • energia −"],
+ ["homework","📚","Nauka do sprawdzianu","1 h","Nauka ↑ • energia −"],
+ ["friends","👥","Trening z kolegami","2 h","Sport + relacje ↑"],
+ ["bike","🚲","Jazda na rowerze","2 h","Zdrowie + szczęście ↑"],
+ ["pool","🏊","Basen","2 h","Zdrowie + regeneracja"],
+ ["family","❤️","Czas z rodziną","2 h","Relacje + szczęście ↑"],
+ ["hobby","🎵","Hobby","1 h","Szczęście + rozwój"],
+ ["free","🎮","Czas wolny","2 h","Szczęście + regeneracja"],
+ ["recovery","🧘","Regeneracja","1 h","Zdrowie + energia"],
+ ["city","🏙️","Wyjście do miasta","3 h","Życie • koszt pieniędzy"]
+];
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function hour(){return Number((W.S||{}).hour??8)}
+function renderActivities(){
+ const grid=document.querySelector("#main > .v9-action-grid");
+ if(!grid || !W.S?.started)return;
+ grid.innerHTML=A.map(([key,icon,name,time,desc])=>
+   `<button type="button" class="v138-activity" data-act="${key}">
+      ${icon} <b>${name}</b><small>${time} • ${esc(desc)}</small>
+    </button>`).join("")+
+   `<button type="button" class="v138-activity v138-sleep" data-act="sleep">
+      🌙 <b>Sen</b><small>od 22:00 • zakończ dzień i zregeneruj się</small>
+    </button>`;
+ grid.querySelectorAll("[data-act]").forEach(b=>{
+   b.onclick=e=>{
+     e.preventDefault();e.stopPropagation();
+     const key=b.dataset.act;
+     if(key==="sleep"){
+       if(hour()<22){W.toast?.("Sen jest dostępny od 22:00.");return}
+       W.sleep?.();
+       return;
+     }
+     W.FL27V137_activity?.(key);
+   };
+ });
+}
+if(W.render&&!W.__FL27_V138_RENDER){
+ const old=W.render;W.__FL27_V138_RENDER=true;
+ W.render=function(){
+   const r=old.apply(this,arguments);
+   requestAnimationFrame(renderActivities);
+   return r;
+ };
+}
+setTimeout(renderActivities,150);
+setTimeout(renderActivities,500);
+setTimeout(renderActivities,1000);
+})();
+</script>
+<style id="fl27-v138-home-activities-css">
+.v138-activity{
+ border:1px solid rgba(255,255,255,.07)!important;
+ border-radius:13px!important;
+ background:linear-gradient(145deg,#17191d,#0d0f12)!important;
+ color:#f1f2f3!important;
+ text-align:left!important;
+ padding:10px 11px!important;
+ font-size:15px!important;
+}
+.v138-activity b{font-size:9px!important;margin-left:3px}
+.v138-activity small{
+ display:block!important;
+ margin:4px 0 0 23px!important;
+ color:#858a92!important;
+ font-size:6.5px!important;
+ line-height:10px!important;
+}
+.v138-activity:hover{border-color:rgba(217,170,77,.35)!important}
+.v138-sleep{border-color:rgba(217,170,77,.22)!important}
+</style>
+
+<!-- FL27 V139 — FINAL SLIDE-OUT SIDEBAR -->
+<style id="fl27-v139-sidebar">
+html body .fl133-drawer{
+ position:fixed!important;right:0!important;top:50%!important;
+ transform:translateY(-50%)!important;
+ width:58px!important;padding:7px 5px!important;
+ border-radius:17px 0 0 17px!important;
+ background:linear-gradient(180deg,#191b20,#090a0c)!important;
+ border:1px solid rgba(217,170,77,.30)!important;border-right:0!important;
+ box-shadow:0 16px 48px rgba(0,0,0,.62)!important;
+ z-index:2147483646!important;
+ transition:width .24s cubic-bezier(.2,.8,.2,1)!important;
+ overflow:hidden!important;
+ pointer-events:auto!important;
+}
+html body .fl133-drawer.open{
+ width:min(224px,82vw)!important;
+}
+html body .fl133-menu-toggle{
+ width:100%!important;height:42px!important;
+ border:0!important;border-radius:11px!important;
+ background:rgba(217,170,77,.10)!important;
+ color:#f0ce78!important;display:flex!important;
+ align-items:center!important;gap:11px!important;
+ padding:0 11px!important;cursor:pointer!important;
+}
+html body .fl133-menu-toggle svg{
+ width:20px!important;height:20px!important;flex:0 0 20px!important;
+ stroke:currentColor!important;fill:none!important;
+ stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+html body .fl133-menu-toggle b{
+ display:none!important;font-size:8px!important;
+ letter-spacing:.7px!important;white-space:nowrap!important;
+}
+html body .fl133-drawer.open .fl133-menu-toggle b{display:block!important}
+
+html body .fl133-nav-list{
+ display:grid!important;gap:3px!important;margin-top:7px!important;
+}
+html body .fl133-nav-item{
+ width:100%!important;height:43px!important;
+ border:0!important;border-radius:11px!important;
+ background:transparent!important;color:#a6aab2!important;
+ display:flex!important;align-items:center!important;gap:11px!important;
+ padding:0 11px!important;cursor:pointer!important;
+ text-align:left!important;position:relative!important;
+ pointer-events:auto!important;
+}
+html body .fl133-nav-item:hover{
+ background:rgba(217,170,77,.075)!important;color:#e9ca77!important;
+}
+html body .fl133-nav-item.active{
+ background:rgba(217,170,77,.12)!important;color:#f1d07b!important;
+}
+html body .fl133-nav-item svg{
+ width:20px!important;height:20px!important;flex:0 0 20px!important;
+ stroke:currentColor!important;fill:none!important;
+ stroke-width:1.65!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+html body .fl133-nav-item b{
+ display:none!important;font-size:7.7px!important;
+ font-weight:850!important;letter-spacing:.15px!important;
+ white-space:nowrap!important;
+}
+html body .fl133-drawer.open .fl133-nav-item b{display:block!important}
+html body .fl133-nav-item.flgram{color:#c9b7ff!important}
+html body .fl133-nav-item.flgram.active{
+ color:#eee5ff!important;background:rgba(126,92,220,.13)!important;
+}
+html body .fl133-divider{
+ height:1px!important;background:rgba(255,255,255,.07)!important;
+ margin:5px 4px!important;
+}
+html body .fl133-nav-item:active{transform:scale(.98)!important}
+@media(max-width:430px){
+ html body .fl133-drawer{width:54px!important}
+ html body .fl133-drawer.open{width:min(205px,82vw)!important}
+}
+</style>
+
+<script id="fl27-v139-sidebar">
+(function(){
+"use strict";
+const W=window;
+
+const I={
+menu:`<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
+home:`<svg viewBox="0 0 24 24"><path d="M3.5 11 12 3.5l8.5 7.5V21H4z"/><path d="M9 21v-6h6v6"/></svg>`,
+day:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>`,
+career:`<svg viewBox="0 0 24 24"><path d="M7 8h10l2 4-2 4H7l-2-4z"/><path d="M9 16l-2 5M15 16l2 5M5 12H2M19 12h3"/></svg>`,
+life:`<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.5 4 9.4A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 8 2.4c0 6.1-8 11.1-8 11.1Z"/></svg>`,
+family:`<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.2"/><circle cx="6.5" cy="9" r="2"/><circle cx="17.5" cy="9" r="2"/><path d="M8 19c.2-3 1.5-4.7 4-4.7s3.8 1.7 4 4.7M3 19c.2-2.2 1.4-3.5 3.5-3.5M17.5 15.5c2.2 0 3.3 1.3 3.5 3.5"/></svg>`,
+history:`<svg viewBox="0 0 24 24"><path d="M6 4h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`,
+stats:`<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-7M2 20h20"/></svg>`,
+shop:`<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5zM6 9l2-5h8l2 5"/><path d="M9 13h6"/></svg>`,
+flgram:`<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.2"/><circle cx="17.2" cy="6.8" r=".7" fill="currentColor" stroke="none"/></svg>`,
+money:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M15 9.5c-.8-.7-1.7-1-3-1-1.7 0-2.7.8-2.7 2 0 1.3 1.2 1.8 2.8 2.1 1.6.3 2.7.8 2.7 2.1 0 1.3-1.1 2.2-2.9 2.2-1.3 0-2.4-.4-3.2-1.1"/></svg>`,
+settings:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 14.2 21 15l-2 3-1.8-.8a7 7 0 0 1-2 1.2L15 20h-3l-.2-1.6a7 7 0 0 1-2-1.2L8 18l-2-3 2-1.1a7 7 0 0 1 0-2L6 11l2-3 1.8.8a7 7 0 0 1 2-1.2L12 6h3l.2 1.6a7 7 0 0 1 2 1.2L19 8l2 3-2 1.1a7 7 0 0 1 0 2Z"/></svg>`
+};
+
+const ITEMS=[
+ ["home","Dziś","Twój panel główny i szybkie akcje"],
+ ["day","Dzień","Harmonogram, godziny i kalendarz"],
+ ["career","Kariera","Klub, trening, mecze i rozwój"],
+ ["life","Życie","Aktywności, szkoła i codzienne życie"],
+ ["family","Rodzina","Rodzina, pochodzenie i relacje"],
+ ["history","Historia","Wydarzenia i historia kariery"],
+ ["stats","Statystyki","Atrybuty, OVR i postępy"],
+ ["shop","Sklep","Auta, domy, tatuaże, biżuteria i zakupy"],
+ ["flgram","FLgram","Twój profil, posty i obserwujący"],
+ ["money","Finanse","Zarobki, wydatki, prezenty i bilans"],
+ ["settings","Ustawienia","Ustawienia gry, Kodeks i naprawa"]
+];
+
+function route(k){
+ if(k==="finance"){W.FL27_OPEN_FINANCE?.();return}
+ if(k==="flgram"){W.FL27_OPEN_FLGRAM?.();return}
+ if(k==="settings"){W.renderSettings?.();return}
+ const map={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",stats:"careerStats",shop:"store"};
+ const target=map[k]||k;
+ if(typeof W.go==="function")W.go(target);
+ else W.FL27_ROUTE?.(target);
+}
+function draw(){
+ if(!W.S?.started)return;
+ let d=document.querySelector(".fl133-drawer");
+ if(d)d.remove();
+ d=document.createElement("aside");
+ d.className="fl133-drawer";
+ d.innerHTML=`<button class="fl133-menu-toggle" type="button" aria-label="Otwórz menu">${I.menu}<b>MENU GRY</b></button>
+ <div class="fl133-nav-list">${ITEMS.map((x,i)=>`
+ ${i===8?'<div class="fl133-divider"></div>':''}
+ <button class="fl133-nav-item ${x[0]==="home"?"active":""} ${x[0]==="flgram"?"flgram":""}" data-k="${x[0]}" type="button" title="${x[1]}">
+ ${I[x[0]]}<b>${x[1]}</b></button>`).join("")}</div>`;
+ document.body.appendChild(d);
+ const toggle=d.querySelector(".fl133-menu-toggle");
+ toggle.onclick=e=>{e.preventDefault();e.stopPropagation();d.classList.toggle("open")};
+ d.querySelectorAll(".fl133-nav-item").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();route(b.dataset.k);
+   d.querySelectorAll(".fl133-nav-item").forEach(x=>x.classList.remove("active"));
+   b.classList.add("active");
+   if(innerWidth<700)setTimeout(()=>d.classList.remove("open"),160);
+ });
+}
+function boot(){draw();setTimeout(draw,350)}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+if(W.render&&!W.__FL27_V139_RENDER){
+ const old=W.render;W.__FL27_V139_RENDER=true;
+ W.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(draw);return r};
+}
+})();
+</script>
