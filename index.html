@@ -14393,3 +14393,635 @@ setTimeout(boot,900);
 setTimeout(boot,1800);
 })();
 </script>
+
+<!-- FL27 V146 — CANONICAL CREATOR / AVATAR REMOVED -->
+<style id="fl27-v146-creator">
+.fl27-canonical-creator{
+  width:min(650px,100%);max-height:calc(100vh - 28px);overflow:auto;
+  padding:22px;border-radius:22px;border:1px solid rgba(217,170,77,.30);
+  background:linear-gradient(145deg,#15171b,#0b0d10);color:#fff;
+  box-shadow:0 30px 90px rgba(0,0,0,.65)
+}
+.fl27-canonical-creator h1{font-size:27px;margin:8px 0 8px}
+.fl27-canonical-creator p{font-size:11px;line-height:1.5;color:#b8bbc2}
+.fl27-creator-kicker{font-size:9px;letter-spacing:.18em;font-weight:900;color:#e4bd58}
+.fl27-basic-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.fl27-basic-grid label{display:grid;gap:5px;font-size:10px;font-weight:800}
+.fl27-basic-grid input,.fl27-basic-grid select{
+ width:100%;box-sizing:border-box;min-height:43px;padding:10px 11px;border-radius:11px;
+ border:1px solid rgba(255,255,255,.11);background:#171e28;color:#fff;outline:none
+}
+.fl27-basic-wide{grid-column:1/-1}
+.fl27-birth{margin-top:12px;padding:13px;border-radius:15px;border:1px solid rgba(217,170,77,.20);background:rgba(217,170,77,.055)}
+.fl27-birth-title{font-size:10px;font-weight:900;color:#e5c56e}
+.fl27-birth-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:9px;color:#c4c6cb}
+.fl27-birth-row label{display:flex;align-items:center;gap:5px}
+.fl27-birth input[type=date]{margin-top:9px;width:100%;box-sizing:border-box;padding:11px;border-radius:10px;background:#171e28;border:1px solid rgba(255,255,255,.10);color:#fff}
+.fl27-action{
+ width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;
+ background:linear-gradient(135deg,#f1cf73,#a97829);color:#090909;font-weight:950;cursor:pointer;
+ touch-action:manipulation
+}
+.fl27-action:active{transform:scale(.99)}
+.fl27-choice{display:block;width:100%;margin-top:8px;padding:13px;text-align:left;border-radius:13px;
+ border:1px solid rgba(255,255,255,.09);background:#151b24;color:#fff;cursor:pointer;touch-action:manipulation}
+.fl27-choice b{display:block;font-size:12px}.fl27-choice span{display:block;margin-top:5px;color:#a9adb5;font-size:8px;line-height:1.45}
+.fl27-progress{height:6px;background:rgba(255,255,255,.09);border-radius:99px;overflow:hidden;margin:11px 0 17px}
+.fl27-progress i{display:block;height:100%;background:linear-gradient(90deg,#e6c45f,#9f7428)}
+.fl27-summary{display:grid;gap:6px;margin-top:12px}
+.fl27-summary div{padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.035);font-size:8px;color:#aeb1b7}
+.fl27-summary b{color:#fff}
+.fl27-note{margin-top:12px;padding:11px;border-radius:11px;background:rgba(217,170,77,.055);font-size:8px;line-height:1.45;color:#aeb1b7}
+@media(max-width:650px){.fl27-basic-grid{grid-template-columns:1fr}.fl27-basic-wide{grid-column:auto}.fl27-canonical-creator{padding:17px}}
+</style>
+<script id="fl27-v146-creator">
+(function(){
+"use strict";
+const W=window;
+let installed=false;
+
+function root(){
+  return document.querySelector(".v20-hub-overlay");
+}
+function ng(){
+  W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+  return W.FL27_NEW_GAME;
+}
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function orientationText(v){
+  return {K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"}[v]||"Na razie nikim — nie szukam związku";
+}
+function readBasic(){
+  const r=root();
+  const first=String(r?.querySelector("#fl27-first")?.value||"").trim();
+  const last=String(r?.querySelector("#fl27-last")?.value||"").trim();
+  const gender=r?.querySelector("#fl27-gender")?.value||"";
+  const orientation=r?.querySelector("#fl27-orientation")?.value||"N";
+  const birth=r?.querySelector("#fl27-birth-date")?.value||"";
+  return {first,last,full:[first,last].filter(Boolean).join(" ").replace(/\s+/g," ").trim(),gender,orientation,birth};
+}
+function persistBasic(x){
+  const h=ng();
+  Object.assign(h,{firstName:x.first,lastName:x.last,playerName:x.full,gender:x.gender,orientation:x.orientation,birthDate:x.birth});
+  try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(h))}catch(e){}
+}
+function resetCreatorState(){
+  try{
+    if(typeof selectedAnswers!=="undefined")selectedAnswers.length=0;
+    if(typeof playerName!=="undefined")playerName="";
+    if(typeof creatorStarted!=="undefined")creatorStarted=false;
+  }catch(e){}
+  W.selectedAnswers=(typeof selectedAnswers!=="undefined")?selectedAnswers:[];
+  W.FL27_NEW_GAME={mode:"plus",ready:false,firstName:"",lastName:"",playerName:"",gender:"",orientation:"N",birthDate:""};
+  try{localStorage.removeItem("footballLife27_creatorDraft_v1")}catch(e){}
+  try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(W.FL27_NEW_GAME))}catch(e){}
+}
+function ensureBasicAnswers(x){
+  if(typeof selectedAnswers==="undefined")return false;
+  const rest=selectedAnswers.slice(2);
+  selectedAnswers.length=0;
+  selectedAnswers.push(x.gender==="K"?"Kobieta":"Mężczyzna",orientationText(x.orientation),...rest.slice(0,8));
+  W.selectedAnswers=selectedAnswers;
+  return true;
+}
+function renderBasic(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  const h=ng();
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">NOWA GRA + • TWORZENIE POSTACI</div>
+    <h1>Witaj w Football Life 27</h1>
+    <p>Zanim zacznie się właściwa historia, ustalmy podstawowe dane zawodnika. Te informacje są wybierane <b>tylko tutaj</b> — nie będzie później drugiego wyboru płci ani preferencji i nie będzie ekranu avatara.</p>
+
+    <div class="fl27-basic-grid">
+      <label>Imię<input id="fl27-first" maxlength="24" value="${esc(h.firstName||"")}" placeholder="np. Alex"></label>
+      <label>Nazwisko<input id="fl27-last" maxlength="30" value="${esc(h.lastName||"")}" placeholder="np. Silva"></label>
+      <label>Płeć
+        <select id="fl27-gender">
+          <option value="K" ${h.gender==="K"?"selected":""}>Kobieta</option>
+          <option value="M" ${h.gender==="M"?"selected":""}>Mężczyzna</option>
+        </select>
+      </label>
+      <label>Preferencje romantyczne
+        <select id="fl27-orientation">
+          <option value="K" ${h.orientation==="K"?"selected":""}>Kobiety</option>
+          <option value="M" ${h.orientation==="M"?"selected":""}>Mężczyźni</option>
+          <option value="B" ${h.orientation==="B"?"selected":""}>Kobiety i mężczyźni</option>
+          <option value="N" ${h.orientation==="N"?"selected":""}>Na razie nikim / nie wiem</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="fl27-birth">
+      <div class="fl27-birth-title">🎂 DZIEŃ URODZENIA</div>
+      <div class="fl27-birth-row">
+        <label><input type="radio" name="fl27-birth-mode" value="auto" ${!h.birthDate?"checked":""}> Losowy</label>
+        <label><input type="radio" name="fl27-birth-mode" value="custom" ${h.birthDate?"checked":""}> Wybieram</label>
+      </div>
+      <input id="fl27-birth-date" type="date" value="${esc(h.birthDate||"2011-11-30")}" ${h.birthDate?"":"disabled"}>
+      <div class="fl27-note" style="margin-top:8px">Data urodzenia wpływa na wiek, kalendarz, urodziny i wydarzenia życiowe.</div>
+    </div>
+
+    <button id="fl27-basic-next" class="fl27-action" type="button">⚽ PRZEJDŹ DO PYTAŃ</button>
+    <div class="fl27-note">Rodzina, pochodzenie, narodowości, imiona rodziców i reszta świata zostaną wygenerowane zgodnie z tymi danymi oraz zasadami gry.</div>
+  `;
+  body.querySelectorAll("input,select").forEach(el=>el.addEventListener("change",()=>{
+    const x=readBasic();persistBasic(x);
+  }));
+  body.querySelectorAll("input").forEach(el=>el.addEventListener("input",()=>{
+    persistBasic(readBasic());
+  }));
+  body.querySelectorAll('input[name="fl27-birth-mode"]').forEach(r=>r.addEventListener("change",()=>{
+    const date=body.querySelector("#fl27-birth-date");
+    if(r.checked && r.value==="auto"){
+      const month=1+Math.floor(Math.random()*12),day=1+Math.floor(Math.random()*28);
+      date.value=`2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      date.disabled=true;
+    }else if(r.checked){
+      date.disabled=false;
+    }
+    persistBasic(readBasic());
+  }));
+}
+function renderQuestion(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  const idx=Number(selectedAnswers?.length||2);
+  const q=QUESTIONS[idx];
+  if(!q){renderReady();return}
+  const human=idx-1;
+  const options=q[1].map((v,i)=>{
+    const parts=String(v).split(" — ");
+    return `<button type="button" class="fl27-choice" data-answer-index="${i}">
+      <b>${esc(parts[0])}</b>${parts[1]?`<span>${esc(parts.slice(1).join(" — "))}</span>`:""}
+    </button>`;
+  }).join("");
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">TWORZENIE POSTACI • DECYZJA ${human}/10</div>
+    <div class="fl27-progress"><i style="width:${Math.max(0,Math.min(100,(human/10)*100))}%"></i></div>
+    <h1>${esc(q[0])}</h1>
+    <p>Ta decyzja może wpłynąć na rozwój zawodnika, relacje, wydarzenia, finanse, PR i kolejne możliwości.</p>
+    <div>${options}</div>
+    <button type="button" id="fl27-back-question" class="fl27-choice">← Wróć do poprzedniego kroku</button>
+  `;
+}
+function renderReady(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  const h=ng();
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">TWORZENIE POSTACI • GOTOWE</div>
+    <div class="fl27-progress"><i style="width:100%"></i></div>
+    <h1>${esc(h.playerName||"Twój zawodnik")}</h1>
+    <p>Profil podstawowy jest gotowy, a wszystkie 10 kluczowych decyzji zostało zapisanych. <b>Nie ma już osobnego ekranu avatara.</b></p>
+    <div class="fl27-summary">
+      <div>👤 Płeć: <b>${esc(h.gender==="K"?"Kobieta":"Mężczyzna")}</b></div>
+      <div>❤️ Preferencje: <b>${esc(orientationText(h.orientation))}</b></div>
+      <div>🎂 Urodzenie: <b>${esc(h.birthDate||"losowe")}</b></div>
+      ${selectedAnswers.slice(2).map((x,i)=>`<div>⚽ ${esc(QUESTIONS[i+2]?.[0]||"Decyzja")} : <b>${esc(String(x).split(" — ")[0])}</b></div>`).join("")}
+    </div>
+    <button id="fl27-start-final" class="fl27-action" type="button">⚽ ROZPOCZNIJ KARIERĘ</button>
+    <button id="fl27-back-final" type="button" class="fl27-choice">← Wróć do ostatniej decyzji</button>
+  `;
+}
+function render(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  if(!W.__FL27_CANONICAL_STARTED)renderBasic();
+  else if((selectedAnswers?.length||0)<10)renderQuestion();
+  else renderReady();
+}
+function show(){
+  document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+  const d=document.createElement("div");
+  d.className="v20-hub-overlay";
+  d.innerHTML=`<div class="fl27-canonical-creator">
+    <div class="v20-logo">FL <b>FOOTBALL <i>Life</i> 27</b></div>
+    <div id="fl27-canonical-body"></div>
+  </div>`;
+  document.body.appendChild(d);
+  render();
+}
+function begin(){
+  const x=readBasic();
+  if(!x.first||!x.last){W.toast?.("Wpisz imię i nazwisko zawodnika.");return}
+  if(!x.gender){W.toast?.("Wybierz płeć zawodnika.");return}
+  if(!x.birth){x.birth="2011-11-30"}
+  persistBasic(x);
+  ensureBasicAnswers(x);
+  try{if(typeof playerName!=="undefined")playerName=x.full;if(typeof creatorStarted!=="undefined")creatorStarted=true}catch(e){}
+  try{saveCreatorDraft?.()}catch(e){}
+  W.__FL27_CANONICAL_STARTED=true;
+  renderQuestion();
+}
+function finish(){
+  const x=ng();
+  if(!x.firstName||!x.lastName){W.toast?.("Brakuje imienia i nazwiska.");renderBasic();return}
+  if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==10){
+    W.toast?.("Brakuje jednej z decyzji. Wróć i uzupełnij ją.");return
+  }
+  try{
+    if(typeof playerName!=="undefined")playerName=x.playerName;
+    if(typeof creatorStarted!=="undefined")creatorStarted=true;
+    x.ready=true;
+    try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(x))}catch(e){}
+    saveCreatorDraft?.();
+    W.__FL27_AVATAR_CONFIG={gender:x.gender,orientation:x.orientation};
+    /* Use the original career engine exactly once. */
+    const engine=W.__FL27_ORIGINAL_START_CAREER||W.FL27_INTERNAL_START_CAREER;
+    if(typeof engine!=="function"){W.toast?.("Silnik kariery nie jest dostępny.");return}
+    engine();
+    if(!W.S?.started){W.toast?.("Kariera nie została uruchomiona — spróbuj ponownie.");return}
+    W.S.firstName=x.firstName;
+    W.S.lastName=x.lastName;
+    W.S.name=x.playerName;
+    W.S.gender=x.gender==="K"?"Kobieta":"Mężczyzna";
+    W.S.orientation=x.orientation;
+    W.S.birthDate=x.birthDate;
+    W.S.birthMonth=Number(String(x.birthDate).slice(5,7));
+    W.S.birthDay=Number(String(x.birthDate).slice(8,10));
+    W.S.creatorDecisions=[...selectedAnswers];
+    W.S.creatorProfile={firstName:x.firstName,lastName:x.lastName,gender:x.gender,orientation:x.orientation,birthDate:x.birthDate};
+    W.saveSoon?.();W.render?.();
+    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+    W.__FL27_PLUS_CREATOR_ACTIVE=false;
+    W.toast?.("⚽ Kariera rozpoczęta!");
+  }catch(e){
+    console.error("V146 career start",e);
+    W.toast?.("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+  }
+}
+
+/* One authoritative start entry point. */
+W.FL27_confirmPlus=finish;
+
+/* New Game+ always starts here and nowhere else. */
+W.FL27_startPlus=function(){
+  resetCreatorState();
+  W.__FL27_CANONICAL_STARTED=false;
+  W.__FL27_PLUS_CREATOR_ACTIVE=true;
+  show();
+};
+
+/* Also make the direct creator launcher canonical. */
+W.FL27_showCreator=show;
+
+/* Handle ONLY our canonical buttons. Legacy listeners cannot interpret them. */
+document.addEventListener("click",function(ev){
+  const t=ev.target?.closest?.("button");
+  if(!t)return;
+  if(t.id==="fl27-basic-next"){
+    ev.preventDefault();ev.stopImmediatePropagation();begin();return;
+  }
+  if(t.classList.contains("fl27-choice") && t.dataset.answerIndex!=null){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const idx=Number(selectedAnswers?.length||2);
+    const q=QUESTIONS[idx];
+    const value=q?.[1]?.[Number(t.dataset.answerIndex)];
+    if(value==null)return;
+    selectedAnswers.push(value);
+    W.selectedAnswers=selectedAnswers;
+    try{saveCreatorDraft?.()}catch(e){}
+    renderQuestion();
+    return;
+  }
+  if(t.id==="fl27-back-question"){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    if(selectedAnswers.length>2){selectedAnswers.pop();renderQuestion()}
+    else {W.__FL27_CANONICAL_STARTED=false;renderBasic()}
+    return;
+  }
+  if(t.id==="fl27-start-final"){
+    ev.preventDefault();ev.stopImmediatePropagation();finish();return;
+  }
+  if(t.id==="fl27-back-final"){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    if(selectedAnswers.length>2){selectedAnswers.pop();renderQuestion()}
+    return;
+  }
+},true);
+
+/* Remove any old avatar creator DOM if another legacy renderer tries to inject it. */
+const observer=new MutationObserver(()=>{
+  document.querySelectorAll(".v52-avatar-editor,#v20-avatar-preview").forEach(el=>el.closest("#v52-creator-body")?.remove());
+});
+observer.observe(document.documentElement,{subtree:true,childList:true});
+
+/* Start clean when the Plus creator is active. */
+setTimeout(()=>{
+  if(W.__FL27_PLUS_CREATOR_ACTIVE && !document.querySelector(".fl27-canonical-creator"))show();
+},80);
+})();
+</script>
+
+<!-- FL27 V147 — CREATOR INTERACTION FIX + VARIED QUESTIONS -->
+<style id="fl27-v147">
+.fl27-action,.fl27-choice{position:relative;z-index:5;pointer-events:auto!important;cursor:pointer!important}
+.fl27-action{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.fl27-varied-note{font-size:8px;color:#9fa4ad;margin-top:9px;text-align:center}
+</style>
+<script id="fl27-v147">
+(function(){
+"use strict";
+const W=window;
+
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function shuffle(a){
+  const x=[...a];
+  for(let i=x.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [x[i],x[j]]=[x[j],x[i]];
+  }
+  return x;
+}
+function makeVariant(title, options){
+  return {title,options:shuffle(options)};
+}
+function buildQuestionSet(){
+  const position=[
+    ["Bramkarz (BR)","Bramkarz — refleks, ustawienie i gra nogami."],
+    ["Środkowy obrońca (ŚO)","Środkowy obrońca — krycie, odbiór i gra w powietrzu."],
+    ["Lewy obrońca (LO)","Lewy obrońca — defensywa, szybkość i wsparcie ataku."],
+    ["Prawy obrońca (PO)","Prawy obrońca — pojedynki 1 na 1 i gra po prawej stronie."],
+    ["Środkowy pomocnik (ŚP)","Środkowy pomocnik — tempo gry, podania i odbiór."],
+    ["Lewy pomocnik (LP)","Lewy pomocnik — praca w bocznym sektorze i budowanie akcji."],
+    ["Prawy pomocnik (PP)","Prawy pomocnik — ruch, podania i wsparcie skrzydła."],
+    ["Lewy skrzydłowy (LS)","Lewy skrzydłowy — drybling, szybkość i zejścia do środka."],
+    ["Prawy skrzydłowy (PS)","Prawy skrzydłowy — sprint, drybling i tworzenie okazji."],
+    ["Napastnik (N)","Napastnik — ruch, wykończenie i szukanie przestrzeni."]
+  ].map(([value,label])=>({value,label}));
+
+  const foot=[
+    {value:"Lewa",label:"Lewa noga — czuję się naturalniej po lewej stronie."},
+    {value:"Prawa",label:"Prawa noga — to moja dominująca noga."}
+  ];
+
+  const style=[
+    {value:"Techniczny — drybling i kontrola",label:"Techniczny — lubię mieć piłkę przy nodze."},
+    {value:"Szybki — sprint i gra za plecy obrony",label:"Szybki — chcę atakować przestrzeń."},
+    {value:"Fizyczny — siła i pojedynki",label:"Fizyczny — nie boję się pojedynków."},
+    {value:"Kreatywny — podania i wizja",label:"Kreatywny — szukam nieoczywistych podań."},
+    {value:"Uniwersalny — potrafię robić wszystko po trochu",label:"Uniwersalny — chcę być przydatny w wielu rolach."}
+  ];
+
+  const inspiration=[
+    "Lionel Messi","Cristiano Ronaldo","Jude Bellingham","Kylian Mbappé","Alexia Putellas","Mohamed Salah",
+    "Lamine Yamal","Aitana Bonmatí","Vinícius Júnior","Erling Haaland","Pedri","Rodri"
+  ].map(x=>({value:x,label:x}));
+
+  const dream=[
+    "FC Barcelona","Real Madryt","Manchester City","Bayern Monachium","Arsenal","Lech Poznań",
+    "Liverpool","Paris Saint-Germain","Inter","AC Milan","Borussia Dortmund","Benfica"
+  ].map(x=>({value:x,label:x}));
+
+  const pressure=[
+    ["Walczę do końca","Nawet gdy nie idzie, próbuję odwrócić sytuację."],
+    ["Zachowuję spokój","Najlepiej działam, kiedy nie panikuję."],
+    ["Biorę odpowiedzialność","Chcę mieć wpływ, gdy mecz jest na ostrzu."],
+    ["Szukam wsparcia u drużyny","W trudnych chwilach korzystam z pomocy zespołu."],
+    ["Czasem presja mnie blokuje","Potrzebuję czasu, żeby odzyskać pewność siebie."],
+    ["Zmieniam presję w motywację","Im ważniejszy mecz, tym bardziej chcę się pokazać."],
+    ["Najpierw obserwuję, potem reaguję","Nie działam impulsywnie."]
+  ].map(([value,label])=>({value,label}));
+
+  const priority=[
+    ["Rozwój i umiejętności","Chcę przede wszystkim stawać się coraz lepszym zawodnikiem."],
+    ["Trofea","Najbardziej napędza mnie walka o zwycięstwa."],
+    ["Pieniądze","Stabilność finansowa jest dla mnie ważnym celem."],
+    ["Sława i rozpoznawalność","Chcę, żeby ludzie znali moje nazwisko."],
+    ["Reprezentowanie Polski","Marzę o grze dla reprezentacji."],
+    ["Dobra atmosfera i ludzie","Nie chcę poświęcić całego życia dla samego futbolu."],
+    ["Rozwój poza boiskiem","Chcę też zdobywać wykształcenie i doświadczenie."],
+    ["Niezależność","Chcę z czasem sam decydować o swoim życiu i pieniądzach."]
+  ].map(([value,label])=>({value,label}));
+
+  const goal=[
+    ["Zostać zawodnikiem/zawodniczką światowego poziomu","Chcę dojść naprawdę wysoko."],
+    ["Zagrać w klubie marzeń","Najważniejsze jest dla mnie spełnienie konkretnego marzenia klubowego."],
+    ["Zdobyć Ligę Mistrzów","Chcę kiedyś wygrać najważniejsze klubowe rozgrywki Europy."],
+    ["Zagrać dla reprezentacji","Chcę reprezentować swój kraj na wielkiej imprezie."],
+    ["Zbudować karierę i jednocześnie mieć normalne życie","Futbol ma być częścią życia, a nie całym życiem."],
+    ["Zostać kapitanem","Chcę być osobą, której drużyna ufa."],
+    ["Zostać legendą swojego klubu","Chcę zostawić po sobie historię w jednym miejscu."],
+    ["Pomóc rodzinie dzięki piłce","Sukces ma poprawić życie moje i bliskich."]
+  ].map(([value,label])=>({value,label}));
+
+  const qs=[
+    {title:"Pozycja na boisku — gdzie widzisz siebie?",options:shuffle(position)},
+    {title:"Którą nogą czujesz się pewniej?",options:shuffle(foot)},
+    {title:"Jakim typem zawodnika chcesz być?",options:shuffle(style)},
+    {title:"Kto najbardziej inspiruje Cię w futbolu?",options:shuffle(inspiration)},
+    {title:"Gdybyś mógł/mogła wybrać klub marzeń, który bierzesz?",options:shuffle(dream)},
+    {title:"Co robisz, gdy mecz zaczyna wymykać się spod kontroli?",options:shuffle(pressure)},
+    {title:"Co jest dla Ciebie najważniejsze w budowaniu kariery?",options:shuffle(priority)},
+    {title:"Dokąd chcesz dojść dzięki piłce?",options:shuffle(goal)}
+  ];
+  return [{title:"Płeć",options:[]},{title:"Preferencje romantyczne",options:[]},...qs];
+}
+function getSet(){
+  if(!Array.isArray(W.__FL27_CREATOR_QUESTIONS)||W.__FL27_CREATOR_QUESTIONS.length!==10){
+    W.__FL27_CREATOR_QUESTIONS=buildQuestionSet();
+  }
+  return W.__FL27_CREATOR_QUESTIONS;
+}
+
+/* New set every new career — never every render. */
+const oldStartPlus=W.FL27_startPlus;
+W.FL27_startPlus=function(){
+  W.__FL27_CREATOR_QUESTIONS=buildQuestionSet();
+  W.__FL27_CANONICAL_STARTED=false;
+  W.__FL27_PLUS_CREATOR_ACTIVE=true;
+  try{
+    if(typeof selectedAnswers!=="undefined")selectedAnswers.length=0;
+    W.selectedAnswers=(typeof selectedAnswers!=="undefined")?selectedAnswers:[];
+    if(typeof playerName!=="undefined")playerName="";
+    if(typeof creatorStarted!=="undefined")creatorStarted=false;
+  }catch(e){}
+  try{
+    W.FL27_NEW_GAME={mode:"plus",ready:false,firstName:"",lastName:"",playerName:"",gender:"",orientation:"N",birthDate:""};
+    localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(W.FL27_NEW_GAME));
+  }catch(e){}
+  if(typeof W.FL27_showCreator==="function")W.FL27_showCreator();
+};
+
+/* Canonical renderer using the randomized set. */
+function renderVariedQuestion(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  const set=getSet();
+  const idx=Number(selectedAnswers?.length||2);
+  if(idx>=10){if(typeof W.FL27_renderCanonicalReady==="function")W.FL27_renderCanonicalReady();return;}
+  const q=set[idx];
+  const options=q.options.map((o,i)=>`
+    <button type="button" class="fl27-choice" data-v147-answer="${i}">
+      <b>${esc(String(o.label).split(" — ")[0])}</b>
+      ${String(o.label).includes(" — ")?`<span>${esc(String(o.label).split(" — ").slice(1).join(" — "))}</span>`:""}
+    </button>`).join("");
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">TWORZENIE POSTACI • DECYZJA ${idx-1}/10</div>
+    <div class="fl27-progress"><i style="width:${Math.round(((idx-1)/8)*100)}%"></i></div>
+    <h1>${esc(q.title)}</h1>
+    <p>Nie ma jednej idealnej odpowiedzi. Ten wybór może zmienić rozwój zawodnika, relacje, wydarzenia i późniejsze możliwości.</p>
+    <div>${options}</div>
+    <button type="button" class="fl27-choice" id="fl27-v147-back">← Wróć do poprzedniej decyzji</button>
+    <div class="fl27-varied-note">🎲 Zestaw pytań i kolejność odpowiedzi są losowane przy każdej nowej karierze.</div>
+  `;
+}
+function renderReadyV147(){
+  const body=document.getElementById("fl27-canonical-body");
+  if(!body)return;
+  const h=W.FL27_NEW_GAME||{},set=getSet();
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">TWORZENIE POSTACI • GOTOWE</div>
+    <div class="fl27-progress"><i style="width:100%"></i></div>
+    <h1>${esc(h.playerName||"Twój zawodnik")}</h1>
+    <p>Profil gotowy. Nie ma osobnego ekranu avatara — możesz od razu rozpocząć historię.</p>
+    <div class="fl27-summary">
+      <div>👤 Płeć: <b>${esc(h.gender==="K"?"Kobieta":"Mężczyzna")}</b></div>
+      <div>❤️ Preferencje: <b>${esc(({K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim / nie wiem"})[h.orientation]||"—")}</b></div>
+      <div>🎂 Urodzenie: <b>${esc(h.birthDate||"losowe")}</b></div>
+      ${selectedAnswers.slice(2).map((x,i)=>`<div>⚽ ${esc(set[i+2]?.title||"Decyzja")} : <b>${esc(String(x).split(" — ")[0])}</b></div>`).join("")}
+    </div>
+    <button id="fl27-start-final" class="fl27-action" type="button">⚽ ROZPOCZNIJ KARIERĘ</button>
+    <button id="fl27-back-final" type="button" class="fl27-choice">← Wróć do ostatniej decyzji</button>
+  `;
+}
+W.FL27_renderCanonicalReady=renderReadyV147;
+
+/* Replace the visible canonical creator renderer. */
+const oldShow=W.FL27_showCreator;
+W.FL27_showCreator=function(){
+  document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+  const d=document.createElement("div");
+  d.className="v20-hub-overlay";
+  d.innerHTML=`<div class="fl27-canonical-creator">
+    <div class="v20-logo">FL <b>FOOTBALL <i>Life</i> 27</b></div>
+    <div id="fl27-canonical-body"></div>
+  </div>`;
+  document.body.appendChild(d);
+  /* Start screen is intentionally rebuilt from scratch. */
+  const body=document.getElementById("fl27-canonical-body");
+  const h=W.FL27_NEW_GAME||{};
+  body.innerHTML=`
+    <div class="fl27-creator-kicker">NOWA GRA + • TWORZENIE POSTACI</div>
+    <h1>Witaj w Football Life 27</h1>
+    <p>Najpierw ustalamy dane podstawowe, a potem przechodzimy przez <b>8 losowanych decyzji</b>. Pytania i kolejność odpowiedzi zmieniają się przy każdej nowej karierze.</p>
+    <div class="fl27-basic-grid">
+      <label>Imię<input id="fl27-first" maxlength="24" value="${esc(h.firstName||"")}" placeholder="np. Alex"></label>
+      <label>Nazwisko<input id="fl27-last" maxlength="30" value="${esc(h.lastName||"")}" placeholder="np. Silva"></label>
+      <label>Płeć<select id="fl27-gender"><option value="K" ${h.gender==="K"?"selected":""}>Kobieta</option><option value="M" ${h.gender==="M"?"selected":""}>Mężczyzna</option></select></label>
+      <label>Preferencje romantyczne<select id="fl27-orientation">
+        <option value="K" ${h.orientation==="K"?"selected":""}>Kobiety</option>
+        <option value="M" ${h.orientation==="M"?"selected":""}>Mężczyźni</option>
+        <option value="B" ${h.orientation==="B"?"selected":""}>Kobiety i mężczyźni</option>
+        <option value="N" ${h.orientation==="N"?"selected":""}>Na razie nikim / nie wiem</option>
+      </select></label>
+    </div>
+    <div class="fl27-birth">
+      <div class="fl27-birth-title">🎂 DZIEŃ URODZENIA</div>
+      <div class="fl27-birth-row">
+        <label><input type="radio" name="fl27-birth-mode" value="auto" checked> Losowy</label>
+        <label><input type="radio" name="fl27-birth-mode" value="custom"> Wybieram</label>
+      </div>
+      <input id="fl27-birth-date" type="date" value="${esc(h.birthDate||"2011-11-30")}" disabled>
+      <div class="fl27-note" style="margin-top:8px">Data urodzenia wpływa na wiek, kalendarz, urodziny i wydarzenia życiowe.</div>
+    </div>
+    <button id="fl27-basic-next" class="fl27-action" type="button">⚽ PRZEJDŹ DO PYTAŃ</button>
+    <div class="fl27-note">🎲 Klub, rodzina, pochodzenie i sytuacja startowa są generowane przez świat gry.</div>
+  `;
+  const date=body.querySelector("#fl27-birth-date");
+  body.querySelectorAll('input[name="fl27-birth-mode"]').forEach(r=>r.addEventListener("change",()=>{
+    if(r.value==="auto"&&r.checked){
+      const month=1+Math.floor(Math.random()*12),day=1+Math.floor(Math.random()*28);
+      date.value=`2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      date.disabled=true;
+    }else if(r.checked){date.disabled=false}
+  }));
+  return d;
+};
+
+/* Start basic data. */
+function beginV147(){
+  const r=document.querySelector(".v20-hub-overlay");
+  const first=String(r?.querySelector("#fl27-first")?.value||"").trim();
+  const last=String(r?.querySelector("#fl27-last")?.value||"").trim();
+  const gender=r?.querySelector("#fl27-gender")?.value||"";
+  const orientation=r?.querySelector("#fl27-orientation")?.value||"N";
+  const birth=r?.querySelector("#fl27-birth-date")?.value||"2011-11-30";
+  if(!first||!last){W.toast?.("Wpisz imię i nazwisko zawodnika.");return}
+  const h=W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+  Object.assign(h,{firstName:first,lastName:last,playerName:`${first} ${last}`,gender,orientation,birthDate:birth});
+  try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(h))}catch(e){}
+  try{
+    if(typeof selectedAnswers!=="undefined"){
+      selectedAnswers.length=0;
+      selectedAnswers.push(gender==="K"?"Kobieta":"Mężczyzna");
+      selectedAnswers.push(({K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"})[orientation]||"Na razie nikim — nie szukam związku");
+      W.selectedAnswers=selectedAnswers;
+    }
+    if(typeof playerName!=="undefined")playerName=h.playerName;
+    if(typeof creatorStarted!=="undefined")creatorStarted=true;
+    W.__FL27_CANONICAL_STARTED=true;
+    saveCreatorDraft?.();
+  }catch(e){console.error("V147 begin",e)}
+  renderVariedQuestion();
+}
+
+/* Window capture is deliberately used: older document-level legacy listeners
+   were stopping clicks before V146 could receive them. */
+W.addEventListener("click",function(ev){
+  const t=ev.target?.closest?.("button");
+  if(!t)return;
+  if(t.id==="fl27-basic-next"){
+    ev.preventDefault();ev.stopImmediatePropagation();beginV147();return;
+  }
+  if(t.dataset.v147Answer!=null){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const idx=Number(selectedAnswers?.length||2);
+    const q=getSet()[idx];
+    const opt=q?.options?.[Number(t.dataset.v147Answer)];
+    if(!opt)return;
+    selectedAnswers.push(opt.value);
+    W.selectedAnswers=selectedAnswers;
+    try{saveCreatorDraft?.()}catch(e){}
+    renderVariedQuestion();
+    return;
+  }
+  if(t.id==="fl27-v147-back"){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    if(selectedAnswers.length>2){selectedAnswers.pop();renderVariedQuestion()}
+    else{W.__FL27_CANONICAL_STARTED=false;W.FL27_showCreator()}
+    return;
+  }
+  if(t.id==="fl27-start-final"){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    if(typeof W.FL27_confirmPlus==="function")W.FL27_confirmPlus();
+    return;
+  }
+  if(t.id==="fl27-back-final"){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    if(selectedAnswers.length>2){selectedAnswers.pop();renderVariedQuestion()}
+    return;
+  }
+},true);
+
+/* Make sure the legacy creator cannot replace the varied question screen. */
+W.FL27_renderCreatorV52=function(){
+  if(W.__FL27_PLUS_CREATOR_ACTIVE){
+    if(!W.__FL27_CANONICAL_STARTED){
+      W.FL27_showCreator();
+    }else if((selectedAnswers?.length||0)<10){
+      renderVariedQuestion();
+    }else{
+      renderReadyV147();
+    }
+    return;
+  }
+  if(typeof oldShow==="function")return oldShow();
+};
+})();
+</script>
