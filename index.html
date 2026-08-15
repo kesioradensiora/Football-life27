@@ -7038,7 +7038,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
      body.innerHTML=`
        <div class="v52-step">START</div>
        <h1>Stwórz swojego zawodnika</h1>
-       <p>Najpierw podaj dane podstawowe. Potem przejdziesz przez <b>10 pytań</b>, które wpłyną na rozwój, relacje, mental i przyszłe wydarzenia.</p>
+       <p>Najpierw podaj dane podstawowe: imię, nazwisko, płeć, preferencje i dzień urodzenia. Potem odpowiesz na <b>8 pytań piłkarskich</b>. Łącznie masz <b>10 kluczowych decyzji</b>.</p>
        <div class="v52-name-grid">
          <label>Imię<input id="creatorName" maxlength="24" value="${esc(playerName.split(" ")[0]||"")}" placeholder="np. Alex"></label>
          <label>Nazwisko<input id="creatorSurname" maxlength="30" value="${esc(playerName.split(" ").slice(1).join(" "))}" placeholder="np. Silva"></label>
@@ -7052,7 +7052,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
          <input id="creatorBirthDate" type="date" value="${esc(window.FL27_NEW_GAME?.birthDate||"2011-11-30")}" ${window.FL27_NEW_GAME?.birthDate?"":"disabled"} onchange="FL27_setBirthDate(this.value)">
          <small>Startujesz jako 15-latek. Urodziny są zapisywane w historii i w odpowiednim dniu mogą uruchomić specjalne wydarzenia.</small>
        </div>
-       <button class="v20-confirm" onclick="FL27_beginV52()">PRZEJDŹ DO PYTAŃ <small>1 / 10</small></button>
+       <button class="v20-confirm" onclick="FL27_beginV52()">PRZEJDŹ DO PYTAŃ <small>3 / 10</small></button>
        ${hasDraft?`<button class="v20-back" onclick="resetCreator()">🗑️ Zacznij tworzenie od początku</button>`:""}
        <div class="v52-info">🎲 Nie wybierasz tutaj klubu ani rodziców. Świat gry wygeneruje je później zgodnie z Twoimi odpowiedziami i losowością.</div>`;
      return;
@@ -13658,5 +13658,386 @@ function repair(){
 setTimeout(repair,100);
 setTimeout(repair,400);
 setTimeout(repair,900);
+})();
+</script>
+
+<!-- FL27 V141 — PLUS BASIC PROFILE FIRST / NO DUPLICATE GENDER IN AVATAR -->
+<style id="fl27-v141-basic-profile">
+.v141-basic-profile{
+  margin-top:12px;padding:14px;border-radius:16px;
+  border:1px solid rgba(217,170,77,.22);
+  background:linear-gradient(145deg,rgba(217,170,77,.07),rgba(255,255,255,.025));
+}
+.v141-basic-title{
+  font-size:10px;letter-spacing:.16em;font-weight:900;color:#e8c76f;
+  margin-bottom:10px;
+}
+.v141-basic-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.v141-basic-profile label{display:grid;gap:5px;font-size:10px;font-weight:800}
+.v141-basic-profile select{
+  width:100%;min-height:42px;padding:10px 11px;border-radius:11px;
+  border:1px solid rgba(255,255,255,.10);background:#171e28;color:#fff;
+}
+.v141-basic-profile .v141-wide{grid-column:1/-1}
+.v141-basic-help{font-size:9px;line-height:1.45;opacity:.55;margin-top:9px}
+@media(max-width:650px){.v141-basic-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="fl27-v141-basic-profile">
+(function(){
+"use strict";
+const W=window;
+const KEY="FL27_V20_NEW_GAME";
+
+function getNG(){
+  let x=W.FL27_NEW_GAME||{};
+  try{
+    const saved=JSON.parse(localStorage.getItem(KEY)||"{}");
+    x={...saved,...x};
+  }catch(e){}
+  W.FL27_NEW_GAME=x;
+  return x;
+}
+function persist(){
+  try{localStorage.setItem(KEY,JSON.stringify(getNG()))}catch(e){}
+}
+function currentBasic(){
+  const ng=getNG();
+  let gender=ng.gender||"";
+  let orientation=ng.orientation||"N";
+  try{
+    if(typeof selectedAnswers!=="undefined" && selectedAnswers.length>=2){
+      gender=selectedAnswers[0]==="Kobieta"?"K":selectedAnswers[0]==="Mężczyzna"?"M":gender;
+      const x=String(selectedAnswers[1]||"");
+      orientation=/kobiet/i.test(x)&&/mężczyzn/i.test(x)?"B":
+                  /kobiet/i.test(x)?"K":
+                  /mężczyzn/i.test(x)?"M":"N";
+    }
+  }catch(e){}
+  return {gender,orientation};
+}
+function injectBasic(){
+  const body=document.getElementById("v52-creator-body");
+  if(!body || body.querySelector(".v141-basic-profile"))return;
+  /* Only the initial START screen gets these fields. */
+  if(!body.querySelector("#creatorName") || !body.querySelector("#creatorSurname"))return;
+
+  const b=currentBasic();
+  const box=document.createElement("section");
+  box.className="v141-basic-profile";
+  box.innerHTML=`
+    <div class="v141-basic-title">DANE PODSTAWOWE ZAWODNIKA</div>
+    <div class="v141-basic-grid">
+      <label>Płeć
+        <select id="v141-gender">
+          <option value="K" ${b.gender==="K"?"selected":""}>Kobieta</option>
+          <option value="M" ${b.gender==="M"?"selected":""}>Mężczyzna</option>
+        </select>
+      </label>
+      <label>Preferencje romantyczne
+        <select id="v141-orientation">
+          <option value="K" ${b.orientation==="K"?"selected":""}>Kobiety</option>
+          <option value="M" ${b.orientation==="M"?"selected":""}>Mężczyźni</option>
+          <option value="B" ${b.orientation==="B"?"selected":""}>Kobiety i mężczyźni</option>
+          <option value="N" ${b.orientation==="N"?"selected":""}>Na razie nikim / nie wiem</option>
+        </select>
+      </label>
+    </div>
+    <div class="v141-basic-help">Te informacje ustalasz tutaj. Nie będą ponownie pytane przy wyborze wyglądu avatara.</div>`;
+  const nameGrid=body.querySelector(".v52-name-grid");
+  if(nameGrid)nameGrid.insertAdjacentElement("afterend",box);
+  else body.prepend(box);
+
+  const saveField=()=>{
+    const ng=getNG();
+    ng.gender=document.getElementById("v141-gender")?.value||"M";
+    ng.orientation=document.getElementById("v141-orientation")?.value||"N";
+    persist();
+  };
+  box.querySelectorAll("select").forEach(x=>x.addEventListener("change",saveField));
+
+  /* Date should be editable immediately. Auto remains available through its radio. */
+  const date=body.querySelector("#creatorBirthDate");
+  const custom=body.querySelector('input[name="birthMode"][value="custom"]');
+  if(date && !getNG().birthDate){
+    date.disabled=false;
+    if(custom)custom.checked=true;
+  }
+}
+function setBasicAnswers(){
+  const ng=getNG();
+  const gender=document.getElementById("v141-gender")?.value||ng.gender;
+  const orientation=document.getElementById("v141-orientation")?.value||ng.orientation||"N";
+  if(!gender){W.toast?.("Wybierz płeć zawodnika.");return false}
+
+  const genderText=gender==="K"?"Kobieta":"Mężczyzna";
+  const orientationText={K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"}[orientation]||"Na razie nikim — nie szukam związku";
+
+  /* First two slots are the canonical answers used by the existing game
+     mechanics. Remaining 8 answers stay intact when a saved draft exists. */
+  if(typeof selectedAnswers==="undefined")return false;
+  if(selectedAnswers.length>=10){
+    selectedAnswers[0]=genderText;
+    selectedAnswers[1]=orientationText;
+  }else{
+    const rest=selectedAnswers.slice(2);
+    selectedAnswers=[genderText,orientationText,...rest];
+  }
+
+  ng.gender=gender;
+  ng.orientation=orientation;
+  const bd=document.getElementById("creatorBirthDate")?.value;
+  if(bd)ng.birthDate=bd;
+  persist();
+  try{saveCreatorDraft()}catch(e){}
+  return true;
+}
+
+/* Replace the beginning action so gender/preference/date are captured before
+   the existing 10-question flow begins. */
+W.FL27_beginV52=function(){
+  const first=String(document.getElementById("creatorName")?.value||"").trim();
+  const last=String(document.getElementById("creatorSurname")?.value||"").trim();
+  if(!first||!last){W.toast?.("Wpisz imię i nazwisko zawodnika.");return false}
+  const ng=getNG();
+  ng.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+  if(!setBasicAnswers())return false;
+  if(typeof creatorStarted!=="undefined")creatorStarted=true;
+  try{saveCreatorDraft()}catch(e){}
+  W.FL27_renderCreatorV52?.();
+  return true;
+};
+
+/* Avatar editor: remove BOTH fields definitively, and use the already selected
+   profile data for the engine. */
+function cleanAvatar(){
+  const body=document.getElementById("v52-creator-body");
+  if(!body || !body.querySelector(".v52-avatar-editor"))return;
+  body.querySelectorAll(".v20-avatar-controls label").forEach(label=>{
+    const t=(label.textContent||"").replace(/\s+/g," ").trim();
+    if(/^Płeć$/i.test(t)||/^Osoby, które Cię interesują/i.test(t))label.remove();
+  });
+  const help=body.querySelector(".v20-avatar-help");
+  if(help)help.textContent="Karnacja, fryzura, kolor włosów, oczy i strój. Płeć oraz preferencje zostały już ustalone na początku.";
+  const ng=getNG();
+  const g=ng.gender||"M";
+  /* Save the canonical orientation without requiring a removed select. */
+  try{
+    const o=ng.orientation||"N";
+    const map={K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"};
+    W.__FL27_AVATAR_CONFIG={...(W.__FL27_AVATAR_CONFIG||{}),gender:g,orientation:o};
+    if(typeof selectedAnswers!=="undefined"){
+      W.__FL27_AVATAR_CONFIG.orientation=o;
+    }
+  }catch(e){}
+}
+
+/* Make avatar saving independent of the removed gender selector. */
+const oldSaveAvatar=W.FL27_saveAvatar;
+if(typeof oldSaveAvatar==="function"&&!W.__FL27_V141_SAVE){
+  W.__FL27_V141_SAVE=true;
+  W.FL27_saveAvatar=function(){
+    const a=oldSaveAvatar.apply(this,arguments)||{};
+    const ng=getNG();
+    a.gender=ng.gender||a.gender||"M";
+    return a;
+  };
+}
+
+/* The final confirmation must read orientation from the basic profile. */
+const oldConfirm=W.FL27_confirmPlus;
+if(typeof oldConfirm==="function"&&!W.__FL27_V141_CONFIRM){
+  W.__FL27_V141_CONFIRM=true;
+  W.FL27_confirmPlus=function(){
+    const ng=getNG();
+    const orientation=ng.orientation||"N";
+    const gender=ng.gender||"M";
+    W.__FL27_AVATAR_CONFIG={...(W.__FL27_AVATAR_CONFIG||{}),orientation,gender};
+    const result=oldConfirm.apply(this,arguments);
+    /* Old wrappers may still read the removed avatar preference selector.
+       Correct the final state from the canonical first-screen profile. */
+    try{
+      if(W.S?.started){
+        W.S.orientation=orientation;
+        W.S.gender=gender==="K"?"Kobieta":"Mężczyzna";
+        W.S.birthDate=ng.birthDate||W.S.birthDate;
+        if(W.S.birthDate){
+          W.S.birthMonth=Number(String(W.S.birthDate).slice(5,7));
+          W.S.birthDay=Number(String(W.S.birthDate).slice(8,10));
+        }
+        W.S.avatar={...(W.S.avatar||{}),gender};
+        W.saveSoon?.();
+      }
+    }catch(e){console.error("V141 profile sync",e)}
+    return result;
+  };
+}
+
+/* Our existing V140 capture handler validates 10 answers; after this patch
+   the first two are always present, so the game still has exactly 10. */
+const oldRender=W.FL27_renderCreatorV52;
+if(typeof oldRender==="function"&&!W.__FL27_V141_RENDER){
+  W.__FL27_V141_RENDER=true;
+  W.FL27_renderCreatorV52=function(){
+    const r=oldRender.apply(this,arguments);
+    requestAnimationFrame(()=>{
+      injectBasic();
+      cleanAvatar();
+    });
+    return r;
+  };
+}
+
+setTimeout(()=>{
+  injectBasic();
+  cleanAvatar();
+},150);
+setTimeout(()=>{
+  injectBasic();
+  cleanAvatar();
+},600);
+})();
+</script>
+
+<!-- FL27 V142 — SMOOTH CREATOR SYNC / FINAL START FIX -->
+<style id="fl27-v142-flow">
+.v141-basic-profile input,.v141-basic-profile select{touch-action:manipulation}
+.v141-basic-profile{scroll-margin-top:12px}
+.v52-choice,.v20-confirm{transition:transform .12s ease,opacity .12s ease}
+.v52-choice:active,.v20-confirm:active{transform:scale(.985)}
+</style>
+<script id="fl27-v142-flow-js">
+(function(){
+"use strict";
+const W=window;
+
+/* Keep the lexical game state and window state pointing at the SAME array.
+   The older V140 click guard reads window.selectedAnswers, while the core
+   game uses the top-level selectedAnswers variable. Never replace the array;
+   mutate it in place so every layer stays synchronized. */
+try{
+  if(typeof selectedAnswers!=="undefined"){
+    W.selectedAnswers=selectedAnswers;
+  }
+}catch(e){}
+
+/* Persist the basic profile immediately and keep the two canonical first
+   decisions synchronized with the existing 10-decision engine. */
+function syncBasicIntoGame(){
+  try{
+    const ng=W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+    const g=document.getElementById("v141-gender")?.value||ng.gender||"M";
+    const o=document.getElementById("v141-orientation")?.value||ng.orientation||"N";
+    const gd=g==="K"?"Kobieta":"Mężczyzna";
+    const ot={K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"}[o]||"Na razie nikim — nie szukam związku";
+
+    if(typeof selectedAnswers!=="undefined"){
+      /* Preserve the same array object. */
+      selectedAnswers.splice(0,2,gd,ot);
+      W.selectedAnswers=selectedAnswers;
+    }
+    ng.gender=g;
+    ng.orientation=o;
+    const bd=document.getElementById("creatorBirthDate")?.value;
+    if(bd)ng.birthDate=bd;
+    try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(ng))}catch(e){}
+    return true;
+  }catch(e){
+    console.error("V142 basic sync",e);
+    return false;
+  }
+}
+
+/* Replace V141's setter with an in-place version. */
+if(!W.__FL27_V142_BASIC){
+  W.__FL27_V142_BASIC=true;
+  const oldBegin=W.FL27_beginV52;
+  W.FL27_beginV52=function(){
+    const first=String(document.getElementById("creatorName")?.value||"").trim();
+    const last=String(document.getElementById("creatorSurname")?.value||"").trim();
+    if(!first||!last){
+      W.toast?.("Wpisz imię i nazwisko zawodnika.");
+      return false;
+    }
+
+    const ng=W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+    ng.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+
+    /* Make the date editable and save it before moving on. */
+    const date=document.getElementById("creatorBirthDate")?.value;
+    if(date)ng.birthDate=date;
+
+    if(!syncBasicIntoGame())return false;
+
+    try{
+      if(typeof creatorStarted!=="undefined")creatorStarted=true;
+      saveCreatorDraft();
+    }catch(e){}
+
+    /* Re-render exactly once. */
+    W.FL27_renderCreatorV52?.();
+    return true;
+  };
+}
+
+/* Whenever the creator is rendered, refresh the shared reference and make
+   sure saved basic data is reflected in the visible fields. */
+const renderNow=W.FL27_renderCreatorV52;
+if(typeof renderNow==="function"&&!W.__FL27_V142_RENDER){
+  W.__FL27_V142_RENDER=true;
+  W.FL27_renderCreatorV52=function(){
+    const r=renderNow.apply(this,arguments);
+    requestAnimationFrame(()=>{
+      try{
+        if(typeof selectedAnswers!=="undefined")W.selectedAnswers=selectedAnswers;
+        const body=document.getElementById("v52-creator-body");
+        const basic=body?.querySelector(".v141-basic-profile");
+        if(basic){
+          const ng=W.FL27_NEW_GAME||{};
+          const gs=basic.querySelector("#v141-gender");
+          const os=basic.querySelector("#v141-orientation");
+          if(gs&&ng.gender)gs.value=ng.gender;
+          if(os&&ng.orientation)os.value=ng.orientation;
+        }
+      }catch(e){}
+    });
+    return r;
+  };
+}
+
+/* Save every answer as soon as it is chosen. This does not alter the game
+   result; it only makes the current decision durable and available to every
+   renderer. */
+if(!W.__FL27_V142_DECISION_SYNC){
+  W.__FL27_V142_DECISION_SYNC=true;
+  document.addEventListener("click",function(ev){
+    const btn=ev.target.closest?.(".v52-choice");
+    if(!btn)return;
+    requestAnimationFrame(()=>{
+      try{
+        if(typeof selectedAnswers!=="undefined"){
+          W.selectedAnswers=selectedAnswers;
+          saveCreatorDraft?.();
+        }
+      }catch(e){}
+    });
+  },false);
+}
+
+/* Final safety: after the last decision, the start button must always have
+   a usable canonical name and the complete 10-decision array. */
+setInterval(()=>{
+  try{
+    if(typeof selectedAnswers!=="undefined")W.selectedAnswers=selectedAnswers;
+    const body=document.getElementById("v52-creator-body");
+    const btn=body?.querySelector(".v20-confirm");
+    if(!btn)return;
+    if(selectedAnswers.length===10){
+      btn.disabled=false;
+      btn.style.pointerEvents="auto";
+      btn.style.opacity="1";
+    }
+  }catch(e){}
+},500);
 })();
 </script>
