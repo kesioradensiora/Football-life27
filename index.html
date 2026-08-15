@@ -9479,3 +9479,34 @@ const sync=setInterval(()=>{
 setTimeout(()=>clearInterval(sync),10000);
 })();
 </script>
+
+<style id="fl27-v169-hard-release">
+/* V169: the global boot is never allowed to block the app. */
+#fl124-boot{z-index:2147483647!important}
+</style>
+<script id="fl27-v169-hard-release-js">
+(function(){
+"use strict";
+if(window.__FL27_V169_RELEASE)return;
+window.__FL27_V169_RELEASE=true;
+
+function release(){
+  const boot=document.getElementById("fl124-boot");
+  if(boot){
+    const fill=document.getElementById("fl27-load-progress");
+    if(fill) fill.style.width="100%";
+    boot.style.opacity="0";
+    boot.style.pointerEvents="none";
+    setTimeout(()=>boot.remove(),180);
+  }
+  document.body.classList.remove("fl124-booting");
+  document.documentElement.classList.remove("fl124-booting");
+}
+
+/* The old boot screen was never actually released. Give the browser a short,
+   visual startup, then ALWAYS release it. No state, module or network call
+   can hold the player on this screen. */
+setTimeout(release,650);
+window.addEventListener("load",()=>setTimeout(release,80),{once:true});
+})();
+</script>
