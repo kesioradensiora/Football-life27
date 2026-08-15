@@ -13478,3 +13478,185 @@ if(W.render&&!W.__FL27_V139_RENDER){
 }
 })();
 </script>
+
+<!-- FL27 V140 — PLUS CREATOR CLEANUP / AVATAR FIX / START BUTTON -->
+<style id="fl27-v140-creator">
+/* New Game+ creator must fit the actual mobile viewport, including Safari safe areas. */
+.v20-hub-overlay{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100vh!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 12px calc(20px + env(safe-area-inset-bottom,0px))!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+.v20-hub.v52-creator{
+  flex:0 0 auto!important;
+  width:min(780px,100%)!important;
+  max-height:none!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  overflow:visible!important;
+}
+/* The creator itself is the scroll container on long screens. */
+.v20-hub.v52-creator #v52-creator-body{
+  max-height:none!important;
+}
+/* Do not let the bottom action disappear behind Safari's toolbar. */
+.v20-confirm{
+  position:relative!important;
+  z-index:20!important;
+  display:block!important;
+  min-height:50px!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:rgba(217,170,77,.20)!important;
+}
+.v20-back{touch-action:manipulation!important}
+@media(max-width:650px){
+  .v20-hub.v52-creator{
+    width:100%!important;
+    border-radius:18px!important;
+    padding:18px!important;
+  }
+}
+
+/* Avatar: cleaner, centered silhouette and no lopsided hair mass. */
+.v52-avatar-editor .v20-avatar-preview{
+  overflow:hidden!important;
+}
+.v52-avatar-editor .v20-avatar-preview svg{
+  width:min(100%,300px)!important;
+  height:auto!important;
+  max-height:none!important;
+  display:block!important;
+  margin:auto!important;
+}
+</style>
+
+<script id="fl27-v140-creator">
+(function(){
+"use strict";
+const W=window;
+
+/* The first two creator questions already define gender and romantic preference.
+   They must NOT be asked again in the appearance editor. */
+function cleanDuplicateAppearanceFields(){
+  const body=document.getElementById("v52-creator-body");
+  if(!body)return;
+  body.querySelectorAll(".v20-avatar-controls label").forEach(label=>{
+    const t=(label.textContent||"").trim();
+    if(/^Płeć$/i.test(t) || /^Osoby, które Cię interesują$/i.test(t)){
+      label.remove();
+    }
+  });
+}
+
+/* Keep the appearance editor focused on appearance only. */
+function syncAvatarGenderFromAnswers(){
+  try{
+    const genderAnswer=Array.isArray(W.selectedAnswers)?String(W.selectedAnswers[0]||""):"";
+    const g=genderAnswer.toLowerCase().startsWith("kob")?"K":"M";
+    const hidden=document.getElementById("v20-gender");
+    if(hidden)hidden.value=g;
+    const orientationAnswer=Array.isArray(W.selectedAnswers)?String(W.selectedAnswers[1]||""):"";
+    const o=document.getElementById("v20-orientation");
+    if(o){
+      if(/kobiet(y|ami)/i.test(orientationAnswer)&&/mężczyzn/i.test(orientationAnswer))o.value="B";
+      else if(/kobiet/i.test(orientationAnswer))o.value="K";
+      else if(/mężczyzn/i.test(orientationAnswer))o.value="M";
+      else o.value="N";
+    }
+  }catch(e){}
+}
+
+/* Repaint the final creator screen after the original renderer, then remove
+   duplicate questions without touching the saved 10 answers. */
+const originalCreator=W.FL27_renderCreatorV52;
+if(typeof originalCreator==="function"&&!W.__FL27_V140_CREATOR_WRAP){
+  W.__FL27_V140_CREATOR_WRAP=true;
+  W.FL27_renderCreatorV52=function(){
+    const r=originalCreator.apply(this,arguments);
+    requestAnimationFrame(()=>{
+      cleanDuplicateAppearanceFields();
+      syncAvatarGenderFromAnswers();
+      try{W.FL27_saveAvatar?.()}catch(e){}
+    });
+    return r;
+  };
+}
+
+/* Bulletproof start button: one capture handler, no dependency on inline
+   handler scope. It validates the 10 questions and then invokes the canonical
+   New Game+ engine. */
+document.addEventListener("click",function(ev){
+  const btn=ev.target.closest?.(".v20-confirm");
+  if(!btn)return;
+  ev.preventDefault();
+  ev.stopImmediatePropagation();
+  try{
+    const answers=Array.isArray(W.selectedAnswers)?W.selectedAnswers:[];
+    if(answers.length!==10){
+      W.toast?.("Odpowiedz na wszystkie 10 pytań.");
+      return;
+    }
+    const first=String(document.getElementById("creatorName")?.value||W.FL27_NEW_GAME?.playerName?.split(" ")[0]||"").trim();
+    const last=String(document.getElementById("creatorSurname")?.value||W.FL27_NEW_GAME?.playerName?.split(" ").slice(1).join(" ")||"").trim();
+    if(!first||!last){
+      W.toast?.("Wpisz imię i nazwisko zawodnika.");
+      return;
+    }
+    W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+    W.FL27_NEW_GAME.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+    try{W.saveCreatorDraft?.()}catch(e){}
+    if(typeof W.FL27_confirmPlus==="function"){
+      W.FL27_confirmPlus();
+    }else if(typeof W.__FL27_ORIGINAL_START_CAREER==="function"){
+      W.__FL27_ORIGINAL_START_CAREER();
+    }else{
+      W.toast?.("Nie znaleziono silnika rozpoczęcia kariery.");
+      return;
+    }
+  }catch(e){
+    console.error("V140 start",e);
+    W.toast?.("Nie udało się rozpocząć kariery. Spróbuj jeszcze raz.");
+  }
+},true);
+
+/* Replace the visually crude default short-hair cap with a symmetric,
+   slightly tapered shape. Also improve the most common styles. */
+const oldAvatar=W.FL27_avatarSvg;
+if(typeof oldAvatar==="function"&&!W.__FL27_V140_AVATAR){
+  W.__FL27_V140_AVATAR=true;
+  W.FL27_avatarSvg=function(a){
+    const html=oldAvatar.call(this,a);
+    return html
+      .replace(
+        /<path fill="\$\{hc\}" d="M48 67c0-31 19-51 52-51s52 20 52 51v10H48z"\/>/,
+        '<path fill="${hc}" d="M50 70c0-34 20-53 70-53s70 19 70 53v13c-7-5-14-9-21-11-12-3-24-4-49-4s-37 1-49 4c-7 2-14 6-21 11z"/>'
+      )
+      .replace(
+        /<path d="M78 82q14-10 29-2M133 80q15-8 29 2" fill="none" stroke="\$\{hc\}" stroke-width="6" stroke-linecap="round"\/>/,
+        '<path d="M72 78q14-10 29-3M139 75q15-7 29 3" fill="none" stroke="${hc}" stroke-width="5.5" stroke-linecap="round"/>'
+      );
+  };
+}
+
+/* Run after any render of the creator. */
+function repair(){
+  if(document.querySelector(".v20-hub.v52-creator")){
+    cleanDuplicateAppearanceFields();
+    syncAvatarGenderFromAnswers();
+  }
+}
+setTimeout(repair,100);
+setTimeout(repair,400);
+setTimeout(repair,900);
+})();
+</script>
