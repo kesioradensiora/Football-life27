@@ -16439,3 +16439,414 @@ setInterval(()=>{if(W.S?.started){syncHeader();mount()}},1200);
 
 })();
 </script>
+
+<!-- ============================================================
+ FL27 V163 — SINGLE CANONICAL GAMEPLAY UI
+ This is the authoritative gameplay shell. It does not add another
+ layer to the old home: it owns #main, the top player bar and the
+ slide-out catalogue. Legacy gameplay functions remain only as
+ simulation services (train/advance/playMatch/etc.).
+============================================================ -->
+<style id="fl27-v163-css">
+html,body{background:#07080b!important}
+body:not(.creator-screen){padding-top:0!important}
+body:not(.creator-screen) #fl110-header{display:none!important}
+body:not(.creator-screen) #nav{display:none!important}
+body:not(.creator-screen) #fl110-tutorial-fallback,
+body:not(.creator-screen) #fl110-activity-fallback,
+body:not(.creator-screen) .fl27-v3-extra,
+body:not(.creator-screen) .fl27-v5-extra,
+body:not(.creator-screen) .fl27-v12-extra,
+body:not(.creator-screen) .fl91-home,
+body:not(.creator-screen) .fl92-calendar,
+body:not(.creator-screen) .fl93-move,
+body:not(.creator-screen) .fl94-gifts,
+body:not(.creator-screen) .fl95-market,
+body:not(.creator-screen) #fl100-summer,
+body:not(.creator-screen) #fl101-event{display:none!important}
+
+#fl163-top{
+ position:sticky;top:6px;z-index:2147483000;
+ width:min(980px,calc(100vw - 14px));margin:6px auto 10px;
+ min-height:58px;padding:7px 9px;box-sizing:border-box;
+ display:flex;align-items:center;gap:9px;
+ border:1px solid rgba(217,170,77,.30);border-radius:17px;
+ background:rgba(11,12,15,.96);backdrop-filter:blur(18px);
+ box-shadow:0 10px 30px rgba(0,0,0,.42);
+}
+#fl163-top .logo{
+ width:62px;height:42px;flex:0 0 62px;
+ background:var(--fl27-logo) center/contain no-repeat;
+}
+#fl163-top .identity{min-width:0;flex:1}
+#fl163-top .name{
+ display:block;font-size:13px;font-weight:950;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;line-height:15px;
+}
+#fl163-top .meta{
+ display:block;color:#a4a7ae;font-size:7.5px;margin-top:2px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#fl163-top .club{color:#d9aa4d}
+#fl163-top .stats{display:flex;gap:4px;flex:0 0 auto}
+#fl163-top .stat{
+ width:47px;height:39px;border-radius:10px;
+ background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#fl163-top .stat i{font-style:normal;font-size:10px;line-height:11px}
+#fl163-top .stat b{font-size:7px;line-height:10px;white-space:nowrap}
+@media(max-width:520px){
+ #fl163-top{min-height:53px;padding:6px 7px;gap:7px}
+ #fl163-top .logo{width:51px;height:36px;flex-basis:51px}
+ #fl163-top .name{font-size:11px}
+ #fl163-top .meta{font-size:6.5px}
+ #fl163-top .stats{gap:2px}
+ #fl163-top .stat{width:34px;height:34px}
+ #fl163-top .stat:nth-child(5){display:none}
+}
+
+#fl163-main{width:min(980px,calc(100vw - 24px));margin:0 auto 90px}
+.fl163-card{
+ background:linear-gradient(145deg,#17191d,#0d0f12);
+ border:1px solid rgba(255,255,255,.075);border-radius:19px;
+ padding:15px;margin:10px 0;box-sizing:border-box;
+}
+.fl163-hero{border-color:rgba(217,170,77,.27);background:linear-gradient(145deg,rgba(217,170,77,.09),#0d0f12)}
+.fl163-kicker{font-size:7px;letter-spacing:1.8px;color:#d9aa4d;font-weight:950}
+.fl163-title{font-size:24px;line-height:28px;margin:5px 0 3px}
+.fl163-sub{color:#999da5;font-size:8px;line-height:13px}
+.fl163-section{display:flex;justify-content:space-between;align-items:end;gap:8px;margin:17px 3px 7px}
+.fl163-section b{font-size:13px}.fl163-section span{font-size:7px;color:#8e929a}
+.fl163-event{border-color:rgba(217,170,77,.25);background:linear-gradient(145deg,rgba(83,32,38,.45),#111318)}
+.fl163-event h2{font-size:18px;margin:6px 0}
+.fl163-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl163-act{
+ border:1px solid rgba(255,255,255,.08);border-radius:14px;
+ background:linear-gradient(145deg,#171b22,#101318);color:#f4f4f1;
+ min-height:72px;padding:11px;text-align:left;cursor:pointer;touch-action:manipulation;
+ transition:transform .12s ease,border-color .12s ease,background .12s ease;
+}
+.fl163-act:active{transform:scale(.985)}
+.fl163-act:hover{border-color:rgba(217,170,77,.32)}
+.fl163-act .ico{float:right;font-size:20px}
+.fl163-act b{display:block;font-size:10px}.fl163-act small{display:block;margin-top:5px;color:#8f949c;font-size:7px;line-height:10px}
+@media(min-width:720px){.fl163-actions{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.fl163-next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.fl163-next button,.fl163-secondary{
+ border:1px solid rgba(255,255,255,.07);background:#13171d;color:#eee;
+ border-radius:12px;padding:11px;text-align:left;cursor:pointer;touch-action:manipulation
+}
+.fl163-next small{display:block;color:#858b94;margin-top:4px;font-size:7px}
+.fl163-bar{height:5px;border-radius:99px;background:#24272d;overflow:hidden;margin-top:8px}
+.fl163-bar i{display:block;height:100%;background:#d9aa4d}
+.fl163-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.055);font-size:8px}
+.fl163-row:last-child{border-bottom:0}
+.fl163-gates{display:grid;gap:8px}
+.fl163-career{
+ border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;background:#12161c
+}
+.fl163-career b{font-size:10px}.fl163-career small{display:block;color:#90949c;font-size:7px;line-height:11px;margin:4px 0}
+.fl163-career .req{font-size:7px;color:#c6c9cf}
+.fl163-career button{margin-top:7px;border:1px solid rgba(217,170,77,.25);background:rgba(217,170,77,.09);color:#f1d17c;border-radius:9px;padding:8px 10px;cursor:pointer}
+.fl163-lock{opacity:.6}
+#fl163-drawer{
+ position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:2147483647;
+ width:53px;padding:6px 5px;border-radius:17px 0 0 17px;
+ background:linear-gradient(180deg,#1a1c21,#090a0d);
+ border:1px solid rgba(217,170,77,.31);border-right:0;
+ box-shadow:0 18px 50px rgba(0,0,0,.65);overflow:hidden;
+ transition:width .2s ease;pointer-events:auto;
+}
+#fl163-drawer.open{width:min(225px,82vw)}
+#fl163-drawer button{font:inherit}
+#fl163-toggle{
+ width:100%;height:40px;border:0;border-radius:11px;
+ background:rgba(217,170,77,.10);color:#e8c66f;
+ display:flex;align-items:center;gap:9px;padding:0 9px;cursor:pointer;
+}
+#fl163-toggle .hamb{font-size:18px;line-height:1}
+#fl163-toggle b{display:none;font-size:8px;letter-spacing:1px}
+#fl163-drawer.open #fl163-toggle b{display:block}
+#fl163-list{display:grid;gap:3px;margin-top:6px}
+.fl163-nav{
+ width:100%;height:40px;border:0;border-radius:11px;background:transparent;color:#a8acb4;
+ display:flex;align-items:center;gap:9px;padding:0 9px;text-align:left;cursor:pointer;
+}
+.fl163-nav:hover,.fl163-nav.active{background:rgba(217,170,77,.11);color:#f0cf79}
+.fl163-nav .nicon{width:20px;text-align:center;font-size:17px;flex:0 0 20px}
+.fl163-nav b{display:none;font-size:7.5px;white-space:nowrap}
+#fl163-drawer.open .fl163-nav b{display:block}
+.fl163-divider{height:1px;background:rgba(255,255,255,.07);margin:5px 3px}
+</style>
+
+<script id="fl27-v163-engine">
+(function(){
+"use strict";
+const W=window;
+if(W.__FL27_V163)return;
+W.__FL27_V163=true;
+
+let canonicalTab="home";
+const NAV=[
+ ["home","⌂","Dziś"],["day","◷","Dzień"],["career","⚽","Kariera"],
+ ["life","♥","Życie"],["family","♟","Rodzina"],["history","▤","Historia"],
+ ["careerStats","▥","Statystyki"],["store","▢","Sklep"],
+ ["social","◎","FLgram"],["wealth","€","Finanse"],["settings","⚙","Ustawienia"]
+];
+
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function state(){return W.S||{}}
+function nameOf(){
+ const s=state(), profile=s.creatorProfile||{};
+ return String(s.name||[s.firstName,s.lastName].filter(Boolean).join(" ")||[profile.firstName,profile.lastName].filter(Boolean).join(" ")||"Zawodnik").replace(/\s+/g," ").trim();
+}
+function age(){return Number(state().age??15)}
+function club(){const s=state();return s.club||s.clubName||s.team||s.teamName||"Bez klubu"}
+function ovr(){const s=state();return Math.round(Number(s.ovr??s.overall??s.skill??0))}
+function header(){
+ let x=document.getElementById("fl163-top");
+ if(!x){x=document.createElement("header");x.id="fl163-top";document.body.prepend(x)}
+ const s=state();
+ x.innerHTML=`<div class="logo" aria-label="Football Life 27"></div>
+ <div class="identity"><span class="name">${esc(nameOf())}</span>
+ <span class="meta">${esc(s.pos||s.position||"—")} • ${age()} lat • <span class="club">${esc(club())}</span></span></div>
+ <div class="stats">
+  <div class="stat"><i>⭐</i><b>${ovr()}</b></div>
+  <div class="stat"><i>❤️</i><b>${Math.round(Number(s.health??0))}</b></div>
+  <div class="stat"><i>💰</i><b>€${Math.floor(Number(s.money??0)).toLocaleString("pl-PL")}</b></div>
+  <div class="stat"><i>😊</i><b>${Math.round(Number(s.happiness??s.mental??0))}</b></div>
+  <div class="stat"><i>⚡</i><b>${Math.round(Number(s.energy??0))}</b></div>
+ </div>`;
+}
+
+function main(){let m=document.getElementById("main");if(!m){m=document.createElement("main");m.id="main";document.body.appendChild(m)}m.style.display="block";return m}
+
+const ACTIONS=[
+ ["training","⚽","Trening","2h • rozwój OVR, forma i energia"],
+ ["homework","📚","Nauka","1,5h • szkoła i rozwój mentalny"],
+ ["friends","👥","Znajomi","2h • relacje i szczęście"],
+ ["family","❤️","Rodzina","2h • relacje i regeneracja"],
+ ["hobby","🎵","Hobby","1h • szczęście i rozwój"],
+ ["bike","🚲","Rower","2h • zdrowie i forma"],
+ ["pool","🏊","Basen","2h • zdrowie i regeneracja"],
+ ["free","🎮","Czas wolny","2h • odpoczynek"],
+ ["recovery","🧘","Regeneracja","1h • zdrowie i energia"],
+ ["city","🏙️","Wyjście do miasta","3h • życie i relacje"],
+ ["reading","📖","Czytanie","1h • nauka i mental"],
+ ["walk","🚶","Spacer","1h • zdrowie i mental"],
+ ["job","💼","Drobna praca","2h • pieniądze"],
+ ["match","⚽","Mecz","terminarz • wynik i statystyki"],
+ ["sleep","🌙","Sen","od 22:00 • nowy dzień"]
+];
+
+function activity(k){
+ if(k==="training"){W.train?.(true);return}
+ if(k==="match"){W.playMatch?.();return}
+ if(k==="sleep"){W.sleep?.();return}
+ if(k==="job"){W.job?.();return}
+ if(W.FL27V137_activity)W.FL27V137_activity(k);
+}
+
+function tutorial(){
+ const s=state(), p=W.FL27_V9||{};
+ const done=Number(p.tutorial||0);
+ if(done>=5)return "";
+ const tasks=[
+  ["Poznaj ekran „Dziś”","Zobacz swój dzień i aktywności.","home"],
+  ["Sprawdź przebieg dnia","Wejdź w Dzień i zobacz godziny.","day"],
+  ["Poznaj Karierę","Sprawdź klub, rozwój i terminarz.","career"],
+  ["Poznaj Rodzinę","Zobacz, skąd pochodzisz i kto tworzy Twój świat.","family"],
+  ["Poznaj FLgram","Sprawdź swój profil społecznościowy.","social"]
+ ];
+ const t=tasks[done];
+ return `<section class="fl163-card"><div class="fl163-kicker">SAMOUCZEK • PIERWSZE KROKI</div>
+ <h2 style="margin:5px 0;font-size:17px">${esc(t[0])}</h2><p class="fl163-sub">${esc(t[1])}</p>
+ <button class="fl163-secondary" data-tutorial="${t[2]}">Przejdź teraz →</button>
+ <div class="fl163-bar"><i style="width:${done/5*100}%"></i></div>
+ <div class="fl163-sub" style="margin-top:5px">${done}/5 wykonane</div></section>`;
+}
+
+function home(){
+ const s=state(), h=Number(s.hour??8), next=Number(s.nextMatchDay??7)-Number(s.day??1);
+ const last=s.logs?.[0];
+ const t=tutorial();
+ return `<div id="fl163-home-root">${t}
+ <section class="fl163-card fl163-event"><div class="fl163-kicker">🔔 OSTATNIE WYDARZENIE</div>
+ <h2>${esc(last?.text||"Twoja historia dopiero się zaczyna")}</h2>
+ <p class="fl163-sub">${last?"To wydarzenie zostało zapisane i może wpłynąć na kolejne sytuacje.":"Wydarzenia pojawiają się naturalnie z upływem czasu i wynikają z Twojej historii."}</p></section>
+ <div class="fl163-section"><b>CO ROBISZ TERAZ?</b><span>🕐 ${String(h).padStart(2,"0")}:00 • do 22:00</span></div>
+ <section class="fl163-card fl163-actions">${ACTIONS.map(a=>`<button type="button" class="fl163-act" data-act="${a[0]}"><span class="ico">${a[1]}</span><b>${a[2]}</b><small>${a[3]}${a[0]==="match"?` • ${next<=0?"DZIŚ":"za "+next+" dni"}`:""}</small></button>`).join("")}</section></div>`;
+}
+
+function career(){
+ const s=state();
+ const side=W.FL27_socialCareer;
+ const rows=side?.sideCareer?.discovered||[];
+ const definitions=[
+  {id:"creator",title:"🎥 Twórca sportowy",unlock:15,stat:"PR ≥ 10",need:s=>Number(s.pr||0)>=10},
+  {id:"analyst",title:"📊 Analityk piłkarski",unlock:16,stat:"Umiejętności ≥ 25",need:s=>Number(s.skill||0)>=25},
+  {id:"scout",title:"🔎 Skaut",unlock:16,stat:"Umiejętności ≥ 30",need:s=>Number(s.skill||0)>=30},
+  {id:"coach",title:"🧠 Trener",unlock:17,stat:"Umiejętności ≥ 40",need:s=>Number(s.skill||0)>=40},
+  {id:"media",title:"🎙️ Media sportowe",unlock:16,stat:"PR ≥ 25",need:s=>Number(s.pr||0)>=25},
+  {id:"business",title:"💼 Biznes sportowy",unlock:18,stat:"€ ≥ 250",need:s=>Number(s.money||0)>=250}
+ ];
+ const discovered=side?.sideCareer?.discovered||[], prog=side?.sideCareer?.progress||{};
+ return `<div id="fl163-home-root"><section class="fl163-card fl163-hero"><div class="fl163-kicker">⚽ KARIERA</div><h1 class="fl163-title">${esc(club())}</h1>
+ <p class="fl163-sub">Rozwój piłkarski i poboczne drogi są częścią tego samego życia — nic nie kończy się jednym kliknięciem.</p>
+ <div class="fl163-row"><span>OVR</span><b>${ovr()}</b></div><div class="fl163-row"><span>Forma</span><b>${Math.round(s.form||0)}/100</b></div><div class="fl163-row"><span>Treningi w tygodniu</span><b>${Number(W.FL27_schedule?.weekTraining||0)}/4</b></div></section>
+ <div class="fl163-section"><b>🚀 POBOCZNE ŚCIEŻKI KARIERY</b><span>czas + wymagania</span></div>
+ <section class="fl163-card fl163-gates">${definitions.map(c=>{
+   const p=Number(prog[c.id]||0), isDisc=discovered.includes(c.id), unlocked=age()>=c.unlock;
+   const ready=unlocked&&c.need(s);
+   const wait=side?.sideCareer?.readyDay?.[c.id];
+   const canProgress=isDisc && p<5 && (!wait||Number(s.day||1)>=Number(wait));
+   const req=unlocked?(ready?"Wymagania spełnione":c.stat):`Dostępne od ${c.unlock}. roku życia`;
+   return `<div class="fl163-career ${unlocked?"":"fl163-lock"}"><b>${c.title}</b>
+    <small>${isDisc?`Etap ${p}/5 • każdy etap wymaga czasu i spełnienia warunków.`:"Najpierw musisz odkryć tę możliwość."}</small>
+    <div class="req">${req}${wait&&Number(s.day||1)<Number(wait)?` • następny etap od dnia ${wait}`:""}</div>
+    ${!isDisc?`<button type="button" data-side-discover="${c.id}" ${ready?"":"disabled"}>${ready?"Odkryj możliwość":"Jeszcze niedostępne"}</button>`:
+      p>=5?`<div class="req">✓ Ścieżka ukończona</div>`:
+      `<button type="button" data-side-progress="${c.id}" ${canProgress?"":"disabled"}>${canProgress?"Rozwijaj etap "+(p+1):"Najpierw czas / wymagania"}</button>`}
+   </div>`;
+ }).join("")}</section></div>`;
+}
+
+function renderTabCanonical(tab){
+ const m=main();
+ if(tab==="home")m.innerHTML=home();
+ else if(tab==="career")m.innerHTML=career();
+ else {
+   /* Existing feature renderers are used only as content services for their own tab. */
+   m.innerHTML="";
+   try{W.__FL27_ORIGINAL_RENDER_TAB?.(tab)}catch(e){}
+ }
+ bind();
+}
+
+function bind(){
+ const m=main();
+ m.querySelectorAll("[data-act]").forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();activity(b.dataset.act)});
+ m.querySelectorAll("[data-tutorial]").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();
+   const p=W.FL27_V9||{};p.tutorial=Number(p.tutorial||0)+1;
+   try{localStorage.setItem("FL27_V9_PLAY_LOOP",JSON.stringify(p))}catch(_){}
+   canonicalTab=b.dataset.tutorial;render(); 
+ });
+ m.querySelectorAll("[data-side-discover]").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();W.FL27_discoverSideCareer?.(b.dataset.sideDiscover)
+ });
+ m.querySelectorAll("[data-side-progress]").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();W.FL27_progressSideCareer?.(b.dataset.sideProgress)
+ });
+}
+
+function drawer(){
+ let d=document.getElementById("fl163-drawer");
+ if(d)return d;
+ d=document.createElement("aside");d.id="fl163-drawer";
+ d.innerHTML=`<button id="fl163-toggle" type="button"><span class="hamb">☰</span><b>KATALOG GRY</b></button><div id="fl163-list">${NAV.map((n,i)=>`${i===8?'<div class="fl163-divider"></div>':""}<button type="button" class="fl163-nav" data-tab="${n[0]}"><span class="nicon">${n[1]}</span><b>${n[2]}</b></button>`).join("")}</div>`;
+ document.body.appendChild(d);
+ d.querySelector("#fl163-toggle").onclick=e=>{e.preventDefault();e.stopPropagation();d.classList.toggle("open")};
+ d.querySelectorAll("[data-tab]").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();canonicalTab=b.dataset.tab;render();
+   if(innerWidth<700)d.classList.remove("open");
+ });
+ return d;
+}
+
+function markDrawer(){
+ const d=drawer();
+ d.querySelectorAll(".fl163-nav").forEach(b=>b.classList.toggle("active",b.dataset.tab===canonicalTab));
+}
+
+function removeLegacy(){
+ ["fl163-top","fl163-drawer"].forEach(id=>{}); 
+ document.querySelectorAll(".fl27-v3-extra,.fl27-v5-extra,.fl27-v12-extra,#fl110-tutorial-fallback,#fl110-activity-fallback,#fl100-summer,#fl101-event").forEach(x=>x.remove());
+
+}
+
+function render(){
+ if(!state().started){
+   try{W.__FL27_ORIGINAL_RENDER?.()}catch(e){}
+   return;
+ }
+ removeLegacy();
+ header();drawer();
+ /* Main is fully owned by V163. */
+ const m=main();m.style.display="block";
+ if(canonicalTab==="social"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("social")}catch(e){}}
+ else if(canonicalTab==="family"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("family")}catch(e){}}
+ else if(canonicalTab==="day"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("day")}catch(e){}}
+ else if(canonicalTab==="history"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("history")}catch(e){}}
+ else if(canonicalTab==="careerStats"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("careerStats")}catch(e){}}
+ else if(canonicalTab==="store"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("store")}catch(e){}}
+ else if(canonicalTab==="wealth"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("wealth")}catch(e){}}
+ else if(canonicalTab==="life"){try{W.__FL27_ORIGINAL_RENDER_TAB?.("life")}catch(e){}}
+ else renderTabCanonical(canonicalTab);
+ bind();markDrawer();
+ setTimeout(()=>{header();markDrawer()},0);
+}
+
+const oldRender=W.render;
+W.__FL27_ORIGINAL_RENDER=oldRender;
+W.__FL27_ORIGINAL_RENDER_TAB=W.renderTab;
+W.render=render;
+W.FL27_ROUTE=function(tab){canonicalTab=tab||"home";render();return false};
+W.FL27_GET_TAB=function(){return canonicalTab};
+
+function gateSideCareers(){
+ const F=W.FL27_socialCareer;if(!F?.sideCareer)return;
+ F.sideCareer.readyDay??={};
+ const s=state();
+ /* The old functions remain the data writers, but every stage is now time-gated. */
+ const oldDiscover=W.FL27_discoverSideCareer, oldProgress=W.FL27_progressSideCareer;
+ if(!W.__FL27_V163_SIDE_GATE){
+  W.__FL27_V163_SIDE_GATE=true;
+  W.FL27_discoverSideCareer=function(id){
+   const defs={creator:15,analyst:16,scout:16,coach:17,media:16,business:18};
+   if(Number(s.age||15)<(defs[id]??99)){W.toast?.("Ta ścieżka nie jest jeszcze dostępna.");return false}
+   const r=oldDiscover?.(id);
+   if(r){F.sideCareer.readyDay[id]=Number(s.day||1)+2;localStorage.setItem("FL27_FLGRAM_STARS_SIDECAREERS_V5",JSON.stringify(F))}
+   return r;
+  };
+  W.FL27_progressSideCareer=function(id){
+   const ready=Number(F.sideCareer.readyDay?.[id]||0);
+   if(Number(s.day||1)<ready){W.toast?.(`Kolejny etap będzie możliwy od dnia ${ready}.`);return false}
+   const p=Number(F.sideCareer.progress?.[id]||0);
+   const requirements={
+    creator:()=>Number(s.pr||0)>=10+p*5,
+    analyst:()=>Number(s.skill||0)>=25+p*4,
+    scout:()=>Number(s.skill||0)>=30+p*4,
+    coach:()=>Number(s.skill||0)>=40+p*5,
+    media:()=>Number(s.pr||0)>=25+p*7,
+    business:()=>Number(s.money||0)>=250+p*150
+   };
+   if(!requirements[id]?.()){W.toast?.("Najpierw spełnij wymagania tego etapu.");return false}
+   const r=oldProgress?.(id);
+   if(r){F.sideCareer.readyDay[id]=Number(s.day||1)+2;localStorage.setItem("FL27_FLGRAM_STARS_SIDECAREERS_V5",JSON.stringify(F))}
+   return r;
+  };
+ }
+}
+
+gateSideCareers();
+
+const observer=new MutationObserver(()=>{
+ if(!state().started)return;
+ removeLegacy();
+ const m=document.getElementById("main");
+ if(m&&m.id==="main"){
+   /* On Dziś the canonical root is the only permitted child. */
+   if(canonicalTab==="home"||canonicalTab==="career"){
+     [...m.children].forEach(x=>{if(x.id!=="fl163-home-root")x.remove()});
+   }
+ }
+});
+observer.observe(document.body,{childList:true,subtree:true});
+
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(render,150),{once:true});
+else setTimeout(render,150);
+setInterval(()=>{if(state().started){header();markDrawer()}},900);
+})();
+</script>
