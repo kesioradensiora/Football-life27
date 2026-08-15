@@ -15025,3 +15025,71 @@ W.FL27_renderCreatorV52=function(){
 };
 })();
 </script>
+
+<!-- FL27 V148 — FINAL START BUTTON HARD FIX -->
+<style id="fl27-v148">
+#fl27-start-final{
+  position:relative!important;
+  z-index:99999!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+}
+</style>
+<script id="fl27-v148">
+(function(){
+"use strict";
+const W=window;
+let starting=false;
+
+function startNow(ev){
+  const b=ev?.target?.closest?.("#fl27-start-final");
+  if(!b || starting)return;
+  if(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(typeof ev.stopImmediatePropagation==="function")ev.stopImmediatePropagation();
+  }
+  starting=true;
+  b.disabled=true;
+  b.style.opacity=".7";
+  b.textContent="⚽ URUCHAMIAM KARIERĘ…";
+
+  /* Use the already completed canonical creator state. */
+  try{
+    if(typeof W.FL27_confirmPlus==="function"){
+      W.FL27_confirmPlus();
+    }else if(typeof W.__FL27_ORIGINAL_START_CAREER==="function"){
+      W.__FL27_ORIGINAL_START_CAREER();
+    }else if(typeof W.FL27_INTERNAL_START_CAREER==="function"){
+      W.FL27_INTERNAL_START_CAREER();
+    }else{
+      throw new Error("Brak silnika startu kariery");
+    }
+  }catch(e){
+    console.error("V148 final start",e);
+    starting=false;
+    b.disabled=false;
+    b.style.opacity="1";
+    b.textContent="⚽ ROZPOCZNIJ KARIERĘ";
+    W.toast?.("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+  }
+}
+
+/* iPhone: handle pointer/touch before the browser turns it into click. */
+W.addEventListener("pointerup",startNow,true);
+W.addEventListener("touchend",startNow,true);
+
+/* Also bind directly whenever the final screen is rendered. */
+function bind(){
+  const b=document.getElementById("fl27-start-final");
+  if(!b || b.__v148)return;
+  b.__v148=true;
+  b.addEventListener("pointerup",startNow,{capture:false});
+  b.addEventListener("touchend",startNow,{capture:false});
+}
+new MutationObserver(bind).observe(document.documentElement,{subtree:true,childList:true});
+setInterval(bind,300);
+})();
+</script>
