@@ -3082,25 +3082,6 @@ window.fatherCoachOpportunity=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V3_RENDER){
-  window.__FL27_V3_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v3-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v3-extra";
-      wrap.innerHTML=(window.FL27_renderFLgram?FL27_renderFLgram():"")+(window.FL27_renderMoneyChoices?FL27_renderMoneyChoices():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3351,27 +3332,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V5_RENDER){
-  window.__FL27_V5_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v5-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v5-extra";
-      wrap.innerHTML=(window.FL27_renderStars?FL27_renderStars():"")+
-                     (window.FL27_renderSideCareers?FL27_renderSideCareers():"")+
-                     (window.FL27_renderSocialNotifications?FL27_renderSocialNotifications():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3535,26 +3495,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V6_RENDER){
-  window.__FL27_V6_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v6-extra").forEach(x=>x.remove());
-      const wrap=document.createElement("div");wrap.className="fl27-v6-extra";
-      wrap.innerHTML=(window.FL27_renderFamilyRelationship?FL27_renderFamilyRelationship():"")+
-                     (window.FL27_renderStarEncounters?FL27_renderStarEncounters():"");
-      host.appendChild(wrap);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -3607,25 +3547,6 @@ window.FL27_renderEventScale=function(){
 </script>
 
 <script>
-(function(){
- const old=window.render;
- if(typeof old==="function" && !window.__FL27_V7_RENDER){
-  window.__FL27_V7_RENDER=true;
-  window.render=function(){
-   const r=old.apply(this,arguments);
-   try{
-    const host=document.querySelector("main")||document.body;
-    if(host){
-      document.querySelectorAll(".fl27-v7-extra").forEach(x=>x.remove());
-      const d=document.createElement("div");d.className="fl27-v7-extra";
-      d.innerHTML=window.FL27_renderReplayStats?FL27_renderReplayStats():"";
-      host.appendChild(d);
-    }
-   }catch(e){}
-   return r;
-  }
- }
-})();
 </script>
 
 <script>
@@ -4895,43 +4816,8 @@ window.FL27_MASTER_FEATURES = [
   };
 
   /* ---------- home: news first, identity tiny, many life choices ---------- */
-  window.renderHome=function(m){
-    const md=Number(Sx().nextMatchDay||7), diff=md-day();
-    const next=diff<=0?"DZIŚ":`za ${diff} ${diff===1?"dzień":"dni"}`;
-    const remaining=Math.max(0,22-hour());
-    m.innerHTML=`
-      ${FL27V9_identity()}
-      ${FL27V9_news()}
-      ${panelTasksHTML()}
-      <div class="v9-timebar"><b>📅 ${esc(fmtDate())}</b><span>Do 22:00: <strong>${remaining}h</strong></span></div>
-
-      <div class="v9-section-title"><b>Co możesz zrobić teraz?</b><span>nie tylko futbol</span></div>
-      <div class="v9-action-grid">
-        <button onclick="train(true)" ${hour()+2>22?"disabled":""}>⚽ <b>Trening drużynowy</b><small>2h • limit 3–4 / tydz.</small></button>
-        <button onclick="FL27V9_activity('homework')" ${hour()+1.5>22?"disabled":""}>📚 <b>Nauka</b><small>1,5h • szkoła</small></button>
-        <button onclick="FL27V9_activity('friends')" ${hour()+2>22?"disabled":""}>👥 <b>Spotkaj się ze znajomymi</b><small>2h • relacje</small></button>
-        <button onclick="FL27V9_activity('walk')" ${hour()+1>22?"disabled":""}>🚶 <b>Spacer</b><small>1h • regeneracja</small></button>
-        <button onclick="FL27V9_activity('bike')" ${hour()+1.5>22?"disabled":""}>🚲 <b>Rower</b><small>1,5h • mobilność</small></button>
-        <button onclick="FL27V9_activity('family')" ${hour()+2>22?"disabled":""}>❤️ <b>Czas z rodziną</b><small>2h • relacja</small></button>
-        <button onclick="FL27V9_activity('music')" ${hour()+1>22?"disabled":""}>🎵 <b>Hobby</b><small>1h • talent / mental</small></button>
-        <button onclick="FL27V9_activity('library')" ${hour()+1.5>22?"disabled":""}>📖 <b>Biblioteka</b><small>1,5h • szkoła</small></button>
-        <button onclick="FL27V9_activity('park')" ${hour()+1.5>22?"disabled":""}>🌳 <b>Park</b><small>1,5h • życie</small></button>
-        <button onclick="FL27V9_activity('cooking')" ${hour()+1.5>22?"disabled":""}>🍝 <b>Gotowanie</b><small>1,5h • dom</small></button>
-        <button onclick="FL27V9_activity('game')" ${hour()+2>22?"disabled":""}>🎮 <b>Gry / odpoczynek</b><small>2h • mental</small></button>
-        <button onclick="FL27V9_activity('phone')" ${hour()+.5>22?"disabled":""}>📱 <b>Telefon / FLgram</b><small>30 min • social</small></button>
-        <button onclick="job()" ${hour()+2>22?"disabled":""}>💼 <b>Drobna praca</b><small>2h • pieniądze</small></button>
-        <button onclick="city('cafe')" ${hour()+2>22?"disabled":""}>🏙️ <b>Miasto</b><small>2h • przypadki</small></button>
-        <button onclick="sleep()">🌙 <b>Idź spać</b><small>${hour()>=22?"8h • nowy dzień":"dostępne od 22:00"}</small></button>
-        <button onclick="playMatch()">⚽ <b>Najbliższy mecz</b><small>${next}</small></button>
-      </div>
-
-      <div class="v9-small-panels">
-        <div><small>⚡ Energia</small><b>${Math.round(Sx().energy||0)}/100</b></div>
-        <div><small>❤️ Zdrowie</small><b>${Math.round(Sx().health||0)}/100</b></div>
-        <div><small>🏃 Forma</small><b>${Math.round(Sx().form||0)}/100</b></div>
-        <div><small>💶 Pieniądze</small><b>€${Math.floor(Sx().money||0)}</b></div>
-      </div>`;
-  };
+  /* V69: V9 activity functions remain available to the Day tab.
+     The old V9 home dashboard is intentionally removed. */
 
   /* ---------- day tab: same playable day, not a duplicate of home ---------- */
   window.renderDay=function(m){
@@ -5120,683 +5006,7 @@ try{if(window.S?.started)render()}catch(e){}
 
  /* Replace the "do anything" concept: situations provide café/coffee/outing,
     while the free-action panel stays for meaningful persistent actions. */
- const oldRenderHome=window.renderHome;
- if(typeof oldRenderHome==="function"&&!window.__FL27_V10_HOME){
-   window.__FL27_V10_HOME=true;
-   window.renderHome=function(m){
-     oldRenderHome(m);
-     try{
-       const d=document.createElement("div");d.className="fl27-v10-finance";
-       d.innerHTML=FL27_renderFinancePanel();m.appendChild(d);
-     }catch(e){}
-   };
- }
-
- /* One daily event is generated automatically as the day begins/advances. */
- if(window.advance&&!window.__FL27_V10_ADV){
-   const oldAdv=window.advance;window.__FL27_V10_ADV=true;
-   window.advance=function(h){
-     const before=Number(S?.day||1);const r=oldAdv.apply(this,arguments);
-     const after=Number(S?.day||1);
-     if(after!==before){
-       window.FL27_V9&&(FL27_V9.lastDaily=before);
-       setTimeout(()=>{try{window.FL27_dailyEvent();window.FL27_futureFinance();}catch(e){}},0);
-     }
-     return r;
-   };
- }
-})();
-</script>
-<style>
-.finance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.finance-grid button,.finance-future button{padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#141a23;color:#fff;text-align:left}
-.finance-grid small{display:block;color:#aeb7c4;margin-top:3px}.finance-future{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
-</style>
-
-<script>
-/* ============================================================
-   FL27 V11 — FIRST YEAR TUTORIAL + FORCED 3-CHOICE DECISIONS
-   The first in-game year gradually teaches every major system.
-   Every decision screen has exactly 3 meaningful choices and
-   cannot be dismissed without choosing one.
-   ============================================================ */
-(function(){
- const K="FL27_V11_TUTORIAL";
- let T;try{T=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){T={}}
- T.started??=false;
- T.completed??=[];
- T.pending??=null;
- T.introShown??={};
- T.year1Step??=0;
- T.helpSeen??={};
- window.FL27_TUTORIAL=T;
-
- const save=()=>localStorage.setItem(K,JSON.stringify(T));
- const age=()=>Number(S?.age||15);
- const day=()=>Number(S?.day||1);
-
- /* First-year curriculum: not every item fires on consecutive days;
-    it is unlocked by the relevant system so the tutorial feels natural. */
- const lessons=[
-  ["identity","👋 Zaczynamy","To jest Twój pierwszy rok w Football Life 27. Gra będzie Ci stopniowo pokazywać, jak działa życie postaci. Nie musisz znać zasad z góry.","Na początku wybierasz proste decyzje. Później coraz więcej zależy od Twojej historii."],
-  ["time","⏰ Czas","Każdy dzień ma ograniczoną liczbę godzin. Szkoła, trening, dojazdy, znajomi, praca i odpoczynek zajmują realny czas.","O 22:00 możesz iść spać. Sen przenosi Cię do kolejnego dnia."],
-  ["family","❤️ Rodzina","Rodzice nie są tylko źródłem pieniędzy. Relacje z nimi zmieniają się przez rozmowy, wspólny czas, konflikty, wsparcie i Twoje decyzje.","Pieniądze rodziny i bliskość z rodzicami są osobnymi rzeczami."],
-  ["school","🏫 Szkoła","Szkoła wpływa na Twoje możliwości, relacje i przyszłość. Nie każda sytuacja szkolna jest związana z futbolem.","Czasem warto wybrać naukę zamiast kolejnej aktywności."],
-  ["football","⚽ Futbol","Trening drużynowy nie jest jedyną możliwością rozwoju. Liczy się regeneracja, dodatkowa praca, mental i decyzje poza boiskiem.","Nie możesz trenować bez końca — organizm i doba mają swoje limity."],
-  ["relations","👥 Relacje","Znajomi, koledzy z drużyny, przeciwnicy i późniejsze kontakty mogą wejść do Twojego życia.","Relacja rozwija się przez wspólne sytuacje, wiadomości, spacery, naukę i wydarzenia."],
-  ["flgram","📱 FLgram","Od odpowiedniego wieku social media mogą stać się częścią Twojego życia. Możesz publikować, obserwować i reagować na innych.","Z czasem FLgram może wpływać na PR, kontakty i poboczną karierę."],
-  ["money","💰 Finanse","Pieniądze mogą pochodzić z wielu źródeł. Możesz też je wydawać, oszczędzać i później inwestować.","W dorosłości pojawiają się kontrakty, sponsorzy, biznes i inwestycje."],
-  ["life","🎲 Życie","Nie wszystkie wydarzenia dotyczą piłki. Czasem wydarzy się coś banalnego, czasem coś bardzo rzadkiego.","Twoje wcześniejsze decyzje zmieniają to, jakie wydarzenia mogą pojawić się później."],
-  ["future","🚀 Przyszłość","Nie musisz zostać wyłącznie piłkarzem. Możesz odkryć talent, ale możesz też wykształcić się jako trener, skaut, analityk, twórca lub przedsiębiorca.","Te możliwości będą pojawiały się naturalnie, gdy Twoja historia będzie się rozwijać."]
- ];
-
- function tutorialProgress(){
-   const idx=Math.min(T.year1Step,lessons.length);
-   return {idx,total:lessons.length,lesson:lessons[idx]};
- }
-
- window.FL27_tutorialHelp=function(key){
-   if(T.helpSeen[key])return;
-   const l=lessons.find(x=>x[0]===key);if(!l)return;
-   T.helpSeen[key]=true;save();
-   return l;
- };
-
- /* Exactly three options. No "later", "skip", X, outside click or cancel. */
- window.FL27_forceThree=function(eventId,title,text,choices,meta={}){
-   const c=(choices||[]).slice(0,3);
-   while(c.length<3)c.push(["Wybieram rozwiązanie pośrednie",()=>{}]);
-   T.pending={eventId,title,text,choices:c.map((x,i)=>({label:x[0],index:i,fn:null})),meta};
-   window.__FL27_V11_CALLBACKS=window.__FL27_V11_CALLBACKS||{};
-   window.__FL27_V11_CALLBACKS[eventId]=c.map(x=>x[1]);
-   save();
-   render();
- };
-
- window.FL27_chooseForced=function(eventId,index){
-   const p=T.pending;
-   if(!p||p.eventId!==eventId||index<0||index>2)return;
-   const fn=window.__FL27_V11_CALLBACKS?.[eventId]?.[index];
-   try{if(typeof fn==="function")fn()}catch(e){console.error(e)}
-   T.completed.push({id:eventId,day:day(),age:age(),choice:index});
-   T.pending=null;
-   if(T.year1Step<lessons.length && eventId.startsWith("tutorial_")){
-      T.year1Step++;
-   }
-   save();
-   try{saveSoon()}catch(e){}
-   render();
- };
-
- /* First-year teaching prompts are embedded into real events. */
- window.FL27_nextTutorialEvent=function(){
-   if(age()>15 || T.year1Step>=lessons.length)return null;
-   const l=lessons[T.year1Step];
-   if(!l)return null;
-   const id="tutorial_"+l[0];
-   if(T.completed.some(x=>x.id===id))return null;
-
-   const choices=[
-     ["Chcę, pokaż mi jak to działa",()=>{T.introShown[l[0]]=true}],
-     ["Rozumiem — przejdźmy dalej",()=>{T.introShown[l[0]]=true}],
-     ["Pokaż mi na przykładzie",()=>{T.introShown[l[0]]=true}]
-   ];
-   return {id,title:l[1],text:l[2]+" "+l[3],choices};
- };
-
- /* Replace V9/V10's dismissible event presentation with a mandatory modal-like
-    decision panel whenever an event is active. */
- window.FL27_renderForcedEvent=function(){
-   const p=T.pending;
-   if(!p)return "";
-   return `<div class="v11-event-lock">
-     <div class="v11-event-kicker">📰 WYDARZENIE • WYBÓR WYMAGANY</div>
-     <h2>${esc(p.title)}</h2>
-     <p>${esc(p.text)}</p>
-     <div class="v11-three">
-       ${p.choices.slice(0,3).map((c,i)=>`<button onclick="FL27_chooseForced('${esc(p.eventId)}',${i})"><span>${i+1}</span><b>${esc(c.label)}</b></button>`).join("")}
-     </div>
-     <small>Musisz wybrać jedną z 3 możliwości, aby historia mogła się toczyć dalej.</small>
-   </div>`;
- };
-
- /* First-year explanation banner: subtle, not giant. */
- window.FL27_renderTutorialBar=function(){
-   if(age()>15 || T.year1Step>=lessons.length)return "";
-   const l=lessons[T.year1Step];
-   return `<div class="v11-help"><b>🎓 Samouczek ${T.year1Step+1}/${lessons.length}</b><span>${esc(l[1])}</span><small>Gra prowadzi Cię przez pierwszy rok. Później podpowiedzi stopniowo znikną.</small></div>`;
- };
-
- /* Automatically create the next tutorial decision if none is open.
-    It happens during normal play, not as a separate "tutorial mode". */
- if(window.render && !window.__FL27_V11_RENDER){
-   const oldRender=window.render;
-   window.__FL27_V11_RENDER=true;
-   window.render=function(){
-     try{
-       if(!T.pending && age()<=15){
-         const e=FL27_nextTutorialEvent();
-         if(e) {
-           T.pending={eventId:e.id,title:e.title,text:e.text,
-             choices:e.choices.map(x=>({label:x[0],index:0})),meta:{tutorial:true}};
-           window.__FL27_V11_CALLBACKS=window.__FL27_V11_CALLBACKS||{};
-           window.__FL27_V11_CALLBACKS[e.id]=e.choices.map(x=>x[1]);
-           save();
-         }
-       }
-     }catch(e){}
-     const r=oldRender.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       if(host){
-         document.querySelectorAll(".fl27-v11-extra").forEach(x=>x.remove());
-         const d=document.createElement("div");d.className="fl27-v11-extra";
-         d.innerHTML=FL27_renderTutorialBar()+FL27_renderForcedEvent();
-         host.insertBefore(d,host.firstElementChild);
-       }
-     }catch(e){}
-     return r;
-   };
- }
-
- /* Make V9 event choices mandatory too: if the old pending event exists,
-    mirror it into the forced layer and remove any "nothing now" path. */
- if(window.FL27V9_chooseEvent&&!window.__FL27_V11_CHOICE_WRAP){
-   const oldChoose=window.FL27V9_chooseEvent;
-   window.__FL27_V11_CHOICE_WRAP=true;
-   window.FL27V9_chooseEvent=function(i){
-     if(T.pending)return;
-     return oldChoose(i);
-   };
- }
-
- save();
-})();
-</script>
-<style>
-.v11-help{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 8px;margin-bottom:7px;border-radius:9px;background:rgba(255,255,255,.035);font-size:10px;color:#b9c1cd}
-.v11-help b{color:#fff}.v11-help span{font-weight:700}.v11-help small{opacity:.65}
-.v11-event-lock{position:relative;padding:19px;margin:0 0 12px;border-radius:18px;border:1px solid rgba(230,57,70,.4);background:linear-gradient(145deg,rgba(96,18,27,.62),rgba(12,16,23,.99));box-shadow:0 18px 40px rgba(0,0,0,.3);z-index:50}
-.v11-event-kicker{font-size:10px;letter-spacing:.12em;font-weight:900;opacity:.72}.v11-event-lock h2{font-size:21px;margin:6px 0}.v11-event-lock p{font-size:14px;line-height:1.5;color:#dce1e9;margin:0 0 13px}
-.v11-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.v11-three button{min-height:70px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.11);background:#171c25;color:#fff;text-align:left;cursor:pointer}.v11-three button:hover{border-color:rgba(230,57,70,.7);transform:translateY(-1px)}.v11-three span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);margin-right:6px;font-size:10px}.v11-event-lock>small{display:block;margin-top:9px;opacity:.58;font-size:10px}
-@media(max-width:650px){.v11-three{grid-template-columns:1fr}}
-</style>
-
-<script>
-/* ============================================================
- FL27 V12 — PARTNER / CHILDREN / FAMILY ECONOMY / FLGRAM REALISM
- - Partner has occupation, income, personality and hidden/visible
-   athletic traits relevant to offspring simulation.
- - Children create realistic new expenses and life events.
- - FLgram has followers, posts, engagement and real-star profiles.
- ============================================================ */
-(function(){
- const K="FL27_V12_FAMILY_SOCIAL";
- let X;try{X=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){X={}}
- X.partner??=null;
- X.children??=[];
- X.posts??=[];
- X.followers??=0;
- X.followingStars??=[];
- X.starProfiles??={};
- X.familyExpenses??=[];
- X.familyIncome??=[];
- window.FL27_V12=X;
- const save=()=>localStorage.setItem(K,JSON.stringify(X));
- const age=()=>Number(S?.age||15), day=()=>Number(S?.day||1);
-
- /* Real-world football reference points captured in 2026. */
- const stars=[
-  {id:"ronaldo",name:"Cristiano Ronaldo",club:"Al-Nassr",pos:"napastnik",country:"Portugalia",followers:666000000},
-  {id:"messi",name:"Lionel Messi",club:"Inter Miami",pos:"napastnik",country:"Argentyna",followers:507000000},
-  {id:"neymar",name:"Neymar",club:"Santos",pos:"napastnik",country:"Brazylia",followers:236000000},
-  {id:"mbappe",name:"Kylian Mbappé",club:"Real Madrid",pos:"napastnik",country:"Francja",followers:131000000},
-  {id:"salah",name:"Mohamed Salah",club:"Liverpool",pos:"skrzydłowy",country:"Egipt",followers:65000000},
-  {id:"vinijr",name:"Vinícius Júnior",club:"Real Madrid",pos:"skrzydłowy",country:"Brazylia",followers:60000000},
-  {id:"yamal",name:"Lamine Yamal",club:"Barcelona",pos:"skrzydłowy",country:"Hiszpania",followers:44000000},
-  {id:"bellingham",name:"Jude Bellingham",club:"Real Madrid",pos:"pomocnik",country:"Anglia",followers:41000000},
-  {id:"haaland",name:"Erling Haaland",club:"Manchester City",pos:"napastnik",country:"Norwegia",followers:41000000},
-  {id:"modric",name:"Luka Modrić",club:"AC Milan",pos:"pomocnik",country:"Chorwacja",followers:39000000},
-  {id:"hakimi",name:"Achraf Hakimi",club:"Paris Saint-Germain",pos:"obrońca",country:"Maroko",followers:24000000},
-  {id:"pedri",name:"Pedri",club:"Barcelona",pos:"pomocnik",country:"Hiszpania",followers:23000000}
- ];
- X.starProfiles=X.starProfiles||{};
- stars.forEach(st=>X.starProfiles[st.id]??={following:false,likes:0,comments:0,followers:st.followers});
- window.FL27_V12_STARS=stars;
-
- /* Partner pool: occupation and life circumstances matter independently from money. */
- const partners=[
-  {gender:"K",name:"Sofia",job:"fizjoterapeutka",income:2600,ath:{speed:68,coord:82,stamina:76,height:168,injury:30,mental:79}},
-  {gender:"K",name:"Clara",job:"nauczycielka",income:2200,ath:{speed:54,coord:70,stamina:64,height:170,injury:35,mental:88}},
-  {gender:"K",name:"Marta",job:"dietetyczka",income:2500,ath:{speed:62,coord:78,stamina:72,height:166,injury:25,mental:84}},
-  {gender:"K",name:"Laura",job:"fotografka",income:2300,ath:{speed:58,coord:76,stamina:61,height:171,injury:38,mental:81}},
-  {gender:"K",name:"Elena",job:"prawniczka",income:4200,ath:{speed:55,coord:69,stamina:59,height:174,injury:40,mental:91}},
-  {gender:"K",name:"Ines",job:"trenerka młodzieży",income:2800,ath:{speed:72,coord:85,stamina:80,height:169,injury:22,mental:86}},
-  {gender:"M",name:"Mateo",job:"fizjoterapeuta",income:2800,ath:{speed:72,coord:84,stamina:82,height:182,injury:22,mental:82}},
-  {gender:"M",name:"Julien",job:"nauczyciel",income:2400,ath:{speed:55,coord:72,stamina:66,height:180,injury:31,mental:88}},
-  {gender:"M",name:"Leo",job:"analityk sportowy",income:3200,ath:{speed:63,coord:78,stamina:70,height:184,injury:29,mental:90}},
-  {gender:"M",name:"Tiago",job:"kucharz",income:2300,ath:{speed:61,coord:74,stamina:68,height:178,injury:36,mental:79}},
-  {gender:"M",name:"Daniel",job:"architekt",income:3500,ath:{speed:57,coord:73,stamina:63,height:186,injury:39,mental:87}}
- ];
-
- window.FL27_createPartner=function(index){
-   if(age()<18)return false;
-   const p=partners[index%partners.length];
-   X.partner={...p,relationship:50,dayMet:day(),togetherYears:0,childrenCount:0};
-   save();render();return true;
- };
-
- window.FL27_partnerMonthly=function(){
-   if(!X.partner)return;
-   const p=X.partner;
-   /* Partner income is not automatically yours; shared finances depend on relationship. */
-   const shared=Math.round(p.income*(p.relationship>=70?.35:p.relationship>=45?.20:.05));
-   if(shared>0){S.money=Number(S.money||0)+shared;X.familyIncome.push({day:day(),amount:shared,reason:"Wkład partnera do wspólnego budżetu"});}
-   save();
- };
-
- /* Offspring: traits are probabilistic blends, never a guaranteed "genetic rating". */
- window.FL27_createChild=function(){
-   if(!X.partner || age()<20)return false;
-   const parent={
-     speed:Number(S.speed||S.pace||50),coord:Number(S.coordination||S.skill||50),
-     stamina:Number(S.stamina||S.form||50),height:Number(S.height||171),
-     injury:Number(S.injuryRisk||35),mental:Number(S.mental||50)
-   };
-   const g=X.partner.ath;
-   const blend=(a,b,noise=10)=>Math.max(1,Math.min(99,Math.round((a+b)/2+(Math.random()-.5)*noise)));
-   const child={
-     id:"child_"+Date.now(),name:["Alex","Noa","Mia","Luca","Emma","Nico","Sara","Leo"][Math.floor(Math.random()*8)],
-     bornDay:day(),age:0,
-     traits:{
-       speed:blend(parent.speed,g.speed),coordination:blend(parent.coord,g.coord),
-       stamina:blend(parent.stamina,g.stamina),heightPotential:blend(parent.height,g.height,8),
-       injuryRisk:blend(parent.injury,g.injury,8),mentalPotential:blend(parent.mental,g.mental)
-     },
-     footballInterest:null,school:0
-   };
-   X.children.push(child);X.partner.childrenCount++;
-   save();return child;
- };
-
- window.FL27_familyMonthly=function(){
-   let total=0;
-   if(X.children.length){
-     X.children.forEach(c=>{
-       const base=c.age<3?550:c.age<7?400:c.age<13?350:500;
-       total+=base;
-     });
-   }
-   if(X.partner && X.partner.relationship<40)total+=200;
-   if(total){
-     S.money=Math.max(0,Number(S.money||0)-total);
-     X.familyExpenses.push({day:day(),amount:total,reason:"Koszty rodziny i dzieci"});
-   }
-   save();
- };
-
- /* FLgram posts and follower growth. */
- const postTypes=[
-  "⚽ trening","🏆 mecz","📸 zdjęcie z drużyną","👟 nowe korki","🏖️ wakacje",
-  "❤️ rodzina","👥 znajomi","🎓 szkoła","🚗 podróż","🎮 życie poza boiskiem",
-  "💪 przygotowanie","📹 kulisy","🎤 hobby","🏠 nowe miejsce","🤝 akcja charytatywna",
-  "🧠 mental","🍝 jedzenie","📚 nauka","✈️ wyjazd","⭐ wielkie wydarzenie"
- ];
- window.FL27_createPost=function(typeIndex){
-   const type=postTypes[typeIndex%postTypes.length];
-   const pr=Number(S?.pr||0), skill=Number(S?.skill||0);
-   const base=Number(X.followers||0);
-   let gain=Math.max(0,Math.round(2+pr*.8+skill*.35+Math.random()*18));
-   if(type.includes("mecz")||type.includes("wielkie"))gain*=2;
-   if(base>10000)gain=Math.round(gain*(1+Math.random()*.35));
-   X.followers=base+gain;
-   const post={id:"post_"+Date.now(),day:day(),type,likes:Math.max(1,Math.round((base+gain)*(.01+Math.random()*.08))),comments:Math.round(Math.random()*Math.max(2,base/5000)),followersAfter:X.followers};
-   X.posts.unshift(post);X.posts=X.posts.slice(0,100);
-   save();render();
- };
-
- window.FL27_followRealStar=function(id){
-   const st=stars.find(x=>x.id===id);if(!st)return;
-   X.starProfiles[id].following=!X.starProfiles[id].following;
-   if(X.starProfiles[id].following)X.followingStars.push(id);
-   else X.followingStars=X.followingStars.filter(x=>x!==id);
-   save();render();
- };
-
- window.FL27_likeRealStarPost=function(id){
-   const st=stars.find(x=>x.id===id);if(!st)return;
-   X.starProfiles[id].likes++;
-   /* Rare reply probability depends on player's PR, followers and chance. */
-   const chance=.002+Math.min(.05,Number(S?.pr||0)/2000)+Math.min(.025,X.followers/2000000);
-   if(Math.random()<chance){
-     X.notifications=X.notifications||[];
-     X.notifications.push({day:day(),text:`⭐ ${st.name} polubił(a) Twoją aktywność.`});
-     S.pr=Math.min(100,Number(S.pr||0)+1);
-   }
-   save();render();
- };
-
- window.FL27_commentRealStar=function(id){
-   const st=stars.find(x=>x.id===id);if(!st)return;
-   X.starProfiles[id].comments++;
-   const chance=.001+Math.min(.04,Number(S?.pr||0)/2500)+Math.min(.02,X.followers/3000000);
-   if(Math.random()<chance){
-     X.notifications=X.notifications||[];
-     X.notifications.push({day:day(),text:`💬 ${st.name} odpowiedział(a) na Twój komentarz.`});
-     S.pr=Math.min(100,Number(S.pr||0)+2);
-   }
-   save();render();
- };
-
- window.FL27_renderFamilyFuture=function(){
-   const p=X.partner;
-   return `<div class="card"><div class="section-title"><b>❤️ Rodzina i przyszłość</b><span>${p?`partner: ${esc(p.name)}`:"jeszcze przed Tobą"}</span></div>
-   ${p?`<div class="partner-box"><div><b>${esc(p.name)}</b><small>${esc(p.job)} • ok. €${p.income}/mies. • relacja ${p.relationship}/100</small></div>
-   <div><b>🧬 Predyspozycje</b><small>motoryka ${Math.round(p.ath.coord)} • szybkość ${Math.round(p.ath.speed)} • wydolność ${Math.round(p.ath.stamina)} • potencjał wzrostu ${Math.round(p.ath.height)} cm</small></div></div>
-   <p class="sub">Te cechy są punktem wyjścia do losowego modelu dziedziczenia. Dziecko nie dostaje automatycznie talentu piłkarskiego — środowisko, trening, zdrowie i wybory też mają znaczenie.</p>`:
-   `<p class="sub">Później możesz zbudować związek, wspólny budżet i rodzinę. Partner/partnerka będzie mieć własny zawód, dochody, charakter i historię.</p>`}
-   ${X.children.length?`<div class="children">${X.children.map(c=>`<div><b>👶 ${esc(c.name)} • ${c.age} l.</b><small>koordynacja ${c.traits.coordination} • szybkość ${c.traits.speed} • wydolność ${c.traits.stamina} • potencjał wzrostu ${c.traits.heightPotential} cm</small></div>`).join("")}</div>`:""}</div>`;
- };
-
- window.FL27_renderFLgramReal=function(){
-   return `<div class="card"><div class="section-title"><b>📱 FLgram</b><span>${X.followers.toLocaleString("pl-PL")} obserwujących</span></div>
-    <div class="flgram-profile"><b>@${esc(String(S?.name||"player").toLowerCase().replace(/\s+/g,"_"))}</b><small>${X.posts.length} postów • ⭐ PR ${Math.round(S?.pr||0)}</small></div>
-    <div class="post-grid">${postTypes.slice(0,10).map((x,i)=>`<button onclick="FL27_createPost(${i})">${x}</button>`).join("")}</div>
-    ${X.posts.slice(0,5).map(p=>`<div class="log"><em>Dzień ${p.day}</em><b>${p.type}</b> • ❤️ ${p.likes.toLocaleString("pl-PL")} • 💬 ${p.comments.toLocaleString("pl-PL")} • +${p.followersAfter.toLocaleString("pl-PL")} obserwujących</div>`).join("")}</div>`;
- };
-
- window.FL27_renderRealStars=function(){
-   return `<div class="card"><div class="section-title"><b>⭐ Gwiazdy futbolu</b><span>realne punkty odniesienia</span></div>
-   ${stars.map(st=>{const q=X.starProfiles[st.id];return `<div class="real-star"><div><b>${esc(st.name)}</b><small>${esc(st.club)} • ${esc(st.pos)} • ${st.followers.toLocaleString("pl-PL")} obserwujących</small></div>
-   <button onclick="FL27_followRealStar('${st.id}')">${q.following?"✓ Obserwujesz":"Obserwuj"}</button>
-   <div><button onclick="FL27_likeRealStarPost('${st.id}')">❤️ Lajkuj post</button><button onclick="FL27_commentRealStar('${st.id}')">💬 Skomentuj</button></div></div>`}).join("")}</div>`;
- };
-
- /* Month-ish progression hooks. */
- if(window.advance&&!window.__FL27_V12_ADV){
-   const old=window.advance;window.__FL27_V12_ADV=true;
-   window.advance=function(h){
-     const before=Number(S?.day||1),r=old.apply(this,arguments),after=Number(S?.day||1);
-     if(after!==before){
-       try{
-         if(age()>=18)FL27_partnerMonthly();
-         if(age()>=20)FL27_familyMonthly();
-       }catch(e){}
-     }
-     return r;
-   };
- }
-
- if(window.render&&!window.__FL27_V12_RENDER){
-   const old=window.render;window.__FL27_V12_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v12-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v12-extra";
-       d.innerHTML=FL27_renderFLgramReal()+FL27_renderRealStars()+FL27_renderFamilyFuture();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
- save();
-})();
-</script>
-<style>
-.partner-box{display:grid;grid-template-columns:1fr 1fr;gap:8px}.partner-box>div,.children>div{padding:11px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.025);display:grid;gap:4px}.partner-box small,.children small,.real-star small,.flgram-profile small{display:block;opacity:.7;line-height:1.4}.children{display:grid;gap:7px;margin-top:8px}
-.post-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.post-grid button,.real-star button{padding:9px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:#151b24;color:#fff;text-align:left}
-.real-star{display:grid;grid-template-columns:1fr auto;gap:7px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}.real-star>div:last-child{grid-column:1/-1;display:flex;gap:7px}.real-star>div:last-child button{flex:1}
-.flgram-profile{padding:11px;border-radius:11px;background:rgba(255,255,255,.035);margin-bottom:8px}
-@media(max-width:600px){.partner-box{grid-template-columns:1fr}}
-</style>
-
-<script>
-/* ============================================================
- FL27 V13 — POSITION-AWARE WORLD
- Events, training choices, praise, scouting and career situations
- adapt to the player's actual position. No generic "footballer"
- situations when a role-specific one makes more sense.
- ============================================================ */
-(function(){
- const K="FL27_V13_POSITION";
- let P;try{P=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){P={}}
- P.positionHistory??=[];
- P.positionEventsSeen??={};
- window.FL27_POSITION=P;
- const save=()=>localStorage.setItem(K,JSON.stringify(P));
- const pos=()=>String(S?.pos||S?.position||"").toLowerCase();
- const age=()=>Number(S?.age||15);
-
- const groups={
-  goalkeeper:{
-   names:["bramkarz","gk","goalkeeper","bramkarz/k"],
-   label:"Bramkarz",
-   skills:["refleks","gra nogami","ustawienie","wyjścia do dośrodkowań","komunikacja","1 na 1"],
-   events:[
-    ["🧤 Trener chce pracować nad wyjściami","Na treningu trener zauważa, że dobrze czytasz dośrodkowania. Pyta, czy chcesz poćwiczyć wyjścia z bramki.","Trenujesz wyjścia","Ćwiczysz ustawienie","Prosisz o analizę nagrania"],
-    ["📣 Obrona słucha Twojego głosu","Koledzy z obrony coraz częściej pytają Cię, jak ustawić linię. Możesz przejąć więcej odpowiedzialności.","Podpowiadasz obrońcom","Prosisz trenera o wskazówki","Obserwujesz i uczysz się"],
-    ["⚽ Ryzyko przy rozegraniu","Masz piłkę przy nodze pod pressingiem. Decyzja wpływa na ocenę Twojej gry nogami.","Zagrywasz krótko","Grasz daleko","Czekasz na ruch kolegi"],
-    ["🧤 Trening jeden na jeden","Trener organizuje serię sytuacji sam na sam z napastnikiem.","Czekasz do końca","Skracasz kąt","Próbujesz przewidzieć strzał"]
-   ]
-  },
-  defender:{
-   names:["obrońca","cb","stoper","środkowy obrońca","lewy obrońca","prawy obrońca","lb","rb"],
-   label:"Obrońca",
-   skills:["odbiór","ustawienie","pojedynki","gra głową","asekuracja","wyprowadzenie piłki"],
-   events:[
-    ["🛡️ Trener analizuje Twój odbiór","Po meczu trener pokazuje sytuację, w której mogłeś/mogłaś wcześniej zaatakować piłkę.","Pracujesz nad timingiem","Ćwiczysz ustawienie","Pytasz o analizę rywala"],
-    ["🏃 Szybki skrzydłowy rywala","W kolejnym meczu możesz dostać zadanie pilnowania bardzo szybkiego skrzydłowego.","Trzymasz dystans","Grasz agresywniej","Prosisz o podwojenie"],
-    ["📣 Asekuracja partnera","Twój stoper/partner z obrony wychodzi do rywala. Musisz zdecydować, jak zabezpieczyć przestrzeń.","Cofasz się","Przesuwasz się do środka","Idziesz za drugim zawodnikiem"],
-    ["⚽ Wyprowadzenie pod pressingiem","Rywal naciska wysoko, a Ty masz pierwsze podanie.","Ryzykujesz pionowe podanie","Zmieniasz stronę","Grasz bezpiecznie do bramkarza"]
-   ]
-  },
-  fullback:{
-   names:["lewy obrońca","prawy obrońca","lb","rb","wahadłowy","wingback"],
-   label:"Boczny obrońca / wahadłowy",
-   skills:["szybkość","dośrodkowanie","wydolność","pojedynki 1v1","powrót","gra w szerokości"],
-   events:[
-    ["🏃 Powrót po stracie","Tracicie piłkę wysoko. Jesteś daleko od własnej bramki.","Wracasz sprintem","Zabezpieczasz środek","Naciskasz zawodnika z piłką"],
-    ["🎯 Dośrodkowanie","Masz miejsce na dośrodkowanie w pole karne.","Wrzucasz na dalszy słupek","Grasz nisko","Czekasz na wbiegnięcie"],
-    ["⚡ Pojedynek ze skrzydłowym","Rywal próbuje Cię minąć przy linii.","Zamykasz linię","Zapraszasz do środka","Atakujesz piłkę"],
-    ["📊 Trener chwali wydolność","Trener zauważa, że wykonujesz najwięcej powrotów w zespole.","Rozwijasz wydolność","Pracujesz nad dośrodkowaniem","Prosisz o analizę pozycji"]
-   ]
-  },
-  midfielder:{
-   names:["pomocnik","środkowy pomocnik","defensywny pomocnik","ofensywny pomocnik","cm","cdm","cam"],
-   label:"Pomocnik",
-   skills:["przegląd pola","podanie","pressing","tempo gry","odbiór","strzał z dystansu"],
-   events:[
-    ["🧠 Trener daje Ci klucz do środka pola","Masz decydować, kiedy przyspieszyć akcję, a kiedy ją uspokoić.","Przyspieszasz","Utrzymujesz piłkę","Zmieniasz stronę"],
-    ["🎯 Ryzyko prostopadłego podania","Napastnik rusza za linię obrony.","Zagrywasz od razu","Jeszcze raz utrzymujesz piłkę","Przerzucasz ciężar gry"],
-    ["🔄 Pressing po stracie","Drużyna traci piłkę w środku.","Natychmiast naciskasz","Cofasz się","Zabezpieczasz podanie"],
-    ["📈 Trener widzi potencjał lidera","Coraz częściej to Ty dyktujesz tempo.","Bierzesz odpowiedzialność","Prosisz o większą rolę","Wolisz spokojnie się rozwijać"]
-   ]
-  },
-  winger:{
-   names:["skrzydłowy","lewy skrzydłowy","prawy skrzydłowy","lw","rw","winger"],
-   label:"Skrzydłowy",
-   skills:["drybling","przyspieszenie","1v1","dośrodkowanie","zejście do środka","pressing"],
-   events:[
-    ["⚡ Pojedynek 1 na 1","Dostajesz piłkę szeroko. Obrońca czeka na Twój ruch.","Idziesz do linii","Schodzisz do środka","Oddajesz piłkę pomocnikowi"],
-    ["🎯 Okazja na asystę","Wchodzisz w pole karne i widzisz lepiej ustawionego partnera.","Podajesz","Strzelasz","Cofasz piłkę"],
-    ["🔥 Rywal prowokuje Cię","Obrońca próbuje wyprowadzić Cię z równowagi.","Ignorujesz go","Odpowiadasz słownie","Zmieniasz pozycję"],
-    ["📱 Film z Twojego dryblingu","Krótki klip z meczu zaczyna krążyć w FLgram.","Udostępniasz","Dziękujesz autorowi","Nie publikujesz nic"]
-   ]
-  },
-  striker:{
-   names:["napastnik","środkowy napastnik","sn","cf","9","napastnik/skrzydłowy"],
-   label:"Napastnik",
-   skills:["wykończenie","ruch bez piłki","gra głową","siła","pressing","1 na 1"],
-   events:[
-    ["🎯 Sytuacja sam na sam","Wychodzisz za linię obrony. Bramkarz skraca kąt.","Strzelasz szybko","Obchodzisz bramkarza","Podcinasz piłkę"],
-    ["🏃 Ruch bez piłki","Pomocnik ma piłkę, a Ty możesz zaatakować przestrzeń.","Wybiegasz za obrońcę","Schodzisz do boku","Cofasz się po piłkę"],
-    ["🥅 Trener pracuje nad wykończeniem","Dostajesz serię różnych sytuacji w polu karnym.","Strzał pierwszy kontakt","Przyjmujesz i strzelasz","Szukasz podania"],
-    ["🧠 Presja na dziewiątce","Nie strzeliłeś/aś w dwóch ostatnich meczach.","Prosisz o dodatkową analizę","Pracujesz nad mentalem","Zmieniasz sposób treningu"]
-   ]
-  }
- };
-
- function findGroup(){
-   const p=pos();
-   for(const [id,g] of Object.entries(groups)){
-     if(g.names.some(n=>p.includes(n)))return {...g,id};
-   }
-   return {...groups.midfielder,id:"midfielder"}; // sensible neutral fallback
- }
-
- window.FL27_positionProfile=function(){return findGroup()};
-
- window.FL27_positionEvent=function(){
-   const g=findGroup();
-   const list=g.events.filter((_,i)=>!P.positionEventsSeen[g.id+"_"+i]);
-   if(!list.length){
-     Object.keys(P.positionEventsSeen).filter(k=>k.startsWith(g.id+"_")).forEach(k=>delete P.positionEventsSeen[k]);
-   }
-   const available=g.events.map((e,i)=>({e,i})).filter(x=>!P.positionEventsSeen[g.id+"_"+x.i]);
-   if(!available.length)return null;
-   const pick=available[Math.floor(Math.random()*available.length)];
-   P.positionEventsSeen[g.id+"_"+pick.i]=1;
-   save();
-   return {id:"pos_"+g.id+"_"+pick.i,title:pick.e[0],text:pick.e[1],choices:pick.e.slice(2)};
- };
-
- window.FL27_renderPosition=function(){
-   const g=findGroup();
-   return `<div class="card position-card"><div class="section-title"><b>⚽ Twoja rola: ${esc(g.label)}</b><span>spójny świat</span></div>
-   <p class="sub">Gra dopasowuje wydarzenia, trening i sytuacje meczowe do Twojej pozycji.</p>
-   <div class="position-skills">${g.skills.map(x=>`<span>${esc(x)}</span>`).join("")}</div></div>`;
- };
-
- /* Feed position-specific events into the existing daily event stream. */
- if(window.FL27_getReplayEvent&&!window.__FL27_V13_EVENT){
-   const old=window.FL27_getReplayEvent;
-   window.__FL27_V13_EVENT=true;
-   window.FL27_getReplayEvent=function(){
-     const chance=pos() && Math.random()<.42;
-     if(chance){
-       const e=window.FL27_positionEvent();
-       if(e)return e;
-     }
-     return old.apply(this,arguments);
-   };
- }
-
- /* Position-aware training explanation. */
- window.FL27_positionTrainingText=function(){
-   const g=findGroup();
-   return `Trening jest dopasowany do pozycji ${g.label.toLowerCase()}: ${g.skills.slice(0,4).join(", ")}.`;
- };
-
- if(window.render&&!window.__FL27_V13_RENDER){
-   const old=window.render;window.__FL27_V13_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v13-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v13-extra";
-       d.innerHTML=FL27_renderPosition();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
- save();
-})();
-</script>
-<style>
-.position-card{margin-top:10px}.position-skills{display:flex;flex-wrap:wrap;gap:6px}.position-skills span{padding:5px 8px;border-radius:999px;background:rgba(230,57,70,.10);border:1px solid rgba(230,57,70,.16);font-size:10px;color:#d9dee7}
-</style>
-
-<script>
-/* ============================================================
-   FOOTBALL LIFE 27 — V14 ALL-IN-ONE MASTER
-   One coherent layer over V1–V13:
-   - first-year tutorial
-   - mandatory 3-choice decisions
-   - daily life events
-   - time/sleep
-   - position-aware events
-   - family/partner/children
-   - finances/income/spending/investments
-   - FLgram + real-star profiles
-   - side careers
-   - delayed consequences
-   - offline persistence
-   ============================================================ */
-(function(){
-  const KEY="FL27_ALL_IN_ONE_V14";
-  let A;try{A=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){A={}}
-  A.version=14;
-  A.startedAt??=Date.now();
-  A.eventHistory??=[];
-  A.choiceHistory??=[];
-  A.used??={};
-  A.dailyEvent??={};
-  A.pendingConsequences??=[];
-  A.unlockedSystems??={
-    time:true, family:true, school:true, football:true,
-    relations:true, finances:true, flgram:false, sideCareer:false
-  };
-  A.coherence??={lastDay:-1,lastHour:-1};
-  window.FL27_ALL=A;
-
-  const save=()=>localStorage.setItem(KEY,JSON.stringify(A));
-  const Sx=()=>window.S||{};
-  const day=()=>Number(Sx().day||1);
-  const hour=()=>Number(Sx().hour||0);
-  const age=()=>Number(Sx().age||15);
-
-  /* ---------- one canonical position profile ---------- */
-  window.FL27_CANONICAL_POSITION=function(){
-    const p=String(Sx().pos||Sx().position||"").toLowerCase();
-    if(/bramkarz|goalkeeper|^gk/.test(p))return"goalkeeper";
-    if(/lewy obrońca|prawy obrońca|wahadłowy|wingback|^lb$|^rb$/.test(p))return"fullback";
-    if(/obrońca|stoper|defender|^cb$/.test(p))return"defender";
-    if(/skrzydłowy|winger|^lw$|^rw$/.test(p))return"winger";
-    if(/napastnik|striker|^sn$|^cf$|^9$/.test(p))return"striker";
-    return"midfielder";
-  };
-
-  /* ---------- canonical daily event gate ----------
-     One meaningful event minimum per day, more can occur when appropriate.
-     It never creates a duplicate event on the same day. */
-  window.FL27_CANONICAL_DAILY_EVENT=function(){
-    const d=day();
-    if(A.dailyEvent[d])return null;
-    if(hour()>=22)return null;
-
-    let e=null;
-    try{
-      e=window.FL27_positionEvent?.();
-      if(!e)e=window.FL27_getReplayEvent?.();
-      if(!e)e=window.FL27V9_maybeEvent?.("time");
-    }catch(err){}
-
-    if(!e)return null;
-    A.dailyEvent[d]={id:e.id||("day_"+d),title:e.title||"Wydarzenie",position:window.FL27_CANONICAL_POSITION()};
-    A.eventHistory.push({day:d,hour:hour(),age:age(),id:e.id,title:e.title,position:window.FL27_CANONICAL_POSITION()});
-    if(A.eventHistory.length>5000)A.eventHistory.shift();
-    save();
-    return e;
-  };
-
-  /* ---------- mandatory 3-choice normalizer ----------
-     Any event entering the master layer becomes exactly three choices. */
-  window.FL27_NORMALIZE_3=function(e){
-    if(!e)return null;
-    let c=e.choices||e.c||[];
-    c=c.map(x=>Array.isArray(x)?x[0]:x.label||x.text||String(x));
-    while(c.length<3)c.push(["Wybieram rozwiązanie pośrednie","Pytam o szczegóły","Podejmuję działanie"][c.length]);
-    return {
-      id:e.id||("event_"+Date.now()),
-      title:e.title||"Coś się wydarzyło",
-      text:e.text||"",
-      choices:c.slice(0,3)
-    };
-  };
+ /* V69: no automatic finance panel injection into Home. */;
 
   /* ---------- delayed consequence helper ---------- */
   window.FL27_QUEUE_CONSEQUENCE=function(days,text,fn){
@@ -7255,20 +6465,7 @@ window.FL27_confirmPlus=function(){
    };
  }
 
- if(window.render&&!window.__FL27_V22_RENDER){
-   const old=window.render;window.__FL27_V22_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v22-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v22-extra";
-       d.innerHTML=FL27_renderCareerMarket()+FL27_renderLuxury();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
+ /* V70: feature renderer is tab-owned; never inject into global main. */
  save();
 })();
 </script>
@@ -7405,20 +6602,7 @@ window.FL27_confirmPlus=function(){
      return r;
    };
  }
- if(window.render&&!window.__FL27_V23_RENDER){
-   const old=window.render;window.__FL27_V23_RENDER=true;
-   window.render=function(){
-     const r=old.apply(this,arguments);
-     try{
-       const host=document.querySelector("main")||document.body;
-       document.querySelectorAll(".fl27-v23-extra").forEach(x=>x.remove());
-       const d=document.createElement("div");d.className="fl27-v23-extra";
-       d.innerHTML=FL27_marketSummary();
-       host.appendChild(d);
-     }catch(e){}
-     return r;
-   };
- }
+ /* V70: feature renderer is tab-owned; never inject into global main. */
  save();
 })();
 </script>
@@ -8395,6 +7579,290 @@ html body{padding-top:62px!important;padding-bottom:58px!important}
 
 .v41-life-note{margin-top:6px;padding:6px 7px;border-radius:8px;background:rgba(255,255,255,.025);font-size:6.2px;line-height:9px;opacity:.5}
 </style>
+
+<!-- FL27 USER EXPANSION V1 -->
+<style id="fl27-user-expansion-style">
+:root{--gold:#f3c55b;--black:#06070a;--ink:#10131a;--panel:#11151d;--line:rgba(255,255,255,.09)}
+.flx-section{margin:12px 0}.flx-title{display:flex;justify-content:space-between;align-items:end;gap:8px;margin:4px 2px 10px}.flx-title h2{font-size:17px;margin:0;font-weight:950}.flx-title span{font-size:11px;color:#8e98a8}
+.flx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.flx-tier{font-size:10px;letter-spacing:.12em;color:#f3c55b;font-weight:800;margin-bottom:5px;text-transform:uppercase}
+.flx-card{background:linear-gradient(145deg,#151a23,#0e1117);border:1px solid var(--line);border-radius:17px;padding:10px;overflow:hidden}.flx-card.selected{border-color:rgba(243,197,91,.75);box-shadow:0 0 0 1px rgba(243,197,91,.15),0 10px 25px rgba(0,0,0,.2)}
+.flx-art{height:96px;border-radius:13px;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.08),transparent 58%),linear-gradient(145deg,#202633,#0a0d12);display:grid;place-items:center;margin-bottom:9px;overflow:hidden}.flx-art svg{width:100%;height:100%}.flx-name{font-weight:900;font-size:12px;line-height:1.15}.flx-meta{font-size:10px;color:#8f99aa;margin-top:4px}.flx-price{font-size:13px;font-weight:950;color:var(--gold);margin-top:7px}.flx-buy{width:100%;margin-top:8px!important}.flx-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.flx-tag{font-size:9px;padding:5px 7px;border-radius:99px;background:#1b212c;color:#b9c2d0;border:1px solid rgba(255,255,255,.06)}
+.flx-city{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.flx-city .action{min-height:72px}
+.tattoo-preview{height:130px;border-radius:18px;background:radial-gradient(circle at 50% 25%,rgba(243,197,91,.11),transparent 45%),#0a0d12;position:relative;display:grid;place-items:center;border:1px solid rgba(255,255,255,.08);overflow:hidden}.tattoo-body{width:78px;height:112px;border:2px solid rgba(255,255,255,.22);border-radius:42% 42% 28% 28%;position:relative;opacity:.75}.tattoo-body:before,.tattoo-body:after{content:"";position:absolute;width:18px;height:70px;border:2px solid rgba(255,255,255,.18);top:13px;border-radius:20px}.tattoo-body:before{left:-22px;transform:rotate(10deg)}.tattoo-body:after{right:-22px;transform:rotate(-10deg)}.tattoo-mark{position:absolute;color:var(--gold);font-size:28px;font-weight:900;text-shadow:0 0 15px rgba(243,197,91,.2)}
+.tattoo-place{display:flex;flex-wrap:wrap;gap:6px}.tattoo-place button{border:1px solid rgba(255,255,255,.08);background:#141923;color:#d9deea;border-radius:10px;padding:8px 9px;font-size:10px}.tattoo-place button.active{border-color:var(--gold);color:var(--gold);background:rgba(243,197,91,.08)}
+.flx-filter{display:flex;gap:7px;overflow:auto;padding:2px 0 10px}.flx-filter button{white-space:nowrap;border:1px solid var(--line);background:#121720;color:#aeb7c5;border-radius:999px;padding:7px 10px;font-size:10px}.flx-filter button.active{color:#0b0c0f;background:var(--gold);border-color:var(--gold);font-weight:900}
+@media(min-width:560px){.flx-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+<script id="fl27-user-expansion-script">
+(function(){
+  const KEY='FL27_USER_EXPANSION_V1';
+  function state(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let U=state(); U.tattoos??=[]; U.tattooPlacement??=null; U.home??=null; U.car??=null; U.yacht??=null; U.luxury??=[];
+
+  const carSvg=(type='sport')=>{
+    const gid='flxCarGrad';
+    const body= type==='suv'?'M28 60l10-18h30l12 18h18l8 13v13H20V73z':type==='super'?'M18 70l25-21h55l23 21 9 8v11H12V78z':'M20 65l18-18h57l25 18 10 12v13H10V77z';
+    return `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${gid}" x1="0" x2="1"><stop stop-color="#e7e9ed"/><stop offset=".55" stop-color="#69707c"/><stop offset="1" stop-color="#15181e"/></linearGradient></defs><ellipse cx="70" cy="91" rx="52" ry="6" fill="#000" opacity=".5"/><path d="${body}" fill="url(#${gid})" opacity=".98"/><path d="M44 48l9-10h33l12 10" fill="#10141b" stroke="#8d96a4" stroke-width="2"/><circle cx="35" cy="88" r="8" fill="#090b0f" stroke="#777" stroke-width="2"/><circle cx="105" cy="88" r="8" fill="#090b0f" stroke="#777" stroke-width="2"/><path d="M55 74h28" stroke="#fff" opacity=".18" stroke-width="2"/></svg>`;
+  };
+  const yachtSvg=()=>`<svg viewBox="0 0 180 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="90" cy="84" rx="72" ry="6" fill="#000" opacity=".45"/><path d="M20 65h132l-18 19H42z" fill="#dfe3e8"/><path d="M40 60l13-22h48l18 22z" fill="#fafafa"/><path d="M57 39h35v20H57z" fill="#1b2c3e"/><path d="M93 38l26 22H93z" fill="#0f1722"/><path d="M19 65h133" stroke="#f3c55b" stroke-width="2"/></svg>`;
+  const homeSvg=(villa=false)=>`<svg viewBox="0 0 180 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hg${villa?'v':'a'}" x1="0" x2="1"><stop stop-color="#b9c0c8"/><stop offset="1" stop-color="#3a414c"/></linearGradient></defs><rect y="67" width="180" height="33" fill="#0a0c10"/><path d="M25 67V44l48-28 82 28v23z" fill="url(#hg${villa?'v':'a'})"/><path d="M20 45L73 12l85 33" fill="none" stroke="#f3c55b" stroke-width="2"/><rect x="43" y="50" width="21" height="17" fill="#172330"/><rect x="78" y="50" width="29" height="17" fill="#172330"/><rect x="120" y="50" width="19" height="17" fill="#172330"/><rect x="76" y="72" width="28" height="28" fill="#10151b"/></svg>`;
+  const tattooSvg=(kind)=>{
+    const map={crown:'♛',lion:'♌',snake:'〰',rose:'✿',wings:'♨',compass:'✦',football:'⚽',flame:'ϟ',skull:'☠',cross:'✚',tribal:'◇',dragon:'龍',angel:'✧',sun:'☼',moon:'☾',star:'★',number:'27',letter:'FL',anchor:'⚓',eagle:'◈',arrow:'➤',wave:'≈',mountain:'△',eye:'◉',heart:'♥',geometric:'⬡',laurel:'❧',phoenix:'♨',quote:'“”'};
+    const t=map[kind]||'✦';
+    return `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="100" fill="#0c1016"/><circle cx="60" cy="50" r="34" fill="none" stroke="rgba(243,197,91,.18)" stroke-width="1"/><text x="60" y="62" text-anchor="middle" fill="#e6c36b" font-size="${kind==='number'||kind==='letter'?'30':'34'}" font-family="Arial" font-weight="900">${t}</text><path d="M25 79h70" stroke="#e6c36b" opacity=".35"/></svg>`;
+  };
+
+  const CARS=[
+    ['car_01','Używany Volkswagen Polo','miejskie • pierwsze auto',4500,'city'],['car_02','Ford Fiesta ST','miejskie • młody zawodnik',8500,'sport'],['car_03','Volkswagen Golf GTI','sport • pierwsza większa wypłata',16000,'sport'],['car_04','BMW 118i','premium • pierwszy sukces',28000,'sport'],['car_05','Audi A3','premium • kariera rośnie',42000,'sport'],['car_06','Mercedes A-Class','premium • młoda gwiazda',60000,'sport'],['car_07','BMW 330i','sport sedan • coraz lepszy kontrakt',85000,'sport'],['car_08','Audi S5','coupe • wysoki poziom',120000,'sport'],['car_09','Mercedes C43 AMG','sport • reprezentant',165000,'sport'],['car_10','BMW M4 Competition','sport • gwiazda ligi',245000,'sport'],['car_11','Audi RS6 Avant','superkombi • wielki kontrakt',390000,'super'],['car_12','Porsche 911 Carrera S','sport • legenda',650000,'super'],['car_13','Mercedes-AMG G63','SUV • luksus',760000,'suv'],['car_14','Lamborghini Huracán','supercar • światowa gwiazda',1250000,'super'],['car_15','Ferrari F8 / McLaren 720S','supercar • absolutny top',1900000,'super']
+  ].map(x=>({id:x[0],name:x[1],desc:x[2],price:x[3],type:x[4],kind:'car'}));
+  const HOMES=[
+    ['home_01','Pokój u rodziców','start • 0€',0],['home_02','Pokój wynajmowany','pierwsza niezależność',350],['home_03','Kawalerka na obrzeżach','start',18000],['home_04','Małe mieszkanie 2 pokoje','miasto',35000],['home_05','Nowoczesne mieszkanie','miasto',65000],['home_06','Mieszkanie w centrum','centrum',110000],['home_07','Loft w centrum','centrum',180000],['home_08','Apartament z widokiem','premium',280000],['home_09','Apartament nad morzem','premium',420000],['home_10','Dom na przedmieściach','dom',550000],['home_11','Dom w spokojnej dzielnicy','dom',750000],['home_12','Nowoczesny dom','dom',1100000],['home_13','Dom z ogrodem i basenem','dom',1700000],['home_14','Duży dom rodzinny','dom',2400000],['home_15','Willa z widokiem','willa',3500000],['home_16','Willa przy plaży','willa',4900000],['home_17','Willa z prywatnym boiskiem','willa',6500000],['home_18','Rezydencja pod miastem','willa',8200000],['home_19','Dom nad morzem','willa',11000000],['home_20','Ekskluzywna rezydencja','willa',15000000]
+  ].map(x=>({id:x[0],name:x[1],desc:x[2],price:x[3],kind:'home'}));
+  const YACHTS=[['yacht_01','Motorówka sportowa',350000],['yacht_02','Princess F55',5200000],['yacht_03','Sunseeker Predator',8200000],['yacht_04','Ferretti Yacht 670',11500000],['yacht_05','Azimut Grande 35M',22000000]].map(x=>({id:x[0],name:x[1],price:x[2],kind:'yacht'}));
+  const LUX=[['lux_01','Prosty smartfon','technologia',650],['lux_02','Słuchawki premium','technologia',450],['lux_03','Limitowane sneakersy','moda',900],['lux_04','Smartwatch sportowy','technologia',1200],['lux_05','Pierwszy markowy zegarek','zegarek',2500],['lux_06','Projektor + kino domowe','dom',6500],['lux_07','Kolekcja ubrań premium','moda',12000],['lux_08','Rolex Daytona','zegarek',95000],['lux_09','Patek Philippe','zegarek',260000],['lux_10','Helikopter VIP / prywatny odrzutowiec','transport • endgame',18000000]].map(x=>({id:x[0],name:x[1],price:x[2],desc:x[3],kind:'lux'}));
+  const TATTOOS=[
+    ['t01','Korona','crown','symbol statusu'],['t02','Lew','lion','siła'],['t03','Wąż','snake','odwaga i przemiana'],['t04','Róża','rose','klasyczny'],['t05','Skrzydła','wings','wolność'],['t06','Kompas','compass','droga kariery'],['t07','Piłka','football','football life'],['t08','Płomień','flame','energia'],['t09','Czaszka','skull','mocny styl'],['t10','Krzyż','cross','minimalistyczny'],['t11','Tribal','tribal','geometryczny'],['t12','Smok','dragon','orientalny'],['t13','Anioł','angel','symboliczny'],['t14','Słońce','sun','energia'],['t15','Księżyc','moon','minimal'],['t16','Gwiazda','star','minimal'],['t17','Numer','number','np. numer koszulki'],['t18','FL','letter','własne logo'],['t19','Kotwica','anchor','stabilność'],['t20','Orzeł','eagle','ambicja'],['t21','Strzała','arrow','cel'],['t22','Fala','wave','morze'],['t23','Góry','mountain','wytrwałość'],['t24','Oko','eye','symbol'],['t25','Serce','heart','relacja'],['t26','Hex','geometric','geometry'],['t27','Wieniec','laurel','zwycięstwo'],['t28','Feniks','phoenix','odrodzenie'],['t29','Cytat','quote','własny tekst'],['t30','Data','number','ważna data']
+  ].map(x=>({id:x[0],name:x[1],kind:x[2],desc:x[3],price:x[1]==='FL'?1800:900+(Number(x[0].slice(1))%5)*250}));
+  const PLACES=['ramię','przedramię','biceps','kark','klatka piersiowa','żebra','plecy','łopatka','dłoń','udo','łydka','kostka'];
+  window.FL27_USER_CATALOG={CARS,HOMES,YACHTS,LUX,TATTOOS,PLACES};
+
+  function money(){return Number(window.S?.money||0)}
+  function buy(price,label){if(!window.S)return false;if(money()<price){toast(`Potrzebujesz ${Math.ceil(price-money()).toLocaleString('pl-PL')}€ więcej.`);return false}window.S.money=money()-price;log(`💳 Kupujesz: ${label} • -${price.toLocaleString('pl-PL')}€`);return true}
+  function owned(id){return !!(U.tattoos.some(x=>x.id===id&&x.place===U.tattooPlacement)||U.home===id||U.car===id||U.yacht===id||U.luxury.includes(id))}
+  function purchaseAsset(it){
+    if(it.kind==='home'&&U.home===it.id){toast('To już jest Twoja nieruchomość.');return}
+    if(it.kind==='car'&&U.car===it.id){toast('To już jest Twój samochód.');return}
+    if(it.kind==='yacht'&&U.yacht===it.id){toast('To już jest Twój jacht.');return}
+    if(it.kind==='lux'&&U.luxury.includes(it.id)){toast('Już to posiadasz.');return}
+    if(!buy(it.price,it.name))return;
+    if(it.kind==='home')U.home=it.id;if(it.kind==='car')U.car=it.id;if(it.kind==='yacht')U.yacht=it.id;if(it.kind==='lux')U.luxury.push(it.id);
+    save(U);window.saveSoon?.();render();toast('Zakup udany ✨');
+  }
+  window.FL27_purchaseAsset=purchaseAsset;
+
+  function assetCard(it){
+    const art=it.kind==='car'?carSvg(it.type):it.kind==='home'?homeSvg(it.desc==='willa'||it.desc==='dom'):it.kind==='yacht'?yachtSvg():`<svg viewBox="0 0 120 100"><circle cx="60" cy="50" r="34" fill="#161b24" stroke="#f3c55b" stroke-opacity=".35"/><text x="60" y="59" text-anchor="middle" fill="#f3c55b" font-size="27" font-family="Arial">${it.kind==='lux'?'✦':'✧'}</text></svg>`;
+    const isOwned=it.kind==='home'?U.home===it.id:it.kind==='car'?U.car===it.id:it.kind==='yacht'?U.yacht===it.id:U.luxury.includes(it.id);
+    const tier=it.price===0?'START':it.price<10000?'I':it.price<50000?'II':it.price<150000?'III':it.price<500000?'IV':it.price<1500000?'V':'VI';
+    return `<div class="flx-card ${isOwned?'selected':''}"><div class="flx-tier">POZIOM ${tier}</div><div class="flx-art">${art}</div><div class="flx-name">${esc(it.name)}</div><div class="flx-meta">${esc(it.desc||'luksus')}</div><div class="flx-price">${it.price.toLocaleString('pl-PL')}€</div><button class="action ${isOwned?'':'gold'} flx-buy" onclick="FL27_purchaseAsset(FL27_USER_CATALOG.${it.kind==='car'?'CARS':it.kind==='home'?'HOMES':it.kind==='yacht'?'YACHTS':'LUX'}.find(x=>x.id==='${it.id}'))"><b>${isOwned?'✓ Posiadasz':'Kup'}</b><small>${isOwned?'wybrane / posiadane':'zakup jednorazowy'}</small></button></div>`;
+  }
+  window.renderStore=function(m){
+    window.ensureStore?.();
+    m.innerHTML=`<div class="card hero"><div class="kicker">FL MARKET</div><h1>Twój świat poza boiskiem</h1><p>Samochody, nieruchomości, jachty i luksusowe rzeczy. Im większa kariera, tym większe możliwości — ale wszystko kosztuje.</p><div class="pills"><span class="pill">💶 ${money().toLocaleString('pl-PL')}€</span><span class="pill">🚗 ${U.car?'auto wybrane':'brak auta'}</span><span class="pill">🏠 ${U.home?'nieruchomość wybrana':'brak nieruchomości'}</span></div></div>
+    <div class="flx-section"><div class="flx-title"><h2>🚗 Samochody • 15</h2><span>od pierwszego auta do supercara</span></div><div class="flx-grid">${CARS.map(assetCard).join('')}</div></div>
+    <div class="flx-section"><div class="flx-title"><h2>🏠 Domy i mieszkania • 20</h2><span>od startu do rezydencji</span></div><div class="flx-grid">${HOMES.map(assetCard).join('')}</div></div>
+    <div class="flx-section"><div class="flx-title"><h2>🛥️ Jachty • 5</h2><span>luksus endgame</span></div><div class="flx-grid">${YACHTS.map(assetCard).join('')}</div></div>
+    <div class="flx-section"><div class="flx-title"><h2>💎 Luksusowe rzeczy • 10</h2><span>prestiż i kolekcje</span></div><div class="flx-grid">${LUX.map(assetCard).join('')}</div></div>`;
+  };
+
+  function renderTattoo(m){
+    const place=U.tattooPlacement||PLACES[0];
+    const current=U.tattoos.filter(t=>t.place===place);
+    m.innerHTML=`<div class="card hero"><div class="kicker">STUDIO TATUAŻU</div><h1>Twój wzór. Twoje miejsce.</h1><p>Wybierz wzór, miejsce i zrób tatuaż. Tatuaże zostają z postacią i są częścią jej historii.</p><div class="tattoo-preview"><div class="tattoo-body"></div><div class="tattoo-mark">${current.length?'✦':''}</div></div></div>
+    <div class="card"><div class="section-title"><b>📍 Miejsce</b><span>${esc(place)}</span></div><div class="tattoo-place">${PLACES.map(p=>`<button class="${p===place?'active':''}" onclick="FL27_setTattooPlace('${p}')">${p}</button>`).join('')}</div></div>
+    <div class="card"><div class="section-title"><b>✒️ Wzornik</b><span>30 wzorów</span></div><div class="flx-grid">${TATTOOS.map(t=>{const own=U.tattoos.some(x=>x.id===t.id&&x.place===place);return `<div class="flx-card ${own?'selected':''}"><div class="flx-art">${tattooSvg(t.kind)}</div><div class="flx-name">${esc(t.name)}</div><div class="flx-meta">${esc(t.desc)}</div><div class="flx-price">${t.price.toLocaleString('pl-PL')}€</div><button class="action ${own?'':'gold'} flx-buy" onclick="FL27_getTattoo('${t.id}')"><b>${own?'✓ Zrobiony':'Zrób tatuaż'}</b><small>${own?'na tym miejscu':'wybrany obszar: '+esc(place)}</small></button></div>`}).join('')}</div></div>`;
+  }
+  window.FL27_setTattooPlace=function(p){U.tattooPlacement=p;save(U);render();};
+  window.FL27_getTattoo=function(id){const t=TATTOOS.find(x=>x.id===id),place=U.tattooPlacement||PLACES[0];if(!t)return;if(U.tattoos.some(x=>x.id===id&&x.place===place)){toast('Ten wzór już masz w tym miejscu.');return}if(!buy(t.price,`Tatuaż: ${t.name} • ${place}`))return;U.tattoos.push({id:t.id,place,day:Number(S.day||1),year:Number(S.year||2026)});save(U);window.saveSoon?.();log(`✒️ Nowy tatuaż: ${t.name} • ${place}.`);render();};
+  window.FL27_renderTattoo=renderTattoo;
+
+  const oldCity=window.city;
+  window.city=function(kind){
+    if(kind==='tattoo'){renderTattoo(document.getElementById('main'));return;}
+    if(typeof oldCity==='function')return oldCity(kind);
+  };
+  const oldRenderDay=window.renderDay;
+  window.renderDay=function(m){
+    if(typeof oldRenderDay==='function')oldRenderDay(m);
+    const actions=m.querySelector('.actions');
+    if(actions&&!actions.querySelector('.flx-tattoo-btn')){
+      actions.insertAdjacentHTML('afterbegin',`<button class="action flx-tattoo-btn" onclick="city('tattoo')"><b>✒️ Studio tatuażu</b><small>1–3h • wzory i miejsca na ciele</small></button>`);
+    }
+  };
+
+  // A real city hub: the tattoo studio lives here, alongside future city activities.
+  window.FL27_renderCity=function(m){
+    m.innerHTML=`<div class="card hero"><div class="kicker">🏙️ MIASTO</div><h1>Twoje życie poza klubem</h1><p>Wyjdź z domu, poznawaj ludzi, wydawaj pieniądze i buduj własny styl życia.</p></div>
+    <div class="flx-city">
+      <button class="action" onclick="city('cafe')"><b>☕ Kawiarnia</b><small>spotkania • relacje</small></button>
+      <button class="action" onclick="city('cinema')"><b>🎬 Kino</b><small>czas wolny • PR</small></button>
+      <button class="action" onclick="city('shop')"><b>🛍️ Sklepy</b><small>styl • zakupy</small></button>
+      <button class="action gold" onclick="city('tattoo')"><b>✒️ Studio tatuażu</b><small>30 wzorów • 12 miejsc na ciele</small></button>
+      <button class="action" onclick="go('store')"><b>💎 Rynek luksusu</b><small>auta • domy • jachty</small></button>
+      <button class="action" onclick="go('home')"><b>🏠 Wracam do domu</b><small>koniec wyjścia</small></button>
+    </div>
+    <div class="card"><div class="section-title"><b>🌆 W przyszłości</b><span>miasto będzie rosło</span></div><div class="pills"><span class="pill">🍽️ Restauracje</span><span class="pill">💇 Fryzjer</span><span class="pill">🏋️ Siłownia</span><span class="pill">🎮 Gaming</span><span class="pill">🛥️ Marina</span><span class="pill">🏨 Hotele</span></div></div>`;
+  };
+  const oldRenderTab=window.renderTab;
+  window.renderTab=function(tab){if(tab==='city')return window.FL27_renderCity(document.getElementById('main'));return oldRenderTab(tab);};
+  const oldRenderNav=window.renderNav;
+  window.renderNav=function(){
+    if(typeof oldRenderNav==='function')oldRenderNav();
+    const nav=document.getElementById('nav');
+    if(nav && !nav.querySelector('[data-flx-city]')){
+      const b=document.createElement('button'); b.dataset.flxCity='1'; b.className=currentTab==='city'?'active':''; b.innerHTML='<i>🏙️</i>Miasto'; b.onclick=()=>go('city');
+      nav.insertBefore(b,nav.querySelector('button:nth-child(8)')||null);
+    }
+  };
+  // Re-route the Store tab through the enhanced catalog without touching other tabs.
+  try{if(typeof window.render==='function')window.render();}catch(e){}
+})();
+</script>
+
+
+<style id="fl27-licenses-relations-v1-style">
+.fl27-license-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fl27-license-card{background:linear-gradient(145deg,#151a23,#0d1016);border:1px solid rgba(255,255,255,.08);border-radius:17px;padding:11px}
+.fl27-license-card.owned{border-color:rgba(243,197,91,.7);box-shadow:0 0 0 1px rgba(243,197,91,.12)}
+.fl27-license-icon{height:72px;border-radius:13px;background:radial-gradient(circle at 50% 35%,rgba(243,197,91,.14),transparent 60%),#0a0d12;display:grid;place-items:center;font-size:34px;margin-bottom:9px}
+.fl27-license-name{font-size:12px;font-weight:900}.fl27-license-desc{font-size:9px;color:#8f99aa;line-height:1.35;margin-top:4px}
+.fl27-license-price{color:var(--gold);font-size:12px;font-weight:950;margin-top:7px}
+.fl27-license-lock{font-size:9px;color:#e7a3a3;margin-top:5px}
+.fl27-rel-card{border:1px solid rgba(255,255,255,.08);background:#11151d;border-radius:15px;padding:11px;margin-top:9px}
+.fl27-rel-card h3{margin:0 0 5px;font-size:12px}.fl27-rel-card p{margin:0;color:#a5afbd;font-size:9px;line-height:1.4}
+@media(max-width:600px){.fl27-license-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="fl27-licenses-relations-v1">
+(function(){
+  const KEY="FL27_LICENSES_RELATIONS_V1";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  let L=load();
+  L.licenses??={};
+  L.lastRelationEventDay??=-9999;
+  L.age18EventShown??=false;
+  L.licenseHistory??=[];
+
+  const LICENSES=[
+    {id:"car_B",icon:"🚗",name:"Prawo jazdy kat. B",desc:"Samochody osobowe. Odblokowuje prowadzenie własnych aut i część wydarzeń drogowych.",age:18,price:1200,time:6},
+    {id:"moto_A",icon:"🏍️",name:"Prawo jazdy kat. A",desc:"Motocykle. Otwiera dodatkowe pojazdy i miejskie wydarzenia.",age:18,price:900,time:5},
+    {id:"yacht",icon:"🛥️",name:"Licencja żeglarska",desc:"Prowadzenie jachtów i łodzi motorowych. Przydatna przy własnej marinie.",age:18,price:1500,time:5},
+    {id:"plane_PPL",icon:"✈️",name:"Licencja pilota PPL",desc:"Prywatne loty samolotem. Później możesz rozwijać kwalifikacje.",age:18,price:12000,time:20},
+    {id:"heli",icon:"🚁",name:"Licencja śmigłowcowa",desc:"Prywatne loty śmigłowcem. Bardzo droga, ale odblokowuje wyjątkowe możliwości.",age:18,price:18000,time:24},
+    {id:"race",icon:"🏁",name:"Licencja wyścigowa",desc:"Tor, wydarzenia motoryzacyjne i specjalne aktywności.",age:18,price:5000,time:8}
+  ];
+  window.FL27_LICENSES=LICENSES;
+  window.FL27_LICENSE_STATE=L;
+
+  function has(id){return !!L.licenses[id]}
+  function spendLocal(price,label){
+    if(!window.S)return false;
+    const money=Number(S.money||0);
+    if(money<price){toast("Brakuje Ci "+Math.ceil(price-money).toLocaleString("pl-PL")+"€.");return false}
+    S.money=money-price;
+    log("📜 "+label+" • -"+price.toLocaleString("pl-PL")+"€");
+    return true;
+  }
+
+  window.FL27_buyLicense=function(id){
+    const x=LICENSES.find(v=>v.id===id);
+    if(!x)return;
+    if(has(id)){toast("Masz już tę licencję.");return}
+    if(Number(S.age||15)<x.age){toast("Ta licencja jest dostępna od "+x.age+". roku życia.");return}
+    if(!spendLocal(x.price,"Kurs i egzamin: "+x.name))return;
+    L.licenses[id]={day:Number(S.day||1),year:Number(S.year||2026)};
+    L.licenseHistory.push({id,day:Number(S.day||1),year:Number(S.year||2026)});
+    save(L);
+    S.energy=Math.max(0,Number(S.energy||0)-Math.min(20,x.time/2));
+    if(x.id==="car_B")S.pr=Number(S.pr||0)+2;
+    if(x.id==="yacht"||x.id==="plane_PPL"||x.id==="heli")S.pr=Number(S.pr||0)+1;
+    log("✅ Zdobywasz: "+x.name+".");
+    toast("Licencja zdobyta 🪪");
+    render();
+  };
+
+  window.FL27_renderLicenses=function(m){
+    const age=Number(S?.age||15);
+    const ownedCount=LICENSES.filter(x=>has(x.id)).length;
+    m.innerHTML=`
+      <div class="card hero">
+        <div class="kicker">📜 LICENCJE</div>
+        <h1>Uprawnienia do życia</h1>
+        <p>Nie wszystko można po prostu kupić. Niektóre rzeczy trzeba najpierw zdobyć — kurs, egzamin i dopiero potem korzystasz z możliwości.</p>
+        <div class="pills"><span class="pill">🎂 Wiek: ${age}</span><span class="pill">📜 ${ownedCount}/${LICENSES.length} licencji</span><span class="pill">💶 ${Number(S.money||0).toLocaleString("pl-PL")}€</span></div>
+      </div>
+      <div class="fl27-license-grid">
+        ${LICENSES.map(x=>{
+          const own=has(x.id), locked=age<x.age;
+          return `<div class="fl27-license-card ${own?'owned':''}">
+            <div class="fl27-license-icon">${x.icon}</div>
+            <div class="fl27-license-name">${x.name}</div>
+            <div class="fl27-license-desc">${x.desc}</div>
+            <div class="fl27-license-price">${x.price.toLocaleString("pl-PL")}€ • ${x.time}h</div>
+            ${locked?`<div class="fl27-license-lock">🔒 Dostępne od ${x.age} lat</div>`:`<button class="action ${own?'':'gold'} flx-buy" onclick="FL27_buyLicense('${x.id}')"><b>${own?'✓ Zdobyta':'Zrób kurs i egzamin'}</b><small>${own?'uprawnienie aktywne':'kurs + egzamin'}</small></button>`}
+          </div>`;
+        }).join("")}
+      </div>`;
+  };
+
+  function age18Event(){
+    if(!window.S || Number(S.age||15)!==18 || L.age18EventShown)return;
+    L.age18EventShown=true; save(L);
+    openModal("🎉 18. URODZINY — DOROSŁOŚĆ",
+      "Masz dziś 18 lat. Poza piłką pojawiają się nowe możliwości: możesz zrobić prawo jazdy, zacząć zdobywać kolejne licencje i coraz bardziej samodzielnie decydować o swoim życiu.",
+      [
+        ["🚗 Zaczynam od prawa jazdy",()=>{log("🎂 Masz 18 lat. Postanawiasz zrobić prawo jazdy.");window.FL27_renderLicenses?.(document.getElementById("main"))}],
+        ["📜 Sprawdzę wszystkie licencje",()=>{log("🎂 Masz 18 lat. Zaczynasz interesować się licencjami.");window.FL27_renderLicenses?.(document.getElementById("main"))}],
+        ["💶 Na razie oszczędzam",()=>{S.money+=50;S.mental=clamp(Number(S.mental||0)+2);log("🎂 18. urodziny. Dostajesz 50€ i odkładasz decyzję o licencjach. +50€.")}]
+      ]);
+  }
+
+  function relationshipEvent(){
+    if(!window.S || Number(S.age||15)<16)return;
+    const p=S.partner;
+    if(!p)return;
+    const day=Number(S.day||1);
+    if(day-L.lastRelationEventDay<70)return;
+    if(Math.random()>0.018)return;
+    L.lastRelationEventDay=day;save(L);
+    const name=p.name||"Twoja osoba";
+    const status=p.status||"partner/partnerka";
+    openModal("❤️ ZWIĄZEK — NOWE WYDARZENIE",
+      `${name} (${status}) chce porozmawiać. Twoja kariera coraz bardziej wpływa na Wasze wspólne życie. To, co wybierzesz, może wrócić później.`,
+      [
+        ["❤️ Wybieram czas dla związku",()=>{S.family=clamp(Number(S.family||0)+5);S.mental=clamp(Number(S.mental||0)+3);log("❤️ Stawiasz na związek. Relacja i mental rosną.")}],
+        ["⚽ Proponuję wspólny plan z karierą",()=>{S.pr=clamp(Number(S.pr||0)+1);S.mental=clamp(Number(S.mental||0)+1);log("❤️ Ustalasz z partnerem/partnerką, jak połączyć związek z karierą.")}],
+        ["💼 Kariera jest teraz najważniejsza",()=>{S.skill=clamp(Number(S.skill||0)+2);S.family=clamp(Number(S.family||0)-4);log("💼 Stawiasz karierę ponad związek. To może mieć konsekwencje.")}]
+      ]);
+  }
+
+  // Make the existing city hub expose the new Licencje shop.
+  const oldCityRender=window.FL27_renderCity;
+  window.FL27_renderCity=function(m){
+    if(typeof oldCityRender==="function")oldCityRender(m);
+    const grid=m.querySelector(".flx-city");
+    if(grid && !grid.querySelector(".fl27-license-city-btn")){
+      grid.insertAdjacentHTML("beforeend",`<button class="action fl27-license-city-btn" onclick="go('licenses')"><b>📜 Licencje</b><small>prawo jazdy • jachty • samoloty • inne</small></button>`);
+    }
+  };
+
+  const oldRenderTab=window.renderTab;
+  window.renderTab=function(tab){
+    if(tab==="licenses"){window.FL27_renderLicenses(document.getElementById("main"));return}
+    return oldRenderTab(tab);
+  };
+
+  const oldRender=window.render;
+  window.render=function(){
+    const result=typeof oldRender==="function"?oldRender.apply(this,arguments):undefined;
+    try{
+      age18Event();
+      relationshipEvent();
+    }catch(e){}
+    return result;
+  };
+
+  // Small persistent relationship event log, visible in the existing history.
+  window.FL27_getLicenseCount=function(){return LICENSES.filter(x=>has(x.id)).length};
+
+  setTimeout(function(){
+    try{window.FL27_renderCity&&currentTab==="city"&&window.FL27_renderCity(document.getElementById("main"));}catch(e){}
+  },0);
+})();
+</script>
+
 </body>
 </html>
 
@@ -10722,132 +10190,450 @@ body:not(.creator-screen) #main{padding-top:76px!important;padding-bottom:24px!i
 </script>
 
 
-<style id="fl27-v81-recovery">
-/* Recovery: only the actual V66 hub is interactive; everything else is normal. */
-.v66-mode-overlay{
-  pointer-events:auto!important;
-  z-index:100000!important;
-}
-.v66-mode-overlay .v20-hub,
-.v66-mode-overlay button{
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
+<style id="fl27-v67-home-lock">
+/* Legacy home-only blocks from V9/V10/V49 are not allowed on Dziś.
+   They remain available to their owning systems but are removed from the
+   Home DOM, so versions cannot stack panels on top of the clean dashboard. */
+body:not(.creator-screen) #main.v67-clean-home .v9-news,
+body:not(.creator-screen) #main.v67-clean-home .v9-timebar,
+body:not(.creator-screen) #main.v67-clean-home .v9-section-title,
+body:not(.creator-screen) #main.v67-clean-home .v9-action-grid,
+body:not(.creator-screen) #main.v67-clean-home .fl27-v10-finance,
+body:not(.creator-screen) #main.v67-clean-home .v49-beta-reset,
+body:not(.creator-screen) #main.v67-clean-home .v9-identity,
+body:not(.creator-screen) #main.v67-clean-home .v9-stats,
+body:not(.creator-screen) #main.v67-clean-home .v9-life-grid,
+body:not(.creator-screen) #main.v67-clean-home .v9-finance,
+body:not(.creator-screen) #main.v67-clean-home .v9-social,
+body:not(.creator-screen) #main.v67-clean-home .v9-city,
+body:not(.creator-screen) #main.v67-clean-home .v9-school{
+  display:none!important;
 }
 </style>
-<script id="fl27-v81-recovery-js">
+
+
+
+
+
+
+<script id="fl27-v69-final-router">
 (function(){
-  "use strict";
-
-  /* Do not create or observe anything. Just restore clickability once. */
-  function recover(){
-    /* Remove stale experimental overlays from V67+ if this file was opened
-       after another version in the same webview. */
-    document.querySelectorAll(
-      ".fl27-v75-welcome,.fl27-v75-chooser,.fl27-v79-backdrop,#fl80-start,"+
-      "#fl80-shade,#fl80-drawer,#fl80-menu,#fl27-v78-menu,#fl27-v78-back,"+
-      "#fl27-v78-drawer,.fl27-v77-menu,.fl27-v77-back,.fl27-v77-drawer"
-    ).forEach(function(el){el.remove();});
-
-    var hub=document.querySelector(".v66-mode-overlay");
-    if(hub){
-      hub.style.pointerEvents="auto";
-      hub.style.zIndex="100000";
-      hub.querySelectorAll("button").forEach(function(b){
-        b.style.pointerEvents="auto";
-        b.style.touchAction="manipulation";
-      });
-    }
-
-    document.body.style.pointerEvents="auto";
-    document.documentElement.style.pointerEvents="auto";
+  /* ONE HOME RENDERER. Detailed systems never render on Home. */
+  const HOME=window.FL27_RENDER_HOME_FINAL || window.renderHome;
+  if(typeof HOME==="function"){
+    window.renderHome=function(m){ return HOME(m); };
   }
 
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",recover);
-  else recover();
+  /* Explicit owners for the three systems that previously leaked into main. */
+  window.FL27_RENDER_LIFE_EXTRAS=function(m){
+    if(typeof window.FL27_renderFLgramReal==="function")
+      m.insertAdjacentHTML("beforeend",window.FL27_renderFLgramReal());
+    if(typeof window.FL27_renderRealStars==="function")
+      m.insertAdjacentHTML("beforeend",window.FL27_renderRealStars());
+  };
+  window.FL27_RENDER_FAMILY_EXTRAS=function(m){
+    if(typeof window.FL27_renderFamilyFuture==="function")
+      m.insertAdjacentHTML("beforeend",window.FL27_renderFamilyFuture());
+  };
 
-  /* Keep the existing V66 entry point. No replacement of render(), showNewGame()
-     or route functions. */
+  /* No global render observer is allowed to append panels. */
+  window.FL27_PANEL_ROUTING_LOCKED=true;
+})();
+</script>
+
+<style id="fl27-v70-creator-isolation">
+body.creator-screen #main > .fl27-v3-extra,
+body.creator-screen #main > .fl27-v5-extra,
+body.creator-screen #main > .fl27-v6-extra,
+body.creator-screen #main > .fl27-v7-extra,
+body.creator-screen #main > .fl27-v22-extra,
+body.creator-screen #main > .fl27-v23-extra,
+body.creator-screen #main > .fl27-v12-extra,
+body.creator-screen #main > .fl27-v10-finance{
+  display:none!important;
+}
+</style>
+<script id="fl27-v70-final">
+(function(){
+  /* Creator is a hard UI boundary. It owns #main until startCareer(). */
+  const cleanCreator=function(){
+    if(!document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main");
+    if(!main)return;
+    [
+      ".fl27-v3-extra",".fl27-v5-extra",".fl27-v6-extra",".fl27-v7-extra",
+      ".fl27-v22-extra",".fl27-v23-extra",".fl27-v12-extra",".fl27-v10-finance"
+    ].forEach(sel=>main.querySelectorAll(sel).forEach(el=>el.remove()));
+  };
+  const mo=new MutationObserver(cleanCreator);
+  mo.observe(document.body,{childList:true,subtree:true});
+  cleanCreator();
 })();
 </script>
 
 
-<style id="fl27-v82-viewport-click-fix">
-/* V82: fix iPhone viewport gap + eliminate transparent legacy click blockers. */
-html{
-  min-height:100%!important;
-  background:#070a10!important;
+<style id="fl27-v71-visual">
+/* ===== V71: premium visual layer ===== */
+:root{
+  --ui-bg:#070a10;--ui-card:#111722;--ui-card2:#151d2a;--ui-line:rgba(255,255,255,.085);
+  --ui-text:#f5f7fb;--ui-muted:#8f9aad;--ui-blue:#73a9ff;--ui-red:#ff5870;
 }
-body{
-  min-height:100vh!important;
-  min-height:100dvh!important;
-  background:
-    radial-gradient(700px 400px at 50% -120px,rgba(230,57,70,.16),transparent 68%),
-    radial-gradient(600px 420px at 100% 30%,rgba(92,116,170,.10),transparent 70%),
-    linear-gradient(180deg,#090b11 0%,#05060a 100%)!important;
+.v35-header{
+  background:linear-gradient(180deg,rgba(8,11,17,.98),rgba(10,14,22,.97))!important;
+  border-bottom:1px solid rgba(115,169,255,.14)!important;
+  box-shadow:0 10px 35px rgba(0,0,0,.25)!important;
 }
-.app{
-  min-height:100vh!important;
-  min-height:100dvh!important;
-  background:transparent!important;
+.v35-brand b{letter-spacing:1.1px!important}.v35-brand i{color:var(--ui-red)!important}
+.v35-avatar{
+  width:48px!important;height:48px!important;border-radius:16px!important;
+  overflow:hidden!important;border:1px solid rgba(115,169,255,.35)!important;
+  background:linear-gradient(145deg,#202b3e,#0d131d)!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.3)!important;
 }
-/* These are legacy fixed docks. They are hidden by design; leaving them in
-   the DOM must never create a transparent layer over the game. */
-body:not(.creator-screen) #nav,
-body:not(.creator-screen) .v17-bottom,
-body:not(.creator-screen) .fl27-v35-bottom,
-body:not(.creator-screen) .v24-bottom,
-body:not(.creator-screen) .v25-bottom,
-body:not(.creator-screen) .v26-bottom,
-body:not(.creator-screen) .v27-bottom,
-body:not(.creator-screen) .v31-dock,
-body:not(.creator-screen) .fl27-v35-top{
-  display:none!important;
-  pointer-events:none!important;
+.v35-avatar svg{width:100%!important;height:100%!important;display:block!important}
+.v35-nav{
+  background:rgba(8,11,17,.97)!important;
+  backdrop-filter:blur(20px)!important;
+  border-top:1px solid rgba(255,255,255,.07)!important;
+  box-shadow:0 -12px 35px rgba(0,0,0,.28)!important;
 }
-/* Keep the side menu as the sole navigation. */
-.fl27-v53-handle{
-  display:flex!important;
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
+.v35-nav button{
+  border:0!important;background:transparent!important;color:#7e899b!important;
+  transition:transform .16s ease,color .16s ease,background .16s ease!important;
+  border-radius:15px!important;
 }
-.fl27-v53-drawer-backdrop{
-  pointer-events:none!important;
+.v35-nav button span{
+  width:31px!important;height:31px!important;display:grid!important;place-items:center!important;
+  border-radius:11px!important;font-size:0!important;
 }
-.fl27-v53-drawer-backdrop.open{
-  pointer-events:auto!important;
+.v35-nav button span svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v35-nav button b{font-size:8px!important;font-weight:800!important;letter-spacing:.15px!important}
+.v35-nav button.fl27-active-tab,.v35-nav button.active{
+  color:#fff!important;background:linear-gradient(145deg,rgba(115,169,255,.18),rgba(255,88,112,.08))!important;
+  box-shadow:inset 0 0 0 1px rgba(115,169,255,.13)!important;
 }
-.fl27-v53-drawer{
-  pointer-events:none!important;
+.v35-nav button.fl27-active-tab span,.v35-nav button.active span{
+  color:var(--ui-blue)!important;background:rgba(115,169,255,.12)!important;
+  transform:translateY(-1px);
 }
-.fl27-v53-drawer.open{
-  pointer-events:auto!important;
+
+/* Cards: fewer visual borders, stronger hierarchy. */
+#main .card{
+  background:linear-gradient(145deg,rgba(18,24,35,.98),rgba(12,17,26,.98))!important;
+  border:1px solid var(--ui-line)!important;
+  border-radius:22px!important;
+  box-shadow:0 14px 35px rgba(0,0,0,.16)!important;
 }
-/* Main game controls must remain touchable. */
-#main, #main *{
-  -webkit-tap-highlight-color:transparent;
-}
-#main button,#main [role="button"],#main input,#main select,#main textarea{
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
+#main .card h1,#main .card h2,#main .card h3{letter-spacing:-.35px!important}
+#main .section-title{color:#dfe6f2!important}
+#main .action,.v52-choice,.choice{
+  border:1px solid rgba(255,255,255,.08)!important;
+  background:linear-gradient(145deg,#171f2d,#111722)!important;
+  border-radius:16px!important;
 }
 </style>
-<script id="fl27-v82-viewport-click-fix-js">
-(function(){
-  "use strict";
-  function fix(){
-    document.documentElement.style.minHeight="100%";
-    document.body.style.minHeight="100dvh";
-    var app=document.querySelector(".app");
-    if(app)app.style.minHeight="100dvh";
 
-    /* Remove only known legacy blockers; never remove the actual game cards. */
-    document.querySelectorAll(
-      "#nav,.v17-bottom,.fl27-v35-bottom,.v24-bottom,.v25-bottom,.v26-bottom,.v27-bottom,.v31-dock,.fl27-v35-top"
-    ).forEach(function(el){
-      if(!el.classList.contains("fl27-v53-handle"))el.style.pointerEvents="none";
+<script id="fl27-v71-icon-avatar">
+(function(){
+  /* Clean SVG line icons instead of emoji/iPhone glyphs. */
+  const ICON={
+    home:`<svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8"/><path d="M5.5 9.5V21h13V9.5M9 21v-6h6v6"/></svg>`,
+    time:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>`,
+    career:`<svg viewBox="0 0 24 24"><path d="M4 18V8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V18"/><path d="M7 15.5h10M8 6.5V4h8v2.5M12 10v4M10 12h4"/></svg>`,
+    life:`<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.7 4 9.7a4 4 0 0 1 7.2-2.4L12 8.6l.8-1.3A4 4 0 0 1 20 9.7c0 6-8 10.8-8 10.8Z"/></svg>`,
+    family:`<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c.4-3.7 2.2-5.5 5.5-5.5s5.1 1.8 5.5 5.5M14 14.5c3.1-.5 5.2 1.1 6 4.5"/></svg>`,
+    history:`<svg viewBox="0 0 24 24"><path d="M4 5h16v15H4z"/><path d="M8 9h8M8 13h6M8 17h4"/></svg>`,
+    stats:`<svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-8"/><path d="M3 20h18"/></svg>`,
+    shop:`<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5L4 9Z"/><path d="M7 9V6a5 5 0 0 1 10 0v3M9 13h6"/></svg>`,
+    settings:`<svg viewBox="0 0 24 24"><path d="M9.8 3.5h4.4l.5 2.1 1.8 1.1 2-.8 2.2 3.8-1.6 1.5v2.1l1.6 1.5-2.2 3.8-2-.8-1.8 1.1-.5 2.1H9.8l-.5-2.1-1.8-1.1-2 .8-2.2-3.8 1.6-1.5v-2.1L3.3 9.7l2.2-3.8 2 .8 1.8-1.1.5-2.1Z"/><circle cx="12" cy="12" r="3"/></svg>`
+  };
+  window.FL27_PREMIUM_ICONS=ICON;
+
+  function upgradeNav(){
+    document.querySelectorAll(".v35-nav button").forEach(btn=>{
+      const txt=(btn.textContent||"").trim().toLowerCase();
+      const key=txt.includes("dziś")?"home":txt.includes("dzień")?"time":txt.includes("kariera")?"career":
+        txt.includes("życie")?"life":txt.includes("rodzina")?"family":txt.includes("historia")?"history":
+        txt.includes("statyst")?"stats":txt.includes("sklep")?"shop":txt.includes("ustaw")?"settings":null;
+      if(key&&ICON[key]){
+        const span=btn.querySelector("span");
+        if(span)span.innerHTML=ICON[key];
+      }
     });
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);
-  else fix();
+
+  /* More expressive avatar: facial proportions, brows, nose, mouth, ears,
+     neck/shoulders, hair silhouette and jersey details. Still pure SVG,
+     therefore crisp at every phone resolution and cheap to render. */
+  window.FL27_avatarSvg=function(a){
+    a=a||{};
+    const skin=a.skin||"#e7b58f", hc=a.hairColor||"#241b18", eye=a.eyes||"#3d6b91";
+    const jersey=a.jersey||"#2467d1", hair=a.hair||"short", gender=a.gender||"M";
+    const uid="av"+Math.random().toString(36).slice(2,8);
+    const hairShapes={
+      short:`<path fill="${hc}" d="M45 80c0-39 27-61 75-61 41 0 69 22 69 61v16h-21V79c-10-10-24-16-48-16-26 0-43 6-54 16v17H45Z"/>`,
+      long:`<path fill="${hc}" d="M43 81c0-41 28-63 77-63 47 0 76 22 76 63v111h-29V91H72v101H43Z"/>`,
+      curly:`<path fill="${hc}" d="M42 83c-3-40 28-67 78-67 53 0 83 27 77 67l-11 26H51Z"/><g fill="${hc}"><circle cx="51" cy="63" r="16"/><circle cx="67" cy="43" r="17"/><circle cx="89" cy="31" r="17"/><circle cx="113" cy="28" r="17"/><circle cx="139" cy="32" r="17"/><circle cx="162" cy="45" r="17"/><circle cx="179" cy="64" r="16"/></g>`,
+      fade:`<path fill="${hc}" d="M50 75c4-35 27-56 70-56s66 21 70 56v19h-22V76H72v18H50Z"/><path d="M58 67h124" stroke="#fff" opacity=".08" stroke-width="4"/>`,
+      buzz:`<path fill="${hc}" d="M55 67c5-30 27-46 65-46s60 16 65 46H55Z"/>`,
+      ponytail:`<path fill="${hc}" d="M45 79c0-40 28-61 75-61s75 21 75 61v19h-25V80H70v18H45Z"/><path fill="${hc}" d="M184 68c34 3 38 36 16 51-7 5-13 5-18 2 9-16 10-32 2-53Z"/>`,
+      bob:`<path fill="${hc}" d="M44 81c0-40 28-62 76-62s76 22 76 62v80h-28V89H72v72H44Z"/>`,
+      braids:`<path fill="${hc}" d="M45 80c0-40 27-62 75-62s75 22 75 62v62h-20V87H65v55H45Z"/><path fill="${hc}" d="M48 88h19v104H48zM165 88h19v104h-19z"/>`,
+      wavy:`<path fill="${hc}" d="M44 82c0-42 28-64 76-64s76 22 76 64v73h-28V88H72v67H44Z"/><path d="M55 63q16 18 0 37M177 63q-16 18 0 37" fill="none" stroke="${hc}" stroke-width="12" stroke-linecap="round"/>`,
+      undercut:`<path fill="${hc}" d="M52 72c5-33 27-53 68-53s63 20 68 53v24h-25V71H77v25H52Z"/>`
+    };
+    const hairSvg=hairShapes[hair]||hairShapes.short;
+    const mouth=gender==="K"?`<path d="M105 139q15 10 30 0q-15 19-30 0Z" fill="#9e5261" opacity=".85"/>`:`<path d="M106 142q14 7 28 0" fill="none" stroke="#7b3f45" stroke-width="3" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg" aria-label="Avatar">
+      <defs>
+        <linearGradient id="${uid}bg" x2="1" y2="1"><stop stop-color="#202d43"/><stop offset=".55" stop-color="#101824"/><stop offset="1" stop-color="#090e16"/></linearGradient>
+        <linearGradient id="${uid}skin" x2=".8" y2="1"><stop stop-color="${skin}"/><stop offset="1" stop-color="${skin}" stop-opacity=".88"/></linearGradient>
+        <linearGradient id="${uid}shirt"><stop stop-color="${jersey}"/><stop offset="1" stop-color="${jersey}" stop-opacity=".62"/></linearGradient>
+      </defs>
+      <rect width="240" height="280" rx="30" fill="url(#${uid}bg)"/>
+      <circle cx="184" cy="42" r="58" fill="#73a9ff" opacity=".07"/>
+      <path d="M28 280v-43c0-32 37-56 92-56s92 24 92 56v43Z" fill="url(#${uid}shirt)"/>
+      <path d="M28 255q35-29 65-28l27 53H28ZM212 255q-35-29-65-28l-27 53h92Z" fill="${jersey}" opacity=".42"/>
+      <path d="M102 170h36v35h-36Z" fill="url(#${uid}skin)"/>
+      <path d="M98 173h44" stroke="${skin}" stroke-width="8" opacity=".7"/>
+      <ellipse cx="120" cy="103" rx="63" ry="73" fill="url(#${uid}skin)"/>
+      <ellipse cx="57" cy="108" rx="9" ry="15" fill="${skin}"/><ellipse cx="183" cy="108" rx="9" ry="15" fill="${skin}"/>
+      ${hairSvg}
+      <path d="M76 91q17-12 32-2M132 89q16-10 32 2" fill="none" stroke="${hc}" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="91" cy="103" rx="10" ry="7" fill="#fff" opacity=".9"/><ellipse cx="149" cy="103" rx="10" ry="7" fill="#fff" opacity=".9"/>
+      <circle cx="91" cy="103" r="4.5" fill="${eye}"/><circle cx="149" cy="103" r="4.5" fill="${eye}"/>
+      <circle cx="92.5" cy="101.5" r="1.4" fill="#fff"/><circle cx="150.5" cy="101.5" r="1.4" fill="#fff"/>
+      <path d="M118 106q-4 15 1 22q6 4 10 0" fill="none" stroke="#9b664f" stroke-width="3" stroke-linecap="round"/>
+      ${mouth}
+      <path d="M84 151q36 17 72 0" fill="none" stroke="${skin}" stroke-width="7" opacity=".55"/>
+      <path d="M78 196q42 18 84 0" fill="none" stroke="#fff" opacity=".12" stroke-width="2"/>
+      <text x="120" y="250" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="system-ui" font-weight="700" letter-spacing="2">FOOTBALL LIFE 27</text>
+    </svg>`;
+  };
+
+  upgradeNav();
+  new MutationObserver(upgradeNav).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+
+<style id="fl27-v72-start-career">
+.fl27-start-career{
+  margin:16px 0 20px;
+  padding:24px 20px 20px;
+  border-radius:26px;
+  border:1px solid rgba(115,169,255,.22);
+  background:
+    radial-gradient(circle at 85% 15%,rgba(255,88,112,.16),transparent 34%),
+    radial-gradient(circle at 15% 0%,rgba(115,169,255,.16),transparent 38%),
+    linear-gradient(145deg,#151e2d,#0c121c);
+  box-shadow:0 18px 45px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;overflow:hidden;
+}
+.fl27-start-career .eyebrow{
+  color:#73a9ff;font-size:10px;font-weight:900;letter-spacing:1.6px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.fl27-start-career h1{margin:0 0 8px;color:#fff;font-size:27px;line-height:1.05;letter-spacing:-.7px}
+.fl27-start-career p{margin:0 0 18px;color:#9da9bb;font-size:14px;line-height:1.45}
+.fl27-start-career .start-btn{
+  width:100%;min-height:54px;border:0;border-radius:17px;
+  color:#fff;font-size:15px;font-weight:900;letter-spacing:.2px;
+  background:linear-gradient(135deg,#e84761,#b72e47);
+  box-shadow:0 10px 25px rgba(232,71,97,.25);
+  cursor:pointer;
+}
+.fl27-start-career .sub{
+  display:flex;gap:8px;align-items:center;margin-top:11px;color:#707c8e;font-size:10px;
+}
+.fl27-start-career .sub b{color:#b9c5d6}
+</style>
+<script id="fl27-v72-start-career-js">
+(function(){
+  function hasPlayer(){
+    const st=window.S||{};
+    return !!(st.name && st.name!=="Zawodnik" && (st.ready||st.age||st.position||st.pos));
+  }
+  function openNewGame(){
+    if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function") return window.FL27_SHOW_NEW_GAME_FINAL();
+    if(typeof window.FL27_showNewGame==="function") return window.FL27_showNewGame();
+    if(typeof window.FL27_startPlus==="function") return window.FL27_startPlus();
+  }
+  function inject(){
+    if(document.body.classList.contains("creator-screen"))return;
+    const main=document.getElementById("main"); if(!main)return;
+    if(hasPlayer()) { main.querySelector(".fl27-start-career")?.remove(); return; }
+    if(main.querySelector(".fl27-start-career"))return;
+
+    const box=document.createElement("section");
+    box.className="fl27-start-career";
+    box.innerHTML=`
+      <div class="eyebrow">⚽ FOOTBALL LIFE 27</div>
+      <h1>Stwórz swoją karierę</h1>
+      <p>Wybierz zawodnika, rodzinę, pozycję i własną drogę. Każda decyzja może zmienić dalszą historię.</p>
+      <button type="button" class="start-btn">ROZPOCZNIJ KARIERĘ</button>
+      <div class="sub"><b>🎲 Losowość</b><span>•</span><b>10 decyzji</b><span>•</span><b>Twój zawodnik</b></div>`;
+    main.prepend(box);
+    box.querySelector(".start-btn").addEventListener("click",openNewGame);
+  }
+
+  window.FL27_INJECT_START_CAREER=inject;
+  new MutationObserver(()=>requestAnimationFrame(inject)).observe(document.body,{childList:true,subtree:true});
+  setTimeout(inject,80);setTimeout(inject,400);setTimeout(inject,1000);
+})();
+</script>
+
+
+<style id="fl27-v73-welcome">
+.fl27-welcome-backdrop{
+  position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  padding:22px;background:rgba(3,6,11,.78);backdrop-filter:blur(14px);
+}
+.fl27-welcome{
+  width:min(430px,100%);padding:27px 23px 22px;border-radius:28px;
+  border:1px solid rgba(115,169,255,.24);
+  background:
+    radial-gradient(circle at 90% 8%,rgba(255,88,112,.18),transparent 34%),
+    radial-gradient(circle at 5% 0%,rgba(115,169,255,.18),transparent 38%),
+    linear-gradient(150deg,#172131,#0b111b);
+  box-shadow:0 28px 70px rgba(0,0,0,.55);
+}
+.fl27-welcome .ball{font-size:34px;margin-bottom:9px}
+.fl27-welcome .eyebrow{font-size:9px;font-weight:900;letter-spacing:1.8px;color:#73a9ff}
+.fl27-welcome h1{font-size:27px;line-height:1.05;margin:7px 0 10px;color:#fff;letter-spacing:-.6px}
+.fl27-welcome p{font-size:13px;line-height:1.5;color:#a4afbf;margin:0 0 17px}
+.fl27-welcome .rules{display:grid;gap:8px;margin:0 0 20px}
+.fl27-welcome .rule{
+  display:flex;gap:10px;align-items:center;padding:10px 11px;border-radius:14px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);
+  color:#d9e1ec;font-size:11px;
+}
+.fl27-welcome .rule b{color:#fff}
+.fl27-welcome .go{
+  width:100%;height:52px;border:0;border-radius:16px;color:#fff;
+  background:linear-gradient(135deg,#e84761,#b72e47);font-weight:900;font-size:14px;
+  box-shadow:0 10px 25px rgba(232,71,97,.22);cursor:pointer;
+}
+.fl27-welcome .hint{margin-top:10px;text-align:center;color:#687588;font-size:9px}
+</style>
+<script id="fl27-v74-start-flow">
+(function(){
+  const KEY="FL27_WELCOME_SEEN_V74";
+
+  function hasStarted(){
+    const st=window.S||{};
+    return !!(st.started || st.ready || (st.name && st.name!=="Zawodnik"));
+  }
+
+  function showModeChooser(){
+    if(document.querySelector(".fl27-start-mode-backdrop"))return;
+    document.querySelector(".fl27-welcome-backdrop")?.remove();
+
+    const d=document.createElement("div");
+    d.className="fl27-start-mode-backdrop fl27-welcome-backdrop";
+    d.innerHTML=`
+      <section class="fl27-welcome fl27-start-mode" role="dialog" aria-label="Wybór rozpoczęcia życia">
+        <div class="ball">🎮</div>
+        <div class="eyebrow">FOOTBALL LIFE 27</div>
+        <h1>Jak chcesz rozpocząć swoje życie?</h1>
+        <p>Wybierz sposób, w jaki powstanie Twój zawodnik i jego świat. Każda opcja prowadzi do innej historii.</p>
+
+        <div class="fl27-mode-list">
+          <button class="fl27-mode same" data-mode="new">
+            <span class="mode-icon">🔄</span>
+            <span><b>NOWA GRA</b><small>Ta sama osoba, nowa historia piłkarska. Zostają dane startowe: imię, nazwisko, pochodzenie, rodzina, pozycja, avatar itd. Zerowana jest cała historia futbolowa.</small></span>
+          </button>
+
+          <button class="fl27-mode auto" data-mode="auto">
+            <span class="mode-icon">🤖</span>
+            <span><b>NOWA GRA AUTO</b><small>Całe życie jest generowane od nowa: kraj, rodzice, imię i nazwisko z baz krajowych, rodzina, sytuacja materialna, 10 odpowiedzi, pozycja, avatar i pozostałe warunki startowe.</small></span>
+          </button>
+
+          <button class="fl27-mode plus" data-mode="plus">
+            <span class="mode-icon">✨</span>
+            <span><b>NOWA GRA +</b><small>Ty tworzysz zawodnika: wpisujesz imię i nazwisko, wybierasz płeć, pozycję, avatar i odpowiadasz na 10 pytań. Reszta świata powstaje na podstawie Twoich decyzji i losowości.</small></span>
+          </button>
+        </div>
+      </section>`;
+
+    document.body.appendChild(d);
+
+    d.querySelectorAll(".fl27-mode").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const mode=btn.dataset.mode;
+        d.remove();
+        if(mode==="new" && typeof window.FL27_startNewGame==="function")
+          return window.FL27_startNewGame();
+        if(mode==="auto" && typeof window.FL27_startAutoV65==="function")
+          return window.FL27_startAutoV65();
+        if(mode==="plus" && typeof window.FL27_startPlus==="function")
+          return window.FL27_startPlus();
+
+        /* Safe fallback to the existing hub if a legacy function is unavailable. */
+        if(typeof window.FL27_SHOW_NEW_GAME_FINAL==="function")
+          window.FL27_SHOW_NEW_GAME_FINAL();
+        else if(typeof window.FL27_showNewGame==="function")
+          window.FL27_showNewGame();
+      });
+    });
+  }
+
+  function showWelcome(){
+    if(localStorage.getItem(KEY)==="1" || hasStarted())return;
+    if(document.querySelector(".fl27-welcome-backdrop"))return;
+
+    const d=document.createElement("div");
+    d.className="fl27-welcome-backdrop";
+    d.innerHTML=`
+      <section class="fl27-welcome" role="dialog" aria-label="Witaj w Football Life 27">
+        <div class="ball">⚽</div>
+        <div class="eyebrow">WITAJ W FOOTBALL LIFE 27</div>
+        <h1>Twoja kariera. Twoje decyzje.</h1>
+        <p>Żyjesz życiem młodego zawodnika — od szkoły i rodziny, przez pierwszy klub, aż po wielką piłkę. To, co wybierzesz po drodze, może zmienić przyszłość.</p>
+        <div class="rules">
+          <div class="rule">⏱️ <span><b>Czas ma znaczenie</b> — każda aktywność kosztuje czas i energię.</span></div>
+          <div class="rule">🎲 <span><b>Każda gra jest inna</b> — wydarzenia, ludzie i skutki decyzji mogą się zmieniać.</span></div>
+          <div class="rule">⚽ <span><b>Życie to nie tylko futbol</b> — rodzina, szkoła, pieniądze i relacje też wpływają na karierę.</span></div>
+        </div>
+        <button class="go">ZACZYNAMY</button>
+        <div class="hint">Najpierw wybierzesz, jak chcesz rozpocząć swoje życie.</div>
+      </section>`;
+
+    document.body.appendChild(d);
+    d.querySelector(".go").addEventListener("click",()=>{
+      localStorage.setItem(KEY,"1");
+      d.remove();
+      showModeChooser();
+    });
+  }
+
+  window.FL27_SHOW_START_FLOW=showWelcome;
+  window.FL27_SHOW_MODE_CHOOSER=showModeChooser;
+
+  /* First launch only. Existing players are never interrupted. */
+  setTimeout(showWelcome,250);
+})();
+</script>
+
+
+<style id="fl27-v74-start-flow-style">
+.fl27-start-mode{max-height:min(88vh,760px);overflow:auto}
+.fl27-start-mode h1{font-size:25px}
+.fl27-mode-list{display:grid;gap:10px;margin-top:16px}
+.fl27-mode{
+  width:100%;display:grid;grid-template-columns:45px 1fr;gap:12px;align-items:center;
+  text-align:left;padding:14px;border-radius:17px;color:#fff;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);
+  cursor:pointer;transition:transform .14s,border-color .14s,background .14s;
+}
+.fl27-mode:active{transform:scale(.985)}
+.fl27-mode.same{border-color:rgba(255,209,102,.22)}
+.fl27-mode.auto{border-color:rgba(85,216,138,.22)}
+.fl27-mode.plus{border-color:rgba(115,169,255,.28)}
+.fl27-mode .mode-icon{
+  width:45px;height:45px;border-radius:14px;display:grid;place-items:center;
+  font-size:22px;background:rgba(255,255,255,.055)
+}
+.fl27-mode b{display:block;font-size:12px;letter-spacing:.35px}
+.fl27-mode small{display:block;color:#9ba8b9;font-size:9px;line-height:1.42;margin-top:4px}
+</style>
