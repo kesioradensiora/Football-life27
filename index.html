@@ -9328,3 +9328,154 @@ window.FL27_HOME=()=>{tab="home";render()};
 setTimeout(render,40);
 })();
 </script>
+
+<style id="fl27-v167-boot">
+/* V167: loading screen is visual only; gameplay shell must appear immediately. */
+#fl27-boot,#loadingScreen,.loading-screen,.boot-screen,.startup-screen{
+  animation-duration:.45s!important;
+}
+</style>
+<script id="fl27-v167-boot-js">
+(function(){
+"use strict";
+if(window.__FL27_V167_BOOT)return;
+window.__FL27_V167_BOOT=true;
+
+/* Neutralize legacy long startup waits. */
+const FAST=()=>{ 
+  try{
+    document.querySelectorAll(
+      '#fl27-boot,#loadingScreen,.loading-screen,.boot-screen,.startup-screen'
+    ).forEach(el=>{
+      el.style.setProperty('transition','opacity .35s ease','important');
+      el.style.setProperty('animation-duration','.35s','important');
+      el.style.setProperty('animation-iteration-count','1','important');
+    });
+  }catch(e){}
+};
+FAST();
+
+/* Never let the old "Uruchamiam karierę..." screen block the canonical game.
+   As soon as the game state exists, hand control to the one renderer. */
+let tries=0;
+const boot=setInterval(()=>{
+  tries++;
+  FAST();
+  if(window.S && (S.started || S.name || S.firstName || S.lastName)){
+    document.querySelectorAll(
+      '#fl27-boot,#loadingScreen,.loading-screen,.boot-screen,.startup-screen'
+    ).forEach(el=>{
+      if(el.id!=="flc-main") el.style.setProperty('display','none','important');
+    });
+    if(window.FL27_V165_RENDER) window.FL27_V165_RENDER();
+    clearInterval(boot);
+  }
+  if(tries>80) clearInterval(boot); // max ~8 s; never hang indefinitely
+},100);
+})();
+</script>
+
+<style id="fl27-v168-progress">
+/* V168: gold loading progress on the existing loading bar */
+#fl27-load-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg,#c9982e,#f3cf69,#d9ad3f);
+  box-shadow: 0 0 12px rgba(226,184,76,.32);
+  transition: width .28s ease;
+  pointer-events: none;
+}
+.fl27-load-track {
+  position: relative !important;
+  overflow: hidden !important;
+}
+</style>
+
+<script id="fl27-v168-progress-js">
+(function(){
+"use strict";
+if(window.__FL27_V168_PROGRESS)return;
+window.__FL27_V168_PROGRESS=true;
+
+let progress=0, timer=null;
+
+function findTrack(){
+  const selectors=[
+    '#fl27-boot .progress-bar',
+    '#loadingScreen .progress-bar',
+    '.loading-screen .progress-bar',
+    '.boot-screen .progress-bar',
+    '.startup-screen .progress-bar',
+    '[class*="progress"]',
+    '[class*="Progress"]'
+  ];
+  for(const sel of selectors){
+    const els=document.querySelectorAll(sel);
+    for(const el of els){
+      const r=el.getBoundingClientRect();
+      if(r.width>150 && r.height>=2 && r.height<40) return el;
+    }
+  }
+  return null;
+}
+
+function ensureFill(){
+  const track=findTrack();
+  if(!track)return null;
+  track.classList.add('fl27-load-track');
+  let fill=track.querySelector('#fl27-load-progress');
+  if(!fill){
+    fill=document.createElement('div');
+    fill.id='fl27-load-progress';
+    track.appendChild(fill);
+  }
+  return fill;
+}
+
+function setProgress(v){
+  progress=Math.max(0,Math.min(100,v));
+  const fill=ensureFill();
+  if(fill) fill.style.width=progress+'%';
+}
+
+function start(){
+  setProgress(4);
+  const milestones=[12,24,38,52,66,78,88,95];
+  let i=0;
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    if(i<milestones.length){
+      setProgress(milestones[i++]);
+    }else{
+      clearInterval(timer);
+    }
+  },420);
+}
+
+function finish(){
+  clearInterval(timer);
+  setProgress(100);
+  setTimeout(()=>{
+    const fill=document.getElementById('fl27-load-progress');
+    if(fill) fill.style.width='100%';
+  },20);
+}
+
+start();
+
+/* Keep the visual progress synchronized with the actual transition:
+   once the canonical game state exists, finish the bar and let V167 continue. */
+const sync=setInterval(()=>{
+  ensureFill();
+  if(window.S && (S.started || S.name || S.firstName || S.lastName)){
+    finish();
+    clearInterval(sync);
+  }
+},100);
+setTimeout(()=>clearInterval(sync),10000);
+})();
+</script>
