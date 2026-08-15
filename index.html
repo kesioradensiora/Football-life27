@@ -12535,5 +12535,440 @@ ensure();
 })();
 
 </script>
+
+<script id="fl27-v207-sleep-fix">
+/* FL27 V207 — canonical sleep transition
+   This is a replacement of the public sleep entry point, not a second
+   time engine. It also catches the canonical activity button before any
+   stale inline/legacy handler can swallow the click. */
+(function(){
+"use strict";
+if(window.__FL27_V207_SLEEP_FIX__) return;
+window.__FL27_V207_SLEEP_FIX__=true;
+
+const getState=()=>typeof window.S==="function"?window.S():(window.S||{});
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,Number(v)||0));
+const notify=(msg)=>{try{window.toast?.(msg)}catch(e){}};
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const redraw=()=>{try{window.render?.()}catch(e){}};
+
+function dateFromState(s){
+  const raw=s.gameDate || `${s.year||2026}-${String(s.month||8).padStart(2,"0")}-${String(s.dayOfMonth||30).padStart(2,"0")}`;
+  const d=new Date(`${raw}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? new Date() : d;
+}
+
+function fmtDate(d){
+  return d.toISOString().slice(0,10);
+}
+
+function canonicalSleep(){
+  const s=getState();
+  if(!s || !s.started){
+    notify("Najpierw rozpocznij karierę.");
+    return false;
+  }
+
+  const hour=Math.round(Number(s.hour ?? 8));
+  if(hour<22){
+    notify(`Sen jest dostępny od 22:00. Masz jeszcze ${Math.max(0,22-hour)} h.`);
+    return false;
+  }
+
+  /* One transition: finish current day -> next real calendar day at 08:00. */
+  s.energy=clamp(Number(s.energy||0)+45);
+  s.health=clamp(Number(s.health||0)+8);
+  s.form=clamp(Number(s.form||0)+2);
+  s.mental=clamp(Number(s.mental||0)+8);
+  s.happiness=clamp(Number(s.happiness||0)+4);
+
+  const d=dateFromState(s);
+  d.setDate(d.getDate()+1);
+
+  s.gameDate=fmtDate(d);
+  s.year=d.getFullYear();
+  s.month=d.getMonth()+1;
+  s.dayOfMonth=d.getDate();
+  s.hour=8;
+  s.minute=0;
+  s.day=Math.max(1,Math.round(Number(s.day||1)))+1;
+  s.week=Math.floor((s.day-1)/7)+1;
+
+  /* Reset daily-only state without destroying career/family/history. */
+  s.dailyActivityLog=[];
+  s.dayEvents=[];
+  s.pendingDailyAction=null;
+
+  /* New-day systems run once, after the new date/time exists. */
+  try{window.ensureCalendar?.(s)}catch(e){}
+  try{window.ensureSchoolCalendar?.(s)}catch(e){}
+  try{window.FL27_newWeek?.(s.week)}catch(e){}
+  try{window.FL27_unifiedTick?.()}catch(e){}
+  try{window.FL27_familyArcTick?.()}catch(e){}
+  try{window.FL27_familyLifeCheck?.()}catch(e){}
+
+  /* Canonical history entry. */
+  if(typeof window.log==="function"){
+    try{window.log(`🌙 Sen → nowy dzień ${s.gameDate}, 08:00`)}catch(e){}
+  }else{
+    s.logs ||= [];
+    s.logs.unshift({
+      day:s.day, year:s.year, date:s.gameDate, time:8,
+      text:`🌙 Sen → nowy dzień ${s.gameDate}, 08:00`,
+      type:"activity"
+    });
+  }
+
+  save();
+  redraw();
+  notify(`🌅 Nowy dzień — ${s.gameDate}, 08:00`);
+  return true;
+}
+
+/* This becomes the ONLY public sleep action used by the UI. */
+window.sleep=canonicalSleep;
+window.FL27_SLEEP=canonicalSleep;
+
+/* Capture phase guarantees that the canonical sleep card works even if
+   an older handler was accidentally attached to the same button. */
+document.addEventListener("click",function(ev){
+  const btn=ev.target?.closest?.('[data-act="sleep"]');
+  if(!btn) return;
+  if(btn.getAttribute("aria-disabled")==="true") return;
+
+  ev.preventDefault();
+  ev.stopImmediatePropagation();
+  canonicalSleep();
+},true);
+
+})();
+</script>
+
+
+<script>
+/* ============================================================
+ FL27 V208 — FAMILY / RELATIONS / MATCH MOMENTS / FLGRAM / FINANCE
+ / SHOP / SETTINGS
+ One canonical data layer. No duplicate navigation systems.
+ ============================================================ */
+(function(){
+"use strict";
+if(window.__FL27_V208__) return;
+window.__FL27_V208__=true;
+
+const root=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const render=()=>{try{window.render?.()}catch(e){}};
+const toast=x=>{try{window.toast?.(x)}catch(e){}};
+const num=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
+const clamp=(x,a=0,b=100)=>Math.max(a,Math.min(b,num(x)));
+
+function init(){
+ const s=root();
+ s.family ||= {};
+ s.family.country ||= s.country || s.birthCountry || "Polska";
+ s.family.city ||= s.city || s.birthCity || "Nie ustalono";
+ s.family.homeCountry ||= s.homeCountry || s.family.country;
+ s.family.homeCity ||= s.homeCity || s.family.city;
+ s.family.livingWith ||= "parents";
+ s.family.parents ||= [];
+ s.family.parents.forEach(p=>{
+   p.gender ||= p.role==="mother" ? "female" : "male";
+   p.relationshipStatus ||= "together";
+   p.maritalStatus ||= "married";
+   p.currentPartner ||= null;
+   p.partnerName ||= null;
+   p.partnerCountry ||= null;
+   p.partnerCity ||= null;
+   p.city ||= s.family.homeCity;
+   p.country ||= s.family.homeCountry;
+   p.interestInPlayer ??= 70;
+   p.availability ??= 70;
+   p.relationshipLevel ??= 70;
+   p.age ??= null;
+   p.occupation ||= "nie określono";
+   p.children ||= [];
+   p.mentalImpact ??= 0;
+ });
+ // Guarantee a mother record as well as a father record.
+ if(!s.family.parents.some(p=>p.gender==="female"||p.role==="mother"))
+   s.family.parents.unshift({id:"mother",role:"mother",gender:"female",name:"Matka",relationshipStatus:"together",maritalStatus:"married",city:s.family.homeCity,country:s.family.homeCountry,occupation:"nie określono",interestInPlayer:70,availability:70,relationshipLevel:70,children:[]});
+ if(!s.family.parents.some(p=>p.gender==="male"||p.role==="father"))
+   s.family.parents.push({id:"father",role:"father",gender:"male",name:"Ojciec",relationshipStatus:"together",maritalStatus:"married",city:s.family.homeCity,country:s.family.homeCountry,occupation:"nie określono",interestInPlayer:70,availability:70,relationshipLevel:70,children:[]});
+
+ s.relations ||= [];
+ s.relations.forEach(r=>{
+   r.status ||= "active";
+   r.type ||= "acquaintance";
+   r.firstMetDate ||= r.createdAt || s.gameDate;
+   r.lastInteraction ||= r.firstMetDate;
+   r.history ||= [];
+ });
+ s.matchMoments ||= [];
+ s.flgram ||= {posts:[],messages:[],following:[],followers:[],notifications:[]};
+ s.flgram.posts ||= []; s.flgram.messages ||= []; s.flgram.following ||= []; s.flgram.followers ||= []; s.flgram.notifications ||= [];
+ s.finance ||= {cash:num(s.money),investments:[],income:[],expenses:[],businesses:[],charity:[]};
+ s.finance.investments ||= []; s.finance.income ||= []; s.finance.expenses ||= []; s.finance.businesses ||= []; s.finance.charity ||= [];
+ s.shop ||= {catalog:"city",owned:[],rentals:[],services:[]};
+ s.shop.owned ||= []; s.shop.rentals ||= []; s.shop.services ||= [];
+ s.settings ||= {};
+ s.settings.datingPreference ??= "not_selected";
+ s.settings.gameMode ||= "new";
+ s.settings.language ||= "pl";
+ s.settings.autoSave ??= true;
+ s.settings.offlineMode ??= true;
+ return s;
+}
+
+/* ---------- FAMILY / COUNTRY / PARENTS ---------- */
+window.FL27_getFamilyProfile=function(){
+ const s=init(), ps=s.family.parents;
+ const together=ps.length>=2 && ps.every(p=>p.relationshipStatus==="together");
+ return {
+   country:s.family.homeCountry,
+   city:s.family.homeCity,
+   livingWith:s.family.livingWith,
+   parentsTogether:together,
+   parents:ps.map(p=>({
+     name:p.name, role:p.role, age:p.age, occupation:p.occupation,
+     maritalStatus:p.maritalStatus, relationshipStatus:p.relationshipStatus,
+     currentPartner:p.currentPartner, partnerName:p.partnerName,
+     partnerCountry:p.partnerCountry, partnerCity:p.partnerCity,
+     country:p.country, city:p.city,
+     interestInPlayer:p.interestInPlayer, availability:p.availability,
+     relationshipLevel:p.relationshipLevel, children:p.children
+   }))
+ };
+};
+
+window.FL27_setParentSituation=function(parentId, data){
+ const s=init(),p=s.family.parents.find(x=>x.id===parentId||x.role===parentId);
+ if(!p)return false;
+ Object.assign(p,data||{});
+ // If separated, require explicit new-life data instead of hiding it.
+ if(p.relationshipStatus==="separated"||p.relationshipStatus==="divorced"){
+   p.maritalStatus ||= p.relationshipStatus==="divorced"?"divorced":"separated";
+   p.currentPartner ??= null;
+   p.partnerName ??= null;
+   p.partnerCountry ??= null;
+   p.partnerCity ??= null;
+ }
+ save();render();return true;
+};
+
+window.FL27_setLivingSituation=function(country,city,withWhom){
+ const s=init();
+ s.family.homeCountry=country||s.family.homeCountry;
+ s.family.homeCity=city||s.family.homeCity;
+ s.family.livingWith=withWhom||s.family.livingWith;
+ save();render();
+};
+
+/* Family situations become a real event source and mental modifier. */
+const FAMILY_SITUATIONS=[
+ ["parents_separate","Rodzice się rozstają","Rodzice nie są już razem. Musisz odnaleźć się w nowej sytuacji.",-8],
+ ["parent_new_partner","Rodzic ma nowego partnera","Jeden z rodziców układa sobie życie na nowo.",-2],
+ ["parent_new_child","W rodzinie pojawia się dziecko","Rodzic ma kolejne dziecko, co zmienia układ rodziny.",-1],
+ ["parent_moves","Rodzic się przeprowadza","Jeden z rodziców mieszka teraz w innym mieście lub kraju.",-4],
+ ["parent_support","Rodzic mocno Cię wspiera","Rodzic angażuje się w Twoją karierę i życie.",+5],
+ ["parent_absent","Rodzic jest mniej obecny","Kontakt z rodzicem staje się rzadszy.",-5]
+];
+
+window.FL27_familySituationEvent=function(){
+ const s=init(),e=FAMILY_SITUATIONS[Math.floor(Math.random()*FAMILY_SITUATIONS.length)];
+ s.history ||= [];
+ s.history.push({kind:"family",id:e[0],title:e[1],description:e[2],date:s.gameDate});
+ s.mental=clamp(num(s.mental,50)+e[3],0,100);
+ save();render();
+ return {id:e[0],title:e[1],description:e[2],mentalDelta:e[3]};
+};
+
+/* ---------- UNIVERSAL RELATION DIRECTORY ---------- */
+window.FL27_createRelation=function(person){
+ const s=init();
+ const existing=s.relations.find(r=>r.personId===person.personId);
+ if(existing)return existing;
+ const r={
+   id:"rel_"+Date.now()+"_"+Math.floor(Math.random()*9999),
+   personId:person.personId||("person_"+Date.now()),
+   name:person.name||"Nieznana osoba",
+   type:person.type||"acquaintance",
+   role:person.role||"osoba poznana",
+   age:person.age??null,
+   country:person.country||s.family.homeCountry,
+   city:person.city||s.family.homeCity,
+   club:person.club||null,
+   status:"active",
+   level:person.level??5,
+   firstMetDate:s.gameDate||"dzień 1",
+   lastInteraction:s.gameDate||"dzień 1",
+   history:[{date:s.gameDate||"dzień 1",event:"poznanie",text:person.firstMessage||"Pierwszy kontakt."}]
+ };
+ s.relations.push(r);save();render();return r;
+};
+
+window.FL27_relationInteraction=function(relationId,action,text){
+ const s=init(),r=s.relations.find(x=>x.id===relationId);
+ if(!r)return false;
+ const impact={positive:5,negative:-5,neutral:1}[action]??0;
+ r.level=clamp(num(r.level,5)+impact,0,100);
+ r.lastInteraction=s.gameDate;
+ r.history.push({date:s.gameDate,action,text:text||action,impact});
+ // Relations can fade naturally; they do not vanish immediately.
+ if(r.level<=0)r.status="faded";
+ save();render();return r;
+};
+
+window.FL27_getActiveRelations=function(){
+ const s=init();
+ return s.relations.filter(r=>r.status!=="faded");
+};
+
+/* ---------- MATCH MOMENT: every meaningful match can end with a decision ---------- */
+window.FL27_matchMoment=function(match){
+ const s=init();
+ const m=match||{};
+ const options=[
+  {id:"play_safe",title:"Zagraj bezpiecznie",impact:{risk:-5,form:1}},
+  {id:"take_risk",title:"Podejmij ryzyko",impact:{risk:8,form:Math.random()<.5?4:-3}},
+  {id:"help_team",title:"Postaw na drużynę",impact:{teamwork:6,mental:2}}
+ ];
+ const moment={id:"mm_"+Date.now(),date:s.gameDate,match:m,question:"Końcówka meczu — jak reagujesz?",options};
+ s.matchMoments.push(moment);
+ // Create a relation when a new teammate/opponent/coach interacts after the match.
+ if(m.person) FL27_createRelation(m.person);
+ save();render();
+ return moment;
+};
+
+/* ---------- FLGRAM ---------- */
+window.FL27_openFlgram=function(){
+ const s=init();
+ s.activePanel="flgram";
+ save();render();
+ try{window.openPanel?.("flgram")}catch(e){}
+ return true;
+};
+window.FL27_flgramPost=function(text,kind="post"){
+ const s=init();
+ const post={id:"post_"+Date.now(),date:s.gameDate,text,kind,likes:0,comments:[],reach:Math.max(5,s.flgram.followers.length)};
+ s.flgram.posts.unshift(post);save();render();return post;
+};
+
+/* ---------- FINANCE ---------- */
+window.FL27_financeAddIncome=function(source,amount){
+ const s=init(),v=Math.max(0,num(amount));
+ s.money=num(s.money)+v;s.finance.cash=s.money;
+ s.finance.income.push({date:s.gameDate,source,amount:v});
+ save();render();
+};
+window.FL27_financeAddExpense=function(source,amount){
+ const s=init(),v=Math.max(0,num(amount));
+ if(num(s.money)<v)return false;
+ s.money-=v;s.finance.cash=s.money;
+ s.finance.expenses.push({date:s.gameDate,source,amount:v});
+ save();render();return true;
+};
+window.FL27_createBusiness=function(name,type,capital){
+ const s=init(),v=Math.max(0,num(capital));
+ if(num(s.money)<v)return false;
+ s.money-=v;s.finance.cash=s.money;
+ const b={id:"biz_"+Date.now(),name,type,capital:v,status:"active",created:s.gameDate};
+ s.finance.businesses.push(b);save();render();return b;
+};
+window.FL27_charity=function(target,amount){
+ const s=init(),v=Math.max(0,num(amount));
+ if(num(s.money)<v)return false;
+ s.money-=v;s.finance.cash=s.money;s.finance.charity.push({date:s.gameDate,target,amount:v});
+ save();render();return true;
+};
+
+/* ---------- SHOP / CITY ---------- */
+window.FL27_buyCityItem=function(item){
+ const s=init(),price=Math.max(0,num(item.price));
+ if(num(s.money)<price)return false;
+ s.money-=price;s.finance.cash=s.money;
+ s.shop.owned.push({...item,boughtAt:s.gameDate});
+ save();render();return true;
+};
+window.FL27_rentCityItem=function(item){
+ const s=init();
+ s.shop.rentals.push({...item,rentedAt:s.gameDate,status:"active"});
+ save();render();return true;
+};
+
+/* ---------- SETTINGS: the three career modes + dating + repair ---------- */
+window.FL27_startGameMode=function(mode,seed){
+ const s=init();
+ if(!["restart","new","newplus"].includes(mode))return false;
+ s.settings.gameMode=mode;
+ s.settings.seed=seed||("seed_"+Date.now());
+ save();render();return true;
+};
+window.FL27_setDatingPreference=function(pref){
+ const s=init();
+ s.settings.datingPreference=pref||"not_selected";
+ save();render();return true;
+};
+window.FL27_repairGame=function(){
+ const s=init();
+ // Repair state without deleting career history.
+ s.family ||= {}; s.relations ||= []; s.matchMoments ||= [];
+ s.flgram ||= {posts:[],messages:[],following:[],followers:[],notifications:[]};
+ s.finance ||= {cash:num(s.money),investments:[],income:[],expenses:[],businesses:[],charity:[]};
+ s.shop ||= {catalog:"city",owned:[],rentals:[],services:[]};
+ s.settings ||= {};
+ init();
+ save();render();toast("Gra została odświeżona bez restartowania kariery.");
+ return true;
+};
+
+/* ---------- CAREER SIDE PATHS ---------- */
+const SIDE_PATHS={
+ influencer:{name:"Twórca / Influencer",cost:400,studyHours:20,unlockAtAge:13},
+ musician:{name:"Muzyk",cost:800,studyHours:35,unlockAtAge:13},
+ creator:{name:"Twórca wideo",cost:600,studyHours:25,unlockAtAge:13},
+ streamer:{name:"Streamer",cost:700,studyHours:30,unlockAtAge:13}
+};
+window.FL27_sideCareerStart=function(id){
+ const s=init(),p=SIDE_PATHS[id];if(!p)return false;
+ s.sideCareers ||= {};
+ const x=s.sideCareers[id] ||= {id,level:0,studyHours:0,moneySpent:0,active:false,skills:0};
+ if(num(s.age,15)<p.unlockAtAge)return false;
+ if(num(s.money)<p.cost)return false;
+ s.money-=p.cost;x.moneySpent+=p.cost;x.active=true;
+ save();render();return x;
+};
+window.FL27_sideCareerStudy=function(id,hours=1){
+ const s=init(),p=SIDE_PATHS[id];if(!p)return false;
+ s.sideCareers ||= {};
+ const x=s.sideCareers[id] ||= {id,level:0,studyHours:0,moneySpent:0,active:true,skills:0};
+ const h=Math.max(1,Math.round(num(hours,1)));
+ x.studyHours+=h;x.skills+=h;
+ x.level=Math.min(100,Math.floor(x.skills/p.studyHours*100));
+ save();render();return x;
+};
+
+/* ---------- EDUCATION / COURSES: money is NOT enough ---------- */
+window.FL27_startCourse=function(course){
+ const s=init();
+ s.education ||= {courses:[],qualifications:[]};
+ if(num(s.money)<num(course.cost))return false;
+ s.money-=num(course.cost);
+ const c={id:"course_"+Date.now(),name:course.name,cost:num(course.cost),requiredHours:Math.max(1,num(course.hours,10)),completedHours:0,passed:false,started:s.gameDate};
+ s.education.courses.push(c);save();render();return c;
+};
+window.FL27_studyCourse=function(id,hours=1){
+ const s=init();const c=(s.education?.courses||[]).find(x=>x.id===id);
+ if(!c)return false;
+ c.completedHours+=Math.max(1,Math.round(num(hours,1)));
+ if(c.completedHours>=c.requiredHours)c.passed=true;
+ save();render();return c;
+};
+
+init();
+})();
+</script>
+
 </body>
 </html>
