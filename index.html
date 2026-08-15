@@ -251,8 +251,27 @@ nav i{display:block;font-style:normal;font-size:19px;margin-bottom:3px}
  .stat b{font-size:16px}.stat span{font-size:8px}.hero h1{font-size:27px}.card{padding:14px}
 }
 </style>
+
+<style id="fl27-v124-boot-css">
+html,body{background:#07080b!important}
+body.fl124-booting> :not(#fl124-boot){visibility:hidden!important}
+#fl124-boot{
+ position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;
+ background:
+ radial-gradient(circle at 50% 35%,rgba(217,170,77,.09),transparent 34%),
+ linear-gradient(180deg,#0a0b0e,#050607);
+ color:#f5f5f2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ transition:opacity .18s ease;
+}
+#fl124-boot .box{text-align:center;padding:28px 22px}
+#fl124-boot .mark{width:86px;height:56px;margin:0 auto 18px;background:var(--fl27-logo,none) center/contain no-repeat}
+#fl124-boot .title{font-weight:950;letter-spacing:1.5px;font-size:18px}
+#fl124-boot .sub{margin-top:7px;color:#9a9da4;font-size:10px}
+#fl124-boot .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#d9aa4d;margin:0 3px;animation:fl124pulse 1s infinite}
+@keyframes fl124pulse{50%{opacity:.25}}
+</style>
 </head>
-<body>
+<body><div id="fl124-boot"><div class="box"><div class="mark"></div><div class="title">FOOTBALL LIFE 27</div><div class="sub">Uruchamianie kariery <span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div><script>document.body.classList.add("fl124-booting");</script>
 <div id="fl110-app" class="app">
   <!-- Hidden compatibility nodes: the original engine still writes to these IDs,
        but they can never appear as a second interface. -->
@@ -9906,7 +9925,7 @@ body{padding-top:76px!important;background:#070707!important}
    });
  }
  function refresh(){mountLogo();mountPlayer();renderPlanner();removeDuplicateSchool()}
- function boot(){patchAdvance();patchRun();refresh();setInterval(()=>{mountPlayer();removeDuplicateSchool()},500)}
+ function boot(){patchAdvance();patchRun();refresh();setTimeout(()=>{mountPlayer();removeDuplicateSchool()},120)}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
  window.FL27_V97={refresh,renderPlanner};
 })();
@@ -10062,7 +10081,7 @@ function patchRun(){
 }
 function boot(){
  ensure();patchRun();setTimeout(renderEffects,100);
- setInterval(()=>{patchRun();renderEffects()},700);
+ setTimeout(()=>{patchRun();renderEffects()},180);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 window.FL27_V99={EFFECTS,applyEffects,effectFor,renderEffects};
@@ -10175,7 +10194,7 @@ function render(){
 }
 function boot(){ensure();render()}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-setInterval(render,1000);
+setTimeout(render,120);
 window.FL27_SUMMER={SUMMER,render,apply};
 })();
 </script>
@@ -10278,7 +10297,7 @@ function afterSummer(){
  setTimeout(render,50);
 }
 function boot(){
- ensure();render();setInterval(()=>{afterSummer();render()},500);
+ ensure();render();setTimeout(()=>{afterSummer();render()},180);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 window.FL27_SUMMER_EVENTS={EVENTS,afterSummer,render};
@@ -10375,7 +10394,7 @@ function updateTutorial(){
 function removeFallbackAfterEngine(){
  if(document.querySelector("#fl107-activities"))document.getElementById("fl110-activity-fallback")?.remove();
 }
-function boot(){updateHeader();updateTutorial();setInterval(()=>{updateHeader();updateTutorial();removeFallbackAfterEngine()},300)}
+function boot(){updateHeader();updateTutorial();setTimeout(()=>{updateHeader();updateTutorial();removeFallbackAfterEngine()},160)}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 </script>
@@ -10551,7 +10570,7 @@ function welcome(){
 W.FL27_showWelcome=welcome;
 W.FL27_showNewGame=resetMenu;
 function protect(){bindToday();menu();restartButton();renderTab();addPR()}
-setInterval(protect,700);setTimeout(protect,150);
+setTimeout(protect,220);setTimeout(protect,150);
 /* V120 startup is authoritative. */
 })();
 </script>
@@ -10614,7 +10633,7 @@ function addPR(){
  const wrap=document.createElement("div");wrap.id="fl117-pr-card";wrap.innerHTML=W.FL27_PR_render();
  head.parentNode.insertBefore(wrap,head.nextSibling);
 }
-setInterval(addPR,800);setTimeout(addPR,200);
+setTimeout(addPR,260);setTimeout(addPR,200);
 })();
 </script>
 
@@ -10665,7 +10684,7 @@ function syncCompactHeader(){
  const meta=document.getElementById("fl110-meta");
  if(meta)meta.textContent=`${s.pos||s.position||"—"} • ${s.age??15} lat`;
 }
-setInterval(syncCompactHeader,500);
+setTimeout(syncCompactHeader,300);
 })();
 </script>
 
@@ -10779,7 +10798,7 @@ function applyRealLogo(){
    el.textContent="";
  });
 }
-setInterval(applyRealLogo,800);setTimeout(applyRealLogo,100);
+setTimeout(applyRealLogo,220);setTimeout(applyRealLogo,100);
 })();
 </script>
 
@@ -10890,7 +10909,7 @@ W.FL27_V120_RESET_STARTUP=function(){
 };
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(startup,120));
 else setTimeout(startup,120);
-setInterval(observe,1200);
+setTimeout(observe,500);
 })();
 </script>
 
@@ -11029,7 +11048,7 @@ function loop(){
  patchConfirm();
 }
 setTimeout(loop,50);
-setInterval(loop,700);
+setTimeout(loop,220);
 })();
 </script>
 
@@ -11110,6 +11129,256 @@ function patchConfirm(){
  W.__FL27_V122_CONFIRM_PATCHED=true;
 }
 function loop(){patchPlus();patchWelcomeGuard();patchConfirm();if(W.__FL27_PLUS_CREATOR_ACTIVE)killWelcome()}
-setTimeout(loop,50);setInterval(loop,400);
+setTimeout(loop,50);setTimeout(loop,220);
+})();
+</script>
+
+
+<style id="fl27-v123-sim-next-decision">
+.fl123-sim-card{margin:10px auto;max-width:1050px;padding:12px 13px;border-radius:17px;
+ background:linear-gradient(145deg,#17191c,#0c0e10);border:1px solid rgba(217,170,77,.26);
+ box-shadow:0 10px 28px rgba(0,0,0,.28)}
+.fl123-sim-row{display:flex;align-items:center;gap:10px}.fl123-sim-copy{flex:1;min-width:0}
+.fl123-sim-copy b{display:block;font-size:11px}.fl123-sim-copy small{display:block;color:#969aa2;font-size:7px;line-height:10px;margin-top:3px}
+.fl123-sim-btn{border:1px solid rgba(217,170,77,.42);background:linear-gradient(135deg,#2a2417,#17130d);
+ color:#f1d486;border-radius:11px;padding:10px 12px;font-size:8px;font-weight:900;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+.fl123-sim-status{display:none;margin-top:9px;padding:8px;border-radius:10px;background:rgba(255,255,255,.035);font-size:7px;color:#b8bbc1}
+.fl123-sim-card.running .fl123-sim-status{display:block}
+</style>
+<script id="fl27-v123-sim-next-decision">
+(function(){
+"use strict";
+const W=window;
+let running=false;
+function state(){return W.S||{}}
+function save(){try{W.saveSoon?.();W.save?.()}catch(e){}}
+function render(){try{W.render?.()}catch(e){}}
+function hasDecision(){
+ const s=state();
+ if(s.summer?.pendingEvent)return true;
+ if(W.FL27_game?.pending)return true;
+ const mr=document.getElementById("modalRoot");
+ if(mr && mr.querySelector(".overlay,.modal,.choice"))return true;
+ return false;
+}
+function dayOfWeek(){return ((Number(state().day||1)-1)%7)+1}
+function sleepToMorning(){
+ const s=state();
+ if(typeof W.advance==="function"){
+   s.hour=22;s.minute=0;
+   W.advance(10); // 22:00 -> następny dzień 08:00, using the game's real calendar engine
+ }else{
+   s.hour=8;s.minute=0;s.day=(Number(s.day)||1)+1;
+ }
+ /* Real sleep regeneration; never creates a decision. */
+ s.energy=Math.min(100,Number(s.energy??80)+38);
+ s.health=Math.min(100,Number(s.health??90)+3);
+ s.happiness=Math.min(100,Number(s.happiness??60)+1);
+}
+function chooseRoutine(){
+ const s=state(), en=Number(s.energy??80), hap=Number(s.happiness??60);
+ const weekday=dayOfWeek()<=5;
+ /* Never choose anything that represents a consequential player decision. */
+ if(en<35)return ["🎮","Czas wolny",2,"","free"];
+ if(hap<48)return ["👥","Trening z kolegami",2,"","friends"];
+ if(weekday && Number(s.learning??50)<55)return ["📝","Nauka do sprawdzianu",1,"","study"];
+ if(Number(s.form??60)<65)return ["🎯","Trening indywidualny",1,"","individual"];
+ const pool=[
+  ["⚽","Trening drużynowy",2,"","training"],
+  ["🚲","Jazda na rowerze",1,"","bike"],
+  ["🏊","Basen",2,"","pool"],
+  ["👩","Czas z mamą",1,"","mom"],
+  ["👨","Czas z tatą",1,"","dad"],
+  ["👧","Czas z siostrą",1,"","sister"],
+  ["🎮","Czas wolny",2,"","free"]
+ ];
+ return pool[Math.floor(Math.random()*pool.length)];
+}
+async function simulate(){
+ if(running)return;
+ const s=state();
+ if(!s.started){alert("Najpierw rozpocznij karierę.");return}
+ running=true;
+ const card=document.querySelector("#fl123-sim");
+ if(card)card.classList.add("running");
+ const btn=document.querySelector("#fl123-sim-btn");
+ if(btn){btn.disabled=true;btn.textContent="⏳ SYMULUJĘ…"}
+ let days=0, actions=0, reason="osiągnięto kolejną decyzję";
+ try{
+   /* Maximum 90 days prevents an accidental infinite simulation. */
+   while(days<90 && !hasDecision()){
+     const now=state();
+     if(Number(now.hour||8)>=20){
+       sleepToMorning(); days++;
+       const before=JSON.stringify([state().day,state().month,state().year]);
+       /* First check the canonical contextual decision engine. */
+       try{W.FL27_maybeEvent?.(true)}catch(e){}
+       try{W.randomEventChance?.("day")}catch(e){}
+       if(hasDecision())break;
+       continue;
+     }
+     const a=chooseRoutine();
+     const beforeDay=Number(state().day||1);
+     /* Activities are always whole hours (1–2h here); no 30-minute routine is created. */
+     if(typeof W.doActivity==="function"){
+       const oldAlert=W.alert; // doActivity itself handles the real time rules
+       W.doActivity(a);
+     }else{
+       if(typeof W.advance==="function")W.advance(a[2]);
+       state().energy=Math.max(0,Number(state().energy||80)-3*a[2]);
+     }
+     actions++;
+     if(Number(state().day||1)!==beforeDay)days++;
+     if(hasDecision())break;
+     /* If the action did not fit, finish the day and sleep. */
+     if(Number(state().hour||8)>=20)sleepToMorning(),days++;
+   }
+   if(!hasDecision() && days>=90)reason="osiągnięto limit 90 dni — wybierz ręcznie dalszy kierunek";
+   save();render();
+   if(W.FL27_game?.pending)try{render()}catch(e){}
+   if(W.toast)W.toast(`⏩ Symulacja zakończona • ${days} dni • ${actions} aktywności • ${reason}`);
+ }catch(e){
+   console.error("FL27 simulation",e);
+   if(W.toast)W.toast("Symulacja została zatrzymana, aby nie uszkodzić zapisu.");
+ }finally{
+   running=false;
+   if(btn){btn.disabled=false;btn.textContent="⏩ DO NASTĘPNEJ DECYZJI"}
+   if(card)card.classList.remove("running");
+ }
+}
+W.FL27_simulateToDecision=simulate;
+function mount(){
+ if(!state().started)return;
+ const main=document.querySelector("#main")||document.querySelector("main");if(!main)return;
+ if(document.querySelector("#fl123-sim"))return;
+ const card=document.createElement("section");card.id="fl123-sim";card.className="fl123-sim-card";
+ card.innerHTML=`<div class="fl123-sim-row">
+  <div class="fl123-sim-copy"><b>⏩ Symuluj do następnej decyzji</b>
+  <small>Życie toczy się samo: szkoła, treningi, rodzina, odpoczynek i zwykłe wydarzenia są rozliczane automatycznie. Symulacja zatrzyma się, gdy pojawi się decyzja wymagająca Ciebie.</small></div>
+  <button id="fl123-sim-btn" class="fl123-sim-btn">⏩ DO NASTĘPNEJ DECYZJI</button>
+ </div><div class="fl123-sim-status">⏳ Zawodnik sam planuje kolejne godziny… ważne decyzje pozostają po Twojej stronie.</div>`;
+ main.insertBefore(card,main.firstChild);
+ card.querySelector("#fl123-sim-btn").onclick=simulate;
+}
+setTimeout(mount,320);setTimeout(mount,200);
+})();
+</script>
+
+
+<style id="fl27-v124-clean-shell">
+/* V124: no flash of obsolete shell while the canonical UI boots. */
+#fl124-boot{pointer-events:none}
+#fl110-app{min-height:100vh}
+</style>
+<script id="fl27-v124-clean-shell-js">
+(function(){
+"use strict";
+const W=window;
+function reveal(){
+ const b=document.getElementById("fl124-boot");
+ document.body.classList.remove("fl124-booting");
+ if(b){b.style.opacity="0";setTimeout(()=>b.remove(),180)}
+}
+function ready(){
+ const started=!!W.S?.started;
+ const creator=!!document.querySelector(".v20-hub-overlay");
+ const header=!!document.querySelector("#fl110-header");
+ const main=!!document.querySelector("#main,#fl110-app");
+ return started ? (header&&main) : creator;
+}
+function boot(){
+ let tries=0;
+ const id=setInterval(()=>{
+   tries++;
+   if(ready() || tries>=60){clearInterval(id);reveal()}
+ },50);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});
+else boot();
+})();
+</script>
+
+
+<style id="fl27-v125-creator-click-fix">
+/* V125 — creator choices are handled by one delegated listener. */
+.v52-choice{cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important}
+.v52-choice:active{transform:scale(.99)}
+</style>
+<script id="fl27-v125-creator-click-fix-js">
+(function(){
+"use strict";
+const W=window;
+let installed=false;
+function install(){
+ if(installed)return;
+ if(!W.QUESTIONS || !W.selectedAnswers)return;
+ installed=true;
+
+ /* Stop the old V52 inline onclick from competing with the canonical handler. */
+ document.addEventListener("click",function(ev){
+   const btn=ev.target.closest && ev.target.closest(".v52-choice");
+   if(!btn)return;
+   ev.preventDefault();
+   ev.stopImmediatePropagation();
+
+   const qIndex=Number(W.selectedAnswers.length);
+   const q=W.QUESTIONS[qIndex];
+   if(!q || !Array.isArray(q[1]))return;
+
+   const buttons=[...document.querySelectorAll(".v52-choice")];
+   const index=buttons.indexOf(btn);
+   const value=q[1][index];
+   if(value==null)return;
+
+   /* Save the answer exactly once, then render ONLY the V52 creator. */
+   W.selectedAnswers.push(value);
+   try{W.saveCreatorDraft?.()}catch(e){}
+   try{W.toast?.("Odpowiedź zapisana ✓")}catch(e){}
+
+   requestAnimationFrame(function(){
+     try{
+       if(typeof W.FL27_renderCreatorV52==="function"){
+         W.FL27_renderCreatorV52();
+       }else if(typeof W.renderCreator==="function"){
+         W.renderCreator();
+       }
+     }catch(e){console.error("V125 creator render:",e)}
+   });
+ },true);
+
+ /* Inline handlers still call answer(); make that function safe as well. */
+ if(typeof W.answer==="function"){
+   W.__FL27_OLD_ANSWER=W.answer;
+ }
+ W.answer=function(v){
+   const current=Number(W.selectedAnswers?.length||0);
+   const q=W.QUESTIONS?.[current];
+   if(!q)return;
+   /* Ignore duplicate inline invocation if the delegated handler already handled it. */
+   const last=W.selectedAnswers?.[W.selectedAnswers.length-1];
+   if(last===v)return;
+   W.selectedAnswers.push(v);
+   try{W.saveCreatorDraft?.()}catch(e){}
+   try{W.toast?.("Odpowiedź zapisana ✓")}catch(e){}
+   try{W.FL27_renderCreatorV52?.()}catch(e){try{W.renderCreator?.()}catch(_){}}
+ };
+
+ /* Make sure every V52 render binds through the canonical path. */
+ const oldRender=W.FL27_renderCreatorV52;
+ if(typeof oldRender==="function" && !W.__FL27_V125_RENDER_PATCHED){
+   W.FL27_renderCreatorV52=function(){
+     try{return oldRender.apply(this,arguments)}
+     finally{
+       document.querySelectorAll(".v52-choice").forEach(b=>{
+         b.style.pointerEvents="auto";
+       });
+     }
+   };
+   W.__FL27_V125_RENDER_PATCHED=true;
+ }
+}
+setTimeout(install,100);
+setTimeout(install,500);
+setTimeout(install,1200);
 })();
 </script>
