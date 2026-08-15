@@ -14181,7 +14181,7 @@ W.FL27_confirmPlus=function(){
     const first=String(x.firstName||root?.querySelector("#creatorName")?.value||"").trim();
     const last=String(x.lastName||root?.querySelector("#creatorSurname")?.value||"").trim();
     if(!first||!last){W.toast?.("Brakuje imienia i nazwiska.");return false}
-    if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==10){
+    if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==7){
       W.toast?.("Odpowiedz na wszystkie 10 pytań.");return false;
     }
     const bd=x.birthDate||root?.querySelector("#creatorBirthDate")?.value||"";
@@ -14619,7 +14619,7 @@ function begin(){
 function finish(){
   const x=ng();
   if(!x.firstName||!x.lastName){W.toast?.("Brakuje imienia i nazwiska.");renderBasic();return}
-  if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==10){
+  if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==7){
     W.toast?.("Brakuje jednej z decyzji. Wróć i uzupełnij ją.");return
   }
   try{
@@ -15115,8 +15115,8 @@ W.FL27_confirmPlus=function(){
 
     /* The canonical creator already owns the 10 answers:
        2 basic answers + 8 varied career decisions. */
-    if(typeof selectedAnswers==="undefined" || selectedAnswers.length!==10){
-      toast("Odpowiedz na wszystkie 10 decyzji.");
+    if(typeof selectedAnswers==="undefined" || selectedAnswers.length!==7){
+      toast("Odpowiedz na wszystkie 7 decyzji.");
       return false;
     }
 
@@ -15357,8 +15357,8 @@ W.FL27_confirmPlus=function(){
       W.toast?.("Brakuje imienia i nazwiska.");
       return false;
     }
-    if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==10){
-      W.toast?.("Odpowiedz na wszystkie 10 decyzji.");
+    if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==7){
+      W.toast?.("Odpowiedz na wszystkie 7 decyzji.");
       return false;
     }
 
@@ -15461,6 +15461,105 @@ W.FL27_confirmPlus=function(){
     lifeStarting=false;
     return false;
   }
+};
+})();
+</script>
+
+<!-- FL27 V151 — 30 QUESTION POOL + VISIBLE WORLD GENERATION -->
+<style id="fl27-v151-style">
+#fl27-life-loading{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:20px!important;background:radial-gradient(circle at 50% 42%,rgba(211,163,55,.12),transparent 35%),rgba(5,6,9,.985)!important;backdrop-filter:blur(15px)!important;-webkit-backdrop-filter:blur(15px)!important}
+.fl27-life-loader{width:min(540px,100%);padding:30px 24px 25px;border:1px solid rgba(211,163,55,.42);border-radius:28px;background:linear-gradient(145deg,#17181d,#0d0e12);box-shadow:0 30px 90px rgba(0,0,0,.7);text-align:center}
+.fl27-life-ball{font-size:52px;display:block;animation:fl27spin 1.2s linear infinite;margin:0 auto 10px}@keyframes fl27spin{to{transform:rotate(360deg)}}
+.fl27-life-title{color:#fff;font-size:24px;font-weight:900;margin:0 0 6px}.fl27-life-sub{min-height:43px;color:#a9abb2;font-size:14px;line-height:1.45;margin:0 auto 18px}
+.fl27-life-progress{height:10px;border-radius:99px;overflow:hidden;background:#292a2f;border:1px solid rgba(255,255,255,.07)}
+#fl27-life-progress-bar{height:100%;width:7%;border-radius:99px;background:linear-gradient(90deg,#dcae43,#f5d47b);transition:width .65s ease}
+.fl27-life-percent{margin-top:8px;color:#e7c467;font-weight:900;font-size:13px}.fl27-life-elapsed{color:#777a82;font-size:11px;margin-top:4px}
+.fl27-life-steps{display:grid;gap:8px;margin-top:18px;text-align:left}.fl27-life-step{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;background:#15161a;color:#686b73;font-size:12px}
+.fl27-life-step.active{color:#f0d078;background:#1d1b17}.fl27-life-step.done{color:#9da08a}.fl27-life-step .dot{width:8px;height:8px;border-radius:50%;background:#3a3b41;flex:0 0 auto}.fl27-life-step.active .dot{background:#e5b94f;box-shadow:0 0 14px rgba(229,185,79,.6)}.fl27-life-step.done .dot{background:#8c9b62}
+.fl27-life-tip{margin-top:18px;color:#888b93;font-size:11px;line-height:1.45}
+</style>
+<script id="fl27-v151">
+(function(){
+"use strict";
+const W=window;
+let starting=false;
+const FIXED_POSITION={title:"Pozycja na boisku — gdzie widzisz siebie?",key:"pos",options:shuffle([
+{value:"Bramkarz (BR)",label:"Bramkarz (BR) — refleks, ustawienie i gra nogami."},
+{value:"Środkowy obrońca (ŚO)",label:"Środkowy obrońca (ŚO) — krycie, odbiór i gra w powietrzu."},
+{value:"Lewy obrońca (LO)",label:"Lewy obrońca (LO) — defensywa, szybkość i wsparcie ataku."},
+{value:"Prawy obrońca (PO)",label:"Prawy obrońca (PO) — pojedynki i gra po prawej stronie."},
+{value:"Środkowy pomocnik (ŚP)",label:"Środkowy pomocnik (ŚP) — tempo gry, podania i odbiór."},
+{value:"Lewy pomocnik (LP)",label:"Lewy pomocnik (LP) — praca w bocznym sektorze."},
+{value:"Prawy pomocnik (PP)",label:"Prawy pomocnik (PP) — ruch i wsparcie skrzydła."},
+{value:"Lewy skrzydłowy (LS)",label:"Lewy skrzydłowy (LS) — drybling i szybkość."},
+{value:"Prawy skrzydłowy (PS)",label:"Prawy skrzydłowy (PS) — sprint i tworzenie okazji."},
+{value:"Napastnik (N)",label:"Napastnik (N) — ruch, wykończenie i szukanie przestrzeni."}
+])};
+const FIXED_FOOT={title:"Którą nogą czujesz się pewniej?",key:"foot",options:shuffle([
+{value:"Lewa",label:"Lewa — to moja dominująca noga."},
+{value:"Prawa",label:"Prawa — to moja dominująca noga."}
+])};
+const MOVABLE_POOL=[{title:'Jakim typem zawodnika chcesz być?',key:'0',options:shuffle([{value:'Techniczny',label:'Techniczny — Lubię kontrolę, drybling i grę przy piłce.'},{value:'Szybki',label:'Szybki — Najbardziej liczy się dla mnie tempo i przestrzeń.'},{value:'Fizyczny',label:'Fizyczny — Lubię pojedynki, siłę i walkę.'},{value:'Kreatywny',label:'Kreatywny — Chcę widzieć podania, których inni nie zauważają.'},{value:'Uniwersalny',label:'Uniwersalny — Chcę umieć pomóc drużynie w wielu sytuacjach.'}])},{title:'Kto najbardziej Cię inspiruje?',key:'1',options:shuffle([{value:'Lionel Messi',label:'Lionel Messi — Technika, wizja i inteligencja boiskowa.'},{value:'Cristiano Ronaldo',label:'Cristiano Ronaldo — Ambicja, pracowitość i skuteczność.'},{value:'Kylian Mbappé',label:'Kylian Mbappé — Szybkość i odwaga w ataku.'},{value:'Jude Bellingham',label:'Jude Bellingham — Wszechstronność i dojrzałość.'},{value:'Alexia Putellas',label:'Alexia Putellas — Kreatywność i przywództwo.'},{value:'Aitana Bonmatí',label:'Aitana Bonmatí — Technika i inteligencja.'},{value:'Lamine Yamal',label:'Lamine Yamal — Odwaga i gra jeden na jednego.'},{value:'Erling Haaland',label:'Erling Haaland — Siła i instynkt strzelecki.'}])},{title:'Jaki klub najbardziej Cię fascynuje?',key:'2',options:shuffle([{value:'FC Barcelona',label:'FC Barcelona — Marzę o grze w Barcelonie.'},{value:'Real Madryt',label:'Real Madryt — Marzę o grze w Realu Madryt.'},{value:'Manchester City',label:'Manchester City — Podoba mi się ich styl.'},{value:'Bayern Monachium',label:'Bayern Monachium — Chcę spróbować sił w Niemczech.'},{value:'Arsenal',label:'Arsenal — Podoba mi się ich rozwój młodych.'},{value:'Liverpool',label:'Liverpool — Chcę poczuć atmosferę Anfield.'},{value:'Inter',label:'Inter — Podoba mi się włoska taktyka.'},{value:'AC Milan',label:'AC Milan — Marzę o wielkiej europejskiej historii.'},{value:'Borussia Dortmund',label:'Borussia Dortmund — Chcę rozwijać się w klubie młodzieżowym.'}])},{title:'Co robisz pod presją?',key:'3',options:shuffle([{value:'Walczę do końca',label:'Walczę do końca — Nie odpuszczam po błędzie.'},{value:'Zachowuję spokój',label:'Zachowuję spokój — Najlepiej działam bez paniki.'},{value:'Biorę odpowiedzialność',label:'Biorę odpowiedzialność — W trudnym momencie chcę mieć piłkę.'},{value:'Szukam wsparcia',label:'Szukam wsparcia — Ważna jest dla mnie drużyna.'},{value:'Presja mnie blokuje',label:'Presja mnie blokuje — Potrzebuję czasu na pewność siebie.'},{value:'Zmieniam presję w motywację',label:'Zmieniam presję w motywację — Im ważniejszy mecz, tym bardziej chcę się pokazać.'},{value:'Najpierw obserwuję',label:'Najpierw obserwuję — Wolę analizować przed reakcją.'}])},{title:'Co jest najważniejsze w karierze?',key:'4',options:shuffle([{value:'Rozwój umiejętności',label:'Rozwój umiejętności — Chcę stawać się coraz lepszy.'},{value:'Trofea',label:'Trofea — Najbardziej napędza mnie zwycięstwo.'},{value:'Pieniądze',label:'Pieniądze — Stabilność finansowa jest ważna.'},{value:'Sława',label:'Sława — Chcę być rozpoznawalny.'},{value:'Reprezentacja',label:'Reprezentacja — Marzę o grze dla kraju.'},{value:'Dobra atmosfera',label:'Dobra atmosfera — Nie chcę poświęcić życia dla samego futbolu.'},{value:'Wykształcenie',label:'Wykształcenie — Chcę rozwijać się poza boiskiem.'},{value:'Niezależność',label:'Niezależność — Chcę sam decydować o swoim życiu.'}])},{title:'Jaki jest Twój największy cel?',key:'5',options:shuffle([{value:'Zostać światowej klasy zawodnikiem',label:'Zostać światowej klasy zawodnikiem — Chcę dojść naprawdę wysoko.'},{value:'Zdobyć Ligę Mistrzów',label:'Zdobyć Ligę Mistrzów — Chcę wygrać najważniejsze klubowe rozgrywki.'},{value:'Zagrać dla reprezentacji',label:'Zagrać dla reprezentacji — Chcę reprezentować swój kraj.'},{value:'Zostać kapitanem',label:'Zostać kapitanem — Chcę być osobą, której drużyna ufa.'},{value:'Zostać legendą klubu',label:'Zostać legendą klubu — Chcę zostawić po sobie historię.'},{value:'Pomóc rodzinie',label:'Pomóc rodzinie — Sukces ma poprawić życie bliskich.'},{value:'Zagrać w kilku ligach',label:'Zagrać w kilku ligach — Chcę poznać różne style futbolu.'},{value:'Mieć karierę i normalne życie',label:'Mieć karierę i normalne życie — Futbol ma być częścią życia.'}])},{title:'Jak reagujesz na krytykę trenera?',key:'6',options:shuffle([{value:'Słucham i poprawiam błędy',label:'Słucham i poprawiam błędy — Traktuję krytykę jako wskazówkę.'},{value:'Bronię swojego zdania',label:'Bronię swojego zdania — Jeśli mam argumenty, dyskutuję.'},{value:'Potrzebuję chwili',label:'Potrzebuję chwili — Najpierw muszę ochłonąć.'},{value:'Pytam, co poprawić',label:'Pytam, co poprawić — Wolę jasne zadanie.'},{value:'Motywuje mnie to',label:'Motywuje mnie to — Krytyka daje mi dodatkową energię.'}])},{title:'Co robisz po słabym meczu?',key:'7',options:shuffle([{value:'Analizuję nagranie',label:'Analizuję nagranie — Chcę zobaczyć, co zrobiłem źle.'},{value:'Idę odpocząć',label:'Idę odpocząć — Potrzebuję odciąć głowę.'},{value:'Trenuję dodatkowo',label:'Trenuję dodatkowo — Chcę szybko naprawić błędy.'},{value:'Rozmawiam z bliskimi',label:'Rozmawiam z bliskimi — Pomaga mi rozmowa.'},{value:'Szybko odpuszczam',label:'Szybko odpuszczam — Następnego dnia patrzę do przodu.'}])},{title:'Jak wygląda Twoja relacja z nauką?',key:'8',options:shuffle([{value:'Lubię się uczyć',label:'Lubię się uczyć — Szkoła jest dla mnie ważna.'},{value:'Uczę się przed sprawdzianem',label:'Uczę się przed sprawdzianem — Działam, kiedy trzeba.'},{value:'Futbol jest ważniejszy',label:'Futbol jest ważniejszy — Nauka często schodzi na drugi plan.'},{value:'Łączę oba światy',label:'Łączę oba światy — Chcę mieć dobre wyniki i rozwijać futbol.'},{value:'Mam ulubiony przedmiot',label:'Mam ulubiony przedmiot — Najlepiej idzie mi to, co mnie interesuje.'}])},{title:'Jak ważne są dla Ciebie pieniądze?',key:'9',options:shuffle([{value:'Bardzo ważne',label:'Bardzo ważne — Chcę finansowej niezależności.'},{value:'Ważne, ale nie najważniejsze',label:'Ważne, ale nie najważniejsze — Liczy się też rozwój.'},{value:'Najważniejsze jest spełnienie',label:'Najważniejsze jest spełnienie — Pieniądze są skutkiem sukcesu.'},{value:'Chcę pomóc rodzinie',label:'Chcę pomóc rodzinie — Stabilność ma znaczenie dla bliskich.'},{value:'Nie myślę o nich na początku',label:'Nie myślę o nich na początku — Na razie chcę po prostu grać.'}])},{title:'Jak spędzasz wolny dzień?',key:'10',options:shuffle([{value:'Z rodziną',label:'Z rodziną — Bliscy dają mi energię.'},{value:'Z przyjaciółmi',label:'Z przyjaciółmi — Lubię być wśród ludzi.'},{value:'Gram w gry',label:'Gram w gry — Tak najlepiej odpoczywam.'},{value:'Idę na boisko',label:'Idę na boisko — Nawet wolny dzień wykorzystuję na futbol.'},{value:'Rozwijam hobby',label:'Rozwijam hobby — Lubię robić coś pożytecznego.'}])},{title:'Jak łatwo nawiązujesz znajomości?',key:'11',options:shuffle([{value:'Bardzo łatwo',label:'Bardzo łatwo — Zwykle pierwszy zaczynam rozmowę.'},{value:'Raczej łatwo',label:'Raczej łatwo — Szybko się otwieram.'},{value:'Zależy od ludzi',label:'Zależy od ludzi — Nie z każdym łapię kontakt.'},{value:'Jestem nieśmiały',label:'Jestem nieśmiały — Wolę, gdy ktoś pierwszy zagada.'},{value:'W grupie czuję się najlepiej',label:'W grupie czuję się najlepiej — Łatwiej otwieram się w większym gronie.'}])},{title:'Co najbardziej Cię motywuje?',key:'12',options:shuffle([{value:'Rywalizacja',label:'Rywalizacja — Chcę być lepszy od najlepszych.'},{value:'Pochwała',label:'Pochwała — Dobrze reaguję na uznanie.'},{value:'Cel',label:'Cel — Najlepiej działam z konkretnym planem.'},{value:'Rodzina',label:'Rodzina — Chcę zrobić coś ważnego dla bliskich.'},{value:'Własna ambicja',label:'Własna ambicja — Nie potrzebuję zewnętrznej motywacji.'}])},{title:'Jak radzisz sobie z porażką?',key:'13',options:shuffle([{value:'Szybko wracam',label:'Szybko wracam — Porażka mnie nie zatrzymuje.'},{value:'Potrzebuję czasu',label:'Potrzebuję czasu — Przeżywam ją mocno.'},{value:'Wyciągam lekcję',label:'Wyciągam lekcję — Zastanawiam się, co poprawić.'},{value:'Szukam kolejnego celu',label:'Szukam kolejnego celu — Od razu potrzebuję wyzwania.'},{value:'Rozmawiam z bliskimi',label:'Rozmawiam z bliskimi — Pomaga mi wsparcie.'}])},{title:'Jak ważna jest dla Ciebie rodzina?',key:'14',options:shuffle([{value:'Najważniejsza',label:'Najważniejsza — Rodzina jest moim fundamentem.'},{value:'Bardzo ważna',label:'Bardzo ważna — Chcę mieć z nimi bliski kontakt.'},{value:'Ważna, ale potrzebuję niezależności',label:'Ważna, ale potrzebuję niezależności — Cenię bliskość i przestrzeń.'},{value:'Zależy od relacji',label:'Zależy od relacji — Nie każda relacja jest taka sama.'},{value:'Chcę odwdzięczyć się rodzinie',label:'Chcę odwdzięczyć się rodzinie — Sukces ma znaczenie także dla nich.'}])},{title:'Czy chcesz kiedyś wyjechać za granicę?',key:'15',options:shuffle([{value:'Tak, bardzo',label:'Tak, bardzo — Chcę poznać inne kraje i ligi.'},{value:'Jeśli będzie dobra oferta',label:'Jeśli będzie dobra oferta — Nie wykluczam tego.'},{value:'Tylko do wielkiego klubu',label:'Tylko do wielkiego klubu — Wyjazd musi mieć sens sportowy.'},{value:'Wolę zostać blisko domu',label:'Wolę zostać blisko domu — Rodzina i znajome miejsce są ważne.'},{value:'Nie wiem',label:'Nie wiem — Zobaczę, co przyniesie życie.'}])},{title:'Jak reagujesz na nowe środowisko?',key:'16',options:shuffle([{value:'Szybko się odnajduję',label:'Szybko się odnajduję — Nowe miejsce mnie ciekawi.'},{value:'Najpierw obserwuję',label:'Najpierw obserwuję — Potrzebuję czasu.'},{value:'Szukam jednej bliskiej osoby',label:'Szukam jednej bliskiej osoby — Łatwiej mi z kimś zaufanym.'},{value:'Od razu się integruję',label:'Od razu się integruję — Lubię poznawać ludzi.'},{value:'Tęsknię za domem',label:'Tęsknię za domem — Zmiany są dla mnie trudne.'}])},{title:'Co wolisz na treningu?',key:'17',options:shuffle([{value:'Intensywność',label:'Intensywność — Wolę mocny trening.'},{value:'Technikę',label:'Technikę — Chcę poprawiać detale.'},{value:'Taktykę',label:'Taktykę — Lubię rozumieć grę.'},{value:'Rywalizację',label:'Rywalizację — Najbardziej motywują mnie pojedynki.'},{value:'Różnorodność',label:'Różnorodność — Nie lubię dwóch takich samych treningów.'}])},{title:'Jak ważne jest dla Ciebie zdrowie?',key:'18',options:shuffle([{value:'Bardzo',label:'Bardzo — Nie chcę ryzykować kariery.'},{value:'Ważne, ale gram twardo',label:'Ważne, ale gram twardo — Czasem ryzykuję dla drużyny.'},{value:'Zaczynam to doceniać',label:'Zaczynam to doceniać — Nie zawsze o tym pamiętam.'},{value:'Najważniejsza jest regeneracja',label:'Najważniejsza jest regeneracja — Sen i odpoczynek są częścią treningu.'},{value:'Wolę zapobiegać',label:'Wolę zapobiegać — Dbam o przygotowanie.'}])},{title:'Jak reagujesz na kontuzję?',key:'19',options:shuffle([{value:'Nie mogę się doczekać powrotu',label:'Nie mogę się doczekać powrotu — Rehabilitacja daje mi cel.'},{value:'Skupiam się na leczeniu',label:'Skupiam się na leczeniu — Nie chcę przyspieszać.'},{value:'Psychicznie jest mi ciężko',label:'Psychicznie jest mi ciężko — Brak futbolu mocno mnie dotyka.'},{value:'Szukam alternatywy',label:'Szukam alternatywy — Rozwijam coś poza boiskiem.'},{value:'Trzymam kontakt z drużyną',label:'Trzymam kontakt z drużyną — Nie chcę wypaść z grupy.'}])},{title:'Co sądzisz o mediach społecznościowych?',key:'20',options:shuffle([{value:'Lubię je',label:'Lubię je — Chcę budować markę.'},{value:'Używam prywatnie',label:'Używam prywatnie — Nie chcę pokazywać całego życia.'},{value:'Jestem ostrożny',label:'Jestem ostrożny — Jeden wpis może dużo zmienić.'},{value:'Wykorzystam je zawodowo',label:'Wykorzystam je zawodowo — To część nowoczesnej kariery.'},{value:'Raczej ich unikam',label:'Raczej ich unikam — Cenię prywatność.'}])},{title:'Jak reagujesz, gdy ktoś Ci zazdrości?',key:'21',options:shuffle([{value:'Ignoruję to',label:'Ignoruję to — Nie chcę tracić energii.'},{value:'Rozmawiam',label:'Rozmawiam — Wolę wyjaśnić sytuację.'},{value:'Motywuje mnie to',label:'Motywuje mnie to — Chcę iść dalej.'},{value:'Biorę to do siebie',label:'Biorę to do siebie — Takie rzeczy długo o mnie chodzą.'},{value:'Trzymam dystans',label:'Trzymam dystans — Nie każdy musi być znajomym.'}])},{title:'Co jest ważniejsze: talent czy praca?',key:'22',options:shuffle([{value:'Praca',label:'Praca — Talent bez treningu niewiele znaczy.'},{value:'Talent',label:'Talent — Niektóre rzeczy są naturalne.'},{value:'Jedno i drugie',label:'Jedno i drugie — Najlepszy jest balans.'},{value:'Charakter',label:'Charakter — Liczy się reakcja na trudności.'},{value:'Środowisko',label:'Środowisko — Dobre osoby wokół mogą zmienić karierę.'}])},{title:'Jak wygląda Twoja ambicja?',key:'23',options:shuffle([{value:'Bardzo wysoka',label:'Bardzo wysoka — Chcę być najlepszy.'},{value:'Zdrowa',label:'Zdrowa — Chcę się rozwijać bez obsesji.'},{value:'Rośnie z czasem',label:'Rośnie z czasem — Potrzebuję sukcesów.'},{value:'Zależy od sytuacji',label:'Zależy od sytuacji — Nie zawsze muszę być pierwszy.'},{value:'Chcę zaskoczyć wszystkich',label:'Chcę zaskoczyć wszystkich — Motywuje mnie niedowierzanie innych.'}])},{title:'Czy ważna jest popularność?',key:'24',options:shuffle([{value:'Tak',label:'Tak — Chcę być rozpoznawalny.'},{value:'Trochę',label:'Trochę — Dobrze, jeśli idzie za sukcesem.'},{value:'Nie',label:'Nie — Wolę prywatność.'},{value:'Tylko jeśli pomaga karierze',label:'Tylko jeśli pomaga karierze — Popularność ma być narzędziem.'},{value:'Nie wiem',label:'Nie wiem — Jeszcze nie wiem, jak się z tym czuję.'}])},{title:'Jak podchodzisz do wydawania pieniędzy?',key:'25',options:shuffle([{value:'Oszczędzam',label:'Oszczędzam — Wolę mieć zabezpieczenie.'},{value:'Kupuję rzeczy poprawiające życie',label:'Kupuję rzeczy poprawiające życie — Lubię korzystać z efektów pracy.'},{value:'Inwestuję w siebie',label:'Inwestuję w siebie — Sprzęt, nauka i trening są ważniejsze.'},{value:'Pomagam rodzinie',label:'Pomagam rodzinie — Najpierw myślę o bliskich.'},{value:'Jestem impulsywny',label:'Jestem impulsywny — Czasem kupuję pod wpływem chwili.'}])},{title:'Jaką rolę pełnisz w grupie?',key:'26',options:shuffle([{value:'Lider',label:'Lider — Naturalnie biorę odpowiedzialność.'},{value:'Pomocnik',label:'Pomocnik — Lubię wspierać innych.'},{value:'Żartowniś',label:'Żartowniś — Rozładowuję napięcie.'},{value:'Obserwator',label:'Obserwator — Nie muszę być w centrum.'},{value:'Rywal',label:'Rywal — Motywuję grupę konkurencją.'}])},{title:'Co robisz, gdy kolega jest słabszy?',key:'27',options:shuffle([{value:'Pomagam mu',label:'Pomagam mu — Drużyna jest ważniejsza niż jednostka.'},{value:'Motywuję go',label:'Motywuję go — Chcę, żeby się poprawił.'},{value:'Skupiam się na sobie',label:'Skupiam się na sobie — Każdy odpowiada za własny rozwój.'},{value:'Rozmawiam z trenerem',label:'Rozmawiam z trenerem — Szukam rozwiązania dla zespołu.'},{value:'Bronię go',label:'Bronię go — Nie lubię publicznego poniżania.'}])}];
+function newSet(){return [FIXED_POSITION,FIXED_FOOT,...shuffle(MOVABLE_POOL).slice(0,5)]}
+W.FL27_QUESTION_POOL_SIZE=30;
+const oldPlus=W.FL27_startPlus;
+W.FL27_startPlus=function(){W.__FL27_CREATOR_QUESTIONS=newSet();return oldPlus?.apply(this,arguments)};
+const oldShow=W.FL27_showCreator;
+W.FL27_showCreator=function(){if(!Array.isArray(W.__FL27_CREATOR_QUESTIONS)||W.__FL27_CREATOR_QUESTIONS.length!==10)W.__FL27_CREATOR_QUESTIONS=newSet();return oldShow?.apply(this,arguments)};
+
+function loader(){
+document.getElementById("fl27-life-loading")?.remove();
+const e=document.createElement("div");e.id="fl27-life-loading";
+e.innerHTML=`<div class="fl27-life-loader"><span class="fl27-life-ball">⚽</span>
+<h2 class="fl27-life-title">Tworzymy Twoje życie</h2>
+<p id="fl27-life-status" class="fl27-life-sub">Łączymy Twoje decyzje z historią zawodnika…</p>
+<div class="fl27-life-progress"><div id="fl27-life-progress-bar"></div></div>
+<div id="fl27-life-percent" class="fl27-life-percent">7%</div>
+<div id="fl27-life-elapsed" class="fl27-life-elapsed">Generowanie trwa 0 s</div>
+<div class="fl27-life-steps">
+<div class="fl27-life-step active" data-step="1"><span class="dot"></span>Analizujemy Twoje decyzje</div>
+<div class="fl27-life-step" data-step="2"><span class="dot"></span>Tworzymy rodziców i ich historię</div>
+<div class="fl27-life-step" data-step="3"><span class="dot"></span>Łączymy pochodzenie i narodowości</div>
+<div class="fl27-life-step" data-step="4"><span class="dot"></span>Budujemy dom, szkołę i środowisko</div>
+<div class="fl27-life-step" data-step="5"><span class="dot"></span>Losujemy klub i warunki startu</div>
+<div class="fl27-life-step" data-step="6"><span class="dot"></span>Uruchamiamy pierwszy dzień życia</div>
+</div>
+<div class="fl27-life-tip">💡 To nie jest zwykłe ładowanie. Silnik właśnie buduje historię rodziny i świat Twojego zawodnika na podstawie jego decyzji.</div></div>`;
+document.body.appendChild(e);return e;
+}
+function stage(n,pct,msg){
+const b=document.getElementById("fl27-life-progress-bar"),pc=document.getElementById("fl27-life-percent"),st=document.getElementById("fl27-life-status");
+if(b)b.style.width=pct+"%";if(pc)pc.textContent=pct+"%";if(st)st.textContent=msg;
+document.querySelectorAll("#fl27-life-loading .fl27-life-step").forEach(x=>{const k=+x.dataset.step;x.classList.toggle("active",k===n);x.classList.toggle("done",k<n)});
+}
+function closeLoader(){const e=document.getElementById("fl27-life-loading");if(!e)return;e.style.transition="opacity .35s ease";e.style.opacity="0";setTimeout(()=>e.remove(),380)}
+
+W.FL27_confirmPlus=function(){
+if(starting)return false;
+const x=W.FL27_NEW_GAME||{},first=String(x.firstName||"").trim(),last=String(x.lastName||"").trim();
+if(!first||!last){W.toast?.("Brakuje imienia i nazwiska.");return false}
+if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==7){W.toast?.("Odpowiedz na wszystkie 7 decyzji.");return false}
+starting=true;const btn=document.getElementById("fl27-start-final");if(btn){btn.disabled=true;btn.textContent="⚽ PRZYGOTOWYWANIE ŚWIATA…"}
+loader();const t0=Date.now(),timer=setInterval(()=>{const e=document.getElementById("fl27-life-elapsed");if(e)e.textContent="Generowanie trwa "+Math.floor((Date.now()-t0)/1000)+" s"},250);
+stage(1,7,"Analizujemy pozycję, charakter, cele i wszystkie Twoje decyzje…");
+setTimeout(()=>stage(2,22,"Tworzymy rodziców, ich pochodzenie, pracę, relacje i sytuację finansową…"),650);
+setTimeout(()=>stage(3,39,"Łączymy pochodzenie rodziców z Twoimi możliwymi narodowościami…"),1250);
+setTimeout(()=>stage(4,55,"Budujemy miejsce urodzenia, dom, szkołę i środowisko dorastania…"),1850);
+setTimeout(()=>stage(5,69,"Ustalamy pierwsze kontakty z futbolem, trening i klub startowy…"),2450);
+setTimeout(()=>{
+try{
+stage(6,78,"Uruchamiamy właściwy silnik świata — jeszcze chwila…");
+const full=(first+" "+last).replace(/\s+/g," ").trim(),gender=x.gender==="K"?"Kobieta":"Mężczyzna",orientation=x.orientation||"N",birth=String(x.birthDate||"2011-11-30");
+playerName=full;creatorStarted=true;W.selectedAnswers=selectedAnswers;W.__FL27_AVATAR_CONFIG={gender:x.gender,orientation};
+const engine=W.FL27_INTERNAL_START_CAREER||W.__FL27_ORIGINAL_START_CAREER;if(typeof engine!=="function")throw new Error("Brak silnika");
+engine();if(!W.S?.started)throw new Error("Silnik nie ustawił S.started");
+W.S.firstName=first;W.S.lastName=last;W.S.name=full;W.S.gender=gender;W.S.orientation=orientation;W.S.birthDate=birth;W.S.birthMonth=+birth.slice(5,7);W.S.birthDay=+birth.slice(8,10);W.S.creatorDecisions=[...selectedAnswers];W.S.creatorProfile={firstName:first,lastName:last,gender:x.gender,orientation,birthDate:birth};
+x.playerName=full;x.ready=true;W.FL27_NEW_GAME=x;try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(x))}catch(e){}
+stage(6,91,"Świat gotowy. Zapisujemy pierwsze dane Twojego życia…");
+setTimeout(()=>{stage(6,100,"Gotowe! Witaj w swoim nowym życiu.");setTimeout(()=>{clearInterval(timer);W.__FL27_PLUS_CREATOR_ACTIVE=false;W.__FL27_CANONICAL_STARTED=false;document.querySelectorAll(".v20-hub-overlay").forEach(el=>el.remove());closeLoader();try{W.saveSoon?.();W.save?.();W.render?.()}catch(e){}W.toast?.("⚽ Kariera rozpoczęta!");starting=false},700)},650);
+}catch(err){clearInterval(timer);console.error("V151 start",err);closeLoader();starting=false;if(btn){btn.disabled=false;btn.textContent="⚽ ROZPOCZNIJ KARIERĘ"}W.toast?.("Nie udało się utworzyć kariery. Spróbuj ponownie.")}
+},3300);
+return true;
 };
 })();
 </script>
