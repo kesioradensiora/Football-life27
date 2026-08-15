@@ -11147,3 +11147,57 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 window.FL27_V102={render};
 })();
 </script>
+
+
+<style id="fl27-v103-single-ui">
+/* FINAL UI LOCK: only one header, one tutorial strip and the right drawer. */
+.fl27-v35-top,
+.fl27-v35-bottom,
+#nav,
+#fl96-brand,
+#fl89-top,
+.v37-tasks{display:none!important;visibility:hidden!important;pointer-events:none!important}
+body{padding-top:150px!important;padding-bottom:18px!important}
+#fl97-playerbar{display:flex!important;visibility:visible!important}
+#fl97-real-logo{display:flex!important;visibility:visible!important}
+
+/* Tutorial is always directly under the fixed player header until completed. */
+#fl102-strip{
+ position:sticky!important;top:76px!important;z-index:2147481500!important;
+ margin:0 auto 12px!important;max-width:980px!important
+}
+#fl102-strip .ey{color:#d9aa4d!important}
+#fl102-strip .reward{background:rgba(125,95,220,.13)!important;color:#d8c9ff!important}
+#fl102-strip .progress i{background:linear-gradient(90deg,#b9822d,#f1cc70)!important}
+
+/* Remove the old blue tutorial styling from decision explanations; use the game's black/white/gold language. */
+.v40-tutorial-explain{
+ background:linear-gradient(145deg,rgba(217,170,77,.07),rgba(255,255,255,.025))!important;
+ border-color:rgba(217,170,77,.16)!important
+}
+.v40-help-title{color:#d9aa4d!important}
+.v40-help-grid div{background:rgba(255,255,255,.035)!important;color:rgba(255,255,255,.78)!important}
+
+/* Keep the agreed right-side drawer as the only navigation. */
+#fl86-menu{display:flex!important}
+#fl86-drawer{display:block}
+</style>
+
+<script id="fl27-v103-single-ui-js">
+(function(){
+"use strict";
+function killLegacy(){
+ document.querySelectorAll(".fl27-v35-top,.fl27-v35-bottom,#nav,#fl96-brand,#fl89-top,.v37-tasks").forEach(x=>x.remove());
+}
+/* Older versions re-mounted their chrome after render(); continuously remove only those
+   legacy chrome nodes, never touching game state or the working right drawer. */
+function lock(){
+ killLegacy();
+ document.body?.classList.add("fl27-single-ui");
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",lock);else lock();
+setInterval(lock,350);
+new MutationObserver(lock).observe(document.documentElement,{childList:true,subtree:true});
+window.FL27_V103={lock};
+})();
+</script>
