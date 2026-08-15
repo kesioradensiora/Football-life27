@@ -3464,15 +3464,15 @@ function renderTab(tab){
  if(tab==="home")renderHome(m);
  if(tab==="day")renderDay(m);
  if(tab==="career")renderCareer(m);
- if(tab==="life")renderLife(m);
- if(tab==="history")renderHistory(m);
- if(tab==="family")renderFamily(m);
- if(tab==="careerStats")renderCareerHistory(m);
- if(tab==="wealth")renderWealth(m);
- if(tab==="relations")renderRelations(m);
- if(tab==="social")renderSocial(m);
- if(tab==="store")renderStore(m);
- if(tab==="settings")renderSettings(m);
+ if(tab==="life"){window.renderLife(m);return;}
+ if(tab==="history"){window.renderHistory?.(m)||renderHistory(m);return;}
+ if(tab==="family"){window.renderFamily(m);return;}
+ if(tab==="careerStats"){renderCareerHistory(m);return;}
+ if(tab==="wealth"){window.renderWealth(m);return;}
+ if(tab==="relations"){window.renderRelations(m);return;}
+ if(tab==="social"){window.renderSocial(m);return;}
+ if(tab==="store"){window.renderStore(m);return;}
+ if(tab==="settings"){window.renderSettings(m);return;}
 }
 function renderHome(m){
  const esc0=v=>esc(v??"");
@@ -13793,6 +13793,332 @@ document.head.appendChild(style);
 
 /* Normalize once immediately so old placeholder relations are corrected in saved state. */
 try{FL27_normalizeRelations();saveSoon()}catch(e){console.warn(e)}
+})();
+</script>
+
+
+<script id="fl27-day-calendar-fix">
+(function(){
+"use strict";
+
+/* The old day screen rendered buttons that pointed at an obsolete activity bridge.
+   Keep ONE canonical activity entry point. */
+window.FL27V137_activity=function(k){
+  if(typeof window.activity==="function"){ window.activity(k); return; }
+  if(k==="sleep"){ window.sleep?.(); return; }
+  if(k==="match"){ window.playMatch?.(); return; }
+  toast("Ta aktywność jest chwilowo niedostępna.");
+};
+
+/* A single, attractive calendar for the day screen. */
+function FL27_dayCalendar(s){
+  ensureCalendar(s);
+  const d=gameDateObj(s), iso=s.gameDate;
+  const wd=d.getDay(), weekend=wd===0||wd===6;
+  const month=d.getMonth();
+  const monthNames=["styczeń","luty","marzec","kwiecień","maj","czerwiec","lipiec","sierpień","wrzesień","październik","listopad","grudzień"];
+  const school=iso==="2026-09-01";
+  const matchDay=Number(s.nextMatchDay||0);
+  const left=matchDay-Number(s.day||1);
+  const hasMatch=matchDay>0;
+  const matchToday=hasMatch&&left<=0;
+  const opponent=s.opponent||s.nextOpponent||"Rywal ligowy";
+
+  return `<div class="fl27-day-calendar">
+    <div class="fl27-cal-head">
+      <div><span>📅 KALENDARZ</span><b>${esc(fmtGameDate(s))}</b></div>
+      <div class="fl27-cal-month">${monthNames[month]} ${d.getFullYear()}</div>
+    </div>
+    <div class="fl27-cal-events">
+      <div class="fl27-cal-event ${weekend?"soft":""}">
+        <i>${weekend?"🌴":"🏫"}</i><div><b>${weekend?"Weekend":"Dzień szkolny"}</b><small>${weekend?"Szkoła jest wolna. Praca zależy od lokalnego kalendarza.":"Zwykły dzień szkolny — wydarzenia szkolne mogą się pojawić."}</small></div>
+      </div>
+      ${school?`<div class="fl27-cal-event important"><i>🎒</i><div><b>Rozpoczęcie roku szkolnego</b><small>Pierwszy dzień szkoły. Kalendarz szkolny wpływa na Twoje aktywności i wydarzenia.</small></div></div>`:""}
+      ${hasMatch?`<div class="fl27-cal-event match ${matchToday?"today":""}"><i>⚽</i><div><b>${matchToday?"MECZ DZISIAJ":`Mecz za ${left} ${left===1?"dzień":"dni"}`}</b><small>${esc(opponent)} • przygotuj energię, zdrowie i formę</small></div>${matchToday?`<button type="button" onclick="FL27V137_activity('match')">ROZEGRAJ</button>`:`<span class="fl27-cal-count">${left} dni</span>`}</div>`:""}
+    </div>
+    <div class="fl27-cal-note">Święta państwowe, szkolne i dni wolne są zależne od kraju zamieszkania. W dalszej wersji kalendarz będzie pokazywał także pełną listę świąt danego kraju.</div>
+  </div>`;
+}
+
+/* Replace only the old day-route renderer. */
+window.renderDay=function(m){
+ const s=S();ensureCalendar(s);ensureSchoolCalendar(s);
+ const hour=Math.round(Number(s.hour??8));
+ const keys=["training","homework","friends","family","hobby","bike","pool","free","recovery","city","reading","walk","job","gym","run","stretch","meal","cinema","gaming","social","volunteer"];
+ const acts=keys.map(k=>[k,ACTIVITY_CATALOG[k]]).filter(([,a])=>a);
+ const canSleep=hour>=22;
+ m.innerHTML=`<section class="fl27-day-page">
+  <div class="card hero"><div class="kicker">🌍 PRZEBIEG DNIA</div><h1>${esc(fmtGameDate(s))}</h1><p>Nie trzeba odświeżać strony. Klikasz aktywność → czas zostaje od razu zużyty → panel aktualizuje się automatycznie.</p>
+   <div class="pills"><span class="pill">🕐 ${String(hour).padStart(2,"0")}:00</span><span class="pill">⚡ ${Math.round(s.energy||0)}</span><span class="pill">💶 ${Math.round(s.money||0)}€</span></div>
+  </div>
+  ${FL27_dayCalendar(s)}
+  <div class="card"><div class="section-title"><b>🎯 CO ROBISZ TERAZ?</b><span>każda akcja działa natychmiast</span></div>
+   <div class="fl27-day-actions">${acts.map(([k,a])=>{
+     const ok=hour+a.time<=22&&Number(s.money||0)>=Number(a.cost||0);
+     return `<button type="button" class="fl27-day-action ${ok?"":"disabled"}" data-day-act="${k}" ${ok?"":"disabled"}>
+       <b>${a.icon} ${E(a.name)}</b><span>${fmtHours(a.time)}${a.cost?` • €${a.cost}`:" • bez kosztu"}</span><small>${E(a.desc||"")}</small></button>`;
+   }).join("")}
+   <button type="button" class="fl27-day-action sleep ${canSleep?"":"disabled"}" data-day-act="sleep" ${canSleep?"":"disabled"}><b>🌙 Sen</b><span>22:00 → 08:00</span><small>${canSleep?"Zakończ dzień i natychmiast przejdź do następnego.":"Dostępny od 22:00."}</small></button>
+   </div>
+  </div>
+  <div class="card"><div class="section-title"><b>📖 DZISIAJ</b><span>ostatnie działania</span></div>
+   ${(s.logs||[]).slice(0,6).map(x=>`<div class="row"><span>${esc(x.text||"Wydarzenie")}</span><b>${x.date?esc(x.date):`dzień ${x.day||"—"}`}</b></div>`).join("")||"<div class='empty'>Dzień dopiero się zaczyna.</div>"}
+  </div>
+ </section>`;
+ m.querySelectorAll("[data-day-act]").forEach(btn=>{
+   btn.addEventListener("click",function(e){
+     e.preventDefault();e.stopPropagation();
+     const k=this.dataset.dayAct;
+     if(this.disabled)return;
+     window.FL27V137_activity(k);
+   });
+ });
+};
+
+/* Match events are now guaranteed after a successfully played match.
+   If the normal contextual system already opened one, we do not stack another. */
+if(typeof window.playMatch==="function" && !window.__FL27_MATCH_EVENT_FIX__){
+ const originalMatch=window.playMatch;
+ window.playMatch=function(){
+   const beforeDay=Number(S().day||0);
+   const beforeMatches=Number(S().matches||0);
+   originalMatch.apply(this,arguments);
+   const after=S();
+   const played=Number(after.matches||0)>beforeMatches || Number(after.day||0)>beforeDay;
+   if(!played)return;
+   setTimeout(function(){
+     const root=document.getElementById("modalRoot");
+     const alreadyOpen=root && root.querySelector(".fl27-full-event,.overlay .modal");
+     if(alreadyOpen)return;
+     const pool=Array.isArray(window.EVENT_POOL)?window.EVENT_POOL:[];
+     const candidates=pool.filter(e=>["scout_stands","great_match","bad_match"].includes(e.id));
+     if(!candidates.length)return;
+     const history=after.eventHistory||{};
+     const fresh=candidates.filter(e=>Number(history[e.id]??-99999)!==Number(after.day||0));
+     const e=(fresh.length?fresh:candidates)[Math.floor(Math.random()*(fresh.length?fresh:candidates).length)];
+     history[e.id]=Number(after.day||0);
+     after.eventHistory=history;after.usedEvents=Object.keys(history);
+     if(after.lifeEventSchedule)after.lifeEventSchedule.nextDay=Math.max(Number(after.lifeEventSchedule.nextDay||0),Number(after.day||0)+2);
+     saveSoon();
+     if(typeof openEvent==="function")openEvent(e);
+   },30);
+ };
+ window.__FL27_MATCH_EVENT_FIX__=true;
+}
+
+/* Visual layer */
+const st=document.createElement("style");st.id="fl27-day-calendar-fix-style";st.textContent=`
+.fl27-day-page{max-width:980px;margin:0 auto}.fl27-day-page .card{margin-bottom:12px}
+.fl27-day-calendar{margin:12px 0;padding:14px;border:1px solid rgba(255,255,255,.11);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.fl27-cal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.fl27-cal-head span{display:block;font-size:9px;letter-spacing:1.6px;opacity:.5}.fl27-cal-head b{display:block;font-size:20px;margin-top:4px}.fl27-cal-month{text-transform:capitalize;opacity:.5;font-size:11px;padding-top:4px}
+.fl27-cal-events{display:grid;gap:7px;margin-top:13px}.fl27-cal-event{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07)}.fl27-cal-event i{font-style:normal;font-size:21px}.fl27-cal-event div{flex:1;min-width:0}.fl27-cal-event b{display:block;font-size:12px}.fl27-cal-event small{display:block;opacity:.58;font-size:10px;margin-top:3px}.fl27-cal-event.important{border-color:rgba(220,174,75,.35)}.fl27-cal-event.match{border-color:rgba(80,150,255,.35)}.fl27-cal-event.match.today{border-color:rgba(70,210,120,.45);box-shadow:0 0 0 1px rgba(70,210,120,.08) inset}.fl27-cal-event button{border:0;border-radius:9px;padding:8px 10px;background:rgba(255,255,255,.09);color:inherit;font:inherit;font-size:10px;font-weight:700}.fl27-cal-count{font-size:10px;opacity:.55;white-space:nowrap}.fl27-cal-note{font-size:9px;line-height:1.5;opacity:.48;margin-top:10px}
+.fl27-day-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fl27-day-action{text-align:left;min-height:88px;padding:11px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:inherit;cursor:pointer;font:inherit;transition:.12s}.fl27-day-action:hover{transform:translateY(-1px);border-color:rgba(220,174,75,.4)}.fl27-day-action.disabled{opacity:.38;cursor:not-allowed;transform:none}.fl27-day-action>b{display:block;font-size:12px}.fl27-day-action>span{display:block;font-size:9px;opacity:.58;margin-top:4px}.fl27-day-action>small{display:block;font-size:9px;line-height:1.35;opacity:.62;margin-top:7px}.fl27-day-action.sleep{border-color:rgba(100,130,220,.3)}
+@media(max-width:700px){.fl27-day-actions{grid-template-columns:1fr 1fr}.fl27-cal-head b{font-size:16px}}
+@media(max-width:440px){.fl27-day-actions{grid-template-columns:1fr}.fl27-cal-event small{font-size:9px}}
+`;
+document.head.appendChild(st);
+
+/* Make sure the active day view is re-rendered now, without requiring a page refresh. */
+try{render()}catch(e){console.error("FL27 day/calendar render",e)}
+})();
+</script>
+
+
+<script id="fl27-master-catalog-integration-v3">
+(function(){
+"use strict";
+
+function escM(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function n(v,d=0){const x=Number(v);return Number.isFinite(x)?x:d;}
+function saveM(){try{window.saveSoon?.()}catch(e){}}
+function refreshM(){try{window.render?.()}catch(e){}}
+function card(title,kicker,body){return `<div class="card fl27-master-card"><div class="section-title"><b>${kicker||""} ${title}</b></div>${body}</div>`}
+
+/* ---------- FAMILY: full living situation, both parents, breakup aftermath ---------- */
+function ensureFamilyState(){
+ const s=S(); const f=ensureFamily();
+ f.father??={name:"Ojciec",age:40,job:"Pracownik",country:f.homeCountry||s.birthCountry||"Polska"};
+ f.mother??={name:"Matka",age:38,job:"Pracownica",country:f.homeCountry||s.birthCountry||"Polska"};
+ f.parentsTogether ??= true;
+ f.relationshipStatus ??= f.parentsTogether ? "małżeństwo / razem" : "po rozstaniu";
+ f.playerLivesWith ??= f.residenceCity||f.home||"z rodzicami";
+ f.fatherPartner ??= null; f.motherPartner ??= null;
+ f.fatherCity ??= f.residenceCity||"—"; f.motherCity ??= f.residenceCity||"—";
+ f.fatherInterest ??= "regularne"; f.motherInterest ??= "regularne";
+ f.separationHistory ??=[]; f.householdChildren ??= f.siblings||[];
+ ensureParentFinance();
+ return f;
+}
+function parentBox(label,p,city,interest,partner){
+ const fin=p.finance||{};
+ return `<div class="fl27-parent-box">
+   <div class="fl27-parent-title"><b>${label} ${escM(p.name)}</b><span>${escM(p.job||"—")}</span></div>
+   <div class="fl27-parent-grid">
+    <div><small>WIEK</small><b>${n(p.age,0)} lat</b></div>
+    <div><small>ZAROBKI</small><b>${n(fin.monthlyIncome).toLocaleString("pl-PL")}€ / mies.</b></div>
+    <div><small>WYDATKI</small><b>${n(fin.monthlyExpenses).toLocaleString("pl-PL")}€ / mies.</b></div>
+    <div><small>MIESZKANIE</small><b>${escM(fin.housing||"—")}</b></div>
+    <div><small>SAMOCHODY</small><b>${n(fin.vehicleCount,0)}</b></div>
+    <div><small>MIEJSCE</small><b>${escM(city||"—")}</b></div>
+   </div>
+   <div class="fl27-parent-foot"><span>💬 Zainteresowanie Tobą: <b>${escM(interest)}</b></span><span>❤️ Partner: <b>${escM(partner||"brak")}</b></span></div>
+ </div>`;
+}
+window.renderFamily=function(m){
+ const s=S(),f=ensureFamilyState(), together=!!f.parentsTogether;
+ const children=Array.isArray(s.children)?s.children:[];
+ const sib=Array.isArray(f.siblings)?f.siblings:[];
+ const country=s.residenceCountry||f.residenceCountry||f.homeCountry||s.birthCountry||"—";
+ const city=s.residenceCity||f.residenceCity||"—";
+ m.innerHTML=`<section class="fl27-master-page">
+ <div class="card hero"><div class="kicker">👨‍👩‍👧 RODZINA</div><h1>Twoja rodzina</h1>
+ <p>Rodzina żyje razem z Tobą w czasie gry. Rozstania, nowe związki, dzieci, przeprowadzki, praca i pieniądze rodziców zmieniają późniejsze wydarzenia.</p>
+ <div class="pills"><span class="pill">🌍 ${escM(country)}</span><span class="pill">📍 ${escM(city)}</span><span class="pill">🏠 Mieszkasz: ${escM(f.playerLivesWith)}</span><span class="pill">${together?"❤️ Rodzice razem":"💔 Rodzice po rozstaniu"}</span></div></div>
+ ${card("Miejsce i gospodarstwo domowe","🌍 GDZIE MIESZKASZ",`
+  <div class="row"><span>Kraj zamieszkania</span><b>${escM(country)}</b></div>
+  <div class="row"><span>Miasto</span><b>${escM(city)}</b></div>
+  <div class="row"><span>Z kim mieszkasz</span><b>${escM(f.playerLivesWith)}</b></div>
+  <div class="row"><span>Status domu rodzinnego</span><b>${escM(f.home||"—")}</b></div>
+  <div class="row"><span>Zamożność rodziny</span><b>${escM(f.socialClass||FL27_familyArc?.profile?.wealth||"—")}</b></div>`)}
+ ${card("Rodzice","👨‍👩‍👧 OBOJE RODZICE",`
+  <div class="notice">${together?"Rodzice są obecnie razem. Ich wspólne finanse i decyzje wpływają na Twoje dzieciństwo.":"Rodzice nie są razem. Od teraz ich życia materialne i rodzinne są liczone osobno — tak samo jak ich czas, nowe związki i miejsce zamieszkania."}</div>
+  <div class="fl27-parents-grid">
+   ${parentBox("👨",f.father,f.fatherCity,f.fatherInterest,f.fatherPartner)}
+   ${parentBox("👩",f.mother,f.motherCity,f.motherInterest,f.motherPartner)}
+  </div>`)}
+ ${!together?card("Po rozstaniu","💔 NOWA SYTUACJA RODZINY",`
+  <div class="fl27-family-status-grid">
+   <div><small>OJIEC</small><b>${escM(f.fatherPartner||"sam")}</b><span>mieszka: ${escM(f.fatherCity||"—")}</span></div>
+   <div><small>MATKA</small><b>${escM(f.motherPartner||"sama")}</b><span>mieszka: ${escM(f.motherCity||"—")}</span></div>
+   <div><small>TY</small><b>${escM(f.playerLivesWith||"—")}</b><span>opieka / kontakt zależny od sytuacji</span></div>
+  </div>
+  <p class="sub">Dom lub mieszkanie nie znika z historii: może zostać sprzedane, wynajęte, przejęte przez jednego z rodziców albo stać się wspólnym majątkiem. To wpływa na Twoje warunki życia.</p>
+  ${(f.separationHistory||[]).slice(-5).reverse().map(x=>`<div class="row"><span>Dzień ${x.day||"—"}</span><b>${escM(x.text||x.title||"Zmiana w rodzinie")}</b></div>`).join("")||"<div class='empty'>Historia zmian pojawi się, gdy rodzina zacznie się zmieniać.</div>"}`):""}
+ ${card("Rodzeństwo i dzieci","🧬 RODZINA",`
+  <div class="row"><span>Rodzeństwo</span><b>${sib.length?sib.map(x=>escM(x.name||"—")).join(", "):"brak"}</b></div>
+  <div class="row"><span>Twoje dzieci</span><b>${children.length?children.map(x=>`${escM(x.name||"—")} • ${n(x.age,0)} lat`).join(" | "):"brak"}</b></div>
+  <p class="sub">Każde dziecko ma drugiego rodzica, własne relacje, predyspozycje i dalszą historię. Po osiągnięciu odpowiedniego wieku może stać się kolejnym zawodnikiem.</p>`)}
+ ${card("Zawód rodziców a Twoja kariera","💼 WPŁYW RODZINY",`
+  <div class="row"><span>Ojciec — ${escM(f.father.job)}</span><b>może otwierać kontakty, pomoc lub wydarzenia</b></div>
+  <div class="row"><span>Matka — ${escM(f.mother.job)}</span><b>może otwierać kontakty, pomoc lub wydarzenia</b></div>
+  <div class="row"><span>Pomoc</span><b>nigdy nie jest gwarantowana — zależy od pieniędzy, czasu i relacji</b></div>`)}
+ </section>`;
+};
+
+/* ---------- LIFE: education + courses + parallel careers + health/PR ---------- */
+const SIDE_LABELS={
+ influencer:{name:"Influencer",desc:"budowanie marki osobistej i współprace"},
+ musician:{name:"Muzyk / artysta",desc:"rap, pop, producent, występy i nagrania"},
+ creator:{name:"Twórca krótkich form",desc:"krótkie materiały wideo zamiast nazwy platformy"},
+ streamer:{name:"Twórca wideo / kanału",desc:"dłuższe materiały, kanał, montaż i publikacje"}
+};
+function sideCard(s){
+ s.sideCareers??={};
+ return Object.entries(SIDE_LABELS).map(([id,p])=>{
+   const raw=s.sideCareers[id]||{level:0,studyHours:0,moneySpent:0,active:false};
+   const def=SIDE_PATHS[id]||{cost:0,studyHours:20,unlockAtAge:13};
+   const active=!!raw.active;
+   return `<div class="fl27-side-card">
+    <div><b>${id==="musician"?"🎤":id==="influencer"?"📣":id==="creator"?"📱":"🎥"} ${p.name}</b><small>${p.desc}</small></div>
+    <div class="fl27-side-meta"><span>start: ${n(def.cost).toLocaleString("pl-PL")}€</span><span>nauka: ${n(def.studyHours)} h</span><span>poziom: ${n(raw.level)}%</span></div>
+    <div class="fl27-progress"><i style="width:${Math.min(100,n(raw.level))}%"></i></div>
+    ${active?`<button onclick="FL27_sideCareerStudy('${id}',2)">📚 Ucz się / rozwijaj +2 h</button>`:`<button onclick="FL27_sideCareerStart('${id}')">🚀 Zacznij rozwijać</button>`}
+   </div>`;
+ }).join("");
+}
+function educationCard(s){
+ s.education??={courses:[],qualifications:[]}; s.education.courses??=[];
+ const courses=[
+  {name:"Kurs trenerski podstawowy",cost:600,hours:20},
+  {name:"Kurs analityki sportowej",cost:500,hours:15},
+  {name:"Kurs marketingu sportowego",cost:450,hours:12},
+  {name:"Podstawy zarządzania klubem",cost:700,hours:20},
+  {name:"Przygotowanie do pracy agenta",cost:800,hours:25},
+  {name:"Kurs medialny / wystąpienia publiczne",cost:350,hours:10}
+ ];
+ return `${(s.education.courses||[]).map(c=>`<div class="fl27-course">
+  <div><b>${escM(c.name)}</b><small>€${n(c.cost).toLocaleString("pl-PL")} • ${n(c.completedHours)}/${n(c.requiredHours)} h</small></div>
+  <span class="${c.passed?"passed":""}">${c.passed?"ZALICZONY":"W TOKU"}</span>
+  ${c.passed?"":`<button onclick="FL27_studyCourse('${escM(c.id)}',2)">📚 Nauka +2 h</button>`}
+ </div>`).join("")}
+ <div class="fl27-course-offers">${courses.map(c=>`<button class="action" onclick='FL27_startCourse(${JSON.stringify(c)})'><b>🎓 ${escM(c.name)}</b><small>${c.cost}€ • ${c.hours} h nauki • samo zapłacenie nie wystarcza</small></button>`).join("")}</div>`;
+}
+window.renderLife=function(m){
+ const s=S(); const f=ensureFamily(); const r=s.partner||{};
+ const cond=s.healthConditions?.length?s.healthConditions.join(", "):"brak";
+ const country=s.residenceCountry||f.residenceCountry||f.homeCountry||s.birthCountry||"—";
+ const home=s.store?.home;
+ m.innerHTML=`<section class="fl27-master-page">
+  <div class="card hero"><div class="kicker">♥ ŻYCIE</div><h1>Życie zawodnika</h1><p>To wszystko, co dzieje się poza samym meczem: zdrowie, relacje, rodzina, edukacja, popularność, mieszkanie i przyszłość.</p>
+   <div class="pills"><span class="pill">🎂 ${n(s.age,15)} lat</span><span class="pill">⚽ ${escM(s.pos||"—")}</span><span class="pill">🌍 ${escM(country)}</span><span class="pill">⚡ ${Math.round(n(s.energy))}</span><span class="pill">❤️ ${Math.round(n(s.health))}</span></div></div>
+  ${card("Stan życia","📋 AKTUALNIE",`
+   <div class="row"><span>Zdrowie</span><b>${Math.round(n(s.health))}/100 • choroby: ${escM(cond)}</b></div>
+   <div class="row"><span>Kontuzja</span><b>${n(s.injury)||n(s.injuryDays)?`${Math.max(n(s.injury),n(s.injuryDays))} dni`:"brak"}</b></div>
+   <div class="row"><span>Partner / małżonek</span><b>${escM(r.name||"brak")}</b></div>
+   <div class="row"><span>Popularność</span><b>${n(s.popularity).toFixed(3)}% świata</b></div>
+   <div class="row"><span>Wizerunek</span><b>${n(s.image).toFixed(1)}%</b></div>
+   <div class="row"><span>Obserwujący FLgram</span><b>${n(s.social?.followers||s.followers).toLocaleString("pl-PL")}</b></div>
+   <div class="row"><span>Aktualny dom</span><b>${escM(home?.name||"miejsce rodzinne / wynajem")}</b></div>`)}
+  ${card("Edukacja i kwalifikacje","🎓 SZKOŁA • STUDIA • KURSY",`
+   <div class="notice">Nie wystarczy zapłacić. Każde szkolenie ma wymagany czas nauki, a niektóre kończą się egzaminem. Brak edukacji może zamknąć część późniejszych ścieżek.</div>
+   <div class="row"><span>Status edukacji</span><b>${escM(s.educationStatus||s.education?.status||"szkoła")}</b></div>
+   ${educationCard(s)}`)}
+  ${card("Kariera poboczna","🚀 RÓWNOLEGLE Z PIŁKĄ",`
+   <p class="sub">Możesz rozwijać kilka ścieżek, ale każda kosztuje pieniądze, czas i naukę. Rodzice mogą wspierać albo odmówić, a klub może mieć własne warunki.</p>
+   <div class="fl27-side-grid">${sideCard(s)}</div>`)}
+  ${card("Przyszłość po piłce","🧭 PLAN NA PÓŹNIEJ",`
+   <div class="fl27-future-grid">
+    <div><b>🤝 Agent piłkarski</b><span>licencje + nauka + kontakty</span></div>
+    <div><b>🧠 Trener</b><span>kursy + doświadczenie</span></div>
+    <div><b>🔎 Skaut</b><span>obserwacja + analiza</span></div>
+    <div><b>📊 Dyrektor sportowy</b><span>edukacja + doświadczenie</span></div>
+    <div><b>🎙️ Ekspert / dziennikarz</b><span>media + komunikacja</span></div>
+    <div><b>🏢 Biznes</b><span>finanse + inwestycje + doświadczenie</span></div>
+   </div>`)}
+ </section>`;
+};
+
+/* ---------- CAREER: current career + side career entry point ---------- */
+window.renderCareer=function(m){
+ const s=S(),C=window.FL27_CAREER||{},contract=C.contract;
+ const agent=s.careerAgent?.active?s.careerAgent:null;
+ const injury=Math.max(n(s.injury),n(s.injuryDays));
+ const offers=(C.scouting?.offers||[]).filter(x=>["pending","proposal"].includes(x.status)).slice(0,5);
+ const active=(C.negotiations||[]).filter(x=>["proposal","counter"].includes(x.status)).slice(0,5);
+ const logs=(s.logs||[]).filter(x=>/trening|trener|kontuz|uraz|skaut|oboz|test/i.test(String(x.text||""))).slice(0,5);
+ m.innerHTML=`<section class="fl27-master-page">
+  <div class="card hero"><div class="kicker">⚽ KARIERA</div><h1>Aktualna kariera</h1><p>Bez statystyk sezonowych — tutaj zarządzasz klubem, kontraktem, agentem, zdrowiem, skautami i rozwojem dalszej ścieżki.</p>
+   <div class="pills"><span class="pill">🏟️ ${escM(club())}</span><span class="pill">⚽ ${escM(pos())}</span><span class="pill">⭐ OVR ${Math.round(n(s.skill))}</span></div></div>
+  ${card("Klub i zdrowie","🏟️ AKTUALNIE",`
+   <div class="row"><span>Klub</span><b>${escM(club())}</b></div>
+   <div class="row"><span>Kontuzja</span><b>${injury?`${injury} dni niedostępności`:"brak"}</b></div>
+   <div class="row"><span>Forma</span><b>${Math.round(n(s.form))}/100</b></div>
+   <div class="row"><span>Trener</span><b>feedback pojawia się po treningach i meczach</b></div>`)}
+  ${card("Trener / skauci / obozy","🧠 INFORMACJE",logs.map(x=>`<div class="row"><span>${escM(x.text)}</span><b>${escM(x.detail||"wpływ na dalszy rozwój")}</b></div>`).join("")||"<div class='empty'>Jeszcze brak świeżych informacji — pojawią się po działaniach sportowych.</div>")}
+  ${card("Kontrakt i negocjacje","📄 KLUB",`
+   <div class="row"><span>Kontrakt</span><b>${contract?"aktywny":"brak / etap młodzieżowy"}</b></div>
+   ${contract?`<div class="row"><span>Pensja</span><b>${Math.round(n(contract.grossMonthly)).toLocaleString("pl-PL")}€ / mies.</b></div>`:""}
+   ${active.map(o=>`<div class="fl27-contract-line"><div><b>${escM(o.club)}</b><small>${Math.round(n(o.grossMonthly)).toLocaleString("pl-PL")}€ • ${n(o.duration)} lat</small></div><div><button onclick="careerAccept('${escM(o.id)}')">Akceptuj</button><button onclick="careerCounter('${escM(o.id)}')">Kontroferta</button><button onclick="careerReject('${escM(o.id)}')">Odrzuć</button></div></div>`).join("")}
+   <button class="action" onclick="careerStartClubNegotiation()"><b>📝 Rozpocznij negocjacje z klubem</b><small>Warunki mogą zależeć od poziomu klubu i Twojej wartości.</small></button>`)}
+  ${card("Agent","🤝 REPREZENTACJA",agent?`<div class="row"><span>${escM(agent.name)}</span><b>${n(agent.fee)}% prowizji</b></div><button class="action" onclick="careerReleaseAgent()">Zakończ współpracę</button>`:`<p class="sub">Nie musisz mieć agenta. Może jednak pomóc w transferach i negocjacjach.</p><button class="action" onclick="careerFindAgent()"><b>Porozmawiaj z agentem</b></button>`)}
+  ${card("Rozwijaj karierę poboczną","🚀 RÓWNOLEGLE",`
+   <p class="sub">To nie jest dopiero po zakończeniu futbolu. Możesz rozwijać ją już teraz — kosztem pieniędzy, czasu i nauki.</p>
+   <button class="action" onclick="window.FL27_ROUTE('life')"><b>🎓 Otwórz edukację i kariery poboczne</b><small>Influencer • muzyk • twórca krótkich form • twórca wideo</small></button>`)}
+  ${card("Oferty skautów","🔎 ZAINTERESOWANIE",offers.map(o=>`<div class="row"><span>${escM(o.club)} • ${escM(o.country||"")}</span><b>${escM(o.type||"zainteresowanie")}</b></div>`).join("")||"<div class='empty'>Brak aktualnych ofert. Mogą pojawić się po meczach, turniejach, obozach lub obserwacji.</div>")}
+ </section>`;
+};
+
+/* Ensure the route really uses these final renderers. */
+const patchStyle=document.createElement("style");patchStyle.id="fl27-master-catalog-style";patchStyle.textContent=`
+.fl27-master-page{max-width:980px;margin:0 auto}.fl27-master-card{margin-bottom:12px}
+.fl27-parents-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fl27-parent-box{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.035)}.fl27-parent-title{display:flex;justify-content:space-between;gap:8px}.fl27-parent-title span,.fl27-parent-foot{opacity:.6;font-size:10px}.fl27-parent-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.fl27-parent-grid div,.fl27-family-status-grid>div{padding:8px;border-radius:9px;background:rgba(255,255,255,.035)}.fl27-parent-grid small,.fl27-family-status-grid small{display:block;opacity:.5;font-size:8px}.fl27-parent-grid b,.fl27-family-status-grid b{display:block;margin-top:3px;font-size:11px}.fl27-parent-foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.fl27-family-status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.fl27-family-status-grid span{display:block;opacity:.55;font-size:9px;margin-top:4px}
+.fl27-side-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.fl27-side-card{padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.035)}.fl27-side-card>b,.fl27-side-card small{display:block}.fl27-side-card small{opacity:.6;margin-top:3px}.fl27-side-meta{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0;font-size:9px;opacity:.65}.fl27-progress{height:5px;border-radius:10px;background:rgba(255,255,255,.08);overflow:hidden;margin:7px 0}.fl27-progress i{display:block;height:100%;background:#d6ad4b}.fl27-side-card button,.fl27-course button,.fl27-contract-line button{padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;font:inherit;font-size:10px}.fl27-course{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.fl27-course small{display:block;opacity:.55;margin-top:3px}.fl27-course>span{font-size:9px;opacity:.65}.fl27-course .passed{color:#83d39a}.fl27-course-offers{display:grid;gap:7px;margin-top:10px}.fl27-future-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.fl27-future-grid>div{padding:10px;border-radius:11px;background:rgba(255,255,255,.04)}.fl27-future-grid span{display:block;font-size:9px;opacity:.55;margin-top:4px}.fl27-contract-line{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.fl27-contract-line small{display:block;opacity:.55;margin-top:3px}.fl27-contract-line button{margin-left:5px}
+@media(max-width:700px){.fl27-parents-grid,.fl27-side-grid{grid-template-columns:1fr}.fl27-family-status-grid{grid-template-columns:1fr}.fl27-future-grid{grid-template-columns:1fr 1fr}.fl27-course{grid-template-columns:1fr auto}.fl27-course button{grid-column:2}.fl27-contract-line{display:block}.fl27-contract-line>div:last-child{margin-top:7px}.fl27-contract-line button{margin-left:0;margin-right:4px}}
+`;document.head.appendChild(patchStyle);
+
+try{ensureFamilyState();}catch(e){console.warn("family init",e)}
+try{window.renderLife=window.renderLife;window.renderCareer=window.renderCareer;}catch(e){}
+try{window.render();}catch(e){console.warn("master render",e)}
 })();
 </script>
 
