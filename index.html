@@ -6948,12 +6948,13 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
    localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.FL27_NEW_GAME));
  };
  window.FL27_beginV52=function(){
-   const first=document.getElementById("creatorName")?.value.trim();
-   const last=document.getElementById("creatorSurname")?.value.trim();
-   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
-   playerName=first+" "+last;
+   const first=String(document.getElementById("creatorName")?.value||"").trim();
+   const last=String(document.getElementById("creatorSurname")?.value||"").trim();
+   if(!first||!last){toast("Wpisz imię i nazwisko zawodnika.");return}
+   playerName=(first+" "+last).replace(/\\s+/g," ").trim();
    const bd=document.getElementById("creatorBirthDate")?.value;
    if(bd) window.FL27_NEW_GAME.birthDate=bd;
+   window.FL27_NEW_GAME.playerName=playerName;
    creatorStarted=true;
    saveCreatorDraft();
    window.FL27_renderCreatorV52();
@@ -6966,27 +6967,30 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
   }
 })();
 window.FL27_confirmPlus=function(){
-   const first=playerName.split(" ")[0], last=playerName.split(" ").slice(1).join(" ");
-   if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
+   const draft=window.FL27_NEW_GAME||{};
+   const nm=String(draft.playerName||"").trim() ||
+     String(document.getElementById("creatorName")?.value||"").trim()+" "+
+     String(document.getElementById("creatorSurname")?.value||"").trim();
+   playerName=nm.replace(/\\s+/g," ").trim();
+   if(!playerName || playerName.split(" ").length<2){toast("Wpisz imię i nazwisko zawodnika.");return}
    const av=window.FL27_saveAvatar?.()||{};
    const orientation=document.getElementById("v20-orientation")?.value||"N";
    window.__FL27_AVATAR_CONFIG={...av,orientation};
-   /*
-    * The original 10-question startCareer remains authoritative for career
-    * generation. We add avatar data after it initializes S.
-    */
-   if(selectedAnswers.length!==QUESTIONS.length){alert("Odpowiedz na wszystkie 10 pytań.");return}
+   if(selectedAnswers.length!==QUESTIONS.length){toast("Odpowiedz na wszystkie 10 pytań.");return}
    if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
      window.__FL27_ORIGINAL_START_CAREER();
    }else{
      startCareer();
    }
    try{
-     S.firstName=first;S.lastName=last;S.name=playerName;
+     S.firstName=playerName.split(" ")[0];
+     S.lastName=playerName.split(" ").slice(1).join(" ");
+     S.name=playerName;
      S.avatar=av;S.orientation=orientation;
      S.birthDate=window.FL27_NEW_GAME?.birthDate||"2011-11-30";
+     S.birthMonth=Number(S.birthDate.slice(5,7));S.birthDay=Number(S.birthDate.slice(8,10));
      saveSoon();render();
-   }catch(e){}
+   }catch(e){console.error(e)}
  };
 
 
@@ -7008,7 +7012,7 @@ window.FL27_confirmPlus=function(){
    }catch(e){return !H.ready}
  }
 
- if(shouldShow())setTimeout(FL27_showNewGame,80);
+ /* V120 owns startup. */
 })();
 </script>
 <style>
@@ -8702,181 +8706,6 @@ body:not(.creator-screen) .v9-action-grid button small{
 </script>
 
 
-<style id="fl27-v45-active-nav">
-/* V45 — ALWAYS SHOW WHICH BOTTOM TAB IS ACTIVE */
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
-  position:relative!important;
-  opacity:.58;
-  transition:opacity .15s ease,transform .15s ease,background .15s ease,box-shadow .15s ease;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab{
-  opacity:1!important;
-  background:rgba(118,169,255,.13)!important;
-  box-shadow:inset 0 2px 0 var(--fl-accent,#76a9ff), inset 0 0 0 1px rgba(118,169,255,.16)!important;
-  transform:translateY(-1px);
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::after{
-  content:"";
-  position:absolute;
-  left:28%;
-  right:28%;
-  bottom:4px;
-  height:3px;
-  border-radius:99px;
-  background:var(--fl-accent,#76a9ff);
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button:active{
-  transform:translateY(0)!important;
-}
-@media(max-width:390px){
-  body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::after{
-    left:22%;right:22%;height:2px;bottom:3px;
-  }
-}
-</style>
-<style id="fl27-v47-nav-fix">
-/* V47 — bottom navigation: one active tab, all buttons clickable */
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav{
-  pointer-events:auto!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
-  pointer-events:auto!important;
-  touch-action:manipulation!important;
-  cursor:pointer!important;
-  position:relative!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab{
-  opacity:1!important;
-  background:rgba(118,169,255,.13)!important;
-  box-shadow:inset 0 2px 0 var(--fl-accent,#76a9ff),inset 0 0 0 1px rgba(118,169,255,.16)!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button.fl27-active-tab::after{
-  content:""!important;
-  position:absolute!important;
-  left:28%!important;right:28%!important;bottom:3px!important;height:3px!important;
-  border-radius:99px!important;background:var(--fl-accent,#76a9ff)!important;
-}
-</style>
-<style id="fl27-v48-routing">
-/* V48 — navigation is an actual router, not decorative buttons. */
-body:not(.creator-screen) .fl27-v35-bottom{
-  z-index:2147483647!important;
-  pointer-events:auto!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav,
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
-  pointer-events:auto!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
-  -webkit-tap-highlight-color:transparent!important;
-}
-</style>
-<style id="fl27-v49-beta-reset">
-.v49-beta-reset{
-  margin-top:18px!important;
-  padding:12px!important;
-  border-radius:14px!important;
-  border:1px dashed rgba(255,180,80,.28)!important;
-  background:rgba(255,180,80,.045)!important;
-}
-.v49-beta-reset summary{
-  cursor:pointer!important;
-  color:#c9a56a!important;
-  font-size:9px!important;
-  font-weight:900!important;
-  letter-spacing:.5px!important;
-}
-.v49-beta-reset .beta-reset-btn{
-  width:100%!important;
-  margin-top:10px!important;
-  min-height:42px!important;
-  border:1px solid rgba(255,100,100,.28)!important;
-  border-radius:10px!important;
-  background:rgba(180,45,55,.12)!important;
-  color:#ffb0b5!important;
-  font-weight:900!important;
-}
-</style>
-<style id="fl27-v50-new-game-scroll">
-/* V50 — New Game + is a real scrollable form on mobile and desktop.
-   Only the existing creator card scrolls; the background stays fixed. */
-.v20-hub-overlay{
-  overflow-y:auto!important;
-  overflow-x:hidden!important;
-  -webkit-overflow-scrolling:touch!important;
-  align-items:flex-start!important;
-  justify-content:center!important;
-  padding:clamp(12px,3vh,28px) 14px!important;
-  touch-action:pan-y!important;
-}
-.v20-hub-overlay .v20-hub{
-  max-height:none!important;
-  min-height:0!important;
-  box-sizing:border-box!important;
-  flex:0 0 auto!important;
-  margin:auto 0!important;
-}
-.v20-hub-overlay .v20-creator{
-  width:min(650px,100%)!important;
-  padding-bottom:22px!important;
-}
-.v20-creator label,
-.v20-creator input,
-.v20-creator select,
-.v20-creator button{
-  touch-action:manipulation!important;
-}
-.v20-creator input,
-.v20-creator select{
-  min-height:42px!important;
-  box-sizing:border-box!important;
-}
-.v20-avatar-editor{
-  min-height:0!important;
-  overflow:visible!important;
-}
-@media(max-width:650px){
-  .v20-hub-overlay{
-    padding:12px 10px 28px!important;
-  }
-  .v20-hub-overlay .v20-creator{
-    width:100%!important;
-    margin:0 auto!important;
-  }
-  .v20-creator .v20-avatar-editor{
-    grid-template-columns:1fr!important;
-  }
-  .v20-creator .v20-avatar-preview{
-    max-width:190px!important;
-    margin:0 auto!important;
-  }
-}
-
-<style id="fl27-v51-avatar-polish">
-.v20-avatar-preview{
-  min-height:225px!important;
-  border-radius:20px!important;
-  border:1px solid rgba(255,255,255,.09)!important;
-  background:linear-gradient(145deg,rgba(118,169,255,.07),rgba(255,255,255,.02))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 35px rgba(0,0,0,.18)!important;
-  padding:8px!important;
-  box-sizing:border-box!important;
-}
-.v20-avatar-preview svg{
-  width:100%!important;
-  height:auto!important;
-  max-height:235px!important;
-  display:block!important;
-}
-.v20-avatar-controls{
-  min-width:0!important;
-}
-@media(max-width:650px){
-  .v20-avatar-preview{min-height:210px!important;max-width:210px!important}
-  .v20-avatar-preview svg{max-height:215px!important}
-}
-</style>
-
 <style id="fl27-v52-creator">
 .v52-creator{max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin}
 .v52-creator h1{margin-bottom:8px}
@@ -8908,192 +8737,6 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
 }
 </style>
 </style>
-<style id="fl27-v86-clean-shell">
-:root{
- --fl-bg:#070707;--fl-panel:#111214;--fl-panel2:#17181b;
- --fl-gold:#d8aa4f;--fl-gold2:#f1cc72;--fl-white:#f4f4f1;--fl-muted:#9799a0;
-}
-html,body{background:#070707!important;color:var(--fl-white)!important}
-body{
- background:radial-gradient(850px 520px at 65% -120px,rgba(216,170,79,.07),transparent 70%),
- linear-gradient(180deg,#090909,#050505)!important;
-}
-body::before{
- content:"⚽";position:fixed;z-index:0;left:50%;top:52%;transform:translate(-50%,-50%);
- font-size:min(78vw,600px);line-height:1;color:transparent;
- -webkit-text-stroke:1px rgba(255,255,255,.025);pointer-events:none;
-}
-body>*{position:relative;z-index:1}
-.card,.panel,.box,[class*="card"],[class*="panel"],[class*="summary"]{
- background:linear-gradient(145deg,#151619,#0e0f11)!important;
-}
-.primary,button.primary,.btn-primary{
- background:linear-gradient(135deg,#e1b554,#b9822e)!important;
- color:#090909!important;border-color:#f1cc72!important;
-}
-input,select,textarea{
- background:#090b0e!important;color:#fff!important;
- border-color:rgba(216,170,79,.32)!important;
-}
-input:focus,select:focus,textarea:focus{
- outline:none!important;border-color:#d8aa4f!important;
- box-shadow:0 0 0 3px rgba(216,170,79,.1)!important;
-}
-
-/* Old bottom navigation is not part of the new UI. */
-#nav,.fl27-v35-bottom{display:none!important;pointer-events:none!important}
-
-/* Right-side menu only. */
-#fl86-menu{
- position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
- z-index:9999998!important;width:50px!important;height:148px!important;
- border:1px solid rgba(216,170,79,.22)!important;border-right:0!important;
- border-radius:18px 0 0 18px!important;
- background:linear-gradient(180deg,#181a1e,#08090a)!important;color:#fff!important;
- display:flex!important;flex-direction:column!important;align-items:center!important;
- justify-content:center!important;gap:8px!important;cursor:pointer!important;
- pointer-events:auto!important;touch-action:manipulation!important;
-}
-#fl86-menu .lines{display:grid;gap:4px}#fl86-menu i{width:21px;height:2px;background:#d8aa4f;border-radius:3px}
-#fl86-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.65}
-#fl86-shade{
- position:fixed!important;inset:0!important;z-index:9999999!important;
- background:rgba(0,0,0,.55)!important;opacity:0!important;pointer-events:none!important;
-}
-#fl86-shade.open{opacity:1!important;pointer-events:auto!important}
-#fl86-drawer{
- position:fixed!important;top:0!important;right:0!important;bottom:0!important;
- width:min(330px,88vw)!important;z-index:10000000!important;
- transform:translateX(105%)!important;transition:transform .2s ease!important;
- background:linear-gradient(180deg,#121315,#070809)!important;
- border-left:1px solid rgba(216,170,79,.2)!important;
- box-shadow:-25px 0 70px rgba(0,0,0,.65)!important;
- padding:18px 14px!important;box-sizing:border-box!important;overflow:auto!important;
- pointer-events:none!important;
-}
-#fl86-drawer.open{transform:translateX(0)!important;pointer-events:auto!important}
-.fl86-item{
- width:100%!important;min-height:58px!important;margin:0 0 8px!important;
- border:1px solid transparent!important;border-radius:15px!important;
- background:transparent!important;color:#fff!important;
- display:flex!important;align-items:center!important;gap:12px!important;
- padding:9px 12px!important;text-align:left!important;cursor:pointer!important;
- pointer-events:auto!important;touch-action:manipulation!important;
-}
-.fl86-item.active{
- background:linear-gradient(90deg,rgba(216,170,79,.18),rgba(216,170,79,.03))!important;
- border-color:rgba(216,170,79,.22)!important;box-shadow:inset 4px 0 #d8aa4f!important;
-}
-.fl86-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.055)}
-.fl86-close{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:20px;cursor:pointer}
-</style>
-
-<style id="fl27-v88-visual-final">
-/* V88 — FINAL VISUAL LAYER ONLY. No JS. */
-:root{
- --fl-bg:#080808;--fl-surface:#111214;--fl-surface2:#17181b;
- --fl-gold:#d9aa4d;--fl-gold2:#f1cb70;--fl-white:#f5f5f2;--fl-muted:#92949a;
- --fl-red:#df4b5b;--fl-blue:#6d9fe9;
-}
-html,body{background:#080808!important;color:#f5f5f2!important}
-body{
- background:
-  radial-gradient(900px 600px at 75% -140px,rgba(217,170,77,.08),transparent 70%),
-  linear-gradient(180deg,#0a0a0a 0%,#050505 100%)!important;
-}
-/* Decorative football outline only. */
-body::before{
- content:"⚽"!important;position:fixed!important;left:50%!important;top:54%!important;
- transform:translate(-50%,-50%)!important;z-index:0!important;
- font-size:min(76vw,610px)!important;line-height:1!important;
- color:transparent!important;-webkit-text-stroke:1px rgba(255,255,255,.022)!important;
- opacity:1!important;pointer-events:none!important;
-}
-body::after{
- content:""!important;position:fixed!important;inset:0!important;z-index:0!important;
- pointer-events:none!important;
- background:radial-gradient(circle at 50% 45%,transparent 30%,rgba(0,0,0,.30) 100%)!important;
-}
-body>.app,body>#main,body>header,body>main{position:relative!important;z-index:2!important}
-
-/* Existing surfaces */
-.card,.panel,.box,.stat-card,.summary-card,
-[class*="card"],[class*="panel"],[class*="summary"]{
- background:linear-gradient(145deg,#17181b,#0e0f10)!important;
- border-color:rgba(255,255,255,.085)!important;
- box-shadow:0 14px 36px rgba(0,0,0,.24)!important;
- color:#f5f5f2!important;
-}
-h1,h2,h3,h4,h5,strong,b,.title,.section-title{color:#f5f5f2!important}
-.muted,.sub,.subtitle,.hint,small{color:#92949a!important}
-
-/* Gold default brand accent */
-.primary,.btn-primary,button.primary{
- background:linear-gradient(135deg,#f1cb70,#b9812d)!important;
- color:#080808!important;
- border:1px solid #f1cb70!important;
- box-shadow:0 8px 24px rgba(217,170,77,.16)!important;
-}
-input,select,textarea{
- background:#090a0c!important;color:#f5f5f2!important;
- border:1px solid rgba(217,170,77,.30)!important;
-}
-input:focus,select:focus,textarea:focus{
- border-color:#d9aa4d!important;
- box-shadow:0 0 0 3px rgba(217,170,77,.09)!important;
- outline:none!important;
-}
-
-/* V86 right-side drawer — make it unmistakably the new design. */
-#fl86-menu{
- width:54px!important;height:154px!important;
- background:linear-gradient(180deg,#191a1e,#070809)!important;
- border:1px solid rgba(217,170,77,.28)!important;border-right:0!important;
- border-radius:18px 0 0 18px!important;
- box-shadow:-12px 0 35px rgba(0,0,0,.48)!important;
-}
-#fl86-menu .lines i{background:#d9aa4d!important}
-#fl86-drawer{
- width:min(340px,88vw)!important;
- background:linear-gradient(180deg,#141518 0%,#08090a 100%)!important;
- border-left:1px solid rgba(217,170,77,.24)!important;
- box-shadow:-28px 0 80px rgba(0,0,0,.7)!important;
-}
-.fl86-item{
- min-height:62px!important;
- background:transparent!important;border:1px solid transparent!important;
- color:#f5f5f2!important;border-radius:16px!important;
-}
-.fl86-item:hover{background:rgba(255,255,255,.045)!important}
-.fl86-item.active{
- background:linear-gradient(90deg,rgba(217,170,77,.19),rgba(217,170,77,.035))!important;
- border-color:rgba(217,170,77,.24)!important;
- box-shadow:inset 4px 0 #d9aa4d!important;
-}
-.fl86-icon{
- width:42px!important;height:42px!important;
- background:rgba(255,255,255,.055)!important;border-radius:12px!important;
-}
-.fl86-item.active .fl86-icon{background:rgba(217,170,77,.16)!important}
-.fl86-close{
- background:rgba(255,255,255,.045)!important;
- border:1px solid rgba(255,255,255,.11)!important;color:#fff!important;
-}
-
-/* Creator */
-.v52-creator{
- background:linear-gradient(145deg,#18191c,#0d0e10)!important;
- border:1px solid rgba(217,170,77,.25)!important;
- box-shadow:0 18px 50px rgba(0,0,0,.34)!important;
-}
-
-/* Three accent choices available to settings */
-[data-accent="gold"],.accent-gold{--user-accent:#d9aa4d!important}
-[data-accent="red"],.accent-red{--user-accent:#df4b5b!important}
-[data-accent="blue"],.accent-blue{--user-accent:#6d9fe9!important}
-</style>
-
-
 <style id="fl27-v89-time-ui">
 /* V89 — fixed identity header + in-page hourly planner. */
 #fl89-top{
@@ -10019,147 +9662,6 @@ window.FL27_MARKET={CATALOG,buy,render};
 </script>
 
 
-<style id="fl27-v96-branding-avatar">
-:root{
- --fl27-bg:#070707;--fl27-bg2:#0d0e10;--fl27-card:#131416;
- --fl27-white:#f5f5f2;--fl27-muted:#96979d;
- --fl27-accent:#d9aa4d;--fl27-accent-hi:#f1cc70;
- --fl27-red:#d84b5b;--fl27-blue:#6f9fe8;--fl27-green:#63c48a;
-}
-html,body{
- background:#070707!important;color:var(--fl27-white)!important;
-}
-body{
- background:
-  radial-gradient(900px 600px at 72% -140px,rgba(217,170,77,.075),transparent 70%),
-  linear-gradient(180deg,#090909 0%,#050505 100%)!important;
-}
-/* permanent, subtle football watermark */
-body::before{
- content:"⚽"!important;position:fixed!important;left:50%!important;top:54%!important;
- transform:translate(-50%,-50%)!important;z-index:0!important;
- font-size:min(76vw,610px)!important;line-height:1!important;
- color:transparent!important;-webkit-text-stroke:1px rgba(255,255,255,.023)!important;
- pointer-events:none!important;
-}
-body::after{
- content:""!important;position:fixed!important;inset:0!important;z-index:0!important;
- pointer-events:none!important;
- background:radial-gradient(circle at 50% 45%,transparent 30%,rgba(0,0,0,.3) 100%)!important;
-}
-body>*{position:relative;z-index:1}
-
-/* Consistent black/white/gold surfaces */
-.card,.panel,.box,.stat-card,.summary-card,
-[class*="card"],[class*="panel"],[class*="summary"]{
- background:linear-gradient(145deg,#17181b,#0d0e10)!important;
- color:var(--fl27-white)!important;
- border-color:rgba(255,255,255,.085)!important;
- box-shadow:0 14px 36px rgba(0,0,0,.24)!important;
-}
-h1,h2,h3,h4,h5,strong,b,.title,.section-title{color:var(--fl27-white)!important}
-.muted,.sub,.subtitle,.hint,small{color:var(--fl27-muted)!important}
-.primary,.btn-primary,button.primary{
- background:linear-gradient(135deg,var(--fl27-accent-hi),#b9822d)!important;
- color:#080808!important;border-color:var(--fl27-accent-hi)!important;
- box-shadow:0 8px 24px rgba(217,170,77,.16)!important;
-}
-input,select,textarea{
- background:#090b0d!important;color:var(--fl27-white)!important;
- border-color:rgba(217,170,77,.30)!important;
-}
-input:focus,select:focus,textarea:focus{
- outline:none!important;border-color:var(--fl27-accent)!important;
- box-shadow:0 0 0 3px rgba(217,170,77,.09)!important;
-}
-
-/* Permanent brand lockup: independent from user accent. */
-#fl96-brand{
- position:fixed!important;left:10px!important;top:8px!important;z-index:2147482500!important;
- height:48px!important;display:flex!important;align-items:center!important;gap:8px!important;
- pointer-events:none!important;user-select:none!important;
-}
-#fl96-brand .mark{
- width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
- background:linear-gradient(145deg,#f1cc70,#b9822d)!important;
- color:#090909!important;font:1000 11px/1 system-ui;letter-spacing:-.4px;
- box-shadow:0 7px 20px rgba(217,170,77,.18);
-}
-#fl96-brand .name{
- font:1000 10px/10px system-ui;letter-spacing:1px;color:#fff;
- text-shadow:0 2px 8px #000;
-}
-#fl96-brand .name span{color:var(--fl27-accent-hi)}
-
-/* Keep V89 top info, but make it a clean black/gold identity bar. */
-#fl89-top{
- background:rgba(7,7,8,.96)!important;
- border-bottom:1px solid rgba(217,170,77,.22)!important;
- box-shadow:0 8px 28px rgba(0,0,0,.38)!important;
-}
-#fl89-top .brand{visibility:hidden!important}
-#fl89-top .chip{
- background:rgba(255,255,255,.045)!important;
- border:1px solid rgba(255,255,255,.045)!important;
-}
-#fl89-top .chip b{color:#fff!important}
-#fl89-top .who b{color:#fff!important}
-
-/* Right drawer remains the only navigation drawer. */
-#fl86-menu{
- background:linear-gradient(180deg,#191a1e,#070809)!important;
- border-color:rgba(217,170,77,.28)!important;
-}
-#fl86-menu .lines i{background:var(--fl27-accent)!important}
-#fl86-drawer{
- background:linear-gradient(180deg,#141518,#070809)!important;
- border-left-color:rgba(217,170,77,.24)!important;
-}
-.fl86-item.active{
- background:linear-gradient(90deg,rgba(217,170,77,.18),rgba(217,170,77,.03))!important;
- border-color:rgba(217,170,77,.24)!important;
- box-shadow:inset 4px 0 var(--fl27-accent)!important;
-}
-.fl86-icon{background:rgba(255,255,255,.055)!important}
-.fl86-item.active .fl86-icon{background:rgba(217,170,77,.15)!important}
-
-/* Creator/avatar: premium presentation without replacing the working creator logic. */
-.v52-creator{
- background:
-  radial-gradient(440px 260px at 86% 0,rgba(217,170,77,.10),transparent 70%),
-  linear-gradient(145deg,#18191c,#0d0e10)!important;
- border:1px solid rgba(217,170,77,.25)!important;
- box-shadow:0 18px 52px rgba(0,0,0,.36)!important;
-}
-.v52-creator img,.v52-creator .avatar,.v52-creator [class*="avatar"]{
- border-radius:20px!important;
- border:1px solid rgba(217,170,77,.24)!important;
- box-shadow:0 15px 35px rgba(0,0,0,.35)!important;
-}
-
-/* Settings accent swatches: four accents; changing them affects accents,
-   never the permanent black/white base or logo. */
-.fl96-accent-swatches{
- display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important;
- margin-top:8px!important;
-}
-.fl96-accent-swatches button{
- min-height:42px!important;border-radius:12px!important;
- border:1px solid rgba(255,255,255,.1)!important;color:#fff!important;
- font-size:8px!important;font-weight:900!important;cursor:pointer!important;
-}
-.fl96-gold{background:#d9aa4d!important;color:#080808!important}
-.fl96-red{background:#d84b5b!important}
-.fl96-blue{background:#6f9fe8!important;color:#080808!important}
-.fl96-green{background:#63c48a!important;color:#080808!important}
-
-/* Store keeps the same premium visual language. */
-.fl95-market,.fl94-gifts,.fl93-move,.fl91-home,.fl92-calendar,.fl89-planner{
- background:linear-gradient(145deg,#17181b,#0d0e10)!important;
- border-color:rgba(217,170,77,.20)!important;
-}
-</style>
-
 <script id="fl27-v96-branding-avatar-js">
 (function(){
 "use strict";
@@ -10784,45 +10286,6 @@ window.FL27_SUMMER_EVENTS={EVENTS,afterSummer,render};
 </script>
 
 
-<style id="fl27-v103-single-ui">
-/* FINAL UI LOCK: only one header, one tutorial strip and the right drawer. */
-.fl27-v35-top,
-.fl27-v35-bottom,
-#nav,
-#fl96-brand,
-#fl89-top,
-.v37-tasks{display:none!important;visibility:hidden!important;pointer-events:none!important}
-body{padding-top:150px!important;padding-bottom:18px!important}
-#fl97-playerbar{display:flex!important;visibility:visible!important}
-#fl97-real-logo{display:flex!important;visibility:visible!important}
-
-/* Tutorial is always directly under the fixed player header until completed. */
-#fl102-strip{
- position:sticky!important;top:76px!important;z-index:2147481500!important;
- margin:0 auto 12px!important;max-width:980px!important
-}
-#fl102-strip .ey{color:#d9aa4d!important}
-#fl102-strip .reward{background:rgba(125,95,220,.13)!important;color:#d8c9ff!important}
-#fl102-strip .progress i{background:linear-gradient(90deg,#b9822d,#f1cc70)!important}
-
-/* Remove the old blue tutorial styling from decision explanations; use the game's black/white/gold language. */
-.v40-tutorial-explain{
- background:linear-gradient(145deg,rgba(217,170,77,.07),rgba(255,255,255,.025))!important;
- border-color:rgba(217,170,77,.16)!important
-}
-.v40-help-title{color:#d9aa4d!important}
-.v40-help-grid div{background:rgba(255,255,255,.035)!important;color:rgba(255,255,255,.78)!important}
-
-/* Keep the agreed right-side drawer as the only navigation. */
-#fl86-menu{display:flex!important}
-#fl86-drawer{display:block}
-</style>
-
-<style id="fl27-v107-hide-duplicates">
-/* The new home hub replaces the old duplicate action blocks. */
-#fl89-planner,#fl97-planner,.v24-bottom,#fl89-top,#fl97-playerbar{display:none!important}
-.card:has(.action.green){display:none!important}
-</style>
 <style id="fl27-v109-birthday-style">
 .v52-birthday-box{margin-top:12px;padding:11px;border-radius:13px;background:rgba(217,170,77,.055);border:1px solid rgba(217,170,77,.18)}
 .v52-bday-head{display:flex;justify-content:space-between;gap:8px;font-size:9px}.v52-bday-head span{font-size:7px;color:#8e9095}
@@ -11089,7 +10552,7 @@ W.FL27_showWelcome=welcome;
 W.FL27_showNewGame=resetMenu;
 function protect(){bindToday();menu();restartButton();renderTab();addPR()}
 setInterval(protect,700);setTimeout(protect,150);
-if(!S().started)setTimeout(welcome,180);
+/* V120 startup is authoritative. */
 })();
 </script>
 
@@ -11253,7 +10716,7 @@ function showFamilyIntro(){
 function observeStart(){
  if(W.S&&W.S.started&&!hasDone())setTimeout(showFamilyIntro,250);
 }
-setInterval(observeStart,900);
+/* V120: family intro is shown once by the authoritative startup controller. */
 })();
 </script>
 
@@ -11317,5 +10780,336 @@ function applyRealLogo(){
  });
 }
 setInterval(applyRealLogo,800);setTimeout(applyRealLogo,100);
+})();
+</script>
+
+
+<style id="fl27-v120-authoritative">
+/* V120 — one startup, one creator, one header. */
+#fl110-header{
+ position:sticky!important;top:8px!important;left:auto!important;right:auto!important;
+ margin:8px auto!important;transform:none!important;float:none!important;
+ width:min(760px,calc(100vw - 16px))!important;
+}
+.v20-hub-overlay{
+ position:fixed!important;inset:0!important;z-index:2147483647!important;
+ background:rgba(12,14,16,.94)!important;backdrop-filter:blur(14px)!important;
+}
+.v20-hub.v52-creator{
+ width:min(780px,calc(100vw - 24px))!important;max-height:calc(100vh - 24px)!important;
+ overflow:auto!important;box-sizing:border-box!important;
+ background:linear-gradient(145deg,#1a1c1f,#101214)!important;
+ border:1px solid rgba(217,170,77,.30)!important;
+ box-shadow:0 30px 90px rgba(0,0,0,.70)!important;
+}
+.v20-hub.v52-creator .v20-logo{font-size:0!important;width:170px!important;height:52px!important;
+ background-image:var(--fl27-logo)!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:left center!important}
+.v20-hub.v52-creator .v20-logo *{display:none!important}
+.v52-avatar-editor{grid-template-columns:260px 1fr!important}
+.v52-avatar-editor .v20-avatar-preview{
+ min-height:300px!important;display:grid!important;place-items:center!important;
+ background:radial-gradient(circle at 50% 30%,rgba(217,170,77,.10),transparent 60%),#111315!important;
+ border:1px solid rgba(217,170,77,.24)!important;border-radius:22px!important
+}
+.v52-avatar-editor .v20-avatar-preview svg{max-height:285px!important}
+.v52-creator .v20-avatar-controls{padding:4px}
+.v52-creator .v20-grid{gap:8px!important}
+.v52-creator label{font-size:8px!important}
+.v52-creator input,.v52-creator select{min-height:38px!important}
+.v52-creator .v20-confirm{margin-top:14px!important;background:linear-gradient(135deg,#f1cc70,#b9822d)!important;color:#080808!important}
+@media(max-width:650px){.v52-avatar-editor{grid-template-columns:1fr!important}.v52-avatar-editor .v20-avatar-preview{max-width:280px;margin:auto}}
+/* Never show legacy fixed top identity bars. */
+#fl89-top,#fl96-brand,#fl97-top,#fl97-playerbar{display:none!important;pointer-events:none!important}
+</style>
+
+<script id="fl27-v120-authoritative-js">
+(function(){
+"use strict";
+const W=window;
+let startupShown=false;
+let familyShown=false;
+
+function clearStartupLayers(){
+ document.querySelectorAll("#fl115-start,#fl115-newgame,#fl114-start,#fl114-newgame,#fl111-welcome,#fl111-newgame,#fl112-restart-menu,#fl118-family-intro").forEach(x=>x.remove());
+}
+function showWelcomeOnce(){
+ if(startupShown || (W.S&&W.S.started))return;
+ startupShown=true; clearStartupLayers();
+ const e=document.createElement("div");e.id="fl115-start";
+ e.innerHTML=`<div class="fl115-box">
+   <div class="fl115-logo"></div>
+   <div class="fl115-kicker">WITAJ W SWOJEJ HISTORII</div>
+   <h1>Witaj w Football Life 27!</h1>
+   <p>Tworzysz całe życie piłkarza — karierę, szkołę, rodzinę, relacje, pieniądze i decyzje. Czas płynie godzinami, a wybory zmieniają kolejne wydarzenia.</p>
+   <button class="fl115-btn primary" id="fl120-start"><b>ZACZNIJ</b><small>Stwórz swoją karierę</small></button>
+ </div>`;
+ document.body.appendChild(e);
+ e.querySelector("#fl120-start").onclick=()=>{
+   e.remove(); W.FL27_showNewGame?.();
+ };
+}
+function showFamilyOnce(){
+ if(familyShown || !W.S?.started)return;
+ familyShown=true;
+ const s=W.S||{}, fp=s.familyProfile||{};
+ const mom=fp.mother?.name||"Mama", dad=fp.father?.name||"Tata";
+ const country=s.birthCountry||fp.homeCountry||"—", city=fp.residenceCity||"—";
+ const e=document.createElement("div");e.id="fl118-family-intro";
+ e.innerHTML=`<div class="fl118-intro-box">
+ <div class="fl118-intro-kicker">🎓 PIERWSZE ZADANIE</div>
+ <h1>Poznaj swoje korzenie</h1>
+ <p>Zanim ruszysz na boisko, poznaj swoją rodzinę i dowiedz się, skąd zaczynasz.</p>
+ <div class="fl118-family-facts">
+ <div>🌍<b>${country}</b><small>pochodzenie</small></div>
+ <div>📍<b>${city}</b><small>miejsce</small></div>
+ <div>👩<b>${mom}</b><small>mama</small></div>
+ <div>👨<b>${dad}</b><small>tata</small></div></div>
+ <button id="fl118-family-go">OTWÓRZ RODZINĘ</button></div>`;
+ document.body.appendChild(e);
+ e.querySelector("#fl118-family-go").onclick=()=>{
+   try{localStorage.setItem("FL27_FAMILY_INTRO","1")}catch(x){}
+   e.remove();
+   try{W.FL27_ROUTE?.("family")}catch(x){}
+   W.render?.();
+ };
+}
+function startup(){
+ if(W.S?.started){startupShown=true;return}
+ showWelcomeOnce();
+}
+function observe(){
+ if(W.S?.started && !familyShown){
+   let done=false;try{done=localStorage.getItem("FL27_FAMILY_INTRO")==="1"}catch(e){}
+   if(!done)showFamilyOnce();
+ }
+}
+W.FL27_V120_RESET_STARTUP=function(){
+ startupShown=false;familyShown=false;
+ try{localStorage.removeItem("FL27_FAMILY_INTRO")}catch(e){}
+ clearStartupLayers();showWelcomeOnce();
+};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(startup,120));
+else setTimeout(startup,120);
+setInterval(observe,1200);
+})();
+</script>
+
+
+<style id="fl27-v121-canonical-ui">
+/* V121: one visible shell only. Legacy shell is disabled, never deleted from game logic. */
+#legacy-header,
+#fl89-top,
+#fl96-brand,
+#nav,
+.fl27-v35-bottom,
+#fl27-old-header,
+[class*="legacy-nav"]{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Canonical compact status bar. */
+#fl110-header{
+ position:fixed!important;left:50%!important;top:8px!important;right:auto!important;
+ transform:translateX(-50%)!important;width:min(760px,calc(100vw - 16px))!important;
+ height:54px!important;min-height:54px!important;margin:0!important;padding:5px 7px!important;
+ z-index:2147483000!important;box-sizing:border-box!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:7px!important;
+ overflow:hidden!important;border-radius:15px!important;
+ background:rgba(14,15,17,.96)!important;border:1px solid rgba(217,170,77,.24)!important;
+ box-shadow:0 9px 30px rgba(0,0,0,.48)!important;backdrop-filter:blur(16px)!important;
+}
+#fl110-header .fl118-brand{
+ display:block!important;flex:0 0 52px!important;width:52px!important;height:40px!important;
+ min-width:52px!important;padding:0!important;margin:0!important;border:0!important;
+ background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;
+ font-size:0!important;line-height:0!important;
+}
+#fl110-header .fl118-identity{
+ display:flex!important;flex:1 1 auto!important;min-width:0!important;height:42px!important;
+ align-items:center!important;gap:6px!important;overflow:hidden!important;
+}
+#fl110-header .fl118-avatar{
+ display:grid!important;place-items:center!important;flex:0 0 30px!important;width:30px!important;height:30px!important;
+ min-width:30px!important;border-radius:9px!important;overflow:hidden!important;
+ background:rgba(255,255,255,.045)!important;
+}
+#fl110-header .fl118-who{min-width:0!important;display:block!important;overflow:hidden!important}
+#fl110-header .fl118-who>b{
+ display:block!important;font-size:9px!important;line-height:11px!important;white-space:nowrap!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;color:#f5f5f2!important;
+}
+#fl110-header .fl118-who>span,
+#fl110-header .fl118-who>small{
+ display:block!important;font-size:6px!important;line-height:8px!important;color:#a6a8ad!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+#fl110-header .fl118-who>small{color:#d9aa4d!important}
+#fl110-header .fl118-stats{
+ display:flex!important;flex:0 0 auto!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-end!important;gap:3px!important;height:42px!important;
+}
+#fl110-header .fl118-stats>div{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 35px!important;width:35px!important;height:37px!important;min-width:35px!important;
+ padding:2px!important;margin:0!important;box-sizing:border-box!important;border-radius:8px!important;
+ background:rgba(255,255,255,.035)!important;border:1px solid rgba(255,255,255,.055)!important;
+}
+#fl110-header .fl118-stats i{display:block!important;font-style:normal!important;font-size:9px!important;line-height:11px!important}
+#fl110-header .fl118-stats b{display:block!important;font-size:6px!important;line-height:9px!important;color:#f5f5f2!important;white-space:nowrap!important}
+body{padding-top:68px!important}
+
+/* The creator is the only start screen. */
+.v20-hub-overlay{z-index:2147483646!important}
+.v20-hub-overlay .v20-hub{position:relative!important;z-index:2!important}
+</style>
+
+<script id="fl27-v121-canonical-start">
+(function(){
+"use strict";
+function q(sel){return document.querySelector(".v20-hub-overlay "+sel)||document.querySelector(sel)}
+function cleanLegacy(){
+ document.querySelectorAll("#legacy-header,#fl89-top,#fl96-brand,#nav,.fl27-v35-bottom").forEach(function(el){
+   el.style.setProperty("display","none","important");
+   el.style.setProperty("pointer-events","none","important");
+ });
+ /* Never allow duplicate creator overlays. Keep the newest/active one. */
+ const os=[...document.querySelectorAll(".v20-hub-overlay")];
+ if(os.length>1) os.slice(0,-1).forEach(x=>x.remove());
+}
+function readName(){
+ const first=String(q("#creatorName")?.value||"").trim();
+ const last=String(q("#creatorSurname")?.value||"").trim();
+ return {first,last,full:[first,last].filter(Boolean).join(" ")};
+}
+function patchCreator(){
+ if(typeof window.FL27_beginV52!=="function") return;
+ const old=window.FL27_beginV52;
+ window.FL27_beginV52=function(){
+   const n=readName();
+   if(!n.first||!n.last){
+     if(typeof window.toast==="function") window.toast("Wpisz imię i nazwisko zawodnika.");
+     else alert("Wpisz imię i nazwisko zawodnika.");
+     return;
+   }
+   /* Write directly to the actual creator state before invoking the original flow. */
+   try{
+     playerName=n.full;
+     window.FL27_NEW_GAME=window.FL27_NEW_GAME||{};
+     window.FL27_NEW_GAME.playerName=n.full;
+     localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.FL27_NEW_GAME));
+   }catch(e){}
+   /* Reproduce the remainder of the original transition without relying on duplicate IDs. */
+   try{
+     const bd=q("#creatorBirthDate")?.value;
+     if(bd){window.FL27_NEW_GAME=window.FL27_NEW_GAME||{};window.FL27_NEW_GAME.birthDate=bd}
+     creatorStarted=true;
+     if(typeof saveCreatorDraft==="function")saveCreatorDraft();
+     if(typeof window.FL27_renderCreatorV52==="function")window.FL27_renderCreatorV52();
+   }catch(e){
+     /* Fall back to the original handler only if the state bridge is unavailable. */
+     try{old()}catch(_){}
+   }
+ };
+}
+function patchConfirm(){
+ if(typeof window.FL27_confirmPlus!=="function") return;
+ const old=window.FL27_confirmPlus;
+ window.FL27_confirmPlus=function(){
+   const n=readName();
+   if(n.full.split(/\s+/).length<2){
+     if(typeof window.toast==="function")window.toast("Wpisz imię i nazwisko zawodnika.");
+     else alert("Wpisz imię i nazwisko zawodnika.");
+     return;
+   }
+   try{playerName=n.full}catch(e){}
+   try{return old()}catch(e){console.error(e)}
+ };
+}
+function loop(){
+ cleanLegacy();
+ patchCreator();
+ patchConfirm();
+}
+setTimeout(loop,50);
+setInterval(loop,700);
+})();
+</script>
+
+
+<style id="fl27-v122-plus-fix">
+/* V122: Plus creation owns the startup state. No welcome screen may interrupt it. */
+.v20-hub-overlay{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+</style>
+<script id="fl27-v122-plus-fix-js">
+(function(){
+"use strict";
+const W=window;
+function H(){return W.FL27_NEW_GAME||{}}
+function killWelcome(){
+ document.querySelectorAll("#fl115-start,#fl115-newgame").forEach(x=>x.remove());
+}
+function lockPlus(){
+ /* The moment Plus is chosen, startup is no longer allowed to show Welcome. */
+ try{W.startupShown=true}catch(e){}
+ try{W.__FL27_PLUS_CREATOR_ACTIVE=true}catch(e){}
+ killWelcome();
+}
+function patchPlus(){
+ if(typeof W.FL27_startPlus!=="function")return;
+ if(W.__FL27_V122_PLUS_PATCHED)return;
+ const original=W.FL27_startPlus;
+ W.FL27_startPlus=function(){
+   lockPlus();
+   try{
+     original();
+     lockPlus();
+     /* If the old creator renderer did not appear, retry once from the canonical state. */
+     setTimeout(function(){
+       if(W.__FL27_PLUS_CREATOR_ACTIVE && !document.querySelector(".v20-hub-overlay")){
+         try{W.FL27_showCreator()}catch(e){console.error(e)}
+       }
+     },80);
+   }catch(e){
+     console.error("Plus creator:",e);
+     try{W.FL27_showCreator()}catch(_){}
+   }
+ };
+ W.__FL27_V122_PLUS_PATCHED=true;
+}
+function patchWelcomeGuard(){
+ /* Patch the authoritative welcome function so an active Plus/Auto setup is never interrupted. */
+ if(typeof W.FL27_showWelcome!=="function" || W.__FL27_V122_WELCOME_PATCHED)return;
+ const old=W.FL27_showWelcome;
+ W.FL27_showWelcome=function(){
+   const h=H();
+   if(h.mode==="plus" || h.mode==="auto" || W.__FL27_PLUS_CREATOR_ACTIVE)return;
+   return old();
+ };
+ W.__FL27_V122_WELCOME_PATCHED=true;
+}
+function patchConfirm(){
+ if(typeof W.FL27_confirmPlus!=="function" || W.__FL27_V122_CONFIRM_PATCHED)return;
+ const old=W.FL27_confirmPlus;
+ W.FL27_confirmPlus=function(){
+   lockPlus();
+   const root=document.querySelector(".v20-hub-overlay");
+   const first=String(root?.querySelector("#creatorName")?.value||"").trim();
+   const last=String(root?.querySelector("#creatorSurname")?.value||"").trim();
+   if(!first||!last){
+     (W.toast||alert)("Wpisz imię i nazwisko zawodnika.");
+     return;
+   }
+   try{
+     W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+     W.FL27_NEW_GAME.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+     W.FL27_NEW_GAME.birthDate=String(root?.querySelector("#creatorBirthDate")?.value||W.FL27_NEW_GAME.birthDate||"");
+     W.FL27_NEW_GAME.ready=true;
+     W.__FL27_PLUS_CREATOR_ACTIVE=false;
+     if(typeof W.saveCreatorDraft==="function")W.saveCreatorDraft();
+   }catch(e){console.error(e)}
+   return old();
+ };
+ W.__FL27_V122_CONFIRM_PATCHED=true;
+}
+function loop(){patchPlus();patchWelcomeGuard();patchConfirm();if(W.__FL27_PLUS_CREATOR_ACTIVE)killWelcome()}
+setTimeout(loop,50);setInterval(loop,400);
 })();
 </script>
