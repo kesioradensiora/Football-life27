@@ -8604,6 +8604,325 @@ html body{padding-top:62px!important;padding-bottom:58px!important}
 
 .v41-life-note{margin-top:6px;padding:6px 7px;border-radius:8px;background:rgba(255,255,255,.025);font-size:6.2px;line-height:9px;opacity:.5}
 </style>
+
+<!-- ============================================================
+ FL27 V133 — COHERENT TUTORIAL + COLLAPSIBLE SIDE MENU + FLGRAM
+ - removes the giant empty gap around the tutorial
+ - tutorial becomes the first real gameplay element
+ - removes football-star follow cards from the main screen
+ - FLgram becomes a player-profile/social-media simulation
+ - side navigation slides open and shows the name of every icon
+ - replaces emoji-only navigation with cleaner inline SVG icons
+ ============================================================ -->
+<style id="fl27-v133-ui">
+:root{
+ --fl27-gold:#d9aa4d;--fl27-red:#e23b50;--fl27-panel:#101216;--fl27-panel2:#17191e;
+}
+html body #main{min-height:0!important;height:auto!important;margin-top:0!important}
+html body #fl110-app{min-height:0!important;height:auto!important}
+html body #fl110-tutorial-fallback{
+ display:flex!important;position:relative!important;
+ width:calc(100% - 2px)!important;max-width:1050px!important;
+ margin:7px auto 9px!important;box-sizing:border-box!important;
+ min-height:0!important;order:0!important;
+}
+html body #fl117-pr-card{max-width:1050px!important;margin:0 auto 8px!important;box-sizing:border-box!important}
+html body .fl27-v12-extra{margin-top:8px!important}
+html body .fl27-v12-extra .real-star{display:none!important}
+html body .fl27-v12-extra > .card:has(.real-star){display:none!important}
+
+/* Tutorial: make it feel like a real part of the game, not a detached banner. */
+.fl133-tutorial{
+ max-width:1050px;margin:8px auto 10px;padding:13px;
+ border-radius:18px;background:linear-gradient(145deg,#181a1f,#0d0f12);
+ border:1px solid rgba(217,170,77,.28);box-shadow:0 10px 28px rgba(0,0,0,.28);
+}
+.fl133-tut-head{display:flex;align-items:center;gap:10px}
+.fl133-tut-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+ background:linear-gradient(135deg,#eec76b,#9f7026);color:#080808;flex:0 0 42px}
+.fl133-tut-icon svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fl133-tut-copy{min-width:0;flex:1}
+.fl133-kicker{font-size:7px;letter-spacing:1.5px;color:#d9aa4d;font-weight:1000}
+.fl133-tut-copy h3{font-size:14px;margin:3px 0 2px}
+.fl133-tut-copy p{font-size:8px;line-height:11px;color:#999da5;margin:0}
+.fl133-reward{padding:6px 8px;border-radius:10px;background:rgba(125,95,220,.13);font-size:8px;color:#ddd2ff;white-space:nowrap}
+.fl133-progress{height:5px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-top:11px}
+.fl133-progress i{display:block;height:100%;background:linear-gradient(90deg,#d9aa4d,#f0ce77);border-radius:99px}
+.fl133-progress-label{display:flex;justify-content:space-between;margin-top:5px;font-size:6.5px;color:#7f838a}
+.fl133-task-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+.fl133-task{padding:8px;border-radius:10px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.055)}
+.fl133-task.done{border-color:rgba(80,190,125,.25);background:rgba(80,190,125,.055)}
+.fl133-task b{font-size:7.5px;display:block}.fl133-task small{display:block;font-size:6.5px;color:#898d95;line-height:9px;margin-top:2px}
+.fl133-task em{font-style:normal;color:#d9aa4d;font-size:6px;font-weight:900;display:block;margin-top:3px}
+@media(max-width:520px){.fl133-task-row{grid-template-columns:1fr}.fl133-reward{font-size:7px}}
+
+/* New slide-out navigation. */
+.fl133-drawer{
+ position:fixed;right:0;top:50%;transform:translateY(-50%);
+ z-index:2147483005;width:58px;box-sizing:border-box;
+ padding:7px 5px;border-radius:17px 0 0 17px;
+ background:linear-gradient(180deg,#191b20,#090a0c);
+ border:1px solid rgba(217,170,77,.28);border-right:0;
+ box-shadow:0 14px 42px rgba(0,0,0,.58);transition:width .22s ease;
+}
+.fl133-drawer.open{width:188px}
+.fl133-drawer .fl133-menu-toggle{
+ width:100%;height:39px;border:0;border-radius:10px;background:rgba(217,170,77,.10);
+ color:#f0ce78;display:flex;align-items:center;gap:10px;padding:0 10px;cursor:pointer;
+}
+.fl133-drawer .fl133-menu-toggle svg{width:20px;height:20px;flex:0 0 20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fl133-drawer .fl133-menu-toggle b{font-size:8px;white-space:nowrap;display:none}
+.fl133-drawer.open .fl133-menu-toggle b{display:block}
+.fl133-nav-list{display:grid;gap:3px;margin-top:6px}
+.fl133-nav-item{
+ width:100%;height:40px;border:0;border-radius:10px;background:transparent;color:#a6aab2;
+ display:flex;align-items:center;gap:10px;padding:0 10px;cursor:pointer;text-align:left;
+}
+.fl133-nav-item:hover,.fl133-nav-item.active{background:rgba(217,170,77,.10);color:#f1d07b}
+.fl133-nav-item svg{width:19px;height:19px;flex:0 0 19px;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.fl133-nav-item b{font-size:7.5px;white-space:nowrap;display:none}
+.fl133-drawer.open .fl133-nav-item b{display:block}
+.fl133-nav-item.flgram{color:#c9b7ff}.fl133-nav-item.flgram.active{color:#eee5ff;background:rgba(126,92,220,.13)}
+.fl133-divider{height:1px;background:rgba(255,255,255,.07);margin:5px 4px}
+@media(max-width:430px){.fl133-drawer.open{width:178px}.fl133-drawer{width:54px}}
+
+/* FLgram — intentionally looks like a social profile, not a football-star catalogue. */
+.fl133-flgram{
+ max-width:760px;margin:8px auto 20px;padding:0;overflow:hidden;border-radius:22px;
+ background:#0d0f13;border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 50px rgba(0,0,0,.38)
+}
+.fl133-cover{height:118px;background:
+ radial-gradient(circle at 80% 20%,rgba(217,170,77,.35),transparent 28%),
+ linear-gradient(135deg,#202838,#11151d 58%,#26181d);position:relative}
+.fl133-cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.62))}
+.fl133-profile{position:relative;margin-top:-38px;padding:0 15px 15px;z-index:2}
+.fl133-avatar{width:76px;height:76px;border-radius:22px;overflow:hidden;border:3px solid #0d0f13;background:#171a20;display:grid;place-items:center}
+.fl133-avatar svg{width:100%;height:100%}
+.fl133-profile-line{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.fl133-profile-main{min-width:0}
+.fl133-profile-main h2{font-size:19px;margin:7px 0 1px}.fl133-handle{font-size:8px;color:#8e939c}
+.fl133-bio{font-size:8px;line-height:12px;color:#b0b4bc;margin-top:7px}
+.fl133-follow-btn{border:1px solid rgba(217,170,77,.35);background:linear-gradient(135deg,#eec76a,#a8782a);color:#090909;
+ border-radius:10px;padding:8px 11px;font-size:7px;font-weight:1000;white-space:nowrap}
+.fl133-social-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:13px}
+.fl133-social-stats div{padding:9px;border-radius:11px;background:rgba(255,255,255,.035);text-align:center}
+.fl133-social-stats b{display:block;font-size:11px}.fl133-social-stats small{font-size:6px;color:#81858d}
+.fl133-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
+.fl133-tabs button{height:36px;border:0;background:transparent;color:#777c84;font-size:7px;font-weight:900}.fl133-tabs button.active{color:#f0ce78;border-bottom:2px solid #d9aa4d}
+.fl133-feed{padding:10px}
+.fl133-post{padding:11px;border-radius:14px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.055);margin-bottom:7px}
+.fl133-post-head{display:flex;gap:8px;align-items:center}.fl133-post-mini{width:27px;height:27px;border-radius:8px;overflow:hidden;background:#1b1e25;display:grid;place-items:center}.fl133-post-mini svg{width:100%;height:100%}
+.fl133-post-head b{font-size:7.5px}.fl133-post-head small{display:block;font-size:6px;color:#777c84;margin-top:2px}
+.fl133-post-body{margin-top:8px;padding:17px 10px;border-radius:10px;background:linear-gradient(135deg,rgba(217,170,77,.08),rgba(255,255,255,.025));font-size:9px;color:#d5d7dc}
+.fl133-post-meta{display:flex;gap:14px;margin-top:8px;font-size:6.5px;color:#858a92}
+.fl133-post-actions{display:flex;gap:6px;margin-top:8px}.fl133-post-actions button{flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.07);background:#151820;color:#cfd2d8;font-size:6.5px}
+.fl133-empty{padding:28px 10px;text-align:center;color:#737881;font-size:8px}
+.fl133-create{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.fl133-create button{padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:#151820;color:#fff;font-size:7px}
+</style>
+
+<script id="fl27-v133-ui-js">
+(function(){
+"use strict";
+const W=window;
+
+const ICON={
+ menu:`<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
+ home:`<svg viewBox="0 0 24 24"><path d="M3.5 11 12 3.5l8.5 7.5V21H4z"/><path d="M9 21v-6h6v6"/></svg>`,
+ day:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2M8 3h8"/></svg>`,
+ career:`<svg viewBox="0 0 24 24"><path d="M8 6h8l2 4-2 4H8l-2-4z"/><path d="M10 14l-2 7M14 14l2 7M6 10 3 8M18 10l3-2"/></svg>`,
+ life:`<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.4 4 9.3A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 2.3c0 6.1-8 11.2-8 11.2Z"/></svg>`,
+ family:`<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.2"/><circle cx="6.5" cy="9" r="2"/><circle cx="17.5" cy="9" r="2"/><path d="M8 19c.2-3 1.5-4.7 4-4.7s3.8 1.7 4 4.7M2.8 19c.2-2.2 1.3-3.5 3.7-3.5M17.5 15.5c2.4 0 3.5 1.3 3.7 3.5"/></svg>`,
+ history:`<svg viewBox="0 0 24 24"><path d="M6 4h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`,
+ stats:`<svg viewBox="0 0 24 24"><path d="M4 20V9M10 20V5M16 20v-8M2 20h20"/></svg>`,
+ shop:`<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5zM6 9l2-5h8l2 5"/><path d="M9 13h6"/></svg>`,
+ flgram:`<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.2"/><path d="M17.3 6.8h.01"/></svg>`,
+ money:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M15 9.5c-.8-.7-1.7-1-3-1-1.7 0-2.7.8-2.7 2 0 1.3 1.2 1.8 2.8 2.1 1.6.3 2.7.8 2.7 2.1 0 1.3-1.1 2.2-2.9 2.2-1.3 0-2.4-.4-3.2-1.1"/></svg>`,
+ settings:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 14.2 21 15l-2 3-1.8-.8a7 7 0 0 1-2 1.2L15 20h-3l-.2-1.6a7 7 0 0 1-2-1.2L8 18l-2-3 2-1.1a7 7 0 0 1 0-2L6 11l2-3 1.8.8a7 7 0 0 1 2-1.2L12 6h3l.2 1.6a7 7 0 0 1 2 1.2L19 8l2 3-2 1.1a7 7 0 0 1 0 2Z"/></svg>`
+};
+
+const NAV=[
+ ["home","Dziś","home"],["day","Dzień","day"],["career","Kariera","career"],["life","Życie","life"],
+ ["family","Rodzina","family"],["history","Historia","history"],["stats","Statystyki","careerStats"],
+ ["shop","Sklep","store"],["flgram","FLgram","flgram"],["money","Finanse","finance"],["settings","Ustawienia","settings"]
+];
+
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function getSocial(){
+ let x=W.FL27_V12||{};
+ return x;
+}
+
+function avatarHTML(){
+ const s=W.S||{},a=s.avatar;
+ try{if(a&&typeof a==="object"&&W.FL27_avatarSvg)return W.FL27_avatarSvg({...a,gender:s.gender||a.gender})}catch(e){}
+ return a||"⚽";
+}
+
+function openTab(kind){
+ if(kind==="flgram"){W.FL27_OPEN_FLGRAM?.();return}
+ if(kind==="finance"){W.FL27_OPEN_FINANCE?.();return}
+ if(kind==="settings"){W.renderSettings?.();return}
+ const map={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",careerStats:"stats",store:"shop"};
+ if(W.go)W.go(map[kind]||kind);
+ else if(W.FL27_openTab)W.FL27_openTab(kind);
+ setTimeout(()=>refreshActive(kind),80);
+}
+
+function refreshActive(kind){
+ const d=document.querySelector(".fl133-drawer");if(!d)return;
+ d.querySelectorAll(".fl133-nav-item").forEach(b=>b.classList.toggle("active",b.dataset.k===kind));
+}
+
+function mountDrawer(){
+ document.querySelectorAll(".fl133-drawer").forEach(x=>x.remove());
+ if(!W.S?.started)return;
+ const d=document.createElement("aside");d.className="fl133-drawer";
+ d.innerHTML=`<button class="fl133-menu-toggle" type="button">${ICON.menu}<b>MENU GRY</b></button>
+ <div class="fl133-nav-list">${NAV.map((n,i)=>`
+   ${i===8?'<div class="fl133-divider"></div>':''}
+   <button class="fl133-nav-item ${n[0]==="home"?"active":""} ${n[0]==="flgram"?"flgram":""}" data-k="${n[0]}" type="button">
+     ${ICON[n[0]]}<b>${n[1]}</b>
+   </button>`).join("")}</div>`;
+ document.body.appendChild(d);
+ d.querySelector(".fl133-menu-toggle").onclick=()=>d.classList.toggle("open");
+ d.querySelectorAll(".fl133-nav-item").forEach(b=>b.onclick=()=>{
+   openTab(b.dataset.k);
+   if(window.innerWidth<700)setTimeout(()=>d.classList.remove("open"),120);
+ });
+}
+
+function tutorialData(){
+ /* Prefer the actual panel tutorial data, then fall back to the real first-year lesson. */
+ let tasks=[];
+ try{
+   const raw=W.FL27_PANEL_TASKS;
+   if(Array.isArray(raw))tasks=raw;
+ }catch(e){}
+ let doneMap={};
+ try{
+   const keys=["FL27_V9","FL27_ALL_IN_ONE_V14"];
+   keys.forEach(k=>{
+     const x=JSON.parse(localStorage.getItem(k)||"null");
+     if(x?.panelTasks)doneMap=x.panelTasks;
+   });
+ }catch(e){}
+ if(!tasks.length){
+   return {done:0,total:1,current:["👋 Zaczynamy","To jest Twój pierwszy rok. Gra będzie stopniowo pokazywać Ci czas, rodzinę, szkołę, futbol, relacje, FLgram i finanse."],reward:0,items:[]};
+ }
+ const items=tasks.slice(0,10).map(t=>({name:t.name,desc:t.desc,reward:t.reward,done:!!doneMap[t.id]?.done}));
+ const done=items.filter(x=>x.done).length;
+ const current=items.find(x=>!x.done)||items[0];
+ return {done,total:items.length,current:[current.name,current.desc],reward:current.reward,items};
+}
+
+function mountTutorial(){
+ const host=document.querySelector("#fl110-header")?.parentNode||document.querySelector("#fl110-app");
+ if(!host)return;
+ document.querySelectorAll(".fl133-tutorial").forEach(x=>x.remove());
+
+ /* Remove the old detached card; the new one is the canonical tutorial UI. */
+ const old=document.getElementById("fl110-tutorial-fallback");
+ if(old)old.style.display="none";
+
+ const t=tutorialData(), pct=t.total?Math.round(t.done/t.total*100):0;
+ const e=document.createElement("section");e.className="fl133-tutorial";
+ e.innerHTML=`<div class="fl133-tut-head">
+   <div class="fl133-tut-icon">${ICON.settings.replace("viewBox","aria-hidden='true' viewBox")}</div>
+   <div class="fl133-tut-copy"><div class="fl133-kicker">🎓 SAMOUCZEK • PIERWSZE KROKI</div>
+     <h3>${esc(t.current[0])}</h3><p>${esc(t.current[1])}</p></div>
+   <div class="fl133-reward">💎 +${t.reward}</div>
+ </div>
+ <div class="fl133-progress"><i style="width:${pct}%"></i></div>
+ <div class="fl133-progress-label"><span>${t.done}/${t.total} zadań ukończonych</span><span>${pct}%</span></div>
+ <div class="fl133-task-row">${t.items.slice(0,6).map((x,i)=>`
+   <div class="fl133-task ${x.done?"done":""}"><b>${x.done?"✓ ":""}${esc(x.name)}</b><small>${esc(x.desc)}</small><em>+${x.reward} 💎</em></div>`).join("")}</div>`;
+ host.insertBefore(e,host.querySelector("#fl117-pr-card")||host.querySelector("#main")||null);
+}
+
+function postText(p){
+ const map={"⚽ trening":"Nowy trening i kolejny krok. Praca nad sobą. 💪","🏆 mecz":"Dzień meczowy. Emocje, presja i kolejna historia. ⚽","📸 zdjęcie z drużyną":"Dobrze mieć takich ludzi obok. ❤️","👟 nowe korki":"Mały zakup, duża radość. 👟","🏖️ wakacje":"Trochę życia poza boiskiem. ☀️","❤️ rodzina":"Najważniejsi ludzie poza boiskiem. ❤️","👥 znajomi":"Dzisiaj trochę luzu ze znajomymi.","🎓 szkoła":"Szkoła też jest częścią tej historii. 📚","🚗 podróż":"Nowe miejsce, nowe wspomnienia.","🎮 życie poza boiskiem":"Czasem trzeba po prostu odpocząć.","💪 przygotowanie":"Praca, której nie widać na meczu.","📹 kulisy":"Trochę kulis codziennego życia.","⭐ wielkie wydarzenie":"To był ważny dzień. ⭐"};
+ return map[p]||"Kolejny fragment mojego życia. #FL27";
+}
+
+function openFlgram(){
+ const main=document.querySelector("#main")||document.querySelector("main");if(!main)return;
+ main.querySelectorAll(".fl133-flgram,.fl115-panel").forEach(x=>x.remove());
+ const x=getSocial(),s=W.S||{},p=W.FL27_PR||{};
+ const followers=Number(x.followers||0), posts=x.posts||[];
+ const handle=String(s.name||"player").toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,"_");
+ const e=document.createElement("section");e.className="fl133-flgram";
+ e.innerHTML=`<div class="fl133-cover"></div>
+  <div class="fl133-profile">
+   <div class="fl133-profile-line"><div class="fl133-profile-main">
+    <div class="fl133-avatar">${avatarHTML()}</div>
+    <h2>${esc(s.name||"Zawodnik")} ✓</h2><div class="fl133-handle">@${esc(handle)}</div>
+    <div class="fl133-bio">⚽ ${esc(s.pos||"Piłkarz")} • ${esc(s.club||"Bez klubu")}<br>📍 ${esc(s.residenceCity||s.birthCountry||"—")} • ⭐ PR ${Math.round(p.score||s.pr||0)}</div>
+   </div><button class="fl133-follow-btn" type="button">✎ EDYTUJ PROFIL</button></div>
+   <div class="fl133-social-stats"><div><b>${followers.toLocaleString("pl-PL")}</b><small>OBSERWUJĄCY</small></div>
+    <div><b>${Number(s.flgramFollowing||0)}</b><small>OBSERWOWANI</small></div><div><b>${posts.length}</b><small>POSTY</small></div></div>
+  </div>
+  <div class="fl133-tabs"><button class="active">POSTY</button><button>MEDIA</button><button>O MNIE</button></div>
+  <div class="fl133-feed">
+   <div class="fl133-create">${(x.postTypes||["⚽ trening","🏆 mecz","📸 zdjęcie z drużyną","❤️ rodzina"]).slice(0,4).map((q,i)=>`<button type="button" data-post="${i}">＋ ${esc(q)}</button>`).join("")}</div>
+   ${posts.length?posts.slice(0,8).map((post,i)=>`<article class="fl133-post">
+     <div class="fl133-post-head"><div class="fl133-post-mini">${avatarHTML()}</div><div><b>${esc(s.name||"Zawodnik")}</b><small>Dzień ${post.day||"—"} • publicznie</small></div></div>
+     <div class="fl133-post-body">${esc(postText(post.type))}</div>
+     <div class="fl133-post-meta"><span>❤️ ${Number(post.likes||0).toLocaleString("pl-PL")}</span><span>💬 ${Number(post.comments||0).toLocaleString("pl-PL")}</span><span>👥 ${Number(post.followersAfter||followers).toLocaleString("pl-PL")}</span></div>
+     <div class="fl133-post-actions"><button>❤️ Lubię to</button><button>💬 Skomentuj</button><button>↗ Udostępnij</button></div>
+   </article>`).join(""):`<div class="fl133-empty">Nie masz jeszcze postów.<br>Twój pierwszy post może pojawić się po prostu jako część życia — trening, mecz, szkoła, rodzina, wakacje albo zwykły dzień.</div>`}
+  </div>`;
+ main.appendChild(e);
+ e.querySelectorAll("[data-post]").forEach(b=>b.onclick=()=>{
+   const idx=Number(b.dataset.post);
+   try{W.FL27_createPost?.(idx)}catch(err){}
+   setTimeout(openFlgram,100);
+ });
+ e.querySelector(".fl133-follow-btn").onclick=()=>W.toast?.("Profil można rozwijać razem z karierą — edycja szczegółów będzie odblokowywana wraz z kolejnymi funkcjami FLgram.");
+ main.scrollIntoView({behavior:"smooth",block:"start"});
+ refreshActive("flgram");
+}
+
+W.FL27_OPEN_FLGRAM=openFlgram;
+
+W.FL27_OPEN_FINANCE=function(){
+ const main=document.querySelector("#main")||document.querySelector("main");if(!main)return;
+ main.querySelectorAll(".fl133-flgram,.fl115-panel").forEach(x=>x.remove());
+ if(typeof W.renderWealth==="function"){W.renderWealth(main);main.scrollIntoView({behavior:"smooth",block:"start"});refreshActive("finance");return}
+ if(typeof W.showPRPanel==="function"){W.showPRPanel();refreshActive("finance")}
+};
+
+function cleanOldStarUI(){
+ document.querySelectorAll(".fl27-v12-extra").forEach(box=>{
+   box.querySelectorAll(".real-star").forEach(x=>x.remove());
+   box.querySelectorAll(".card").forEach(card=>{
+     if(/Gwiazdy futbolu|realne punkty odniesienia/i.test(card.textContent||""))card.remove();
+   });
+ });
+}
+
+function boot(){
+ mountDrawer();
+ mountTutorial();
+ cleanOldStarUI();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,120));
+else setTimeout(boot,120);
+
+if(W.render&&!W.__FL27_V133_RENDER){
+ const old=W.render;W.__FL27_V133_RENDER=true;
+ W.render=function(){
+   const r=old.apply(this,arguments);
+   requestAnimationFrame(()=>{
+     mountDrawer();mountTutorial();cleanOldStarUI();
+   });
+   return r;
+ };
+}
+})();
+</script>
+
 </body>
 </html>
 
@@ -12123,5 +12442,164 @@ function mountTip(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountTip,{once:true});
 else mountTip();
 setTimeout(mountTip,30);
+})();
+</script>
+
+
+<style id="fl27-v132-auto-generator">
+/* V132 — AUTO is a true zero-input start. It must never open the manual creator. */
+#fl132-auto-toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-50%);z-index:2147483646;
+ padding:13px 17px;border-radius:14px;background:rgba(14,15,18,.97);border:1px solid rgba(217,170,77,.38);
+ color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6);font:900 10px/14px system-ui;text-align:center;pointer-events:none}
+#fl132-auto-toast small{display:block;color:#a9adb5;font-size:7px;font-weight:700;margin-top:3px}
+</style>
+<script id="fl27-v132-auto-generator-js">
+(function(){
+"use strict";
+const W=window;
+let running=false;
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function toastAuto(){
+ const old=document.getElementById("fl132-auto-toast");if(old)old.remove();
+ const e=document.createElement("div");e.id="fl132-auto-toast";
+ e.innerHTML="🎲 GENERUJĘ ZAWODNIKA<small>Imię • rodzina • pochodzenie • pozycja • klub • szkoła • start kariery</small>";
+ document.body.appendChild(e);setTimeout(()=>e.remove(),900);
+}
+
+/* AUTO uses the existing real country/name database and the existing career
+   engine. We temporarily feed the engine one generated family so the name,
+   birth country and family cannot contradict one another. */
+W.FL27_startAuto=function(){
+ if(running)return;
+ running=true;
+ try{
+   toastAuto();
+   /* Clear only the previous career. Settings/meta remain untouched. */
+   if(typeof W.FL27_NEW_GAME!=="undefined"){
+     W.FL27_NEW_GAME={mode:"auto",ready:true,birthDate:null};
+     try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(W.FL27_NEW_GAME))}catch(e){}
+   }
+   try{
+     if(typeof W.clearGame==="function")W.clearGame();
+   }catch(e){}
+
+   /* Generate every player-facing choice automatically. */
+   const qs=(typeof QUESTIONS!=="undefined")?QUESTIONS:[];
+   const gender=pick(["Kobieta","Mężczyzna"]);
+   const orientation=pick(["Kobiety","Mężczyźni","Kobiety i mężczyźni","Na razie nikim — nie szukam związku"]);
+   const answers=[
+     gender,
+     orientation,
+     qs[2]?.[1]?.length?pick(qs[2][1]):pick(["BR","LO","ŚP","N"]),
+     qs[3]?.[1]?.length?pick(qs[3][1]):pick(["Lewa","Prawa"]),
+     qs[4]?.[1]?.length?pick(qs[4][1]):pick(["Uniwersalny"]),
+     qs[5]?.[1]?.length?pick(qs[5][1]):pick(["Cristiano Ronaldo","Lionel Messi"]),
+     qs[6]?.[1]?.length?pick(qs[6][1]):pick(["FC Barcelona","Real Madryt","Bayern Monachium"]),
+     qs[7]?.[1]?.length?pick(qs[7][1]):pick(["Lubię presję","Czasem presja mnie blokuje"]),
+     qs[8]?.[1]?.length?pick(qs[8][1]):pick(["Rozwój i umiejętności","Dobra atmosfera i ludzie","Trofea","Pieniądze"]),
+     qs[9]?.[1]?.length?pick(qs[9][1]):pick(["Zdobyć Ligę Mistrzów","Zostać legendą klubu"])
+   ];
+
+   /* Generate family FIRST. */
+   const fixedFamily=(typeof W.makeFamily==="function")?W.makeFamily():null;
+   if(!fixedFamily)throw new Error("Brak generatora rodziny");
+
+   const birthCountry=fixedFamily.homeCountry||fixedFamily.birthCountry||fixedFamily.father?.country||"Polska";
+   const gCode=gender==="Kobieta"?"K":"M";
+   let generatedName;
+   if(typeof W.FL27_randomPlayerName==="function") generatedName=W.FL27_randomPlayerName(birthCountry,gCode);
+   else if(typeof W.FL27_namesForCountry==="function"){
+     const d=W.FL27_namesForCountry(birthCountry)||{};
+     const first=(gCode==="K"?d.female:d.first)||["Alex"];
+     const last=d.last||["Nowak"];
+     generatedName=pick(first)+" "+pick(last);
+   }else generatedName=(gender==="Kobieta"?"Anna":"Alex")+" "+pick(["Nowak","Silva","Garcia","Rossi"]);
+
+   /* Random birthday: player starts at 15, but the birthday itself is part of
+      the generated biography and drives the real calendar later. */
+   const birthYear=2015;
+   const birthMonth=1+Math.floor(Math.random()*12);
+   const maxDay=new Date(birthYear,birthMonth,0).getDate();
+   const birthDay=1+Math.floor(Math.random()*maxDay);
+   const birthDate=`${birthYear}-${String(birthMonth).padStart(2,"0")}-${String(birthDay).padStart(2,"0")}`;
+
+   /* Keep the generated family coherent with the name while the original
+      start engine creates the rest of the real game state. */
+   const oldFamily=W.makeFamily;
+   const oldAuto=W.FL27_AUTO_START;
+   const oldName=(typeof playerName!=="undefined")?playerName:"";
+   const oldAnswers=(typeof selectedAnswers!=="undefined")?selectedAnswers:null;
+   W.makeFamily=function(){return fixedFamily};
+   W.FL27_AUTO_START=true;
+   if(typeof selectedAnswers!=="undefined")selectedAnswers=answers;
+   if(typeof playerName!=="undefined")playerName=generatedName;
+   if(typeof W.__FL27_AVATAR_CONFIG!=="undefined" || W.FL27_randomAvatar){
+     /* Auto avatar is also generated, using the existing avatar database. */
+     try{
+       const skins=["#f8dcc3","#f1c9a8","#e7b58f","#d7a07a","#c98f68","#a97452","#9a6345","#6b402d","#4b2b1e"];
+       const hairs=["short","long","curly","fade","buzz","ponytail","bob","braids","wavy","undercut"];
+       const hairColors=["#17151a","#2a211c","#3b2417","#70452b","#a66b35","#c98b4b","#d7b36a","#eee0b5","#9b4a2f","#6b4aa1"];
+       const eyes=["#241812","#3b2a20","#3d6b91","#5a7b4c","#6d4d3c","#6f8e9e"];
+       const jerseys=["#d9364a","#2467d1","#24915b","#f0b429","#7b4fd6","#e9edf3"];
+       W.__FL27_AVATAR_CONFIG={skin:pick(skins),hair:pick(hairs),hairColor:pick(hairColors),eyes:pick(eyes),jersey:pick(jerseys),gender:gCode};
+     }catch(e){}
+   }
+
+   /* The original engine performs the real initialization: club, school,
+      stats, family, finances, social profile, calendar and save. */
+   if(typeof W.__FL27_ORIGINAL_START_CAREER==="function"){
+     W.__FL27_ORIGINAL_START_CAREER();
+   }else if(typeof W.startCareer==="function"){
+     W.startCareer();
+   }else{
+     throw new Error("Brak silnika startu kariery");
+   }
+
+   if(W.S?.started){
+     W.S.name=generatedName;
+     W.S.firstName=generatedName.split(" ")[0];
+     W.S.lastName=generatedName.split(" ").slice(1).join(" ");
+     W.S.gender=gender;
+     W.S.orientation=orientation;
+     W.S.birthDate=birthDate;
+     W.S.birthMonth=birthMonth;
+     W.S.birthDay=birthDay;
+     W.S.birthCountry=fixedFamily.homeCountry;
+     W.S.familyProfile=fixedFamily;
+     W.S.residenceCountry=fixedFamily.residenceCountry||fixedFamily.homeCountry;
+     W.S.nationalities=[fixedFamily.father?.country,fixedFamily.mother?.country,fixedFamily.homeCountry]
+       .filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3);
+     W.S.avatar=W.__FL27_AVATAR_CONFIG||W.S.avatar;
+     W.S.autoGenerated=true;
+     W.S.autoGenerationVersion="V132";
+     try{W.saveSoon?.()}catch(e){}
+     try{W.cleanStartupLayers?.()}catch(e){}
+     document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+     W.currentTab="home";
+     try{W.render?.()}catch(e){}
+     try{W.toast?.(`🎲 Wylosowano: ${generatedName} • ${W.S.pos||"?"} • ${W.S.club||"bez klubu"}`)}catch(e){}
+   }else{
+     throw new Error("Silnik nie utworzył zawodnika");
+   }
+
+   /* Restore original generator after initialization. */
+   W.makeFamily=oldFamily;
+   W.FL27_AUTO_START=oldAuto;
+   if(typeof W.FL27_NEW_GAME!=="undefined"){
+     W.FL27_NEW_GAME={mode:"auto",ready:true,birthDate};
+     try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(W.FL27_NEW_GAME))}catch(e){}
+   }
+ }catch(err){
+   console.error("FL27 V132 AUTO",err);
+   try{W.makeFamily && (W.makeFamily=W.makeFamily)}catch(e){}
+   try{W.toast?.("Nie udało się wygenerować kariery automatycznej. Spróbuj ponownie.")}catch(e){}
+ }finally{
+   running=false;
+ }
+};
+
+/* Also expose a diagnostic so the repair button can verify AUTO exists. */
+W.FL27_AUTO_GENERATOR_VERSION="V132";
 })();
 </script>
