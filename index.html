@@ -7863,6 +7863,146 @@ html body{padding-top:62px!important;padding-bottom:58px!important}
 })();
 </script>
 
+
+<style id="fl27-ui-overhaul-v4">
+:root{
+ --red:#d9ad55!important;--red2:#f1ce7a!important;--redDark:#5a421b!important;--redGlow:rgba(217,173,85,.20)!important;
+ --green:#d9ad55!important;--gold:#e6bd63!important;--blue:#b8c0ce!important;
+ --bg:#050608!important;--bg2:#0b0d11!important;--panel:#101217!important;--panel2:#15171d!important;--panel3:#1b1e25!important;
+}
+body{background:radial-gradient(650px 360px at 50% -80px,rgba(230,189,99,.12),transparent 68%),linear-gradient(180deg,#06070a,#030406)!important}
+body:before{opacity:.08!important}
+.app{max-width:620px;padding-bottom:112px}
+header{background:rgba(5,6,8,.96)!important;border-bottom:1px solid rgba(230,189,99,.13)!important;padding:13px 16px 12px!important}
+.brand b{font-size:17px!important;letter-spacing:.8px!important}
+.save{color:#e9c873!important;background:rgba(230,189,99,.07)!important;border-color:rgba(230,189,99,.28)!important}
+.sub{color:#7f8794!important}
+.stats{margin-top:10px!important}
+.stat{background:linear-gradient(145deg,#15171c,#0b0d11)!important;border-color:rgba(255,255,255,.08)!important;border-radius:14px!important}
+.stat:first-child{border-color:rgba(230,189,99,.24)!important}
+main{padding:14px!important}
+.card{background:linear-gradient(145deg,#121419,#090a0d)!important;border-color:rgba(255,255,255,.085)!important;border-radius:20px!important;box-shadow:0 16px 42px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.025)!important}
+.hero{background:radial-gradient(260px 190px at 100% 0%,rgba(230,189,99,.18),transparent 68%),linear-gradient(145deg,#17191d,#08090b)!important;border-color:rgba(230,189,99,.25)!important}
+.hero:before{content:"FL"!important;color:#e6bd63!important;font-size:105px!important;font-weight:1000!important;font-style:italic!important;opacity:.055!important;right:-2px!important;top:-5px!important;transform:none!important}
+.hero:after{border-color:rgba(230,189,99,.07)!important}
+.hero-badge{background:rgba(230,189,99,.08)!important;border-color:rgba(230,189,99,.23)!important;color:#e6bd63!important}
+.kicker{color:#e6bd63!important}
+h1,h2,h3{letter-spacing:-.35px}
+.action{background:linear-gradient(145deg,#17191e,#0c0e12)!important;border-color:rgba(255,255,255,.09)!important;border-radius:16px!important}
+.action:after{background:rgba(230,189,99,.22)!important}
+.action.green,.action.gold{background:linear-gradient(145deg,#282116,#12100c)!important;border-color:rgba(230,189,99,.38)!important}
+.action.green:after,.action.gold:after{background:#e6bd63!important}
+.choice{background:linear-gradient(145deg,#17191e,#0b0d11)!important;border-color:rgba(255,255,255,.08)!important}
+.choice:hover{border-color:rgba(230,189,99,.42)!important;background:linear-gradient(145deg,#211b12,#0e0f12)!important}
+.progress i{background:linear-gradient(90deg,#b88935,#f0d17d)!important;box-shadow:0 0 14px rgba(230,189,99,.22)!important}
+.pill{background:rgba(230,189,99,.055)!important;border-color:rgba(230,189,99,.15)!important;color:#d9dde4!important}
+nav{display:flex!important;overflow-x:auto!important;justify-content:flex-start!important;gap:5px!important;padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;background:rgba(5,6,8,.98)!important;border-top-color:rgba(230,189,99,.13)!important;scrollbar-width:none!important}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 62px!important;min-width:62px!important;padding:7px 3px!important;border-radius:13px!important;color:#747b86!important}
+nav button.active{background:linear-gradient(145deg,#211b12,#0f0d09)!important;border-color:rgba(230,189,99,.32)!important;color:#f2d58a!important}
+nav i{font-size:18px!important}
+.toast{background:linear-gradient(145deg,#f4e4bb,#e7c875)!important;color:#20180b!important}
+.creator-screen #nav{display:none!important}
+.creator-screen .app{padding-bottom:18px!important}
+.creator-screen header{padding:15px 17px 12px!important}
+.creator-screen .brand{justify-content:flex-start!important}
+.creator-screen .brand:before{content:"FL";display:grid;place-items:center;width:35px;height:35px;margin-right:8px;border-radius:10px;background:linear-gradient(145deg,#e8c875,#8f6723);color:#090a0c;font-size:18px;font-weight:1000;font-style:italic;box-shadow:0 8px 25px rgba(230,189,99,.14)}
+.creator-screen .brand b{font-size:16px!important}
+.creator-screen .save{margin-left:auto}
+.creator-screen .sub{font-size:10px!important;color:#707782!important}
+.creator-screen main{padding:18px 14px 20px!important}
+.creator-screen .creator-hero{padding:22px 18px 20px!important;min-height:0!important;display:block!important;background:radial-gradient(250px 180px at 100% 0%,rgba(230,189,99,.20),transparent 70%),linear-gradient(145deg,#181a1e,#08090b)!important}
+.creator-screen .creator-hero .fl-logo-mark{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#f0d17d,#9d742d);color:#090a0b;font-size:28px;font-weight:1000;font-style:italic;box-shadow:0 12px 30px rgba(230,189,99,.16);margin-bottom:18px}
+.creator-screen .creator-hero h1{font-size:34px!important;line-height:1.02!important;max-width:330px!important;margin:7px 0 10px!important}
+.creator-screen .creator-hero p{font-size:13px!important;color:#a9afb9!important;max-width:440px}
+.creator-screen .creator-name-label{color:#d6b65f!important;letter-spacing:1.2px;font-size:9px;font-weight:900;text-transform:uppercase;display:block;margin-top:20px}
+.creator-screen #creatorName{background:#080a0d!important;border:1px solid rgba(230,189,99,.20)!important;border-radius:15px!important;padding:15px!important;color:#fff!important;font-size:16px!important;margin-top:7px!important}
+.creator-screen .creator-start{width:100%;margin-top:14px!important;text-align:left!important;min-height:74px!important;background:linear-gradient(145deg,#e8c875,#a87827)!important;color:#0b0b0b!important;border:0!important;box-shadow:0 14px 32px rgba(230,189,99,.13)!important}
+.creator-screen .creator-start:after{display:none!important}
+.creator-screen .creator-start b{font-size:13px!important;color:#090a0b!important}
+.creator-screen .creator-start small{color:#31240f!important}
+.creator-screen .creator-points{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.creator-screen .creator-point{padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:#0d0f13;color:#9ea5af;font-size:10px}
+.creator-screen .creator-point b{display:block;color:#eceff3;font-size:11px;margin-bottom:3px}
+.creator-screen .creator-info{margin-top:10px;background:#0c0e12!important}
+.creator-screen .creator-info .section-title{color:#e6bd63}
+.creator-screen .creator-question{padding:20px 17px!important}
+.creator-screen .creator-question .step{display:flex;justify-content:space-between;align-items:center;color:#e6bd63;font-size:9px;font-weight:900;letter-spacing:1px}
+.creator-screen .creator-question h2{font-size:24px!important;margin-top:16px!important}
+.creator-screen .creator-question .sub{color:#8f97a3!important;font-size:11px!important;line-height:1.5}
+.creator-screen .creator-question .choice{min-height:62px!important;margin:8px 0!important}
+@media(max-width:390px){.creator-screen .creator-hero h1{font-size:30px!important}.creator-screen .creator-points{grid-template-columns:1fr}}
+</style>
+<script id="fl27-ui-overhaul-v4-js">
+(function(){
+  // Replace only the presentation layer of the creator; all existing answer/start logic remains intact.
+  window.renderCreator=function(){
+    const main=document.getElementById('main');
+    if(!main)return;
+    if(!creatorStarted){
+      const hasDraft=selectedAnswers.length>0||playerName;
+      main.innerHTML=`
+      <div class="card creator-hero">
+        <div class="fl-logo-mark">FL</div>
+        <div class="hero-badge">CAREER MODE • PROTOTYPE</div>
+        <div class="kicker">FOOTBALL LIFE 27</div>
+        <h1>Twoje życie.<br>Twoja kariera.</h1>
+        <p>Stwórz zawodnika, którego historia będzie zależała od Twoich decyzji. Klub startowy zostanie wylosowany.</p>
+        <label class="creator-name-label">Imię / imię i nazwisko</label>
+        <input id="creatorName" value="${escText(playerName)}" maxlength="32" placeholder="np. Natalia K." oninput="playerName=this.value.trim();saveCreatorDraft()">
+        <button class="action creator-start" onclick="beginCreator()"><b>${hasDraft?'▶ KONTYNUUJ TWORZENIE':'⚽ STWÓRZ ZAWODNIKA'}</b><small>${hasDraft?`Masz zapisane ${selectedAnswers.length}/10 odpowiedzi`:'10 decyzji zbuduje początek Twojej historii'}</small></button>
+        ${hasDraft?`<button class="choice" style="margin-top:8px;text-align:center" onclick="resetCreator()"><b>↻ Zacznij od początku</b></button>`:''}
+        <div class="creator-points">
+          <div class="creator-point"><b>⚽ Kariera</b>pozycja • styl • rozwój</div>
+          <div class="creator-point"><b>❤️ Życie</b>relacje • rodzina • decyzje</div>
+          <div class="creator-point"><b>💶 Finanse</b>pieniądze • zakupy • majątek</div>
+          <div class="creator-point"><b>🧠 Konsekwencje</b>historia pamięta Twoje wybory</div>
+        </div>
+      </div>
+      <div class="card creator-info"><div class="section-title"><b>Jak działa początek?</b><span>10 decyzji</span></div>
+        <div class="row"><span>👤 Kim jesteś?</span><b>tożsamość</b></div>
+        <div class="row"><span>⚽ Jak grasz?</span><b>pozycja i styl</b></div>
+        <div class="row"><span>❤️ Czego chcesz?</span><b>relacje</b></div>
+        <div class="row"><span>🏆 Dokąd zmierzasz?</span><b>klub marzeń</b></div>
+        <div class="notice" style="margin-top:12px">Klubu startowego nie wybierasz. <b>Gra losuje go na podstawie Twojego początku</b>, a później kariera rozwija się z decyzji i wydarzeń.</div>
+      </div>`;
+      return;
+    }
+    if(selectedAnswers.length>=QUESTIONS.length){
+      main.innerHTML=`<div class="card creator-question"><div class="step"><span>TWORZENIE ZAKOŃCZONE</span><span>10/10</span></div><div class="progress" style="margin:10px 0 17px"><i style="width:100%"></i></div><h2>${esc(playerName||`Twój ${genderLabel()}`)}</h2><p class="sub">Profil gotowy. Teraz gra wylosuje klub startowy i warunki początku kariery.</p><div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${esc(QUESTIONS[i][0])}: ${esc(x).split(' — ')[0]}</span>`).join('')}</div><button class="action creator-start" style="margin-top:14px" onclick="startCareer()"><b>⚽ ROZPOCZNIJ KARIERĘ</b><small>Losujemy klub i szkołę.</small></button><button class="choice" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()"><b>✏️ Cofnij ostatnią odpowiedź</b></button></div>`;
+      return;
+    }
+    const q=QUESTIONS[selectedAnswers.length];
+    const parts=q[1].map(v=>{const p=v.split(' — ');const js=JSON.stringify(v).replace(/'/g,'&#39;').replace(/</g,'&lt;');return `<button class="choice" onclick='answer(${js})'><b>${esc(p[0])}</b>${p[1]?`<span>${esc(p.slice(1).join(' — '))}</span>`:''}</button>`}).join('');
+    main.innerHTML=`<div class="card creator-question"><div class="step"><span>TWORZENIE POSTACI</span><span>${selectedAnswers.length+1}/${QUESTIONS.length}</span></div><div class="progress" style="margin:10px 0 18px"><i style="width:${selectedAnswers.length/QUESTIONS.length*100}%"></i></div><h2>${esc(q[0])}</h2><p class="sub">Wybierz odpowiedź, która najbardziej pasuje do Twojej postaci. Niektóre decyzje wrócą później jako konsekwencje.</p>${parts}${selectedAnswers.length?`<button class="choice" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()"><b>← Wróć do poprzedniego pytania</b></button>`:''}</div>`;
+  };
+
+  // Mobile navigation: no cramped 8-column grid; it scrolls cleanly and remains tappable.
+  window.renderNav=function(){
+    const nav=document.getElementById('nav'); if(!nav)return;
+    if(!S.started){nav.innerHTML='';return;}
+    const items=[['home','⌂','Dziś'],['day','◷','Dzień'],['career','⚽','Kariera'],['life','♥','Życie'],['family','♟','Rodzina'],['history','▤','Historia'],['careerStats','▥','Statystyki'],['store','◆','Sklep'],['wealth','€','Finanse'],['social','▦','FLgram'],['city','⌂','Miasto'],['licenses','▣','Licencje']];
+    nav.innerHTML=items.map(i=>`<button class="${currentTab===i[0]?'active':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</button>`).join('');
+  };
+
+  // Explicit routes for the added screens.
+  const previousRenderTab=window.renderTab;
+  window.renderTab=function(tab){
+    if(tab==='licenses'){window.FL27_renderLicenses?.(document.getElementById('main'));return;}
+    if(tab==='city'){window.FL27_renderCity?.(document.getElementById('main'));return;}
+    if(tab==='store' && window.renderStore){window.renderStore(document.getElementById('main'));return;}
+    return previousRenderTab(tab);
+  };
+
+  // Make every button explicitly tappable above decorative layers.
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button');
+    if(b){b.style.pointerEvents='auto';}
+  },true);
+
+  try{render();}catch(e){console.error('FL27 UI v4',e);}
+})();
+</script>
 </body>
 </html>
 
