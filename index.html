@@ -253,23 +253,79 @@ nav i{display:block;font-style:normal;font-size:19px;margin-bottom:3px}
 </style>
 </head>
 <body>
-<div class="app">
-<header>
-  <div class="brand"><b>⚽ FOOTBALL LIFE 27</b><span class="save" id="saveState">● Zapisano</span></div>
-  <div class="sub" id="dateLine">—</div>
-  <div class="stats">
-    <div class="stat"><b id="money">€0</b><span>💶 Pieniądze</span></div>
-    <div class="stat"><b id="energy">0</b><span>⚡ Energia</span></div>
-    <div class="stat"><b id="form">0</b><span>🔥 Forma</span></div>
-    <div class="stat"><b id="pr">0</b><span>📣 PR</span></div>
+<div id="fl110-app" class="app">
+  <!-- Hidden compatibility nodes: the original engine still writes to these IDs,
+       but they can never appear as a second interface. -->
+  <div id="fl110-compat" aria-hidden="true">
+    <header id="legacy-header">
+      <div class="brand"><b>FOOTBALL LIFE 27</b><span class="save" id="saveState">● Zapisano</span></div>
+      <div class="sub" id="dateLine">—</div>
+      <div class="stats">
+        <div class="stat"><b id="money">€0</b><span>💶 Pieniądze</span></div>
+        <div class="stat"><b id="energy">0</b><span>⚡ Energia</span></div>
+        <div class="stat"><b id="form">0</b><span>🔥 Forma</span></div>
+        <div class="stat"><b id="pr">0</b><span>📣 PR</span></div>
+      </div>
+    </header>
+    <nav id="nav"></nav>
   </div>
-</header>
-<main id="main"></main>
-<nav id="nav"></nav>
-<div id="modalRoot"></div>
-<div id="toast" class="toast"></div>
-</div>
 
+  <div id="fl110-header" aria-label="Status zawodnika">
+    <div class="fl110-avatar" id="fl110-avatar">⚽</div>
+    <div class="fl110-who">
+      <b id="fl110-name">Zawodnik</b>
+      <span id="fl110-meta">— • 15 lat</span>
+    </div>
+    <div class="fl110-stats">
+      <div><span>OVR</span><b id="fl110-ovr">0</b></div>
+      <div><span>ZDROWIE</span><b id="fl110-health">0</b></div>
+      <div><span>ENERGIA</span><b id="fl110-energy">0</b></div>
+      <div><span>FORMA</span><b id="fl110-form">0</b></div>
+      <div><span>CZAS</span><b id="fl110-time">08:00</b></div>
+      <div><span>KASA</span><b id="fl110-money">€0</b></div>
+    </div>
+  </div>
+
+  <section id="fl110-tutorial-fallback">
+    <div class="fl110-tut-icon">🎓</div>
+    <div><span>STREFA SAMOUCZKA</span><b id="fl110-tut-name">Poznaj grę</b><small id="fl110-tut-desc">Wykonuj zadania, aby poznać kolejne elementy kariery.</small></div>
+    <strong id="fl110-tut-reward">💎 +0</strong>
+  </section>
+
+  <main id="main">
+    <section id="fl110-activity-fallback">
+      <div class="fl110-day-head">
+        <div><span>DZISIAJ • SYSTEM GODZINOWY</span><h1>Co możesz zrobić?</h1><small>Każda czynność zajmuje pełne 1, 2, 3 lub więcej godzin. Przed wyborem widzisz jej skutki.</small></div>
+        <div class="fl110-clock"><b id="fl110-clock">08:00</b><small id="fl110-left">14h do 22:00</small></div>
+      </div>
+      <div class="fl110-bar"><i id="fl110-daybar"></i></div>
+      <div class="fl110-group">⚽ PIŁKA</div>
+      <div class="fl110-grid">
+        <button type="button"><b>⚽ Trening drużynowy</b><small>Pełny trening • decyzje i wydarzenia mogą się pojawić</small><em>⏱ 2h • ⚡ −18 • 🏃 +5 • 😊 +2</em></button>
+        <button type="button"><b>⏩ Symuluj trening</b><small>Szybciej przechodzisz dzień • mniejszy rozwój</small><em>⏱ 2h • ⚡ −10 • 🏃 +2 • 😊 +1</em></button>
+        <button type="button"><b>🎯 Trening indywidualny</b><small>Skupienie na własnym rozwoju</small><em>⏱ 1h • ⚡ −10 • 🏃 +4 • 😊 +1</em></button>
+        <button type="button"><b>📋 Analiza taktyczna</b><small>Nauka ustawienia i gry</small><em>⏱ 1h • ⚡ −3 • 🧠 +3 • 😊 +2</em></button>
+      </div>
+      <div class="fl110-group">📚 ŻYCIE</div>
+      <div class="fl110-grid">
+        <button type="button"><b>📝 Nauka do sprawdzianu</b><small>Poprawia naukę, ale zabiera energię</small><em>⏱ 1h • ⚡ −5 • 🧠 +7 • 😊 −1</em></button>
+        <button type="button"><b>🚲 Jazda na rowerze</b><small>Zdrowie, forma i samopoczucie</small><em>⏱ 1h • ⚡ −8 • ❤️ +2 • 😊 +4</em></button>
+        <button type="button"><b>🏊 Basen</b><small>Aktywna regeneracja</small><em>⏱ 1h • ⚡ −10 • ❤️ +3 • 😊 +4</em></button>
+        <button type="button"><b>👥 Spotkanie ze znajomymi</b><small>Relacje i szczęście</small><em>⏱ 2h • ⚡ −3 • ❤️ +1 • 😊 +7</em></button>
+      </div>
+      <div class="fl110-group">👨‍👩‍👧 RODZINA</div>
+      <div class="fl110-grid">
+        <button type="button"><b>👩 Czas z mamą</b><small>Budowanie relacji rodzinnej</small><em>⏱ 1h • ⚡ −1 • ❤️ +1 • 😊 +6</em></button>
+        <button type="button"><b>👨 Czas z tatą</b><small>Relacja i rozmowy o piłce</small><em>⏱ 1h • ⚡ −1 • ❤️ +1 • 😊 +6</em></button>
+        <button type="button"><b>👧 Czas z siostrą</b><small>Wspólny czas i relacja</small><em>⏱ 1h • ⚡ −1 • ❤️ +1 • 😊 +6</em></button>
+      </div>
+      <div class="fl110-night">🌙 <b>22:00 = sen.</b> Nie planujemy aktywności po 22:00.</div>
+    </section>
+  </main>
+
+  <div id="modalRoot"></div>
+  <div id="toast" class="toast"></div>
+</div>
 <script>
 "use strict";
 
@@ -575,7 +631,7 @@ function grammar(text){
 
 function saveCreatorDraft(){
   localStorage.setItem(DRAFT_KEY,JSON.stringify({
-    started:creatorStarted,name:playerName,answers:selectedAnswers,origin:originChoice
+    started:creatorStarted,name:playerName,answers:selectedAnswers,origin:originChoice,birthDate:window.FL27_NEW_GAME?.birthDate||null
   }));
   const el=document.getElementById("saveState");
   if(el){el.textContent="● Zapisano";el.style.color="#79e6ae";}
@@ -4674,6 +4730,8 @@ window.FL27_MASTER_FEATURES = [
     {id:"decision",name:"Podejmij własną decyzję",desc:"Wybierz jedną z trzech możliwości.",reward:5,kind:"decision"}
   ];
 
+  window.FL27_PANEL_TASKS=BASE_TASK_POOL;
+
   function buildPanelTasks(){
     const VERSION=3;
     if(P.panelTutorialVersion!==VERSION || !Array.isArray(P.panelTaskSet) || P.panelTaskSet.length!==10){
@@ -6635,6 +6693,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
  let H;try{H=JSON.parse(localStorage.getItem(HUBKEY)||"{}")}catch(e){H={}}
  H.mode??=null;
  H.ready??=false;
+ H.birthDate??=null;
  window.FL27_NEW_GAME=H;
  const save=()=>localStorage.setItem(HUBKEY,JSON.stringify(H));
  const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -6671,6 +6730,7 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
  window.FL27_startAuto=function(){
    clearGame();
    H.mode="auto";
+   H.birthDate=(()=>{const day=1+Math.floor(Math.random()*28),month=1+Math.floor(Math.random()*12);return `2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`})();
    H.player={gender:Math.random()<.5?"K":"M",avatar:{
      skin:AVATAR_OPTIONS.skin[Math.floor(Math.random()*AVATAR_OPTIONS.skin.length)],
      hair:AVATAR_OPTIONS.hair[Math.floor(Math.random()*AVATAR_OPTIONS.hair.length)],
@@ -6796,6 +6856,15 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
          <label>Imię<input id="creatorName" maxlength="24" value="${esc(playerName.split(" ")[0]||"")}" placeholder="np. Alex"></label>
          <label>Nazwisko<input id="creatorSurname" maxlength="30" value="${esc(playerName.split(" ").slice(1).join(" "))}" placeholder="np. Silva"></label>
        </div>
+       <div class="v52-birthday-box">
+         <div class="v52-bday-head"><b>🎂 DZIEŃ URODZENIA</b><span>Wpływa na kalendarz życia</span></div>
+         <div class="v52-bday-row">
+           <label><input type="radio" name="birthMode" value="auto" ${window.FL27_NEW_GAME?.birthDate?"":"checked"} onchange="FL27_setBirthMode('auto')"> Gra losuje</label>
+           <label><input type="radio" name="birthMode" value="custom" ${window.FL27_NEW_GAME?.birthDate?"checked":""} onchange="FL27_setBirthMode('custom')"> Wybieram</label>
+         </div>
+         <input id="creatorBirthDate" type="date" value="${esc(window.FL27_NEW_GAME?.birthDate||"2011-11-30")}" ${window.FL27_NEW_GAME?.birthDate?"":"disabled"} onchange="FL27_setBirthDate(this.value)">
+         <small>Startujesz jako 15-latek. Urodziny są zapisywane w historii i w odpowiednim dniu mogą uruchomić specjalne wydarzenia.</small>
+       </div>
        <button class="v20-confirm" onclick="FL27_beginV52()">PRZEJDŹ DO PYTAŃ <small>1 / 10</small></button>
        ${hasDraft?`<button class="v20-back" onclick="resetCreator()">🗑️ Zacznij tworzenie od początku</button>`:""}
        <div class="v52-info">🎲 Nie wybierasz tutaj klubu ani rodziców. Świat gry wygeneruje je później zgodnie z Twoimi odpowiedziami i losowością.</div>`;
@@ -6854,11 +6923,32 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
    window.FL27_saveAvatar();
  };
 
+
+ window.FL27_setBirthMode=function(mode){
+   const input=document.getElementById("creatorBirthDate");
+   if(mode==="auto"){
+     const day=1+Math.floor(Math.random()*28),month=1+Math.floor(Math.random()*12);
+     const bd=`2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+     if(input){input.value=bd;input.disabled=true}
+     window.FL27_NEW_GAME.birthDate=bd;
+   }else{
+     if(input){input.disabled=false; if(!input.value)input.value="2011-11-30"}
+     window.FL27_NEW_GAME.birthDate=input?.value||"2011-11-30";
+   }
+   localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.FL27_NEW_GAME));
+ };
+ window.FL27_setBirthDate=function(v){
+   if(!v)return;
+   window.FL27_NEW_GAME.birthDate=v;
+   localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.FL27_NEW_GAME));
+ };
  window.FL27_beginV52=function(){
    const first=document.getElementById("creatorName")?.value.trim();
    const last=document.getElementById("creatorSurname")?.value.trim();
    if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
    playerName=first+" "+last;
+   const bd=document.getElementById("creatorBirthDate")?.value;
+   if(bd) window.FL27_NEW_GAME.birthDate=bd;
    creatorStarted=true;
    saveCreatorDraft();
    window.FL27_renderCreatorV52();
@@ -6889,6 +6979,7 @@ window.FL27_confirmPlus=function(){
    try{
      S.firstName=first;S.lastName=last;S.name=playerName;
      S.avatar=av;S.orientation=orientation;
+     S.birthDate=window.FL27_NEW_GAME?.birthDate||"2011-11-30";
      saveSoon();render();
    }catch(e){}
  };
@@ -11199,5 +11290,523 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 setInterval(lock,350);
 new MutationObserver(lock).observe(document.documentElement,{childList:true,subtree:true});
 window.FL27_V103={lock};
+})();
+</script>
+
+
+<style id="fl27-v104-welcome-decision">
+/* FIRST LAUNCH — short welcome, then enter the tutorial */
+#fl104-welcome{
+ position:fixed!important;inset:0!important;z-index:2147483647!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:22px;box-sizing:border-box;background:
+ radial-gradient(circle at 50% 18%,rgba(217,170,77,.13),transparent 34%),
+ linear-gradient(180deg,#090909 0%,#030303 100%)!important;
+ color:#fff!important
+}
+#fl104-welcome .box{
+ width:min(520px,100%);padding:26px 20px;border-radius:25px;text-align:center;
+ background:linear-gradient(145deg,#191a1d,#0b0c0e);
+ border:1px solid rgba(217,170,77,.30);
+ box-shadow:0 25px 80px rgba(0,0,0,.65)
+}
+#fl104-welcome .logo{width:170px;max-height:76px;object-fit:contain;margin:0 auto 13px;display:block}
+#fl104-welcome .ey{font:900 8px/1 system-ui;letter-spacing:2px;color:#d9aa4d}
+#fl104-welcome h1{font-size:25px;margin:8px 0 9px}
+#fl104-welcome p{font-size:10px;line-height:15px;color:#b8bac0;margin:0 auto 17px;max-width:410px}
+#fl104-welcome button{
+ width:100%;padding:12px;border:0;border-radius:12px;
+ background:linear-gradient(135deg,#f1cc70,#b9822d);color:#090909;
+ font-size:10px;font-weight:1000;cursor:pointer
+}
+
+/* Tutorial stays at the top while unfinished. */
+#fl102-strip{
+ position:sticky!important;top:76px!important;z-index:2147481500!important;
+ margin:0 auto 12px!important;max-width:980px!important
+}
+
+/* A real decision gets the whole viewport: no header/drawer behind it. */
+#fl104-decision-overlay{
+ position:fixed!important;inset:0!important;z-index:2147483600!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:18px;box-sizing:border-box;background:rgba(3,3,4,.97)!important;
+ backdrop-filter:blur(14px)
+}
+#fl104-decision-overlay .panel{
+ width:min(720px,100%);max-height:calc(100vh - 36px);overflow:auto;
+ padding:20px;border-radius:24px;
+ background:linear-gradient(145deg,#191a1d,#090a0b);
+ border:1px solid rgba(217,170,77,.30);
+ box-shadow:0 30px 90px rgba(0,0,0,.75)
+}
+#fl104-decision-overlay .ey{font:900 8px/1 system-ui;letter-spacing:1.8px;color:#d9aa4d}
+#fl104-decision-overlay h2{font-size:22px;margin:7px 0 10px}
+#fl104-decision-overlay .story{font-size:11px;line-height:17px;color:#d7d8dc;padding:13px;border-radius:14px;background:rgba(255,255,255,.035)}
+#fl104-decision-overlay .choices{display:grid;gap:9px;margin-top:13px}
+#fl104-decision-overlay .choice{
+ width:100%;padding:13px;text-align:left;border-radius:13px;
+ background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+ color:#fff;cursor:pointer;font-size:10px
+}
+#fl104-decision-overlay .choice:hover{border-color:rgba(217,170,77,.55);background:rgba(217,170,77,.07)}
+#fl104-decision-overlay .choice b{display:block}
+#fl104-decision-overlay .hint{display:block;margin-top:4px;font-size:7px;color:#8e9197;line-height:10px}
+</style>
+
+<script id="fl27-v104-welcome-decision">
+(function(){
+"use strict";
+function S(){return window.S||{}}
+function esc(x){return String(x??"").replace(/[&<>"]/g,"")}
+function logoSrc(){
+ const img=document.querySelector("#fl97-real-logo img");
+ return img?.getAttribute("src")||"";
+}
+function welcomeDone(){return !!S().welcomeIntroSeen}
+function showWelcome(){
+ if(welcomeDone()||document.getElementById("fl104-welcome"))return;
+ const e=document.createElement("div");e.id="fl104-welcome";
+ e.innerHTML=`<div class="box">
+   ${logoSrc()?`<img class="logo" src="${esc(logoSrc())}" alt="">`:`<div style="font-size:42px">⚽</div>`}
+   <div class="ey">FOOTBALL LIFE 27</div>
+   <h1>Witaj w swojej karierze!</h1>
+   <p>To nie jest tylko gra w piłkę. Budujesz całe życie zawodnika — szkołę, rodzinę, relacje, pieniądze i karierę. Twoje decyzje wpływają na to, co wydarzy się później.</p>
+   <button type="button" id="fl104-start">ZACZNIJ POZNAWAĆ GRĘ</button>
+ </div>`;
+ document.body.appendChild(e);
+ e.querySelector("#fl104-start").onclick=()=>{
+   S().welcomeIntroSeen=true;
+   try{window.saveSoon?.();window.save?.()}catch(err){}
+   e.remove();
+   try{window.FL27_TUTORIAL?.render?.()}catch(err){}
+ };
+}
+function decisionData(){
+ const s=S();
+ return s.pendingDecision||s.activeDecision||s.currentDecision||window.FL27_CURRENT_DECISION||null;
+}
+function hideLegacyDecision(){
+ document.querySelectorAll("#fl101-event").forEach(x=>x.remove());
+}
+function renderDecision(){
+ const d=decisionData();
+ const old=document.getElementById("fl104-decision-overlay");
+ if(!d){old?.remove();return}
+ if(old)return;
+ hideLegacyDecision();
+ const choices=d.choices||d.options||d.answers||[];
+ if(!choices.length)return;
+ const e=document.createElement("div");e.id="fl104-decision-overlay";
+ e.innerHTML=`<div class="panel">
+  <div class="ey">WYDARZENIE • TWOJA DECYZJA</div>
+  <h2>${esc(d.title||d.name||"Co robisz?")}</h2>
+  <div class="story">${esc(d.text||d.story||d.description||"Wydarzyło się coś, co może wpłynąć na dalszą historię.")}</div>
+  <div class="choices">${choices.map((c,i)=>{
+    const txt=typeof c==="string"?c:(c.text||c.label||c.name||`Opcja ${i+1}`);
+    return `<button class="choice" type="button" data-i="${i}"><b>${esc(txt)}</b><span class="hint">Ta decyzja może wpłynąć na kolejne wydarzenia.</span></button>`;
+  }).join("")}</div>
+ </div>`;
+ document.body.appendChild(e);
+ e.querySelectorAll(".choice").forEach(btn=>btn.onclick=()=>{
+   const i=Number(btn.dataset.i);
+   const choice=choices[i];
+   try{
+     if(typeof window.chooseDecision==="function")window.chooseDecision(choice,i);
+     else if(typeof window.resolveDecision==="function")window.resolveDecision(choice,i);
+     else if(typeof window.handleDecision==="function")window.handleDecision(choice,i);
+     else {
+       const s=S();
+       s.lastDecision=choice;
+       s.pendingDecision=null;s.activeDecision=null;s.currentDecision=null;
+       try{window.saveSoon?.();window.save?.()}catch(err){}
+     }
+   }catch(err){console.error(err)}
+   e.remove();
+   setTimeout(renderDecision,50);
+ });
+}
+function boot(){
+ showWelcome();
+ renderDecision();
+ setInterval(()=>{showWelcome();renderDecision()},400);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+window.FL27_V104={showWelcome,renderDecision};
+})();
+</script>
+
+
+<style id="fl27-v104b-real-tutorial">
+/* Use the real V39 tutorial task state, not a parallel fake task list. */
+#fl102-strip{display:block!important;visibility:visible!important}
+</style>
+<script id="fl27-v104b-real-tutorial">
+(function(){
+"use strict";
+function P(){return window.P||{}}
+function realTasks(){
+ const p=P(), ids=Array.isArray(p.panelTaskSet)?p.panelTaskSet:[];
+ return ids.map(id=>{
+   const d=window.FL27_PANEL_TASKS?.find?.(x=>x.id===id);
+   return d||null;
+ }).filter(Boolean);
+}
+function fallbackTasks(){
+ return [
+  {id:"home",name:"Poznaj ekran „Dziś”",desc:"Sprawdź aktualności i możliwości.",reward:2},
+  {id:"family",name:"Poznaj Rodzinę",desc:"Sprawdź swoją sytuację rodzinną.",reward:3},
+  {id:"career",name:"Zajrzyj do kariery",desc:"Sprawdź pozycję i rozwój.",reward:3},
+  {id:"day",name:"Sprawdź przebieg dnia",desc:"Zobacz, jak działa czas.",reward:2}
+ ];
+}
+function taskState(){
+ const p=P(),tasks=realTasks().length?realTasks():fallbackTasks();
+ const done=tasks.filter(t=>p.panelTasks?.[t.id]?.done);
+ const current=tasks.find(t=>!p.panelTasks?.[t.id]?.done)||null;
+ return {tasks,done,current};
+}
+function render(){
+ const old=document.getElementById("fl102-strip");if(old)old.remove();
+ if(!S().welcomeIntroSeen)return;
+ const {tasks,done,current}=taskState();
+ if(!current)return;
+ const host=document.querySelector("main")||document.querySelector("#main")||document.querySelector(".app");if(!host)return;
+ const pct=Math.round(done.length/tasks.length*100);
+ const clean=x=>String(x??"").replace(/[&<>"]/g,"");
+ const e=document.createElement("section");e.id="fl102-strip";
+ e.innerHTML=`<div class="row"><div class="ico">🎓</div><div class="copy">
+ <div class="ey">STREFA SAMOUCZKA • NIE ZNIKNIE, DOPÓKI GO NIE UKOŃCZYSZ</div>
+ <b>${clean(current.name)}</b><small>${clean(current.desc)}</small></div>
+ <div class="reward">💎 ${Number(P().diamonds||0)}<br><span style="font-size:6px">+${Number(current.reward||0)} za zadanie</span></div></div>
+ <div class="progress"><i style="width:${pct}%"></i></div>`;
+ host.insertBefore(e,host.firstChild);
+}
+function decision(){
+ const p=P();
+ return p.tutorialCurrent || p.pendingDecision || p.activeDecision || p.currentDecision || window.FL27_CURRENT_DECISION || null;
+}
+function renderFullDecision(){
+ const d=decision(), old=document.getElementById("fl104-decision-overlay");
+ if(!d){old?.remove();return}
+ if(old)return;
+ const choices=d.c||d.choices||d.options||d.answers||[];
+ if(!choices.length)return;
+ const esc=x=>String(x??"").replace(/[&<>"]/g,"");
+ const e=document.createElement("div");e.id="fl104-decision-overlay";
+ e.innerHTML=`<div class="panel">
+  <div class="ey">⚽ WYDARZENIE • TWOJA DECYZJA</div>
+  <h2>${esc(d.title||d.name||"Co robisz?")}</h2>
+  <div class="story">${esc(d.text||d.story||d.description||"Wydarzyło się coś, co może wpłynąć na dalszą historię.")}</div>
+  <div class="choices">${choices.map((c,i)=>{
+   const txt=Array.isArray(c)?c[0]:(c.text||c.label||c.name||`Opcja ${i+1}`);
+   return `<button class="choice" type="button" data-i="${i}"><b>${esc(txt)}</b><span class="hint">Ta decyzja może zmienić kolejne wydarzenia.</span></button>`;
+  }).join("")}</div>
+ </div>`;
+ document.body.appendChild(e);
+ e.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+   const i=Number(b.dataset.i);
+   try{
+    if(p.tutorialCurrent && typeof window.FL27V9_chooseTutorial==="function")window.FL27V9_chooseTutorial(i);
+    else if(typeof window.chooseDecision==="function")window.chooseDecision((choices[i]),i);
+    else if(typeof window.resolveDecision==="function")window.resolveDecision((choices[i]),i);
+    else if(typeof window.handleDecision==="function")window.handleDecision((choices[i]),i);
+   }catch(err){console.error(err)}
+   e.remove();setTimeout(renderFullDecision,50);setTimeout(render,50);
+ });
+}
+function boot(){render();renderFullDecision();setInterval(()=>{render();renderFullDecision()},350)}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+})();
+</script>
+
+
+<style id="fl27-v107-header-activities">
+/* One clear player status header. */
+#fl107-header{
+ position:sticky!important;top:0!important;z-index:2147481000!important;
+ width:min(1100px,calc(100% - 20px));margin:0 auto 10px;padding:9px 11px;
+ display:flex;align-items:center;gap:9px;box-sizing:border-box;
+ border-radius:16px;background:linear-gradient(145deg,#151618,#090a0b);
+ border:1px solid rgba(217,170,77,.28);box-shadow:0 12px 30px rgba(0,0,0,.42)
+}
+#fl107-header .avatar{width:42px;height:42px;border-radius:13px;overflow:hidden;display:grid;place-items:center;background:#202124;flex:0 0 42px}
+#fl107-header .avatar img{width:100%;height:100%;object-fit:cover}
+#fl107-header .who{min-width:135px;flex:1}
+#fl107-header .who b{display:block;font-size:12px}
+#fl107-header .who small{display:block;font-size:7px;color:#92949a;margin-top:2px}
+#fl107-header .metrics{display:grid;grid-template-columns:repeat(6,minmax(45px,1fr));gap:5px}
+#fl107-header .metric{min-width:45px;padding:6px 5px;border-radius:9px;text-align:center;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+#fl107-header .metric span{display:block;font-size:6px;color:#8f9196;letter-spacing:.7px}
+#fl107-header .metric b{display:block;font-size:10px;margin-top:2px}
+#fl107-header .metric.ovr b{font-size:14px;color:#f1cc70}
+@media(max-width:680px){
+ #fl107-header{width:calc(100% - 12px);gap:6px}
+ #fl107-header .who{min-width:92px}
+ #fl107-header .metrics{grid-template-columns:repeat(3,1fr)}
+ #fl107-header .metric{min-width:0}
+}
+@media(max-width:420px){#fl107-header .metrics{gap:3px}#fl107-header .metric{padding:5px 3px}}
+
+/* Main "Today" activity hub. */
+#fl107-activities{
+ margin:0 auto 16px;max-width:980px;padding:14px;border-radius:20px;
+ background:linear-gradient(145deg,#17181b,#0c0d0f);
+ border:1px solid rgba(217,170,77,.22)
+}
+#fl107-activities .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+#fl107-activities .ey{font:900 7px/1 system-ui;letter-spacing:1.7px;color:#d9aa4d}
+#fl107-activities h2{margin:5px 0 2px;font-size:19px}
+#fl107-activities .sub{font-size:7px;color:#92949a;line-height:11px}
+#fl107-activities .clock{text-align:right;font-size:22px;font-weight:1000}
+#fl107-activities .remain{text-align:right;font-size:7px;color:#92949a}
+#fl107-activities .bar{height:5px;background:#242529;border-radius:99px;overflow:hidden;margin:9px 0 12px}
+#fl107-activities .bar i{display:block;height:100%;background:linear-gradient(90deg,#b9822d,#f1cc70)}
+#fl107-activities .group{font:900 7px system-ui;letter-spacing:1.3px;color:#8f9196;margin:12px 0 7px}
+#fl107-activities .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#fl107-activities button{
+ min-width:0;padding:10px;text-align:left;border-radius:13px;color:#fff;
+ background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075);cursor:pointer
+}
+#fl107-activities button:hover:not(:disabled){border-color:rgba(217,170,77,.5);background:rgba(217,170,77,.06)}
+#fl107-activities button:disabled{opacity:.38;cursor:not-allowed}
+#fl107-activities button b{display:block;font-size:9px}
+#fl107-activities button small{display:block;color:#92949a;font-size:7px;line-height:10px;margin-top:2px}
+#fl107-activities button .meta{display:block;color:#d9aa4d;font-size:7px;font-weight:900;margin-top:5px}
+#fl107-activities .notice{margin-top:9px;padding:9px;border-radius:11px;background:rgba(217,170,77,.05);border:1px solid rgba(217,170,77,.12);font-size:7px;color:#aeb0b5;line-height:11px}
+@media(max-width:560px){#fl107-activities .grid{grid-template-columns:1fr}}
+</style>
+
+<script id="fl27-v107-header-activities">
+(function(){
+"use strict";
+function st(){return window.S||window.P||{}}
+function esc(x){return String(x??"").replace(/[&<>"]/g,"")}
+function minute(){const s=st();if(Number.isFinite(Number(s.minute)))return Number(s.minute);return Math.floor(Number(s.hour??8))*60}
+function hour(){return Math.floor(minute()/60)}
+function fmt(min){const h=Math.floor(min/60),m=min%60;return h?`${h}h${m?` ${m}m`:""}`:`${m} min`}
+function avatar(){
+ const s=st(),a=s.avatar;
+ try{if(a&&typeof a==="object"&&typeof window.FL27_avatarSvg==="function")return window.FL27_avatarSvg({...a,gender:s.gender||a.gender})}catch(e){}
+ if(typeof a==="string"&&(a.startsWith("data:")||a.startsWith("http")))return `<img src="${a}" alt="">`;
+ return `<span style="font-size:23px">${a||"⚽"}</span>`;
+}
+function metrics(){
+ const s=st();
+ return {
+  ovr:Math.round(Number(s.ovr??s.overall??s.skill??0)),
+  energy:Math.round(Number(s.energy??100)),
+  health:Math.round(Number(s.health??100)),
+  form:Math.round(Number(s.form??100)),
+  happy:Math.round(Number(s.happiness??s.mental??50)),
+  money:Math.floor(Number(s.money??0))
+ };
+}
+function renderHeader(){
+ document.querySelectorAll("#fl107-header").forEach(x=>x.remove());
+ const s=st(),m=metrics(),e=document.createElement("header");e.id="fl107-header";
+ e.innerHTML=`<div class="avatar">${avatar()}</div>
+ <div class="who"><b>${esc(s.name||"Zawodnik")}</b><small>${esc(s.pos||s.position||"—")} • ${s.age??15} lat • dzień ${s.day??1}</small></div>
+ <div class="metrics">
+  <div class="metric ovr"><span>OVR</span><b>${m.ovr}</b></div>
+  <div class="metric"><span>CZAS</span><b>${String(hour()).padStart(2,"0")}:${String(minute()%60).padStart(2,"0")}</b></div>
+  <div class="metric"><span>ZDROWIE</span><b>❤️ ${m.health}</b></div>
+  <div class="metric"><span>ENERGIA</span><b>⚡ ${m.energy}</b></div>
+  <div class="metric"><span>FORMA</span><b>🏃 ${m.form}</b></div>
+  <div class="metric"><span>KASA</span><b>€${m.money.toLocaleString("pl-PL")}</b></div>
+ </div>`;
+ const host=document.querySelector("main")||document.querySelector("#main")||document.body;
+ host.insertBefore(e,host.firstChild);
+}
+const ACT=[
+ {id:"team_train",g:"⚽ PIŁKA",icon:"⚽",name:"Trening drużynowy",desc:"Pełny trening z zespołem. Możliwa decyzja trenerska lub wydarzenie.",min:2,money:0,energy:-18,health:-1,form:5,happy:2,kind:"real"},
+ {id:"sim_train",g:"⚽ PIŁKA",icon:"⏩",name:"Symuluj trening",desc:"Przyspieszony trening bez rozgrywania go. Mniejszy rozwój, mniej obciążenia.",min:2,money:0,energy:-10,health:0,form:2,happy:1,kind:"sim"},
+ {id:"individual",g:"⚽ PIŁKA",icon:"🎯",name:"Trening indywidualny",desc:"Praca nad własnym elementem: technika, szybkość lub wykończenie.",min:1,money:0,energy:-10,health:-1,form:4,happy:1,kind:"individual"},
+ {id:"tactical",g:"⚽ PIŁKA",icon:"📋",name:"Analiza taktyczna",desc:"Oglądasz akcje i uczysz się ustawienia. Rozwój mniejszy, ale bez dużego zmęczenia.",min:1,money:0,energy:-3,health:0,form:1,happy:2,kind:"tactical"},
+ {id:"recovery",g:"⚽ PIŁKA",icon:"🧘",name:"Regeneracja sportowa",desc:"Rozciąganie, rolowanie i spokojna regeneracja po wysiłku.",min:1,money:0,energy:5,health:5,form:1,happy:4,kind:"recovery"},
+ {id:"study_test",g:"📚 ŻYCIE",icon:"📝",name:"Nauka do sprawdzianu",desc:"Przygotowanie do szkoły. Nauka może później wpłynąć na wydarzenia.",min:1,money:0,energy:-5,health:0,form:0,happy:-1,kind:"study"},
+ {id:"friends",g:"👥 ŻYCIE",icon:"👥",name:"Spotkanie ze znajomymi",desc:"Czas społeczny i budowanie relacji.",min:2,money:0,energy:-3,health:1,form:0,happy:7,kind:"social"},
+ {id:"bike",g:"🏃 ŻYCIE",icon:"🚲",name:"Jazda na rowerze",desc:"Aktywność dla zdrowia i głowy.",min:1,money:0,energy:-8,health:2,form:2,happy:4,kind:"life"},
+ {id:"pool",g:"🏊 ŻYCIE",icon:"🏊",name:"Basen",desc:"Pływanie i regeneracja aktywna.",min:1,money:0,energy:-10,health:3,form:2,happy:4,kind:"life"},
+ {id:"mom",g:"👨‍👩‍👧 RODZINA",icon:"👩",name:"Czas z mamą",desc:"Rozmowa, wspólna aktywność albo zwykły czas razem.",min:1,money:0,energy:-1,health:1,form:0,happy:6,kind:"family"},
+ {id:"dad",g:"👨‍👩‍👧 RODZINA",icon:"👨",name:"Czas z tatą",desc:"Czas z tatą — może też pojawić się rozmowa o piłce.",min:1,money:0,energy:-1,health:1,form:0,happy:6,kind:"family"},
+ {id:"sister",g:"👨‍👩‍👧 RODZINA",icon:"👧",name:"Czas z siostrą",desc:"Wspólny czas i budowanie relacji rodzinnej.",min:1,money:0,energy:-1,health:1,form:0,happy:6,kind:"family"}
+];
+function schoolAvailable(){const s=st();return !(Number(s.schoolAge??15)>=7 && Number(s.schoolAge??15)<=18) || !window.FL27_schoolDay || window.FL27_schoolDay()}
+function can(a){return minute()+a.min*60<=22*60 && Number(st().energy??100)+a.energy>=0 && Number(st().money??0)>=a.money}
+function effect(a){
+ const s=st();
+ s.energy=Math.max(0,Math.min(100,Number(s.energy??100)+a.energy));
+ s.health=Math.max(0,Math.min(100,Number(s.health??100)+a.health));
+ s.form=Math.max(0,Math.min(100,Number(s.form??100)+a.form));
+ const hk=("happiness" in s)?"happiness":"mental";
+ s[hk]=Math.max(0,Math.min(100,Number(s[hk]??50)+a.happy));
+ if(a.money)s.money=Number(s.money||0)-a.money;
+ if(a.kind==="individual")s.skill=Math.min(100,Number(s.skill||0)+2);
+ if(a.kind==="tactical")s.learning=Math.min(100,Number(s.learning||0)+3);
+ if(a.kind==="study")s.learning=Math.min(100,Number(s.learning||0)+7);
+}
+function advanceMinutes(n){
+ const s=st();
+ if(typeof window.advance==="function"){
+   const h=Math.floor(n/60),r=n%60;
+   if(h)window.advance(h);
+   if(r){
+    s.minute=Number(s.minute||0)+r;
+    while(s.minute>=60){s.minute-=60;window.advance(1)}
+   }
+ }else{
+   s.minute=minute()+n;
+ }
+}
+function run(a){
+ if(!can(a)){try{window.toast?.("⏰ Ta aktywność jest teraz niedostępna.");}catch(e){}return}
+ effect(a);advanceMinutes(a.min*60);
+ const s=st();s.lastAction={day:s.day,hour:hour(),id:a.id,name:a.name,min:a.min};
+ try{window.FL27V9_maybeEvent?.("activity")}catch(e){}
+ try{window.FL27_CANONICAL_DAILY_EVENT?.()}catch(e){}
+ try{window.saveSoon?.();window.save?.();window.render?.()}catch(e){}
+ render();
+ if(a.kind==="real"){
+   setTimeout(()=>{
+    try{
+     const q=window.FL27V9_maybeTutorial?.();
+     if(q) {st().tutorialCurrent=q;window.FL27V9_renderTutorial?.(q)}
+    }catch(e){}
+   },80);
+ }
+}
+function render(){
+ document.querySelectorAll("#fl107-activities").forEach(x=>x.remove());
+ const host=document.querySelector("main")||document.querySelector("#main")||document.querySelector(".app");if(!host)return;
+ const now=minute(),rem=Math.max(0,22*60-now),h=Math.floor(now/60),m=now%60,pct=Math.max(0,Math.min(100,(now-8*60)/(14*60)*100));
+ const groups=["⚽ PIŁKA","📚 ŻYCIE","👨‍👩‍👧 RODZINA"];
+ const e=document.createElement("section");e.id="fl107-activities";
+ e.innerHTML=`<div class="head"><div><div class="ey">DZISIAJ • SYSTEM GODZINOWY</div><h2>Co możesz zrobić?</h2><div class="sub">Wybierz czynność. Zobaczysz przed wykonaniem czas, energię, zdrowie, formę i inne skutki.</div></div><div><div class="clock">${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}</div><div class="remain">${Math.floor(rem/60)}h ${rem%60}min do 22:00</div></div></div>
+ <div class="bar"><i style="width:${pct}%"></i></div>
+ ${groups.map(g=>`<div class="group">${g}</div><div class="grid">${ACT.filter(a=>a.g===g).map(a=>{
+  const ok=can(a), status=ok?"DOSTĘPNE":(now+a.min*60>22*60?"brak czasu":"za mało energii");
+  return `<button type="button" data-a="${a.id}" ${ok?"":"disabled"}><b>${a.icon} ${esc(a.name)}</b><small>${esc(a.desc)} • ${status}</small><span class="meta">⏱ ${a.min}h • ⚡ ${a.energy>=0?"+":""}${a.energy} • ❤️ ${a.health>=0?"+":""}${a.health} • 🏃 ${a.form>=0?"+":""}${a.form} • 😊 ${a.happy>=0?"+":""}${a.happy}</span></button>`;
+ }).join("")}</div>`).join("")}
+ <div class="notice">🌙 <b>22:00 = sen.</b> Aktywności są pełnymi godzinami. <b>Trening drużynowy</b> i <b>symulacja treningu</b> są teraz różne: pierwszy daje większy rozwój i może uruchomić decyzję/wydarzenie, drugi jest szybszą, bezpieczniejszą opcją z mniejszym rozwojem.</div>`;
+ host.insertBefore(e,host.firstChild);
+ e.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>run(ACT.find(a=>a.id===b.dataset.a)));
+}
+function boot(){renderHeader();render();setInterval(()=>{renderHeader();render()},600)}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+window.FL27_V107={ACT,render,renderHeader};
+})();
+</script>
+
+<style id="fl27-v107-hide-duplicates">
+/* The new home hub replaces the old duplicate action blocks. */
+#fl89-planner,#fl97-planner,.v24-bottom,#fl89-top,#fl97-playerbar{display:none!important}
+.card:has(.action.green){display:none!important}
+</style>
+<script id="fl27-v107-hide-duplicates-js">
+(function(){
+"use strict";
+function clean(){
+ document.querySelectorAll("#fl89-planner,#fl97-planner,.v24-bottom,#fl89-top,#fl97-playerbar").forEach(x=>x.remove());
+ document.querySelectorAll(".card").forEach(x=>{
+   if(x.querySelector(".action.green")||x.querySelector(".action.gold"))x.remove();
+ });
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",clean);else clean();
+setInterval(clean,500);
+})();
+</script>
+
+<style id="fl27-v109-birthday-style">
+.v52-birthday-box{margin-top:12px;padding:11px;border-radius:13px;background:rgba(217,170,77,.055);border:1px solid rgba(217,170,77,.18)}
+.v52-bday-head{display:flex;justify-content:space-between;gap:8px;font-size:9px}.v52-bday-head span{font-size:7px;color:#8e9095}
+.v52-bday-row{display:flex;gap:14px;margin:8px 0;font-size:8px}.v52-bday-row label{display:flex!important;align-items:center;gap:5px;margin:0!important;font-weight:700!important}
+.v52-birthday-box input[type=date]{width:100%;box-sizing:border-box;padding:9px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:#111214;color:#fff}
+.v52-birthday-box small{display:block;margin-top:6px;color:#92949a;font-size:7px;line-height:10px}
+</style>
+
+
+<style id="fl110-single-build">
+html,body{margin:0!important;background:#050607!important;color:#f4f4f4!important}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+#fl110-compat{display:none!important}
+#fl110-app{min-height:100vh;background:
+ radial-gradient(circle at 78% 18%,rgba(217,170,77,.045),transparent 27%),
+ radial-gradient(circle at 18% 70%,rgba(255,255,255,.025),transparent 28%),
+ #050607!important;padding:10px 10px 30px;box-sizing:border-box}
+#fl110-header{position:sticky;top:0;z-index:2147482000;display:flex;align-items:center;gap:10px;
+ max-width:1050px;margin:0 auto 9px;padding:9px 10px;border-radius:17px;
+ background:linear-gradient(145deg,#17181b,#090a0b);border:1px solid rgba(217,170,77,.28);
+ box-shadow:0 12px 30px rgba(0,0,0,.48)}
+.fl110-avatar{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;overflow:hidden;
+ background:linear-gradient(145deg,#24262a,#111214);font-size:22px;flex:0 0 43px}
+.fl110-avatar svg,.fl110-avatar img{width:100%;height:100%;object-fit:cover}
+.fl110-who{min-width:115px;flex:1}.fl110-who b{display:block;font-size:12px}.fl110-who span{display:block;color:#999ca2;font-size:7px;margin-top:3px}
+.fl110-stats{display:grid;grid-template-columns:repeat(6,minmax(48px,1fr));gap:4px}
+.fl110-stats>div{min-width:48px;text-align:center;padding:6px 4px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}
+.fl110-stats span{display:block;font-size:5px;color:#8d9096;letter-spacing:.7px}.fl110-stats b{display:block;font-size:9px;margin-top:2px}
+.fl110-stats>div:first-child b{font-size:13px;color:#f1cc70}
+#fl110-tutorial-fallback{max-width:1050px;margin:0 auto 9px;padding:10px 12px;border-radius:15px;
+ display:flex;align-items:center;gap:9px;background:linear-gradient(145deg,#18191c,#0b0c0e);
+ border:1px solid rgba(217,170,77,.32);box-shadow:0 9px 25px rgba(0,0,0,.32)}
+#fl110-tutorial-fallback .fl110-tut-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#f1cc70,#b9822d);font-size:17px}
+#fl110-tutorial-fallback>div:nth-child(2){flex:1}.fl110-tut-icon+div span{font-size:6px;font-weight:1000;letter-spacing:1.5px;color:#d9aa4d}
+#fl110-tutorial-fallback b{display:block;font-size:9px;margin-top:3px}.fl110-tut-icon+div small{display:block;color:#92949a;font-size:7px;margin-top:2px}
+#fl110-tut-reward{padding:6px 8px;border-radius:9px;color:#d8c9ff;background:rgba(125,95,220,.12);font-size:8px}
+#fl110-activity-fallback{max-width:1050px;margin:0 auto;padding:14px;border-radius:20px;background:linear-gradient(145deg,#17181b,#0c0d0f);border:1px solid rgba(217,170,77,.20)}
+.fl110-day-head{display:flex;justify-content:space-between;gap:10px}.fl110-day-head>div:first-child>span,.fl110-group{font-size:7px;font-weight:1000;letter-spacing:1.5px;color:#d9aa4d}
+.fl110-day-head h1{font-size:19px;margin:5px 0 3px}.fl110-day-head small{font-size:7px;color:#92949a;line-height:11px}
+.fl110-clock{text-align:right}.fl110-clock b{font-size:21px}.fl110-clock small{display:block;color:#92949a;font-size:7px;margin-top:2px}
+.fl110-bar{height:5px;background:#25262a;border-radius:99px;overflow:hidden;margin:9px 0 12px}.fl110-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9822d,#f1cc70)}
+.fl110-group{margin:12px 0 7px;color:#92949a}.fl110-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.fl110-grid button{padding:10px;border-radius:13px;text-align:left;color:#fff;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
+.fl110-grid button b{display:block;font-size:9px}.fl110-grid button small{display:block;color:#92949a;font-size:7px;line-height:10px;margin-top:2px}.fl110-grid button em{display:block;font-style:normal;color:#d9aa4d;font-size:7px;font-weight:900;margin-top:5px}
+.fl110-night{margin-top:10px;padding:9px;border-radius:11px;background:rgba(217,170,77,.045);border:1px solid rgba(217,170,77,.10);font-size:7px;color:#aeb0b5}
+@media(max-width:680px){#fl110-header{flex-wrap:wrap}.fl110-who{min-width:100px}.fl110-stats{width:100%;grid-template-columns:repeat(6,1fr)}.fl110-stats>div{min-width:0}.fl110-grid{grid-template-columns:1fr}}
+@media(max-width:430px){#fl110-app{padding:7px 7px 24px}.fl110-stats{grid-template-columns:repeat(3,1fr)}.fl110-day-head{flex-direction:column}.fl110-clock{text-align:left}}
+/* Hide every previous visible navigation/header implementation. */
+#fl107-header,#fl102-strip,#fl104-welcome{display:none!important}
+</style>
+
+<script id="fl110-single-build-engine">
+(function(){
+"use strict";
+function state(){return window.S||window.P||{}}
+function esc(x){return String(x??"").replace(/[&<>"]/g,"")}
+function mins(){const s=state();if(Number.isFinite(Number(s.minute)))return Number(s.minute);return Math.floor(Number(s.hour??8))*60}
+function time(){const n=mins();return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
+function metric(k,d=0){const s=state();return Math.round(Number(s[k]??d))}
+function updateHeader(){
+ const s=state();
+ document.getElementById("fl110-name").textContent=s.name||"Zawodnik";
+ document.getElementById("fl110-meta").textContent=`${s.pos||s.position||"—"} • ${s.age??15} lat`;
+ document.getElementById("fl110-ovr").textContent=metric("ovr",metric("overall",0));
+ document.getElementById("fl110-health").textContent=metric("health",100);
+ document.getElementById("fl110-energy").textContent=metric("energy",100);
+ document.getElementById("fl110-form").textContent=metric("form",100);
+ document.getElementById("fl110-time").textContent=time();
+ document.getElementById("fl110-money").textContent=`€${Math.floor(Number(s.money??0)).toLocaleString("pl-PL")}`;
+ document.getElementById("fl110-clock").textContent=time();
+ const left=Math.max(0,22*60-mins());document.getElementById("fl110-left").textContent=`${Math.floor(left/60)}h ${left%60}min do 22:00`;
+ document.getElementById("fl110-daybar").style.width=`${Math.max(0,Math.min(100,(mins()-8*60)/(14*60)*100))}%`;
+ try{
+   const av=s.avatar;
+   if(av&&typeof window.FL27_avatarSvg==="function")document.getElementById("fl110-avatar").innerHTML=window.FL27_avatarSvg({...av,gender:s.gender||av.gender});
+ }catch(e){}
+}
+function updateTutorial(){
+ const s=state(), t=s.panelTasks||{};
+ const current=t.current||Object.values(t).find(x=>x&&x.status==="active");
+ if(!current){document.getElementById("fl110-tutorial-fallback").style.display="none";return}
+ document.getElementById("fl110-tutorial-fallback").style.display="flex";
+ document.getElementById("fl110-tut-name").textContent=current.name||current.title||"Wykonaj zadanie";
+ document.getElementById("fl110-tut-desc").textContent=current.desc||current.description||"Poznaj kolejny element gry.";
+ document.getElementById("fl110-tut-reward").textContent=`💎 +${Number(current.reward||0)}`;
+}
+function removeFallbackAfterEngine(){
+ if(document.querySelector("#fl107-activities"))document.getElementById("fl110-activity-fallback")?.remove();
+}
+function boot(){updateHeader();updateTutorial();setInterval(()=>{updateHeader();updateTutorial();removeFallbackAfterEngine()},300)}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 </script>
