@@ -16218,3 +16218,200 @@ document.addEventListener("click",e=>{
 },{capture:true});
 })();
 </script>
+
+<!-- FL27 V158 — SIDEBAR ROUTER LOCK + REAL ACTIVITY CATALOG -->
+<style id="fl27-v158-fix">
+/* V139/V136 drawers were still being recreated after every render.
+   They are legacy and must never be visible once V157/V158 is active. */
+html body .fl133-drawer{display:none!important;pointer-events:none!important}
+
+/* A single activity catalogue on Dziś. */
+html body #main > .v9-action-grid.v158-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+html body #main > .v9-action-grid.v158-grid button{
+  display:block!important;
+  min-height:68px!important;
+  padding:10px!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+.v158-activity b{display:block!important;font-size:11px!important}
+.v158-activity small{display:block!important;margin-top:4px!important;color:#969ba4!important;font-size:7px!important;line-height:11px!important}
+@media(min-width:760px){
+ html body #main > .v9-action-grid.v158-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+</style>
+
+<script id="fl27-v158-fix">
+(function(){
+"use strict";
+const W=window;
+if(W.__FL27_V158)return;
+W.__FL27_V158=true;
+
+/* ---------- HARD ROUTER: the new sidebar never uses the legacy `go()` ---------- */
+W.FL27_V158_ROUTE=function(kind){
+  const map={
+    home:"home",day:"day",career:"career",life:"life",family:"family",
+    history:"history",stats:"careerStats",shop:"store"
+  };
+  try{
+    if(kind==="flgram"){
+      if(typeof W.FL27_OPEN_FLGRAM==="function")W.FL27_OPEN_FLGRAM();
+      else W.FL27_ROUTE?.("social");
+    }else if(kind==="finance"){
+      if(typeof W.FL27_OPEN_FINANCE==="function")W.FL27_OPEN_FINANCE();
+      else W.FL27_ROUTE?.("wealth");
+    }else if(kind==="settings"){
+      if(typeof W.renderSettings==="function")W.renderSettings();
+      else W.FL27_ROUTE?.("settings");
+    }else{
+      const target=map[kind]||kind;
+      if(typeof W.FL27_ROUTE==="function")W.FL27_ROUTE(target);
+      else if(typeof W.go==="function")W.go(target);
+    }
+  }catch(e){console.error("FL27 V158 route",e)}
+};
+
+/* ---------- Rebuild only our sidebar, and kill the old one every time ---------- */
+function rebuildSidebar(){
+  document.querySelectorAll(".fl133-drawer").forEach(x=>x.remove());
+  const d=document.querySelector(".fl157-drawer");
+  if(!d || !W.S?.started)return;
+  d.style.display="block";
+  d.style.pointerEvents="auto";
+  d.style.zIndex="2147483646";
+  d.querySelectorAll(".fl157-item,.fl157-menu").forEach(b=>{
+    b.style.pointerEvents="auto";
+    b.onclick=null;
+  });
+  d.querySelectorAll(".fl157-item").forEach(b=>{
+    b.onclick=function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      W.FL27_V158_ROUTE(b.dataset.k);
+      d.querySelectorAll(".fl157-item").forEach(x=>x.classList.toggle("active",x===b));
+      if(innerWidth<700)d.classList.remove("open");
+      setTimeout(rebuildSidebar,80);
+    };
+  });
+}
+
+/* ---------- More playable things — one training action, no simulated duplicate ---------- */
+const ACTIVITIES=[
+ ["training","⚽","Trening drużynowy","2 h • rozwój sportowy"],
+ ["homework","📚","Nauka / szkoła","1 h • nauka + zdrowie psychiczne"],
+ ["friends","👥","Spotkanie ze znajomymi","2 h • relacje + szczęście"],
+ ["family","❤️","Czas z rodziną","2 h • relacje + regeneracja"],
+ ["bike","🚲","Jazda na rowerze","2 h • zdrowie + forma"],
+ ["pool","🏊","Basen","2 h • zdrowie + regeneracja"],
+ ["hobby","🎵","Hobby","1 h • szczęście + rozwój"],
+ ["gaming","🎮","Gry / czas wolny","2 h • odpoczynek"],
+ ["recovery","🧘","Regeneracja","1 h • zdrowie + energia"],
+ ["walk","🚶","Spacer","1 h • zdrowie + mental"],
+ ["reading","📖","Czytanie","1 h • nauka + mental"],
+ ["meal","🍽️","Wspólny posiłek","1 h • rodzina + szczęście"],
+ ["work","💼","Drobna praca","2 h • pieniądze"],
+ ["city","🏙️","Wyjście do miasta","3 h • życie + relacje"],
+ ["social","📱","Aktywność na FLgramie","1 h • PR + followersi"],
+ ["analysis","📺","Analiza meczu","1 h • wiedza piłkarska"],
+ ["stretch","🤸","Rozciąganie","1 h • zdrowie + forma"],
+ ["free","☕","Pełny luz","2 h • odpoczynek"]
+];
+
+function clamp158(v){return Math.max(0,Math.min(100,Number(v)||0))}
+function save158(){try{W.saveSoon?.();W.save?.()}catch(e){}}
+function doActivity158(key){
+ const s=W.S;if(!s?.started)return;
+ const now=Number(s.hour??8);
+ const data={
+  training:[2,3,1,0,0,"⚽ Trening drużynowy"],
+  homework:[1,0,1,0,2,"📚 Nauka / szkoła"],
+  friends:[2,0,1,2,1,"👥 Spotkanie ze znajomymi"],
+  family:[2,0,1,3,2,"❤️ Czas z rodziną"],
+  bike:[2,0,2,1,2,"🚲 Jazda na rowerze"],
+  pool:[2,0,2,2,3,"🏊 Basen"],
+  hobby:[1,0,2,2,1,"🎵 Hobby"],
+  gaming:[2,0,0,3,1,"🎮 Gry / czas wolny"],
+  recovery:[1,0,0,4,4,"🧘 Regeneracja"],
+  walk:[1,0,1,2,2,"🚶 Spacer"],
+  reading:[1,0,1,2,1,"📖 Czytanie"],
+  meal:[1,0,1,2,1,"🍽️ Wspólny posiłek"],
+  work:[2,0,0,0,0,"💼 Drobna praca"],
+  city:[3,0,1,2,1,"🏙️ Wyjście do miasta"],
+  social:[1,0,1,2,0,"📱 Aktywność na FLgramie"],
+  analysis:[1,0,2,1,0,"📺 Analiza meczu"],
+  stretch:[1,0,1,1,3,"🤸 Rozciąganie"],
+  free:[2,0,0,3,2,"☕ Pełny luz"]
+ }[key];
+ if(!data)return;
+ const [dur,skill,mental,happy,health,label]=data;
+ if(now+dur>22){W.toast?.(`Ta aktywność trwa ${dur} h i nie zmieści się przed 22:00.`);return}
+ if(key==="city" && Number(s.money||0)<10){W.toast?.("Nie masz wystarczająco pieniędzy.");return}
+ if(key==="city")s.money=Number(s.money||0)-10;
+ if(key==="work" && typeof W.job==="function"){W.job();return}
+ if(key==="social"){
+   if(typeof W.FL27_OPEN_FLGRAM==="function"){W.FL27_OPEN_FLGRAM();return}
+ }
+ s.energy=clamp158(Number(s.energy??80)-dur*7);
+ s.skill=clamp158(Number(s.skill??50)+skill);
+ s.mental=clamp158(Number(s.mental??60)+mental);
+ s.happiness=clamp158(Number(s.happiness??60)+happy);
+ s.health=clamp158(Number(s.health??90)+health);
+ if(typeof W.spendTime==="function")W.spendTime(dur,label);
+ else if(typeof W.advance==="function")W.advance(dur);
+ else s.hour=now+dur;
+ try{W.log?.(`${label} • ${dur}h`)}catch(e){}
+ try{W.FL27V9_maybeEvent?.("activity")}catch(e){}
+ save158();W.render?.();
+}
+
+function renderActivityCatalog(){
+ const grid=document.querySelector("#main > .v9-action-grid");
+ if(!grid || !W.S?.started)return;
+ grid.classList.add("v158-grid");
+ /* Training appears once. There is deliberately NO "Symuluj trening". */
+ grid.innerHTML=ACTIVITIES.map(a=>
+  `<button type="button" class="v158-activity" data-v158-act="${a[0]}">
+    ${a[1]} <b>${a[2]}</b><small>${a[3]}</small>
+  </button>`
+ ).join("")+
+ `<button type="button" class="v158-activity" data-v158-act="sleep">
+   🌙 <b>Sen</b><small>od 22:00 • zakończ dzień i regeneruj się</small>
+ </button>`;
+ grid.querySelectorAll("[data-v158-act]").forEach(b=>{
+  b.onclick=function(e){
+   e.preventDefault();e.stopPropagation();
+   const key=b.dataset.v158Act;
+   if(key==="sleep"){
+    if(Number(W.S.hour??8)<22){W.toast?.("Sen jest dostępny od 22:00.");return}
+    W.sleep?.();return;
+   }
+   doActivity158(key);
+  };
+ });
+}
+
+/* Run AFTER every render so old V138/V137 cannot put the duplicate training buttons back. */
+function refresh158(){
+ if(!W.S?.started)return;
+ renderActivityCatalog();
+ rebuildSidebar();
+}
+if(typeof W.render==="function"){
+ const old=W.render;
+ W.render=function(){
+   const r=old.apply(this,arguments);
+   requestAnimationFrame(refresh158);
+   return r;
+ };
+}
+setTimeout(refresh158,80);
+setTimeout(refresh158,250);
+setTimeout(refresh158,700);
+setTimeout(refresh158,1200);
+})();
+</script>
