@@ -15999,3 +15999,222 @@ W.FL27_startAuto=function(){
 
 })();
 </script>
+
+<!-- FL27 V157 — CLEAN HOME + ONE REAL SLIDE-OUT CATALOG -->
+<style id="fl27-v157-clean">
+/* The main screen contains only: compact identity/header, tutorial/event, quick actions and last event.
+   Everything that belongs to a module stays inside that module. */
+body.fl27-clean-home #fl117-pr-card,
+body.fl27-clean-home .fl27-v3-extra,
+body.fl27-clean-home .fl27-v6-extra,
+body.fl27-clean-home .fl27-v12-extra,
+body.fl27-clean-home .fl27-v15-extra,
+body.fl27-clean-home .fl27-v24-extra,
+body.fl27-clean-home .v17-bottom,
+body.fl27-clean-home .v24-bottom,
+body.fl27-clean-home .v26-bottom,
+body.fl27-clean-home .v27-bottom,
+body.fl27-clean-home .v27-navigation,
+body.fl27-clean-home #nav,
+body.fl27-clean-home .v35-nav{
+  display:none!important;
+}
+/* Never let PR / FLgram / finance become part of the home stream. */
+body.fl27-clean-home .fl133-profile,
+body.fl27-clean-home .flgram-profile,
+body.fl27-clean-home .fl133-flgram,
+body.fl27-clean-home .fl115-panel{
+  display:none!important;
+}
+body.fl27-clean-home #main{
+  padding-bottom:28px!important;
+}
+body.fl27-clean-home #main > .card.hero{
+  margin-bottom:10px!important;
+}
+body.fl27-clean-home .fl133-latest-event{
+  position:relative!important;
+  z-index:2!important;
+}
+/* Final drawer dimensions / touch targets */
+html body .fl157-drawer{
+  position:fixed!important;
+  right:0!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  width:58px!important;
+  max-height:min(82vh,720px)!important;
+  overflow:hidden!important;
+  padding:7px 5px!important;
+  box-sizing:border-box!important;
+  border-radius:18px 0 0 18px!important;
+  background:linear-gradient(180deg,#191b20,#090a0c)!important;
+  border:1px solid rgba(217,170,77,.34)!important;
+  border-right:0!important;
+  box-shadow:0 16px 48px rgba(0,0,0,.65)!important;
+  z-index:2147483646!important;
+  transition:width .22s ease!important;
+}
+html body .fl157-drawer.open{width:min(230px,82vw)!important;overflow-y:auto!important}
+html body .fl157-menu{
+  width:100%!important;height:43px!important;
+  border:0!important;border-radius:11px!important;
+  background:rgba(217,170,77,.11)!important;
+  color:#f0ce78!important;
+  display:flex!important;align-items:center!important;gap:10px!important;
+  padding:0 11px!important;cursor:pointer!important;
+}
+html body .fl157-menu svg,
+html body .fl157-item svg{
+  width:21px!important;height:21px!important;flex:0 0 21px!important;
+  stroke:currentColor!important;fill:none!important;stroke-width:1.7!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+html body .fl157-menu b,
+html body .fl157-item b{
+  display:none!important;white-space:nowrap!important;
+}
+html body .fl157-drawer.open .fl157-menu b,
+html body .fl157-drawer.open .fl157-item b{display:block!important}
+html body .fl157-list{display:grid!important;gap:3px!important;margin-top:7px!important}
+html body .fl157-item{
+  width:100%!important;min-height:44px!important;
+  border:0!important;border-radius:11px!important;
+  background:transparent!important;color:#a6aab2!important;
+  display:flex!important;align-items:center!important;gap:10px!important;
+  padding:0 10px!important;cursor:pointer!important;text-align:left!important;
+  pointer-events:auto!important;touch-action:manipulation!important;
+}
+html body .fl157-item:hover,
+html body .fl157-item.active{
+  background:rgba(217,170,77,.11)!important;color:#f1d07b!important;
+}
+html body .fl157-item[data-k="flgram"]{color:#c9b7ff!important}
+html body .fl157-item[data-k="finance"]{color:#9fd8b2!important}
+html body .fl157-sep{height:1px!important;background:rgba(255,255,255,.07)!important;margin:5px 4px!important}
+@media(max-width:430px){
+  html body .fl157-drawer{width:54px!important}
+  html body .fl157-drawer.open{width:min(218px,82vw)!important}
+}
+</style>
+
+<script id="fl27-v157-clean">
+(function(){
+"use strict";
+const W=window;
+if(W.__FL27_V157)return;
+W.__FL27_V157=true;
+
+const NAV=[
+ ["home","Dziś","Główny ekran • ostatnie wydarzenie • szybkie akcje"],
+ ["day","Dzień","Godziny, harmonogram i czynności dnia"],
+ ["career","Kariera","Klub, trening, mecze i rozwój zawodnika"],
+ ["life","Życie","Szkoła, znajomi, hobby i życie poza boiskiem"],
+ ["family","Rodzina","Rodzice, rodzeństwo, pochodzenie i relacje"],
+ ["history","Historia","Wydarzenia i zapis decyzji"],
+ ["stats","Statystyki","OVR, atrybuty i szczegółowe postępy"],
+ ["shop","Sklep","Zakupy, dom, auto, tatuaże i inne rzeczy"],
+ ["flgram","FLgram","Twój profil, posty, followersi i PR"],
+ ["finance","Finanse","Zarobki, wydatki, oszczędności i bilans"],
+ ["settings","Ustawienia","Kodeks, objaśnienia, naprawa i ustawienia"]
+];
+
+const ICON={
+ menu:`<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
+ home:`<svg viewBox="0 0 24 24"><path d="M3.5 11 12 3.5l8.5 7.5V21H4z"/><path d="M9 21v-6h6v6"/></svg>`,
+ day:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>`,
+ career:`<svg viewBox="0 0 24 24"><path d="M7 8h10l2 4-2 4H7l-2-4z"/><path d="M9 16l-2 5M15 16l2 5"/></svg>`,
+ life:`<svg viewBox="0 0 24 24"><path d="M12 20.5S4 15.5 4 9.4A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 8 2.4c0 6.1-8 11.1-8 11.1Z"/></svg>`,
+ family:`<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.2"/><circle cx="6.5" cy="9" r="2"/><circle cx="17.5" cy="9" r="2"/><path d="M8 19c.2-3 1.5-4.7 4-4.7s3.8 1.7 4 4.7M3 19c.2-2.2 1.4-3.5 3.5-3.5M17.5 15.5c2.2 0 3.3 1.3 3.5 3.5"/></svg>`,
+ history:`<svg viewBox="0 0 24 24"><path d="M6 4h12v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`,
+ stats:`<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-7M2 20h20"/></svg>`,
+ shop:`<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5zM6 9l2-5h8l2 5"/></svg>`,
+ flgram:`<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.2"/><circle cx="17.2" cy="6.8" r=".7" fill="currentColor" stroke="none"/></svg>`,
+ finance:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M15 9.5c-.8-.7-1.7-1-3-1-1.7 0-2.7.8-2.7 2 0 1.3 1.2 1.8 2.8 2.1 1.6.3 2.7.8 2.7 2.1 0 1.3-1.1 2.2-2.9 2.2-1.3 0-2.4-.4-3.2-1.1"/></svg>`,
+ settings:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 14.2 21 15l-2 3-1.8-.8a7 7 0 0 1-2 1.2L15 20h-3l-.2-1.6a7 7 0 0 1-2-1.2L8 18l-2-3 2-1.1a7 7 0 0 1 0-2L6 11l2-3 1.8.8a7 7 0 0 1 2-1.2L12 6h3l.2 1.6a7 7 0 0 1 2 1.2L19 8l2 3-2 1.1a7 7 0 0 1 0 2Z"/></svg>`
+};
+
+function current(){
+ try{return W.FL27_GET_TAB?.() || "home"}catch(e){return "home"}
+}
+function cleanHomeClass(){
+ const home=current()==="home";
+ document.body.classList.toggle("fl27-clean-home",home);
+}
+function route(k){
+ try{
+   if(k==="flgram"){
+     if(typeof W.FL27_OPEN_FLGRAM==="function")W.FL27_OPEN_FLGRAM();
+     else W.FL27_ROUTE?.("social");
+   }else if(k==="finance"){
+     if(typeof W.FL27_OPEN_FINANCE==="function")W.FL27_OPEN_FINANCE();
+     else W.FL27_ROUTE?.("wealth");
+   }else if(k==="settings"){
+     if(typeof W.renderSettings==="function")W.renderSettings();
+     else W.FL27_ROUTE?.("settings");
+   }else{
+     const map={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",stats:"careerStats",shop:"store"};
+     W.FL27_ROUTE?.(map[k]||k);
+   }
+ }catch(err){console.error("V157 route",err)}
+ setTimeout(()=>{cleanHomeClass();refreshActive(k)},40);
+}
+function refreshActive(k){
+ const d=document.querySelector(".fl157-drawer");if(!d)return;
+ d.querySelectorAll(".fl157-item").forEach(b=>b.classList.toggle("active",b.dataset.k===k));
+}
+function mount(){
+ document.querySelectorAll(".fl133-drawer,.fl157-drawer").forEach(x=>x.remove());
+ if(!W.S?.started)return;
+ const d=document.createElement("aside");
+ d.className="fl157-drawer";
+ d.innerHTML=`<button class="fl157-menu" type="button" aria-label="Otwórz katalog">${ICON.menu}<b>KATALOG GRY</b></button>
+ <div class="fl157-list">${NAV.map((n,i)=>`
+ ${i===8?'<div class="fl157-sep"></div>':''}
+ <button type="button" class="fl157-item ${n[0]==="home"?"active":""}" data-k="${n[0]}" title="${n[2]}">
+ ${ICON[n[0]]}<b>${n[1]}</b>
+ </button>`).join("")}</div>`;
+ document.body.appendChild(d);
+ d.querySelector(".fl157-menu").addEventListener("click",e=>{
+   e.preventDefault();e.stopPropagation();d.classList.toggle("open");
+ });
+ d.querySelectorAll(".fl157-item").forEach(b=>{
+   b.addEventListener("click",e=>{
+     e.preventDefault();e.stopPropagation();
+     route(b.dataset.k);
+     if(innerWidth<700)d.classList.remove("open");
+   },{capture:false});
+ });
+}
+function refresh(){
+ cleanHomeClass();
+ if(W.S?.started){
+   if(!document.querySelector(".fl157-drawer"))mount();
+   else{
+     const d=document.querySelector(".fl157-drawer");
+     d.style.pointerEvents="auto";
+     d.querySelectorAll(".fl157-item,.fl157-menu").forEach(x=>x.style.pointerEvents="auto");
+   }
+ }
+}
+const oldRender=W.render;
+if(typeof oldRender==="function"){
+ W.render=function(){
+   const r=oldRender.apply(this,arguments);
+   requestAnimationFrame(()=>{refresh();});
+   return r;
+ };
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",refresh,{once:true});
+else refresh();
+setTimeout(refresh,120);setTimeout(refresh,500);setTimeout(refresh,1200);
+
+/* One final guard: legacy delegated listeners cannot replace this menu. */
+document.addEventListener("click",e=>{
+ const b=e.target?.closest?.(".fl157-item");
+ if(!b)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ route(b.dataset.k);
+},{capture:true});
+})();
+</script>
