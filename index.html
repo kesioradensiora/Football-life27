@@ -2767,6 +2767,29 @@ function renderFamily(m){
  <div class="notice">💡 Te wartości są częścią świata gry. Mogą się zmieniać wraz z pracą rodziców, przeprowadzką, rozstaniem, nowym partnerem, narodzinami dzieci, kredytem lub pogorszeniem/poprawą sytuacji finansowej. To wpływa na to, czy rodzice mogą Ci pomóc i ile czasu mogą Ci poświęcić.</div>
 </div>
 <div class="card">
+ <div class="section-title"><b>📈 SYTUACJA MATERIALNA RODZICÓW</b><span>zmienia się w czasie</span></div>
+ <div class="family-material-grid">
+  <div class="material-box">
+   <div class="section-title"><b>👨 Tata</b><span>${esc(f.father.job||"—")}</span></div>
+   <div class="row"><span>Zarobki</span><b>${Math.round(f.father.finance.monthlyIncome||0)}€ / mies.</b></div>
+   <div class="row"><span>Wydatki</span><b>${Math.round(f.father.finance.monthlyExpenses||0)}€ / mies.</b></div>
+   <div class="row"><span>Po wydatkach</span><b>${Math.round((f.father.finance.monthlyIncome||0)-(f.father.finance.monthlyExpenses||0))}€</b></div>
+   <div class="row"><span>Praca</span><b>${esc(f.father.workStatus||"stabilna / zależna od zawodu")}</b></div>
+   <div class="row"><span>Możliwa pomoc</span><b>${Math.max(0,Math.round(((f.father.finance.monthlyIncome||0)-(f.father.finance.monthlyExpenses||0))*.5))}€ orientacyjnie</b></div>
+  </div>
+  <div class="material-box">
+   <div class="section-title"><b>👩 Mama</b><span>${esc(f.mother.job||"—")}</span></div>
+   <div class="row"><span>Zarobki</span><b>${Math.round(f.mother.finance.monthlyIncome||0)}€ / mies.</b></div>
+   <div class="row"><span>Wydatki</span><b>${Math.round(f.mother.finance.monthlyExpenses||0)}€ / mies.</b></div>
+   <div class="row"><span>Po wydatkach</span><b>${Math.round((f.mother.finance.monthlyIncome||0)-(f.mother.finance.monthlyExpenses||0))}€</b></div>
+   <div class="row"><span>Praca</span><b>${esc(f.mother.workStatus||"stabilna / zależna od zawodu")}</b></div>
+   <div class="row"><span>Możliwa pomoc</span><b>${Math.max(0,Math.round(((f.mother.finance.monthlyIncome||0)-(f.mother.finance.monthlyExpenses||0))*.5))}€ orientacyjnie</b></div>
+  </div>
+ </div>
+ <div class="notice">🔄 Możliwe sytuacje: podwyżka lub utrata pracy, zmiana zawodu, kredyt, zakup/sprzedaż domu, przeprowadzka, awaria samochodu, choroba, nowy partner, kolejne dziecko albo duży niespodziewany wydatek. Te zmiany mogą wpływać na Twój mental oraz na to, czy rodzic pomoże Ci finansowo, z treningiem, sprzętem, badaniami, licencją lub wyjazdem.</div>
+ ${Array.isArray(FL27_familyDynamics.events)?FL27_familyDynamics.events.slice(-5).reverse().map(e=>`<div class="log"><em>Dzień ${e.day}</em> ${esc(e.title)} — ${esc(e.text)}</div>`).join(""):""}
+</div>
+<div class="card">
     <div class="section-title"><b>🏠 Sytuacja rodzinna</b><span>zmienia się z czasem</span></div>
     <div class="row"><span>Rodzice</span><b>${esc(FL27_familyDynamics.parents.status==="together"?"razem":"po rozstaniu")}</b></div>
  <div class="row"><span>🏠 Dom po rozstaniu</span><b>${esc(f.separationSettlement?.homeStatus==="one_parent_keeps"?(f.separationSettlement.keptBy==="father"?"zostaje u taty":"zostaje u mamy"):f.separationSettlement?.homeStatus==="sold_and_split"?"sprzedany i rozliczony":"wspólny dom")}</b></div>
@@ -13550,5 +13573,228 @@ if(typeof window.sleepAndAdvance==="function"){
 .fl27-test-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 @media(max-width:700px){.fl27-test-grid{grid-template-columns:1fr}}
 </style>
+<style id="fl27-family-material">
+.family-material-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.material-box{padding:12px;border:1px solid rgba(212,166,72,.25);border-radius:14px;background:rgba(212,166,72,.05)}
+@media(max-width:700px){.family-material-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="fl27-final-catalog-overrides">
+(function(){
+"use strict";
+
+/* ---------- RELATIONS: real names, roles and persistent identities ---------- */
+window.FL27_normalizeRelations=function(){
+  const list=ensureRelations();
+  const first=["Aleksandra","Michał","Julia","Kacper","Natalia","Oskar","Zuzanna","Antoni","Laura","Jakub","Wiktoria","Mateusz","Sofia","Daniel","Emma","Liam","Noah","Olivia","Lucas","Mia"];
+  const last=["Kowalska","Nowak","Wiśniewski","Wójcik","Kamińska","Lewandowski","Zielińska","Szymański","Dąbrowska","Kaczmarek","Mazur","Król","Jankowski","Pawlak","Sikora","Adams","Miller","Garcia","Rossi","Martin"];
+  const used=new Set(list.map(x=>x.name).filter(Boolean));
+  let n=0;
+  list.forEach(r=>{
+    if(!r) return;
+    const placeholder=["Rodzeństwo","Znajomy","Znajoma","Dziecko","—","Osoba","Friend","Sibling"].includes(String(r.name||""));
+    if(placeholder || !String(r.name||"").trim()){
+      let candidate;
+      do { candidate=`${first[n%first.length]} ${last[Math.floor(n/first.length)%last.length]}`; n++; } while(used.has(candidate));
+      r.name=candidate; used.add(candidate);
+    }
+    r.role = r.kind==="rodzeństwo" ? "Brat / siostra" :
+             r.kind==="znajomy" ? (r.role==="Znajomy"||!r.role?"Znajomy / znajoma":r.role) :
+             r.kind==="football" ? (r.role||"Kontakt piłkarski") : (r.role||"Osoba z Twojego życia");
+    r.team = r.team || (r.kind==="football"?"Klub / drużyna":"");
+    r.job = r.job || (r.kind==="football"?"Zawodnik / zawodniczka":"—");
+    r.history??=[]; r.children??=[];
+  });
+  return list;
+};
+
+window.renderRelations=function(m){
+ const people=FL27_normalizeRelations();
+ const groups=[
+  ["👨‍👩‍👧 RODZINA",p=>["rodzic","rodzeństwo","dziecko","krewny"].includes(p.kind)],
+  ["❤️ PARTNERZY I BYLI PARTNERZY",p=>["partner","ex"].includes(p.kind)],
+  ["⚽ LUDZIE Z FUTBOLU",p=>p.kind==="football"],
+  ["👥 ZNAJOMI I POZOSTALI",p=>!["rodzic","rodzeństwo","dziecko","krewny","partner","ex","football"].includes(p.kind)]
+ ];
+ m.innerHTML=`<div class="card hero"><div class="kicker">🤝 RELACJE</div><h1>Każda osoba ma swoją historię</h1>
+ <p>Każdy, kogo poznasz, może trafić tutaj. Relacja może się rozwijać, osłabiać albo całkowicie wygasnąć.</p>
+ <div class="pills"><span class="pill">👥 ${people.length} osób</span><span class="pill">💬 kontakty</span><span class="pill">🎁 prezenty</span><span class="pill">💼 praca</span></div></div>
+ ${groups.map(([title,filter])=>{const arr=people.filter(filter);if(!arr.length)return"";return `<div class="card"><div class="section-title"><b>${title}</b><span>${arr.length}</span></div>
+ ${arr.map(p=>`<div class="fl27-person fl27-person-rich"><div class="fl27-avatar">${p.kind==="football"?"⚽":p.kind==="rodzic"?"👨‍👩‍👧":p.kind==="partner"||p.kind==="ex"?"❤️":p.kind==="rodzeństwo"?"🧑":"👤"}</div>
+ <div class="rel-main"><b>${esc(p.name)}</b><small>${esc(p.role)}${p.job&&p.job!=="—"?" • "+esc(p.job):""}${p.team?" • "+esc(p.team):""}</small>
+ <div class="rel-meta"><span>❤️ Relacja ${FL27_relationLevel(p)}</span><span>📅 Spotkań: ${Number(p.meetings||0)}</span>${p.since?`<span>od ${esc(p.since)}</span>`:""}</div>
+ <div class="fl27-rel-actions">
+ <button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','rozmowa')">💬 Rozmowa</button>
+ <button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','spacer')">🚶 Spacer</button>
+ <button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','lody')">🍦 Lody</button>
+ <button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','kino')">🎬 Kino</button>
+ <button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','prezent')">🎁 Prezent</button>
+ ${relationCan("randka",p)?`<button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','randka')">❤️ Randka</button>`:""}
+ ${relationCan("praca",p)?`<button onclick="relationAction('${String(p.id).replace(/'/g,"\\'")}','praca')">💼 Praca</button>`:""}
+ </div></div></div>`).join("")}</div>`}).join("")}
+ <div class="card"><div class="section-title"><b>🔗 JAK RELACJE WPŁYWAJĄ NA GRĘ</b><span>konsekwencje</span></div>
+ <div class="row"><span>Rodzina</span><b>wsparcie, pieniądze, mental, kontakty</b></div>
+ <div class="row"><span>Partnerzy</span><b>wydarzenia, wspólne życie, dzieci, rozstania</b></div>
+ <div class="row"><span>Znajomi</span><b>spacery, praca, wyjścia, polecenia i nowe osoby</b></div>
+ <div class="row"><span>Futbol</span><b>skauci, transfery, obozy, rywale i kontakty</b></div></div>`;
+};
+
+/* ---------- FLGRAM: social app with realistic scale ---------- */
+window.FL27_flgramMessage=function(name){
+ const soc=FL27_rel.social; soc.messages??=[];
+ soc.messages.unshift({day:S().day,from:name,text:"Hej! Kojarzę Cię z boiska. Jak leci?",read:false});
+ saveSoon();render();
+};
+window.FL27_flgramLike=function(i){
+ const p=FL27_rel.social.posts[i]; if(!p)return;
+ p.likes=Number(p.likes||0)+1; p.likedByYou=true;
+ if(Math.random()<0.25)S.pr=Math.min(100,Number(S.pr||0)+0.01);
+ saveSoon();render();
+};
+window.renderSocial=function(m){
+ const soc=FL27_rel.social; soc.posts??=[];soc.messages??=[];soc.notifications??=[];
+ const followers=Math.max(0,Math.round(Number(soc.followers||0)));
+ const following=Math.max(0,Math.round(Number(soc.following||0)));
+ const scale=followers<100?"lokalne konto":followers<10000?"rosnące konto":followers<1000000?"duży profil":"konto publiczne";
+ const stars=["Młody zawodnik z reprezentacji","Gwiazda Twojego klubu","Popularna gwiazda futbolu","Międzynarodowa gwiazda"];
+ m.innerHTML=`<section class="fl27-flgram">
+ <div class="flgram-phone">
+  <div class="flgram-top"><div><small>FLGRAM</small><b>@${esc(S.name||"football_life")}</b></div><span>⚙️</span></div>
+  <div class="flgram-stats"><div><b>${soc.posts.length}</b><span>posty</span></div><div><b>${followers.toLocaleString("pl-PL")}</b><span>obserwujący</span></div><div><b>${following.toLocaleString("pl-PL")}</b><span>obserwowani</span></div></div>
+  <div class="flgram-bio"><b>${esc(S.firstName||S.name||"Zawodnik")}</b><span>⚽ ${esc(S.position||"zawodnik")} • ${esc(S.residenceCity||"—")}</span><small>${scale} • PR ${Number(S.pr||0).toFixed(2)}% • wizerunek ${Number(S.image||0).toFixed(1)}%</small></div>
+ </div>
+ <div class="card"><div class="section-title"><b>➕ DODAJ WPIS</b><span>post + zdjęcie + opis</span></div>
+ ${[["⚽","Zdjęcie po treningu","sport"],["📸","Dzień z życia","life"],["🏆","Po meczu","match"],["😎","Życie prywatne","life"],["😂","Zabawny moment","fun"]].map(x=>`<button class="action" onclick="FL27_post('${x[1]}','${x[2]}')"><b>${x[0]} ${x[1]}</b><small>Publikujesz jako ${esc(S.name||"Ty")} • reakcje zależą od popularności i treści</small></button>`).join("")}
+ </div>
+ <div class="card"><div class="section-title"><b>📰 FEED</b><span>lajki • komentarze • oznaczenia</span></div>
+ ${soc.posts.length?soc.posts.slice().reverse().map((p,idx)=>{const realIndex=soc.posts.indexOf(p);return `<article class="flgram-post"><div class="flgram-post-head"><div class="flgram-avatar">⚽</div><div><b>@${esc(S.name||"football_life")}</b><small>Dzień ${p.day||"—"}</small></div></div><div class="flgram-photo">${p.type==="match"?"🏟️":p.type==="sport"?"⚽":p.type==="fun"?"😂":"📸"}</div><div class="flgram-actions"><button onclick="FL27_flgramLike(${realIndex})">❤️ ${Number(p.likes||0)}</button><button onclick="FL27_replyComment(${realIndex},0,'Dzięki! ❤️')">💬 Komentuj</button><button>↗️ Udostępnij</button></div><div class="flgram-caption"><b>${esc(p.text)}</b></div>${(p.comments||[]).map(c=>`<div class="flgram-comment"><b>${esc(c.from)}</b> ${esc(c.text)}</div>`).join("")}</article>`}).join(""):"<div class='empty'>Jeszcze nic nie opublikowano.</div>"}
+ </div>
+ <div class="card"><div class="section-title"><b>💌 WIADOMOŚCI</b><span>ludzie mogą odezwać się pierwsi</span></div>
+ ${soc.messages?.length?soc.messages.slice(0,8).map(x=>`<div class="flgram-message"><b>${esc(x.from)}</b><span>${esc(x.text)}</span><small>Dzień ${x.day}</small></div>`).join(""):"<div class='empty'>Brak wiadomości. Przy większej popularności mogą pojawić się wiadomości od kibiców, innych zawodników, marek albo osób zainteresowanych relacją.</div>"}
+ </div>
+ <div class="card"><div class="section-title"><b>⭐ POZNAJ / OBSERWUJ GWIAZDY</b><span>szansa zależna od Twojej skali</span></div>
+ ${stars.map((x,i)=>`<div class="flgram-star"><div><b>${esc(x)}</b><small>Im większa Twoja popularność, tym większa szansa, że zauważy Cię, polubi wpis lub odpowie.</small></div><button onclick="FL27_flgramMessage('${x.replace(/'/g,"\\'")}')">💬 Napisz</button></div>`).join("")}
+ </div>
+ <div class="card"><div class="section-title"><b>🤝 SPONSORZY W FLGRAM</b><span>reklamy i oznaczenia</span></div>
+ <div class="notice">Aktywne umowy sponsorskie mogą wymagać oznaczeń, konkretnych postów, sesji zdjęciowych albo używania produktów. Za dobre wyniki pojawiają się lepsze marki.</div>
+ ${(S.sponsors||[]).map(x=>`<div class="row"><span>🤝 ${esc(x.company)}</span><b>${Math.round(x.weekly||0)}€/tydz. • ${Math.round((x.discount||0)*100)}% zniżki</b></div>`).join("")||"<div class='empty'>Brak aktywnych sponsorów.</div>"}
+ </div></section>`;
+};
+
+/* ---------- SETTINGS: all agreed modes + dating + repair + codex ---------- */
+window.renderSettings=function(m){
+ const pref=S.settings?.datingPreference||S.orientation||"not_selected";
+ m.innerHTML=`<section class="fl27-settings-full">
+ <div class="card hero"><div class="kicker">⚙️ USTAWIENIA</div><h1>Ustawienia gry</h1><p>Wszystkie rzeczy, które mogą zmienić sposób prowadzenia tej kariery. Nic poniżej nie resetuje gry przypadkiem.</p></div>
+ <div class="card"><div class="section-title"><b>❤️ PREFERENCJE RANDKOWANIA</b><span>${esc(String(pref))}</span></div>
+ <p class="sub">Możesz ustawić to na początku, później zmienić albo całkowicie wyłączyć randkowanie. Zmiana preferencji nie usuwa istniejących relacji.</p>
+ <div class="fl27-setting-grid">
+ ${[["K","👩 Kobiety"],["M","👨 Mężczyźni"],["B","❤️ Kobiety i mężczyźni"],["N","🌱 Jeszcze nie wiem"],["X","🚫 Nie chcę randkować"]].map(x=>`<button class="action" onclick="FL27_setRomanticPreference('${x[0]}')"><b>${x[1]}</b><small>Ustaw jako aktualną preferencję</small></button>`).join("")}
+ </div></div>
+ <div class="card"><div class="section-title"><b>🎮 ROZPOCZĘCIE GRY</b><span>3 tryby</span></div>
+ <button class="action" onclick="FL27_restartCareer()"><b>↻ Restart kariery</b><small>Ta sama postać, ci sami rodzice, kraj i dane rodzinne. Kariera od zera.</small></button>
+ <button class="action" onclick="FL27_newAuto()"><b>🎲 Nowa gra</b><small>Nowa osoba, nowe imiona, rodzice, kraj, rodzina i początkowa historia.</small></button>
+ <button class="action" onclick="FL27_newPlus()"><b>✨ Nowa gra +</b><small>Ty wybierasz imię, nazwisko, pozycję i odpowiadasz na pytania. Rodzice są generowani przez świat.</small></button>
+ </div>
+ <div class="card"><div class="section-title"><b>🛠️ NAPRAW GRĘ</b><span>bez restartu</span></div>
+ <button class="action" onclick="FL27_repairGame()"><b>🔧 Napraw / odśwież grę</b><small>Uzupełnia brakujące dane, usuwa zablokowane warstwy i odświeża interfejs. Nie kasuje kariery.</small></button>
+ </div>
+ <div class="card"><div class="section-title"><b>📖 KODEKS / INSTRUKCJA</b><span>wszystko wyjaśnione</span></div>
+ <button class="action" onclick="FL27_showCodex()"><b>📖 Otwórz pełny kodeks</b><small>Co, dlaczego, jak i kiedy działa: czas, wydarzenia, decyzje, relacje, kariera, finanse, rodzina, popularność i zakupy.</small></button>
+ </div>
+ <div class="card"><div class="section-title"><b>🔔 POWIADOMIENIA</b><span>co ma Cię zatrzymać</span></div>
+ ${[["mediaNotifications","📺 Media i sponsorzy"],["propertyNotifications","🏠 Nieruchomości"],["compactEvents","📖 Krótsze opisy wydarzeń"],["confirmBigPurchases","💳 Potwierdzanie dużych zakupów"]].map(x=>`<button class="action" onclick="toggleSetting('${x[0]}')"><b>${x[1]}: ${S.settings?.[x[0]]?"WŁ.":"WYŁ."}</b><small>Zmień tę preferencję</small></button>`).join("")}
+ </div>
+ <div class="card"><div class="section-title"><b>💾 ZAPIS</b><span>aktualna kariera</span></div>
+ <button class="action" onclick="saveSoon();toast('Gra zapisana.')"><b>💾 Zapisz grę</b><small>Stan kariery zostaje zapisany.</small></button>
+ <button class="action" onclick="resetSettings()"><b>↩️ Przywróć ustawienia</b><small>Przywraca preferencje, ale nie kasuje kariery.</small></button>
+ </div></section>`;
+};
+
+/* ---------- FINANCES: detailed and clean ---------- */
+window.renderWealth=function(m){
+ ensureWealth();updateMarket();
+ const w=S.wealth, cash=Number(S.money||0), portfolio=(w.portfolio||[]), businesses=(w.businesses||[]), assets=(w.assets||[]);
+ const inv=portfolio.reduce((a,x)=>a+Number(x.currentValue||x.cost||0),0);
+ const biz=businesses.reduce((a,x)=>a+Number(x.value||x.cost||0),0);
+ const asset=assets.reduce((a,x)=>a+Number(x.value||0),0);
+ const marketValue=calculatePlayerMarketValue();
+ const year=Number(S.year||2026), totals=financialTotals(year), all=financialTotals(0);
+ const income=Number(totals.income||0), expense=Number(totals.expense||0), net=cash+inv+biz+asset;
+ const top=(all.rows||[]).filter(x=>x.type==="expense").reduce((o,x)=>{const k=x.category||"inne";o[k]=(o[k]||0)+Number(x.amount||0);return o},{});
+ const labels={życie:"Życie",dom:"Dom",samochód:"Samochody",transport:"Transport",edukacja:"Edukacja",biznes:"Biznes",giełda:"Giełda",prezent:"Prezenty",charytatywność:"Dobroczynność",medical:"Zdrowie",podróż:"Podróże",inne:"Inne"};
+ m.innerHTML=`<section class="fl27-finance-page">
+ <div class="card hero"><div class="kicker">💰 FINANSE</div><h1>Twoje pieniądze i majątek</h1><p>Finanse są osobnym systemem: zarabiasz, wydajesz, inwestujesz, kupujesz aktywa, zakładasz biznesy i możesz przeznaczać pieniądze na innych.</p>
+ <div class="finance-kpi-grid"><div><small>GOTÓWKA</small><b>${Math.round(cash).toLocaleString("pl-PL")}€</b></div><div><small>INWESTYCJE</small><b>${Math.round(inv).toLocaleString("pl-PL")}€</b></div><div><small>BIZNESY</small><b>${Math.round(biz).toLocaleString("pl-PL")}€</b></div><div><small>MAJĄTEK</small><b>${Math.round(net).toLocaleString("pl-PL")}€</b></div></div></div>
+ <div class="card"><div class="section-title"><b>⚽ WARTOŚĆ RYNKOWA ZAWODNIKA</b><span>zmienna</span></div><div class="finance-market"><b>${Math.round(marketValue).toLocaleString("pl-PL")}€</b><span>szacunek wartości transferowej zależny od wieku, umiejętności, formy i popularności</span></div></div>
+ <div class="card"><div class="section-title"><b>📊 PRZEPŁYWY — ${year}</b><span>rok</span></div><div class="finance-flow"><div><small>WPŁYWY</small><b>+${Math.round(income).toLocaleString("pl-PL")}€</b></div><div><small>WYDATKI</small><b>-${Math.round(expense).toLocaleString("pl-PL")}€</b></div><div><small>INWESTYCJE</small><b>${Math.round(totals.investment||0).toLocaleString("pl-PL")}€</b></div><div><small>PREZENTY</small><b>${Math.round(totals.gift||0).toLocaleString("pl-PL")}€</b></div></div></div>
+ <div class="card"><div class="section-title"><b>🧾 NA CO IDĄ PIENIĄDZE</b><span>cała historia</span></div>${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([k,v])=>`<div class="finance-line"><span>${esc(labels[k]||k)}</span><b>${Math.round(v).toLocaleString("pl-PL")}€</b></div>`).join("")||"<div class='empty'>Brak wydatków.</div>"}</div>
+ <div class="card"><div class="section-title"><b>📈 GIEŁDA</b><span>${w.autoInvest?"AUTO AKTYWNE":"AUTO WYŁĄCZONE"}</span></div>
+ <div class="finance-auto"><div><b>🤖 Automatyczne inwestowanie</b><small>Regularnie odkłada część dostępnej gotówki. Ryzyko i wynik są zmienne.</small></div><button onclick="toggleAutoInvest()">${w.autoInvest?"Wyłącz":"Włącz"}</button></div>
+ <button class="action" onclick="setAutoInvestRate()"><b>⚙️ Zmień procent — ${Number(w.autoInvestRate||10)}%</b><small>kolejne kliknięcie wybiera następny poziom</small></button>
+ <button class="action" onclick="investAutomatic()"><b>📈 Zainwestuj automatycznie</b><small>system wybierze instrument z dostępnej listy</small></button>
+ ${portfolio.length?portfolio.map(x=>`<div class="finance-line"><span>📈 ${esc(x.name||x.ticker||"Inwestycja")}</span><b>${Math.round(x.currentValue||x.cost||0).toLocaleString("pl-PL")}€</b></div>`).join(""):"<div class='empty'>Nie masz jeszcze aktywnych inwestycji.</div>"}</div>
+ <div class="card"><div class="section-title"><b>🏢 WŁASNE BIZNESY</b><span>${businesses.length}</span></div>
+ ${businesses.map(b=>`<div class="business-line"><div><b>${esc(b.name)}</b><small>${esc(b.kind||"biznes")} • wartość ${Math.round(b.value||b.cost||0).toLocaleString("pl-PL")}€ • zysk ok. ${Math.round(b.weeklyProfit||0)}€/tydz.</small></div></div>`).join("")||"<div class='empty'>Nie prowadzisz jeszcze biznesu.</div>"}
+ ${businessCatalog().map((b,i)=>`<button class="action" onclick="openBusiness(${i})"><b>🏢 ${esc(b[0])} — ${b[1].toLocaleString("pl-PL")}€</b><small>otwarcie biznesu • ${esc(b[2])}</small></button>`).join("")}
+ </div>
+ <div class="card"><div class="section-title"><b>❤️ DOBROCZYNNOŚĆ</b><span>${Math.round(S.charityTotal||0).toLocaleString("pl-PL")}€</span></div>
+ <div class="notice">Możesz wspierać szkoły, szkółki i cele charytatywne. Wydatki są zapisywane i mogą wpływać na wizerunek oraz wydarzenia.</div>
+ <button class="action" onclick="donateToCause('lokalna szkoła',500,'szkoła')"><b>🏫 500€ — szkoła</b></button>
+ <button class="action" onclick="donateToCause('szkółka piłkarska',2500,'akademia')"><b>⚽ 2 500€ — szkółka</b></button>
+ <button class="action" onclick="donateToCause('fundacja dziecięca',10000,'charytatywność')"><b>❤️ 10 000€ — fundacja</b></button>
+ </div></section>`;
+};
+
+/* ---------- CITY / SHOP: clean catalog wrapper, all major categories ---------- */
+window.renderStore=function(m){
+ ensureCityStore();checkSponsors();ensurePopularity();
+ const city=S.store.city, market=currentCityMarket(), home=S.store.home, money=Math.round(S.money||0);
+ const service=(name,price,cat,detail,emoji)=>`<button class="action" onclick="storeBuyService('${E(name)}',${price},'${E(cat)}','${E(detail)}')"><b>${emoji} ${E(name)} <span class="price">${price.toLocaleString("pl-PL")}€</span></b><small>${E(detail)}</small></button>`;
+ const homeCards=market.homes.map(id=>{const h=CITY_HOME_ITEMS[id],rent=Math.round(h.price*.003);return `<div class="city-product"><div><b>🏠 ${E(h.name)}</b><small>${h.space} m² • ${h.price.toLocaleString("pl-PL")}€ • wynajem ok. ${rent}€/mies.</small></div><div><button onclick="storeBuyHome('${id}','rent')">Wynajmij</button><button onclick="storeBuyHome('${id}','buy')">Kup</button></div></div>`}).join("");
+ const vehicles=(typeof VEHICLES!=="undefined"?VEHICLES:[]);
+ m.innerHTML=`<section class="fl27-city-page"><div class="card hero"><div class="kicker">🏙️ MIASTO</div><h1>Sklep i wydatki</h1><p>Miasto jest miejscem, w którym możesz kupować, wynajmować, inwestować w komfort i organizować swoje życie. Oferta nieruchomości i usług zależy od miasta.</p>
+ <div class="pills"><span class="pill">📍 ${E(city)}</span><span class="pill">💶 ${money.toLocaleString("pl-PL")}€</span><span class="pill">🏠 ${home?E(home.name):"brak domu"}</span></div></div>
+ <div class="card"><div class="section-title"><b>☕ CODZIENNE ŻYCIE</b><span>czas + relacje</span></div>${service("Kawa",4,"życie","szybka kawa • możliwość spotkania","☕")}${service("Restauracja",18,"życie","posiłek • relacje","🍽️")}${service("Restauracja premium",70,"życie","prestiż • relacje • możliwe wydarzenia","🥂")}${service("Kino",15,"social","2–3 h • relacje","🎬")}${service("Wyjście ze znajomymi",25,"social","2–3 h • relacje","👥")}</div>
+ <div class="card"><div class="section-title"><b>🩺 LEKARZE I SPECJALIŚCI</b><span>zdrowie kosztuje czas i pieniądze</span></div>${service("Lekarz rodzinny",40,"medical","konsultacja","🩺")}${service("Ortopeda",120,"medical","kontuzje","🦴")}${service("Psycholog sportowy",100,"medical","mental i presja","🧠")}${service("Fizjoterapeuta",80,"medical","regeneracja","🦵")}${service("Klinika sportowa",250,"medical","rozszerzona diagnostyka","🏥")}</div>
+ <div class="card"><div class="section-title"><b>🏠 NIERUCHOMOŚCI</b><span>${E(city)}</span></div>${homeCards}${home?`<div class="city-actions"><button onclick="maintainHome()">🧹 Sprzątanie / utrzymanie</button><button onclick="renovateHome()">🔨 Rozbuduj / remontuj</button><button onclick="sellHome()">💰 Sprzedaj</button></div>`:""}</div>
+ <div class="card"><div class="section-title"><b>🚗 TRANSPORT</b><span>wpływa na dojazdy</span></div>${vehicles.map((v,i)=>`<div class="city-product"><div><b>🚗 ${E(v[0])}</b><small>${v[1].toLocaleString("pl-PL")}€ • mobilność ${v[3]}/10 • wpływ na czas dojazdu</small></div><button onclick="buyVehicle(${i})">Kup</button></div>`).join("")}</div>
+ <div class="card"><div class="section-title"><b>🎓 LICENCJE</b><span>nie wystarczy zapłacić</span></div>
+ ${typeof LICENSES!=="undefined"?LICENSES.map((x,i)=>`<button class="action" onclick="buyLicense(${i})"><b>📜 ${E(x.name||x[0])} — ${Number(x.cost||x[1]||0).toLocaleString("pl-PL")}€</b><small>kurs + nauka + egzamin • możesz nie zdać</small></button>`).join(""):"<div class='notice'>Licencje są dostępne wraz z wiekiem i wymaganiami świata.</div>"}</div>
+ <div class="card"><div class="section-title"><b>👕 UBRANIA • 💎 BIŻUTERIA • 🖊️ TATUAŻE • 💆 ZABIEGI</b><span>styl i wizerunek</span></div>
+ ${service("Nowy zestaw ubrań",180,"ubrania","styl + wizerunek","👕")}${service("Ubrania premium",900,"ubrania","większy prestiż","👔")}${service("Tatuaż",250,"uroda","styl • trwała zmiana","🖊️")}${service("Zabieg pielęgnacyjny",180,"uroda","styl + samopoczucie","💆")}${service("Zegarek premium",2500,"prezent","prestiż • można podarować","⌚")}</div>
+ <div class="card"><div class="section-title"><b>🎁 PREZENTY</b><span>relacje</span></div>${GADGETS.map(x=>`<button class="action" onclick="buyGift('${E(x[0])}',${x[1]})"><b>🎁 ${E(x[0])} — ${x[1].toLocaleString("pl-PL")}€</b><small>możesz podarować rodzinie, partnerowi lub znajomemu</small></button>`).join("")}<button class="action" onclick="buyGift('Samochód jako prezent',25000)"><b>🚗 Samochód jako prezent — 25 000€+</b></button><button class="action" onclick="buyGift('Mieszkanie jako prezent',80000)"><b>🏠 Wsparcie zakupu mieszkania — 80 000€+</b></button></div>
+ <div class="card"><div class="section-title"><b>⚽ SPRZĘT I KORKI</b><span>mogą zmieniać atrybuty</span></div>${BOOTS.map(x=>`<div class="city-product"><div><b>⚽ ${E(x[0])}</b><small>${x[1]}€ • ${E(x[2])} • ${E(x[3])}</small></div><button onclick="sponsorBuy('${E(x[0])}',${x[1]},'boots')">Kup</button></div>`).join("")}</div>
+ <div class="card"><div class="section-title"><b>🏝️ WAKACJE I PODRÓŻE</b><span>nowe miejsca = nowe wydarzenia</span></div>${market.travel.map((x,i)=>`<button class="action" onclick="travelTo('${E(x)}',${[80,180,350][i]})"><b>✈️ ${E(x)} — ${[80,180,350][i]}€</b><small>czas podróży • odpoczynek • relacje • wydarzenia</small></button>`).join("")}<button class="action" onclick="travelTo('Wyspa wakacyjna',900)"><b>🏝️ Wyspa wakacyjna — 900€</b><small>kilka dni • odpoczynek • wydarzenia</small></button></div>
+ <div class="card"><div class="section-title"><b>📺 MEDIA I SPONSORZY</b><span>popularność + wizerunek</span></div><button class="action" onclick="changeImage(.3,'lokalny wywiad');setPopularity(.005,'lokalny wywiad');saveSoon();render()"><b>🎙️ Wywiad lokalny — 1 h</b><small>media mogą same się zgłosić, ale możesz też korzystać z lokalnych okazji</small></button><button class="action" onclick="changeImage(.15,'sesja zdjęciowa');setPopularity(.02,'sesja zdjęciowa');saveSoon();render()"><b>📸 Sesja zdjęciowa — 3 h</b><small>wpływ na wizerunek i popularność</small></button></div>
+ <div class="card"><div class="section-title"><b>❤️ DOBROCZYNNOŚĆ</b><span>wpływ społeczny</span></div><button class="action" onclick="donateToCause('lokalna szkoła',500,'szkoła')"><b>🏫 500€ — szkoła</b></button><button class="action" onclick="donateToCause('szkółka piłkarska',2500,'akademia')"><b>⚽ 2 500€ — szkółka</b></button><button class="action" onclick="donateToCause('fundacja dziecięca',10000,'charytatywność')"><b>❤️ 10 000€ — fundacja</b></button></div>
+ </section>`;
+};
+
+/* ---------- FINAL VISUAL POLISH ---------- */
+const style=document.createElement("style");
+style.id="fl27-final-catalog-ui";
+style.textContent=`
+.fl27-person-rich{padding:14px 0!important;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:12px;align-items:flex-start}
+.rel-main{flex:1;min-width:0}.rel-main>b{display:block;font-size:14px}.rel-main>small{display:block;opacity:.7;margin-top:3px}
+.rel-meta{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0;font-size:11px;opacity:.75}.rel-meta span{padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.05)}
+.fl27-rel-actions{display:flex;gap:6px;flex-wrap:wrap}.fl27-rel-actions button{padding:7px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;font:inherit}
+.flgram-phone{max-width:620px;margin:0 auto 14px;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:#0d1015;padding:14px;box-shadow:0 12px 35px rgba(0,0,0,.25)}
+.flgram-top{display:flex;justify-content:space-between;align-items:center}.flgram-top small{display:block;font-size:8px;letter-spacing:2px;opacity:.55}.flgram-top b{display:block;font-size:18px}.flgram-stats{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin:15px 0}.flgram-stats b{display:block;font-size:17px}.flgram-stats span{font-size:10px;opacity:.6}.flgram-bio{display:grid;gap:3px}.flgram-bio span,.flgram-bio small{opacity:.68;font-size:11px}
+.flgram-post{border-top:1px solid rgba(255,255,255,.09);padding:14px 0}.flgram-post-head{display:flex;gap:9px;align-items:center}.flgram-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.07)}.flgram-post-head small{display:block;opacity:.55;font-size:9px}.flgram-photo{height:180px;border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));display:grid;place-items:center;font-size:50px;margin:10px 0}.flgram-actions{display:flex;gap:7px}.flgram-actions button{border:0;background:transparent;color:inherit;padding:6px 0;font:inherit}.flgram-caption{margin-top:7px}.flgram-comment{font-size:11px;margin-top:5px;opacity:.78}
+.flgram-message,.flgram-star{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07)}.flgram-message span{flex:1;opacity:.8}.flgram-message small{opacity:.5}.flgram-star small{display:block;opacity:.6;font-size:10px;margin-top:3px}.flgram-star button{white-space:nowrap}
+.fl27-setting-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.finance-kpi-grid,.finance-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.finance-kpi-grid>div,.finance-flow>div{padding:12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}.finance-kpi-grid small,.finance-flow small{display:block;font-size:9px;opacity:.55}.finance-kpi-grid b,.finance-flow b{display:block;margin-top:4px;font-size:15px}.finance-market{display:flex;gap:15px;align-items:baseline}.finance-market>b{font-size:25px}.finance-market>span{opacity:.65;font-size:11px}.finance-line,.business-line{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.finance-line:last-child,.business-line:last-child{border-bottom:0}.business-line small{display:block;opacity:.6;margin-top:3px}.finance-auto{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:8px}.finance-auto small{display:block;opacity:.6;margin-top:4px}
+.city-product{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}.city-product>div:first-child{min-width:0}.city-product b{display:block}.city-product small{display:block;opacity:.62;margin-top:3px}.city-product button,.city-actions button{padding:8px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;font:inherit;white-space:nowrap}.city-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.price{float:right;opacity:.8}
+@media(max-width:700px){.fl27-setting-grid,.finance-kpi-grid,.finance-flow{grid-template-columns:1fr 1fr}.finance-market{display:block}.finance-market>b{display:block;margin-bottom:6px}.flgram-photo{height:150px}.city-product{align-items:flex-start}.city-product button{font-size:11px}}
+@media(max-width:460px){.finance-kpi-grid,.finance-flow{grid-template-columns:1fr 1fr}.fl27-rel-actions button{font-size:10px;padding:6px}.flgram-stats b{font-size:14px}}
+`;
+document.head.appendChild(style);
+
+/* Normalize once immediately so old placeholder relations are corrected in saved state. */
+try{FL27_normalizeRelations();saveSoon()}catch(e){console.warn(e)}
+})();
+</script>
+
 </body>
 </html>
