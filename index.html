@@ -15848,3 +15848,154 @@ setTimeout(patchStartPlus,100);
 setTimeout(patchStartPlus,500);
 })();
 </script>
+
+<!-- FL27 V156 — AUTO MODE IS TRULY AUTO + REAL START LOADER -->
+<style id="fl27-v156-auto">
+#fl27-auto-loading{
+ position:fixed;inset:0;z-index:2147483647;
+ display:flex;align-items:center;justify-content:center;
+ padding:22px;background:radial-gradient(circle at 50% 42%,rgba(211,163,55,.12),transparent 38%),rgba(5,6,9,.985);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.fl27-auto-box{
+ width:min(520px,100%);padding:30px 24px 25px;text-align:center;
+ border:1px solid rgba(211,163,55,.42);border-radius:28px;
+ background:linear-gradient(145deg,#17181d,#0d0e12);box-shadow:0 30px 90px rgba(0,0,0,.7)
+}
+.fl27-auto-ball{font-size:52px;display:block;margin-bottom:10px;animation:fl27AutoSpin 1.15s linear infinite}
+@keyframes fl27AutoSpin{to{transform:rotate(360deg)}}
+.fl27-auto-title{margin:0 0 7px;color:#fff;font-size:25px;font-weight:900}
+.fl27-auto-sub{min-height:44px;margin:0 auto 20px;color:#a9abb2;font-size:14px;line-height:1.5}
+.fl27-auto-track{height:10px;border-radius:99px;background:#292a2f;overflow:hidden}
+#fl27-auto-bar{height:100%;width:4%;border-radius:99px;background:linear-gradient(90deg,#dcae43,#f5d47b);transition:width .35s ease}
+#fl27-auto-pct{margin-top:8px;color:#e7c467;font-weight:900;font-size:13px}
+.fl27-auto-steps{display:grid;gap:8px;margin-top:18px;text-align:left}
+.fl27-auto-step{padding:9px 11px;border-radius:12px;background:#15161a;color:#686b73;font-size:12px}
+.fl27-auto-step.active{color:#f0d078;background:#1d1b17}
+.fl27-auto-step.done{color:#9da08a}
+.fl27-auto-tip{margin-top:17px;color:#888b93;font-size:11px;line-height:1.45}
+</style>
+<script id="fl27-v156-auto">
+(function(){
+"use strict";
+const W=window;
+if(W.__FL27_V156_AUTO)return;
+W.__FL27_V156_AUTO=true;
+
+const previousAuto=W.FL27_startAuto;
+
+function autoLoader(){
+  document.querySelectorAll(".v20-hub-overlay,#fl27-life-loading,#fl27-auto-loading").forEach(x=>x.remove());
+  const e=document.createElement("div");
+  e.id="fl27-auto-loading";
+  e.innerHTML=`<div class="fl27-auto-box">
+    <span class="fl27-auto-ball">⚽</span>
+    <h2 class="fl27-auto-title">Tworzymy nową karierę</h2>
+    <p id="fl27-auto-sub" class="fl27-auto-sub">Nowa Gra Auto — Ty niczego nie wybierasz. Gra losuje cały początek życia.</p>
+    <div class="fl27-auto-track"><div id="fl27-auto-bar"></div></div>
+    <div id="fl27-auto-pct">4%</div>
+    <div class="fl27-auto-steps">
+      <div class="fl27-auto-step active">🎲 Losujemy zawodnika</div>
+      <div class="fl27-auto-step">👨‍👩‍👦 Tworzymy rodziców i rodzinę</div>
+      <div class="fl27-auto-step">🌍 Ustalamy pochodzenie i narodowości</div>
+      <div class="fl27-auto-step">🏠 Tworzymy dom, szkołę i środowisko</div>
+      <div class="fl27-auto-step">⚽ Ustalamy pozycję, klub i start kariery</div>
+      <div class="fl27-auto-step">🗓️ Uruchamiamy pierwszy dzień</div>
+    </div>
+    <div class="fl27-auto-tip">💡 W trybie Auto nie ma kreatora. Wszystkie decyzje są generowane przez silnik gry.</div>
+  </div>`;
+  document.body.appendChild(e);
+}
+function autoStage(n,pct,text){
+  const b=document.getElementById("fl27-auto-bar"),p=document.getElementById("fl27-auto-pct"),sub=document.getElementById("fl27-auto-sub");
+  if(b)b.style.width=pct+"%";
+  if(p)p.textContent=pct+"%";
+  if(sub)sub.textContent=text;
+  document.querySelectorAll("#fl27-auto-loading .fl27-auto-step").forEach((x,i)=>{
+    x.classList.toggle("active",i===n-1);x.classList.toggle("done",i<n-1)
+  });
+}
+function closeAutoLoader(){
+  const e=document.getElementById("fl27-auto-loading");
+  if(!e)return;
+  e.style.transition="opacity .25s ease";e.style.opacity="0";
+  setTimeout(()=>e.remove(),280);
+}
+
+let busy=false;
+W.FL27_startAuto=function(){
+  if(busy)return;
+  busy=true;
+
+  /* Absolutely no creator screen in Auto mode. */
+  W.__FL27_PLUS_CREATOR_ACTIVE=false;
+  W.__FL27_CANONICAL_STARTED=false;
+  document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+
+  autoLoader();
+  autoStage(1,8,"Losujemy imię, nazwisko, płeć, datę urodzenia i profil zawodnika…");
+
+  setTimeout(()=>{
+    autoStage(2,25,"Tworzymy rodziców, ich pochodzenie, relację i sytuację życiową…");
+  },160);
+  setTimeout(()=>{
+    autoStage(3,42,"Łączymy pochodzenie rodziców z możliwymi narodowościami zawodnika…");
+  },320);
+  setTimeout(()=>{
+    autoStage(4,59,"Budujemy dom, szkołę, miasto i pierwsze środowisko piłkarskie…");
+  },480);
+  setTimeout(()=>{
+    autoStage(5,76,"Ustalamy pozycję, klub, finanse, zdrowie i warunki rozpoczęcia kariery…");
+  },640);
+
+  setTimeout(()=>{
+    autoStage(6,88,"Uruchamiamy właściwy silnik życia zawodnika…");
+    try{
+      if(typeof previousAuto!=="function")throw new Error("Brak generatora Nowej Gry Auto");
+      previousAuto();
+
+      /* V132 catches its own errors, so S.started is our definitive check. */
+      setTimeout(()=>{
+        try{
+          if(!W.S || !W.S.started)throw new Error("AUTO nie utworzyło aktywnego zawodnika");
+
+          W.S.autoGenerated=true;
+          W.S.autoGenerationVersion="V156";
+          W.currentTab="home";
+          W.__FL27_PLUS_CREATOR_ACTIVE=false;
+          W.__FL27_CANONICAL_STARTED=false;
+
+          /* Remove every legacy startup/creator layer before rendering. */
+          document.querySelectorAll(
+            ".v20-hub-overlay,.v20-canonical-overlay,#fl27-canonical-body,"+
+            "#fl27-canonical-shell,#fl27-life-loading"
+          ).forEach(x=>x.remove());
+
+          autoStage(6,100,"Gotowe! Witaj w swoim nowym życiu.");
+          try{W.saveSoon?.();W.save?.()}catch(e){}
+          try{W.render?.()}catch(e){console.error("V156 render",e)}
+
+          setTimeout(()=>{
+            closeAutoLoader();
+            try{W.render?.()}catch(e){}
+            W.toast?.(`🎲 Nowa Gra Auto: ${W.S.name||"zawodnik"} — kariera rozpoczęta!`);
+            busy=false;
+          },450);
+        }catch(err){
+          console.error("FL27 V156 AUTO finish",err);
+          closeAutoLoader();
+          W.toast?.("Nowa Gra Auto nie uruchomiła kariery. Spróbuj ponownie.");
+          busy=false;
+        }
+      },120);
+    }catch(err){
+      console.error("FL27 V156 AUTO",err);
+      closeAutoLoader();
+      W.toast?.("Nie udało się uruchomić Nowej Gry Auto.");
+      busy=false;
+    }
+  },850);
+};
+
+})();
+</script>
