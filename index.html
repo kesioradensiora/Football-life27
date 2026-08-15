@@ -1666,34 +1666,78 @@ function renderTab(tab){
  if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
- try{m.innerHTML=FL27_renderNews();}catch(e){}
-
- const md=Number(S.nextMatchDay||7);
- const diff=md-S.day;
+ const nextMatchDay=Number(S.nextMatchDay??7);
+ const diff=nextMatchDay-Number(S.day??1);
  const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
+ const esc0=v=>esc(v??"");
+ const activities=[
+  ["training","⚽","Trening","2h • rozwój OVR • energia -"],
+  ["homework","📚","Nauka","1h • szkoła + mental"],
+  ["friends","👥","Znajomi","2h • relacje + szczęście"],
+  ["family","❤️","Rodzina","2h • relacje + regeneracja"],
+  ["hobby","🎵","Hobby","1h • szczęście + mental"],
+  ["bike","🚲","Rower","2h • zdrowie + forma"],
+  ["pool","🏊","Basen","2h • zdrowie + regeneracja"],
+  ["walk","🚶","Spacer","1h • zdrowie + mental"],
+  ["reading","📖","Czytanie","1h • nauka + mental"],
+  ["recovery","🧘","Regeneracja","1h • zdrowie + energia"],
+  ["work","💼","Drobna praca","2h • pieniądze"],
+  ["city","🏙️","Wyjście do miasta","3h • życie + relacje"]
+ ];
  m.innerHTML=`
- <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${esc(S.name||"Moja kariera")}</h1><p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
- <div class="pills"><span class="pill">💞 ${esc(S.orientation||"brak danych")}</span></div>
- <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill)}</span><span class="pill">🧠 Mental ${Math.round(S.mental)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health)}</span></div></div>
- <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
-   <div class="kicker">📅 PIERWSZY DZIEŃ</div>
-   <h2>Twoja kariera właśnie się zaczęła</h2>
-   <p>Wybierz dowolną czynność poniżej. Każda czynność przesuwa godzinę, zmienia energię i zapisuje się automatycznie.</p>
+ <div class="card hero">
+   <div class="kicker">ŻYCIE PIŁKARSKIE</div>
+   <h1>${esc0(S.name||"Moja kariera")}</h1>
+   <p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc0(S.pos)} • ${esc0(S.club)}</p>
+   <div class="pills">
+    <span class="pill">⭐ OVR ${Math.round(S.skill||0)}</span>
+    <span class="pill">❤️ Zdrowie ${Math.round(S.health||0)}</span>
+    <span class="pill">⚡ Energia ${Math.round(S.energy||0)}</span>
+    <span class="pill">😊 Szczęście ${Math.round(S.happiness||0)}</span>
+   </div>
  </div>
- <div class="section-title"><b>Co robisz teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
- <div class="card"><div class="actions">
- <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • -18⚡ • rozwój większy</small></button>
- <button class="action" onclick="train(false)"><b>⏩ Symuluj trening</b><small>1h • -10⚡ • tylko po odblokowaniu</small></button>
- <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • wynik + statystyki</small></button>
- <button class="action" onclick="sleep()"><b>😴 Idź spać</b><small>regeneracja • następny dzień</small></button>
- </div></div>
- <div class="card"><div class="section-title"><b>Twój stan</b><span>zapis automatyczny</span></div>
- <div class="row"><span>Energia</span><b>${Math.round(S.energy)}/100</b></div><div class="progress"><i style="width:${S.energy}%"></i></div>
- <div class="row"><span>Forma</span><b>${Math.round(S.form)}/100</b></div><div class="progress"><i style="width:${S.form}%"></i></div>
- <div class="row"><span>Zdrowie</span><b>${Math.round(S.health)}/100</b></div><div class="progress"><i style="width:${S.health}%"></i></div>
+
+ <div class="card fl158-last-event">
+   <div class="section-title"><b>🔔 OSTATNIE WYDARZENIE</b><span>${S.logs?.[0]?S.logs[0].day+". dzień":"start kariery"}</span></div>
+   <div class="log">${S.logs?.[0]?esc0(S.logs[0].text):"Twoja historia właśnie się zaczyna. Pierwsze wydarzenia pojawią się w trakcie życia zawodnika."}</div>
  </div>
- <div class="card"><button class="choice" onclick="newGame()"><b>🔄 TEST: Nowa kariera od początku</b><span>Kasuje tylko zapis tej wersji prototypu.</span></button></div>
- <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs[0]?S.logs[0].day+". dzień":"—"}</span></div><div class="log">${S.logs[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div></div>`;
+
+ <div class="section-title fl158-actions-title">
+   <b>CO ROBISZ TERAZ?</b>
+   <span>godzina ${String(S.hour??8).padStart(2,"0")}:00</span>
+ </div>
+
+ <div class="card fl158-actions">
+   <div class="fl158-grid">
+    ${activities.map(a=>`<button type="button" class="fl158-act" data-fl158-act="${a[0]}"><span>${a[1]}</span><b>${a[2]}</b><small>${a[3]}</small></button>`).join("")}
+    <button type="button" class="fl158-act" data-fl158-act="match"><span>⚽</span><b>Mecz</b><small>${nextMatch} • wynik + statystyki</small></button>
+    <button type="button" class="fl158-act" data-fl158-act="sleep"><span>🌙</span><b>Sen</b><small>od 22:00 • następny dzień</small></button>
+   </div>
+ </div>
+
+ <div class="card fl158-state">
+   <div class="section-title"><b>TWÓJ STAN</b><span>zapis automatyczny</span></div>
+   <div class="row"><span>Forma</span><b>${Math.round(S.form||0)}/100</b></div>
+   <div class="progress"><i style="width:${Math.max(0,Math.min(100,S.form||0))}%"></i></div>
+   <div class="row"><span>Zdrowie</span><b>${Math.round(S.health||0)}/100</b></div>
+   <div class="progress"><i style="width:${Math.max(0,Math.min(100,S.health||0))}%"></i></div>
+ </div>`;
+
+ m.querySelectorAll("[data-fl158-act]").forEach(btn=>{
+   btn.onclick=function(e){
+     e.preventDefault();e.stopPropagation();
+     const k=btn.dataset.fl158Act;
+     if(k==="training"){
+       /* One training action only. The old "simulate training" action is intentionally gone. */
+       if(typeof train==="function")train(true);
+       else W.FL27V158_activity?.("training");
+       return;
+     }
+     if(k==="match"){if(typeof playMatch==="function")playMatch();return}
+     if(k==="sleep"){if(typeof sleep==="function")sleep();return}
+     if(typeof W.FL27V158_activity==="function")W.FL27V158_activity(k);
+   };
+ });
 }
 function renderDay(m){
  m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
@@ -16413,5 +16457,97 @@ setTimeout(refresh158,80);
 setTimeout(refresh158,250);
 setTimeout(refresh158,700);
 setTimeout(refresh158,1200);
+})();
+</script>
+
+<!-- FL27 V159 — AUTHORITATIVE HOME + AUTHORITATIVE SIDEBAR -->
+<style id="fl27-v159">
+html body .fl133-drawer{display:none!important!important;pointer-events:none!important}
+html body .fl157-drawer{z-index:2147483647!important;pointer-events:auto!important}
+html body .fl157-drawer *{pointer-events:auto!important}
+.fl158-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl158-act{min-height:72px!important;text-align:left!important;padding:10px!important}
+.fl158-act span{float:right;font-size:22px}.fl158-act b{display:block!important;font-size:11px}.fl158-act small{display:block!important;margin-top:5px;font-size:7px;color:#969ba4;line-height:11px}
+@media(min-width:760px){.fl158-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.fl158-last-event{border:1px solid rgba(217,170,77,.34)!important;background:linear-gradient(135deg,rgba(217,170,77,.10),rgba(13,14,18,.98))!important}
+</style>
+<script id="fl27-v159">
+(function(){
+"use strict";
+const W=window;
+if(W.__FL27_V159)return;
+W.__FL27_V159=true;
+
+const ACT={
+ training:[2,"⚽ Trening",3,0,0],
+ homework:[1,"📚 Nauka",0,1,2],
+ friends:[2,"👥 Znajomi",0,2,2],
+ family:[2,"❤️ Rodzina",0,2,3],
+ hobby:[1,"🎵 Hobby",0,2,2],
+ bike:[2,"🚲 Rower",0,2,2],
+ pool:[2,"🏊 Basen",0,2,3],
+ walk:[1,"🚶 Spacer",0,2,2],
+ reading:[1,"📖 Czytanie",0,2,1],
+ recovery:[1,"🧘 Regeneracja",0,1,4],
+ work:[2,"💼 Drobna praca",0,0,0],
+ city:[3,"🏙️ Wyjście do miasta",0,2,2]
+};
+function activity(k){
+ const a=ACT[k], s=W.S;if(!a||!s?.started)return;
+ const h=Number(s.hour??8),dur=a[0];
+ if(h+dur>22){W.toast?.("Ta czynność nie zmieści się już dzisiaj przed snem.");return}
+ if(k==="work"&&typeof W.job==="function"){W.job();return}
+ if(k==="city"){if(Number(s.money||0)<10){W.toast?.("Nie masz wystarczająco pieniędzy.");return}s.money-=10}
+ s.energy=Math.max(0,Math.min(100,Number(s.energy??80)-dur*7));
+ s.mental=Math.max(0,Math.min(100,Number(s.mental??60)+a[3]));
+ s.happiness=Math.max(0,Math.min(100,Number(s.happiness??60)+a[3]));
+ s.health=Math.max(0,Math.min(100,Number(s.health??90)+a[4]));
+ if(typeof W.spendTime==="function")W.spendTime(dur,a[1]);
+ else if(typeof W.advance==="function")W.advance(dur);
+ else s.hour=h+dur;
+ try{W.log?.(a[1]+" • "+dur+"h")}catch(e){}
+ try{W.saveSoon?.();W.save?.()}catch(e){}
+ W.render?.();
+}
+W.FL27V158_activity=activity;
+
+/* This is the ONLY sidebar click handler. */
+function bindSidebar(){
+ document.querySelectorAll(".fl157-item").forEach(btn=>{
+  btn.onclick=null;
+  btn.addEventListener("click",function(e){
+   e.preventDefault();e.stopImmediatePropagation();
+   const k=this.dataset.k;
+   const map={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",stats:"careerStats",shop:"store"};
+   if(k==="flgram"){
+    if(typeof W.FL27_OPEN_FLGRAM==="function")W.FL27_OPEN_FLGRAM();
+    else W.FL27_ROUTE?.("social");
+   }else if(k==="finance"){
+    if(typeof W.FL27_OPEN_FINANCE==="function")W.FL27_OPEN_FINANCE();
+    else W.FL27_ROUTE?.("wealth");
+   }else if(k==="settings"){
+    if(typeof W.renderSettings==="function")W.renderSettings();
+    else W.FL27_ROUTE?.("settings");
+   }else{
+    W.FL27_ROUTE?.(map[k]||k);
+   }
+   document.querySelector(".fl157-drawer")?.classList.remove("open");
+  },true);
+ });
+}
+function cleanDrawers(){
+ document.querySelectorAll(".fl133-drawer").forEach(x=>x.remove());
+ bindSidebar();
+}
+const oldRender=W.render;
+if(typeof oldRender==="function"&&!W.__FL27_V159_RENDER){
+ W.__FL27_V159_RENDER=true;
+ W.render=function(){
+  const r=oldRender.apply(this,arguments);
+  requestAnimationFrame(cleanDrawers);
+  return r;
+ };
+}
+setTimeout(cleanDrawers,100);setTimeout(cleanDrawers,400);setTimeout(cleanDrawers,1000);
 })();
 </script>
