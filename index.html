@@ -727,6 +727,87 @@ function chooseOrigin(v){
   toast("Pochodzenie zapisane ✓");
   renderCreator();
 }
+
+/* FL27 COUNTRY NAME DATABASE — 10 common first names + 10 common surnames per country.
+   The game chooses the player's name from the generated birth country, not from one
+   global Polish list. Parents are also named according to their own country. */
+const FL27_NAME_DB={
+ "Polska":{
+   first:["Jakub","Antoni","Jan","Szymon","Aleksander","Franciszek","Leon","Mikołaj","Filip","Stanisław"],
+   female:["Zofia","Zuzanna","Laura","Hanna","Maja","Julia","Oliwia","Pola","Lena","Alicja"],
+   last:["Nowak","Kowalski","Wiśniewski","Wójcik","Kamiński","Lewandowski","Zieliński","Szymański","Dąbrowski","Woźniak"]},
+ "Hiszpania":{
+   first:["Hugo","Mateo","Martín","Leo","Lucas","Daniel","Alejandro","Pablo","Manuel","Álvaro"],
+   female:["Lucía","Sofía","Martina","María","Valeria","Julia","Paula","Emma","Daniela","Carla"],
+   last:["García","Rodríguez","González","Fernández","López","Martínez","Sánchez","Pérez","Gómez","Martín"]},
+ "Niemcy":{
+   first:["Noah","Matteo","Leon","Paul","Emil","Elias","Felix","Louis","Henry","Luca"],
+   female:["Emilia","Mia","Sophia","Hannah","Emma","Lina","Ella","Clara","Mila","Lina"],
+   last:["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann"]},
+ "Francja":{
+   first:["Gabriel","Léo","Raphaël","Maël","Louis","Noah","Jules","Adam","Arthur","Hugo"],
+   female:["Louise","Jade","Ambre","Alba","Emma","Rose","Alice","Anna","Mia","Lina"],
+   last:["Martin","Bernard","Thomas","Petit","Robert","Richard","Durand","Dubois","Moreau","Laurent"]},
+ "Anglia":{
+   first:["Oliver","George","Arthur","Noah","Muhammad","Leo","Oscar","Theodore","Archie","Henry"],
+   female:["Olivia","Amelia","Isla","Lily","Ava","Ivy","Freya","Florence","Isabella","Willow"],
+   last:["Smith","Jones","Taylor","Brown","Williams","Wilson","Evans","Thomas","Johnson","Roberts"]},
+ "Włochy":{
+   first:["Leonardo","Edoardo","Tommaso","Francesco","Alessandro","Lorenzo","Mattia","Gabriele","Riccardo","Andrea"],
+   female:["Sofia","Aurora","Ginevra","Vittoria","Giulia","Beatrice","Alice","Ludovica","Emma","Matilde"],
+   last:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco"]},
+ "Portugalia":{
+   first:["João","Francisco","Afonso","Tomás","Martim","Rodrigo","Duarte","Miguel","Gabriel","Santiago"],
+   female:["Maria","Leonor","Matilde","Beatriz","Carolina","Alice","Benedita","Madalena","Inês","Mariana"],
+   last:["Silva","Santos","Ferreira","Pereira","Oliveira","Costa","Rodrigues","Martins","Jesus","Sousa"]},
+ "Brazylia":{
+   first:["Miguel","Arthur","Heitor","Theo","Davi","Gael","Bernardo","Samuel","Noah","Ravi"],
+   female:["Helena","Alice","Laura","Maria","Cecília","Maite","Antonella","Liz","Aurora","Manuela"],
+   last:["Silva","Santos","Oliveira","Souza","Pereira","Costa","Ferreira","Rodrigues","Alves","Lima"]},
+ "USA":{
+   first:["Liam","Noah","Oliver","James","Elijah","Mateo","Theodore","Henry","Lucas","William"],
+   female:["Olivia","Emma","Amelia","Charlotte","Mia","Sophia","Isabella","Evelyn","Ava","Sofia"],
+   last:["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"]},
+ "Czechy":{
+   first:["Jakub","Matyáš","Jan","Adam","Tomáš","Filip","Vojtěch","Matěj","David","Lukáš"],
+   female:["Eliška","Viktorie","Anna","Sofie","Tereza","Natálie","Adéla","Karolína","Amálie","Barbora"],
+   last:["Novák","Svoboda","Novotný","Dvořák","Černý","Procházka","Kučera","Veselý","Horák","Němec"]},
+ "Holandia":{
+   first:["Noah","Liam","Lucas","Daan","Sem","Milan","Levi","Finn","Luuk","Mees"],
+   female:["Sophie","Olivia","Julia","Emma","Mila","Nora","Tess","Sara","Zoë","Yara"],
+   last:["de Jong","Jansen","de Vries","van den Berg","van Dijk","Bakker","Visser","Smit","Meijer","de Boer"]},
+ "Belgia":{
+   first:["Noah","Arthur","Louis","Jules","Liam","Victor","Lucas","Finn","Milan","Gabriel"],
+   female:["Olivia","Louise","Emma","Alice","Camille","Marie","Mila","Léa","Julia","Ella"],
+   last:["Peeters","Janssens","Maes","Jacobs","Mertens","Willems","Claes","Goossens","De Smet","De Vos"]},
+ "Argentyna":{
+   first:["Mateo","Benjamín","Thiago","Valentín","Santino","Felipe","Bautista","Joaquín","Dylan","Lorenzo"],
+   female:["Sofía","Valentina","Isabella","Martina","Emma","Catalina","Mía","Olivia","Jazmín","Renata"],
+   last:["González","Rodríguez","Gómez","Fernández","López","Martínez","Díaz","Pérez","Sánchez","Romero"]},
+ "Chorwacja":{
+   first:["Luka","Jakov","Ivan","Marko","Petar","Mateo","David","Josip","Roko","Noa"],
+   female:["Mia","Lucija","Ema","Nika","Sara","Ana","Lana","Petra","Marta","Iva"],
+   last:["Horvat","Kovačević","Babić","Marić","Jurić","Novak","Knežević","Kovač","Vuković","Radić"]},
+ "Szwecja":{
+   first:["William","Liam","Noah","Hugo","Elias","Oliver","Lucas","Leo","Nils","Alfred"],
+   female:["Alice","Elsa","Astrid","Maja","Vera","Ella","Alma","Wilma","Freja","Selma"],
+   last:["Andersson","Johansson","Karlsson","Nilsson","Eriksson","Larsson","Olsson","Persson","Svensson","Gustafsson"]}
+};
+function FL27_namesForCountry(country){
+ return FL27_NAME_DB[country]||FL27_NAME_DB["Polska"];
+}
+function FL27_randomPlayerName(country,gender){
+ const d=FL27_namesForCountry(country);
+ const first=(gender==="K"?d.female:d.first)[Math.floor(Math.random()*(gender==="K"?d.female:d.first).length)];
+ const last=d.last[Math.floor(Math.random()*d.last.length)];
+ return first+" "+last;
+}
+function FL27_randomParentName(country,female){
+ const d=FL27_namesForCountry(country);
+ const arr=female?d.female:d.first;
+ return arr[Math.floor(Math.random()*arr.length)]+" "+d.last[Math.floor(Math.random()*d.last.length)];
+}
+
 function makeFamily(){
   const countries=["Polska","Hiszpania","Niemcy","Francja","Anglia","Włochy","Portugalia","Brazylia","USA","Czechy","Holandia","Belgia","Argentyna","Chorwacja","Szwecja"];
   let fatherCountry=countries[Math.floor(Math.random()*countries.length)];
@@ -765,11 +846,11 @@ function makeFamily(){
   const cityPool=cities[residenceCountry]||cities["Polska"];
   const residenceCity=cityPool[Math.floor(Math.random()*cityPool.length)];
   const income=["niski","stabilny","średni","dobrze zarabiający"][Math.floor(Math.random()*4)];
-  const namesF=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
-  const namesM=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
+  const namesF=FL27_namesForCountry(fatherCountry).first;
+  const namesM=FL27_namesForCountry(motherCountry).female;
   return {
-    father:{name:namesF[Math.floor(Math.random()*namesF.length)],age:fatherAge,job:pair[0],country:fatherCountry},
-    mother:{name:namesM[Math.floor(Math.random()*namesM.length)],age:motherAge,job:pair[1],country:motherCountry},
+    father:{name:FL27_randomParentName(fatherCountry,false),age:fatherAge,job:pair[0],country:fatherCountry},
+    mother:{name:FL27_randomParentName(motherCountry,true),age:motherAge,job:pair[1],country:motherCountry},
     siblings:Math.random()<.62?[{name:"rodzeństwo",age:8+Math.floor(Math.random()*10)}]:[],
     home,country:fatherCountry===motherCountry?fatherCountry:"rodzina międzynarodowa",
     residenceCountry,residenceCity,income,socialClass:income==="niski"?"pracująca rodzina":income==="dobrze zarabiający"?"zamożna rodzina":"klasa średnia",
@@ -1290,6 +1371,14 @@ function startCareer(){
  S.origin="generated";
  S.familyProfile=makeFamily();
  S.birthCountry=S.familyProfile.homeCountry;
+ /* AUTO: name is generated from the same country that the life generator
+    just assigned to the player. NEW GAME+ keeps the user's chosen name. */
+ if(window.FL27_AUTO_START===true){
+   S.name=FL27_randomPlayerName(S.birthCountry,S.gender);
+   S.firstName=S.name.split(" ")[0];
+   S.lastName=S.name.split(" ").slice(1).join(" ");
+   playerName=S.name;
+ }
  S.residenceCountry=S.familyProfile.residenceCountry||S.familyProfile.homeCountry;
  S.nationalities=[S.familyProfile.father.country];
  if(S.familyProfile.mother.country!==S.familyProfile.father.country)S.nationalities.push(S.familyProfile.mother.country);
@@ -6752,18 +6841,38 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
  }
 
  window.FL27_startAuto=function(){
-   clearGame();
-   H.mode="auto";
-   H.birthDate=(()=>{const day=1+Math.floor(Math.random()*28),month=1+Math.floor(Math.random()*12);return `2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`})();
-   H.player={gender:Math.random()<.5?"K":"M",avatar:{
-     skin:AVATAR_OPTIONS.skin[Math.floor(Math.random()*AVATAR_OPTIONS.skin.length)],
-     hair:AVATAR_OPTIONS.hair[Math.floor(Math.random()*AVATAR_OPTIONS.hair.length)],
-     hairColor:AVATAR_OPTIONS.hairColor[Math.floor(Math.random()*AVATAR_OPTIONS.hairColor.length)],
-     eyes:AVATAR_OPTIONS.eyes[Math.floor(Math.random()*AVATAR_OPTIONS.eyes.length)],
-     jersey:AVATAR_OPTIONS.jersey[Math.floor(Math.random()*AVATAR_OPTIONS.jersey.length)]
-   }};
-   H.ready=true;save();
-   location.reload();
+   try{
+     /* AUTO = everything generated by the game. The player's country is
+        generated first inside makeFamily(), then the name is selected from
+        that country's 10-name / 10-surname database. */
+     clearGame();
+     H.mode="auto"; H.ready=true;
+     H.birthDate=(()=>{const day=1+Math.floor(Math.random()*28),month=1+Math.floor(Math.random()*12);return `2011-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`})();
+   }catch(e){}
+   /* Do not create a second fake career here. Let the real engine create
+      family, country, club, position and the country-matched player name. */
+   try{
+     window.FL27_AUTO_START=true;
+     const pick=a=>a[Math.floor(Math.random()*a.length)];
+     const answers=[
+       pick(["Kobieta","Mężczyzna"]),
+       pick(["Kobiety","Mężczyźni","Kobiety i mężczyźni","Na razie nikim — nie szukam związku"]),
+       pick(QUESTIONS[2][1]),pick(QUESTIONS[3][1]),pick(QUESTIONS[4][1]),
+       pick(QUESTIONS[5][1]),pick(QUESTIONS[6][1]),pick(QUESTIONS[7][1]),
+       pick(QUESTIONS[8][1]),pick(QUESTIONS[9][1])
+     ];
+     selectedAnswers=answers; playerName="";
+     localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify({mode:"auto",ready:true,birthDate:H.birthDate}));
+     startCareer();
+     window.FL27_AUTO_START=false;
+     cleanStartupLayers?.();
+     document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+     render();
+   }catch(e){
+     window.FL27_AUTO_START=false;
+     console.error("FL27 Auto start",e);
+     toast("Nie udało się uruchomić automatycznej kariery.");
+   }
  };
 
  window.FL27_startPlus=function(){
@@ -10496,6 +10605,7 @@ function renderTab(){
  main.querySelectorAll(".fl115-panel").forEach(x=>x.remove());
  if(tab==="today")return;
  if(tab==="settings"){
+   if(W.FL27_RENDER_SETTINGS_CODEBOOK){W.FL27_RENDER_SETTINGS_CODEBOOK();return;}
    const p=document.createElement("section");p.className="fl115-panel";
    p.innerHTML=`<h2>⚙️ Ustawienia</h2><p>Wygląd, rozgrywka i bezpieczna naprawa interfejsu.</p>
    <div class="fl115-grid">
@@ -11380,5 +11490,638 @@ function install(){
 setTimeout(install,100);
 setTimeout(install,500);
 setTimeout(install,1200);
+})();
+</script>
+
+
+<style id="fl27-v126-creator-final">
+.v52-choice,.v20-confirm{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important}
+</style>
+<script id="fl27-v126-creator-final-js">
+(function(){
+"use strict";
+const W=window;
+
+/* V126 uses the real global lexical creator state (selectedAnswers/playerName),
+   not window.selectedAnswers, because the original game declares them with let. */
+
+function creatorRoot(){
+  return document.querySelector(".v20-hub-overlay");
+}
+function getName(){
+  const root=creatorRoot();
+  const first=String(root?.querySelector("#creatorName")?.value||"").trim();
+  const last=String(root?.querySelector("#creatorSurname")?.value||"").trim();
+  return {first,last,full:[first,last].filter(Boolean).join(" ").replace(/\s+/g," ").trim()};
+}
+
+W.FL27_chooseCreatorAnswer=function(index){
+  try{
+    if(typeof selectedAnswers==="undefined" || typeof QUESTIONS==="undefined") return;
+    const q=QUESTIONS[selectedAnswers.length];
+    if(!q || !Array.isArray(q[1])) return;
+    const value=q[1][Number(index)];
+    if(value==null)return;
+
+    selectedAnswers.push(value);
+    try{saveCreatorDraft()}catch(e){}
+    try{W.toast?.("Odpowiedź zapisana ✓")}catch(e){}
+
+    requestAnimationFrame(function(){
+      try{W.FL27_renderCreatorV52?.()}catch(e){
+        try{W.renderCreator?.()}catch(_){}
+      }
+    });
+  }catch(e){console.error("V126 answer",e)}
+};
+
+function rebindChoices(){
+  const buttons=[...document.querySelectorAll(".v52-choice")];
+  if(!buttons.length)return;
+  buttons.forEach((btn,i)=>{
+    const index=i;
+    btn.onclick=function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      W.FL27_chooseCreatorAnswer(index);
+      return false;
+    };
+  });
+}
+
+/* Definitive career confirmation. This bypasses the chain of old confirm wrappers. */
+W.FL27_confirmPlus=function(){
+  try{
+    const n=getName();
+    if(!n.first || !n.last){
+      W.toast?.("Wpisz imię i nazwisko zawodnika.");
+      return false;
+    }
+    if(typeof selectedAnswers==="undefined" || selectedAnswers.length!==QUESTIONS.length){
+      W.toast?.(`Odpowiedz na wszystkie ${typeof QUESTIONS!=="undefined"?QUESTIONS.length:10} pytań.`);
+      return false;
+    }
+
+    playerName=n.full;
+
+    /* Keep draft synchronized before the career engine runs. */
+    W.FL27_NEW_GAME=W.FL27_NEW_GAME||{};
+    W.FL27_NEW_GAME.playerName=n.full;
+    const bd=creatorRoot()?.querySelector("#creatorBirthDate")?.value;
+    if(bd)W.FL27_NEW_GAME.birthDate=bd;
+    W.FL27_NEW_GAME.ready=true;
+    try{saveCreatorDraft()}catch(e){}
+
+    const av=W.FL27_saveAvatar?.()||{};
+    const orientation=creatorRoot()?.querySelector("#v20-orientation")?.value||"N";
+    W.__FL27_AVATAR_CONFIG={...av,orientation};
+
+    /* This is the original, tested game-start engine. */
+    startCareer();
+
+    if(W.S?.started){
+      S.firstName=n.first;
+      S.lastName=n.last;
+      S.name=n.full;
+      S.avatar=av;
+      S.orientation=orientation;
+      if(bd){
+        S.birthDate=bd;
+        S.birthMonth=Number(bd.slice(5,7));
+        S.birthDay=Number(bd.slice(8,10));
+      }
+      try{saveSoon()}catch(e){}
+      try{render()}catch(e){}
+      W.__FL27_PLUS_CREATOR_ACTIVE=false;
+      document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+      try{W.toast?.("⚽ Kariera rozpoczęta!") }catch(e){}
+    }
+  }catch(e){
+    console.error("V126 career confirmation",e);
+    try{W.toast?.("Nie udało się rozpocząć kariery. Spróbuj ponownie.")}catch(_){}
+  }
+  return false;
+};
+
+/* Capture clicks before any remaining legacy inline handler can fire. */
+document.addEventListener("click",function(ev){
+  const btn=ev.target.closest?.(".v52-choice");
+  if(btn){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const list=[...document.querySelectorAll(".v52-choice")];
+    W.FL27_chooseCreatorAnswer(list.indexOf(btn));
+    return;
+  }
+  const confirm=ev.target.closest?.(".v20-confirm");
+  if(confirm && /ROZPOCZNIJ KARI/.test(confirm.textContent||"")){
+    ev.preventDefault();ev.stopImmediatePropagation();
+    W.FL27_confirmPlus();
+    return;
+  }
+},true);
+
+function install(){
+  rebindChoices();
+}
+setTimeout(install,100);
+setTimeout(install,500);
+setTimeout(install,1000);
+setInterval(install,1500);
+})();
+</script>
+
+<style id="fl27-v126-name-db-fix">
+/* Country-matched names: no visual change required. */
+</style>
+<script id="fl27-v126-name-db-fix-marker">
+window.FL27_NAME_DATABASE_VERSION="10x15 countries";
+</script>
+
+
+<style id="fl27-v128-representation-system">
+.fl128-rep-card{margin:12px 0;padding:14px;border-radius:17px;background:linear-gradient(145deg,#17191d,#0e1013);border:1px solid rgba(217,170,77,.22)}
+.fl128-rep-title{display:flex;justify-content:space-between;gap:8px;align-items:center}.fl128-rep-title b{font-size:11px}.fl128-rep-title span{font-size:7px;color:#8e949d}
+.fl128-rep-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin-top:10px}
+.fl128-rep-country{padding:9px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.05)}
+.fl128-rep-country b{display:block;font-size:8px}.fl128-rep-country small{display:block;color:#8e949d;font-size:6px;margin-top:3px}
+.fl128-rep-modal{position:fixed;inset:0;z-index:2147483640;background:rgba(2,3,4,.82);backdrop-filter:blur(9px);display:flex;align-items:center;justify-content:center;padding:15px}
+.fl128-rep-box{width:min(520px,100%);padding:20px;border-radius:22px;background:linear-gradient(145deg,#1b1d21,#0d0f11);border:1px solid rgba(217,170,77,.34);box-shadow:0 25px 80px rgba(0,0,0,.7)}
+.fl128-rep-box .k{font-size:7px;letter-spacing:1.5px;color:#d9aa4d;font-weight:900}.fl128-rep-box h2{font-size:21px;margin:7px 0}.fl128-rep-box p{font-size:9px;line-height:14px;color:#b5b8bf}
+.fl128-rep-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:14px}.fl128-rep-actions button{padding:11px 6px;border:0;border-radius:10px;background:#202329;color:#fff;font-size:7px;font-weight:900;cursor:pointer}.fl128-rep-actions .yes{background:linear-gradient(135deg,#e9c66d,#a97829);color:#090909}
+</style>
+<script id="fl27-v128-representation-system">
+(function(){
+"use strict";
+const W=window;
+const FLAGS={
+"Polska":"🇵🇱","Hiszpania":"🇪🇸","Niemcy":"🇩🇪","Francja":"🇫🇷","Anglia":"🏴","Włochy":"🇮🇹","Portugalia":"🇵🇹","Brazylia":"🇧🇷","USA":"🇺🇸","Czechy":"🇨🇿","Holandia":"🇳🇱","Belgia":"🇧🇪","Argentyna":"🇦🇷","Chorwacja":"🇭🇷","Szwecja":"🇸🇪",
+"Szkocja":"🏴","Walia":"🏴","Irlandia":"🇮🇪","Austria":"🇦🇹","Szwajcaria":"🇨🇭","Dania":"🇩🇰","Norwegia":"🇳🇴","Finlandia":"🇫🇮","Grecja":"🇬🇷","Turcja":"🇹🇷","Ukraina":"🇺🇦","Rumunia":"🇷🇴","Serbia":"🇷🇸","Słowacja":"🇸🇰","Węgry":"🇭🇺","Słowenia":"🇸🇮","Albania":"🇦🇱","Japonia":"🇯🇵","Korea Południowa":"🇰🇷","Meksyk":"🇲🇽","Kolumbia":"🇨🇴","Chile":"🇨🇱","Urugwaj":"🇺🇾","Maroko":"🇲🇦","Nigeria":"🇳🇬","Ghana":"🇬🇭","Egipt":"🇪🇬","Australia":"🇦🇺","Kanada":"🇨🇦"
+};
+function ensureRep(){
+ if(!W.S)return;
+ const f=W.S.familyProfile||{};
+ const pool=[];
+ [f.father?.country,f.mother?.country,W.S.birthCountry,W.S.nationality].flat().forEach(c=>{
+   if(c&&typeof c==="string"&&!pool.includes(c))pool.push(c)
+ });
+ if(!pool.length && W.S.nationalities)W.S.nationalities.forEach(c=>{if(c&&!pool.includes(c))pool.push(c)});
+ W.S.nationalities=pool.slice(0,3);
+ W.S.representation=W.S.representation||{};
+ W.S.representation.eligible=pool.slice(0,3).map(country=>({
+   country,
+   status:"uprawniony",
+   level:"brak zainteresowania",
+   youthCaps:0,
+   seniorCaps:0,
+   contacted:false,
+   chosen:false,
+   locked:false
+ }));
+ W.S.representation.history=W.S.representation.history||[];
+}
+function careerStrength(){
+ const s=W.S||{};
+ return Math.max(Number(s.ovr||s.OVR||s.skill||0),Number(s.skill||0),Number(s.form||0));
+}
+function eligibleCountries(){
+ ensureRep();
+ return (W.S?.representation?.eligible||[]);
+}
+function interestChance(item){
+ const s=W.S||{};
+ const strength=careerStrength();
+ const age=Number(s.age||15);
+ const club=String(s.club||s.clubName||"").toLowerCase();
+ let score=0;
+ if(age>=14)score+=25;
+ if(age>=16)score+=15;
+ if(strength>=55)score+=20;
+ if(strength>=65)score+=20;
+ if(strength>=75)score+=20;
+ if(club.includes(item.country.toLowerCase()))score+=12;
+ return Math.min(95,score);
+}
+function showRepOffer(item){
+ if(document.querySelector(".fl128-rep-modal"))return;
+ const s=W.S, flag=FLAGS[item.country]||"🌍";
+ const age=Number(s.age||15), level=age<18?"U17":"U19";
+ const m=document.createElement("div");m.className="fl128-rep-modal";
+ m.innerHTML=`<div class="fl128-rep-box">
+  <div class="k">🌍 NOWE ZAINTERESOWANIE REPREZENTACJI</div>
+  <h2>${flag} ${item.country} obserwuje Cię</h2>
+  <p>Twoje występy zaczęły zwracać uwagę federacji. Otrzymujesz zaproszenie na obserwację/zgrupowanie <b>${level}</b>. To jeszcze nie jest ostateczny wybór reprezentacji.</p>
+  <p><b>Możesz:</b> przyjąć zainteresowanie, poprosić o czas albo odmówić. Decyzja zostanie zapisana w historii Twojej kariery.</p>
+  <div class="fl128-rep-actions">
+   <button class="yes" data-a="accept">🇺🇳 PRZYJMIJ</button>
+   <button data-a="wait">⏳ POPROŚ O CZAS</button>
+   <button data-a="decline">✖ ODMAWIAM</button>
+  </div>
+ </div>`;
+ document.body.appendChild(m);
+ m.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+   const a=b.dataset.a;
+   item.contacted=true;
+   item.level=level;
+   item.lastContactDay=s.day;
+   if(a==="accept"){
+     item.status="zainteresowany";
+     item.acceptedAt=s.day;
+     item.youthCaps=(item.youthCaps||0)+1;
+     s.representation.history.push({day:s.day,country:item.country,type:"zainteresowanie",decision:"przyjęte",level});
+     W.log?.(`${flag} ${item.country}: przyjmujesz zaproszenie reprezentacji ${level}.`);
+   }else if(a==="wait"){
+     item.status="oczekuje";
+     s.representation.history.push({day:s.day,country:item.country,type:"zainteresowanie",decision:"proszę o czas",level});
+     W.log?.(`${flag} ${item.country}: prosisz o czas z decyzją.`);
+   }else{
+     item.status="odrzucone";
+     s.representation.history.push({day:s.day,country:item.country,type:"zainteresowanie",decision:"odmowa",level});
+     W.log?.(`${flag} ${item.country}: odrzucasz zainteresowanie.`);
+   }
+   m.remove();W.saveSoon?.();W.render?.();
+ });
+}
+function maybeInterest(){
+ const s=W.S;if(!s?.started)return;
+ ensureRep();
+ const age=Number(s.age||15), strength=careerStrength();
+ if(age<14 || strength<45)return;
+ const eligible=eligibleCountries().filter(x=>!x.contacted && x.status==="uprawniony");
+ if(!eligible.length)return;
+ /* Only one federation contact at a time; probability increases with performance. */
+ const chance=interestChance(eligible[0]);
+ if(Math.random()*100<Math.min(18,chance/6)){
+   const item=eligible[Math.floor(Math.random()*eligible.length)];
+   item.contacted=true; item.status="oferta";
+   showRepOffer(item);
+ }
+}
+function renderFamilyRep(){
+ const host=document.querySelector("main")||document.querySelector("#main");if(!host||!W.S?.started)return;
+ const tab=W.FL27_GET_TAB?.()||"";
+ if(tab!=="family")return;
+ host.querySelectorAll(".fl128-rep-card").forEach(x=>x.remove());
+ ensureRep();
+ const e=document.createElement("section");e.className="fl128-rep-card";
+ const rows=eligibleCountries().map(x=>`<div class="fl128-rep-country"><b>${FLAGS[x.country]||"🌍"} ${x.country}</b><small>${x.chosen?"🇺🇳 wybrana":x.level} • ${x.status}</small></div>`).join("");
+ e.innerHTML=`<div class="fl128-rep-title"><b>🌍 Moje możliwości reprezentacyjne</b><span>${eligibleCountries().length} możliwe kierunki</span></div>
+ <div class="fl128-rep-list">${rows||"<div class='fl128-rep-country'><b>Brak danych</b></div>"}</div>
+ <div style="margin-top:9px;font-size:7px;color:#8e949d">Kraj reprezentacji nie jest wybierany na starcie. Federacja musi najpierw się Tobą zainteresować. Twoje pochodzenie, miejsce urodzenia i kariera wpływają na to, kto Cię obserwuje.</div>`;
+ host.appendChild(e);
+}
+/* Safe hooks: check after normal game rendering/day progression, never spam a decision. */
+const oldRender=W.render;
+if(typeof oldRender==="function"&&!W.__FL27_V128_RENDER){
+ W.render=function(){const r=oldRender.apply(this,arguments);try{renderFamilyRep();}catch(e){}return r};
+ W.__FL27_V128_RENDER=true;
+}
+let lastDay=-1;
+setInterval(function(){
+ if(!W.S?.started)return;
+ ensureRep();
+ const d=Number(W.S.day||0);
+ if(d!==lastDay){lastDay=d;setTimeout(maybeInterest,150);setTimeout(renderFamilyRep,220)}
+},900);
+W.FL27_getRepresentation=function(){ensureRep();return W.S?.representation||null};
+})();
+</script>
+
+
+<style id="fl27-v129-codebook">
+.fl129-codebook{margin-top:12px}
+.fl129-codebook-head{padding:15px;border-radius:17px;background:linear-gradient(145deg,#17191d,#0e1013);border:1px solid rgba(217,170,77,.25)}
+.fl129-codebook-head b{font-size:13px}.fl129-codebook-head p{font-size:8px;line-height:12px;color:#9da2aa;margin:5px 0 0}
+.fl129-search{width:100%;box-sizing:border-box;margin:10px 0;padding:10px 12px;border-radius:11px;background:#0e1013;border:1px solid rgba(255,255,255,.08);color:#fff;outline:none;font-size:9px}
+.fl129-section{margin:8px 0;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.055);overflow:hidden}
+.fl129-section>button{width:100%;border:0;background:transparent;color:#fff;text-align:left;padding:12px;cursor:pointer;font-weight:900;font-size:9px}
+.fl129-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px;padding:0 8px 8px}
+.fl129-item{padding:9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.045)}
+.fl129-item b{display:block;font-size:8px}.fl129-item small{display:block;color:#9da2aa;font-size:6.5px;line-height:10px;margin-top:3px}
+.fl129-rule{padding:9px 10px;margin:8px 0;border-radius:10px;background:rgba(217,170,77,.06);border-left:2px solid #d9aa4d;color:#c7c9ce;font-size:7px;line-height:11px}
+.fl129-back{margin-bottom:9px;border:0;border-radius:9px;padding:8px 10px;background:#22252a;color:#fff;font-size:7px;font-weight:900;cursor:pointer}
+</style>
+<script id="fl27-v129-codebook">
+(function(){
+"use strict";
+const W=window;
+const BOOK=[
+ ["🧭 Start gry","Jak zaczyna się kariera i czym różnią się tryby.",[
+  ["👋 Witaj","Krótki ekran wprowadzający. Ma wyjaśnić ideę gry i prowadzić do wyboru sposobu rozpoczęcia."],
+  ["✨ Nowa Gra +","Ty tworzysz zawodnika: imię, nazwisko, datę urodzenia, wygląd i odpowiedzi. Świat, rodzina i dalsze okoliczności są generowane."],
+  ["🎲 Nowa Gra Auto","Gra losuje cały start zawodnika. Nie wybierasz danych postaci."],
+  ["🔄 Nowa Gra / Reset","Opcja dostępna podczas gry. Rozpoczyna karierę od nowa, a postęp meta, np. osiągnięcia/diamenty, ma pozostać zachowany."],
+  ["⏩ Symuluj do następnej decyzji","Gra automatycznie rozlicza zwykłe godziny i zatrzymuje się przy ważnej decyzji wymagającej gracza."]
+ ]],
+ ["👤 Zawodnik i profil","Podstawowe informacje widoczne w małym, przyklejonym panelu.",[
+  ["⚽ Logo","Stałe logo Football Life 27 — element identyfikacji gry, nie statystyka."],
+  ["👤 Avatar","Wizualna reprezentacja zawodnika. Wygląd jest zapisywany w profilu."],
+  ["⭐ OVR","Ogólna ocena zawodnika. Ma pomagać określać poziom sportowy i zainteresowanie klubów/reprezentacji."],
+  ["💰 Pieniądze","Aktualny stan finansów. Zakupy i część decyzji zmniejszają lub zwiększają tę wartość."],
+  ["❤️ Zdrowie","Stan zdrowia. Przeciążenia i złe decyzje mogą je obniżać, regeneracja może je poprawiać."],
+  ["😊 Szczęście","Ogólny poziom zadowolenia. Relacje, odpoczynek i wydarzenia mogą go zmieniać."],
+  ["⚡ Energia","Zasób dnia. Aktywności zużywają energię; odpoczynek/sen ją regeneruje."],
+  ["🕐 Czas","Aktualna godzina. Aktywności trwają pełne 1, 2, 3… godziny i nie można planować po 22:00."]
+ ]],
+ ["⏰ Czas i dzień","Czas jest mechaniką gry, a nie tylko ozdobą.",[
+  ["🌅 Dzień","Każdy dzień ma własny harmonogram i może generować nowe sytuacje."],
+  ["🏫 Dni szkolne","Szkoła działa zgodnie z kalendarzem; weekendy i dni wolne są traktowane inaczej."],
+  ["🎄 Święta / dni wolne","Kalendarz może zmieniać dostępność szkoły i kontekst wydarzeń."],
+  ["🌙 22:00","Granica planowania zwykłych aktywności. Po niej zawodnik powinien kończyć dzień i iść spać."],
+  ["📅 Wakacje","Okres, w którym pojawiają się obozy, wyjazdy i specjalne symulowane sytuacje."]
+ ]],
+ ["🎯 Aktywności","Co można robić w wolnych godzinach i jaki jest sens aktywności.",[
+  ["⚽ Trening drużynowy","Rozwój sportowy kosztem czasu i energii."],
+  ["🎯 Trening indywidualny","Dodatkowy rozwój konkretnej formy/umiejętności."],
+  ["👥 Trening z kolegami","Łączy sport z relacjami i zadowoleniem."],
+  ["📝 Nauka do sprawdzianu","Rozwija naukę, ale zabiera czas i energię."],
+  ["🚲 Rower","Aktywność zdrowotna i rekreacyjna."],
+  ["🏊 Basen","Regeneracja/zdrowie i dobre samopoczucie przy określonym koszcie czasu."],
+  ["🎮 Czas wolny","Odpoczynek i szczęście."],
+  ["👩 Mama / 👨 Tata / 👧 Siostra","Czas z rodziną zwiększa relacje i może uruchamiać późniejsze wydarzenia."]
+ ]],
+ ["🎲 Decyzje i wydarzenia","Najważniejsza zasada: decyzje mają konsekwencje.",[
+  ["🎲 Wydarzenie","Sytuacja generowana przez świat gry. Może zależeć od wieku, historii, statystyk, relacji, pieniędzy i wcześniejszych decyzji."],
+  ["❓ Decyzja","Moment, w którym gra zatrzymuje symulację i czeka na wybór gracza."],
+  ["🔗 Konsekwencja","Skutek decyzji. Może pojawić się natychmiast albo dużo później."],
+  ["📖 Historia","Zapis ważnych decyzji i wydarzeń, żeby wcześniejsze wybory miały ciąg dalszy."],
+  ["⏩ Symulacja","Zwykłe czynności wybiera automatycznie; decyzji o istotnych konsekwencjach nie podejmuje za gracza."]
+ ]],
+ ["👨‍👩‍👧 Rodzina i pochodzenie","Rodzina jest częścią historii zawodnika.",[
+  ["👩 Mama","Imię, wiek, praca, narodowość i relacja z zawodnikiem."],
+  ["👨 Tata","Imię, wiek, praca, narodowość i relacja z zawodnikiem."],
+  ["👧 Rodzeństwo","Może wpływać na codzienne życie, relacje i wydarzenia."],
+  ["🌍 Pochodzenie","Kraj mamy, kraj taty i kraj urodzenia tworzą pulę możliwych narodowości."],
+  ["🧬 Mieszane pochodzenie","Rodzice z różnych krajów zwiększają pulę imion/nazwisk i możliwych historii rodzinnych."],
+  ["📚 Katalog rodziny","Docelowo pokazuje kto jest kim, narodowość, kraj, relację, wiek, pracę i powiązania rodzinne."],
+  ["🎁 Prezenty","Kosztują pieniądze/czas i mogą poprawiać relacje, a później wpływać na wydarzenia."]
+ ]],
+ ["🪪 Imiona, nazwiska i narodowość","Generator nie losuje nazwiska niezależnie od historii.",[
+  ["🔤 Baza nazw","Każdy kraj ma własną pulę popularnych imion męskich, żeńskich i nazwisk."],
+  ["👨 Imiona męskie","W Auto wybierane z bazy odpowiadającej pochodzeniu."],
+  ["👩 Imiona żeńskie","Tak samo dla kobiet w rodzinie."],
+  ["👨‍👩‍👧 Nazwiska","Losowane zgodnie z krajem i zasadami nazewnictwa danego kraju."],
+  ["🌍 2 kraje rodziców","Pule mogą być mieszane, zamiast ograniczać zawodnika do jednego kraju."],
+  ["📍 Kraj urodzenia","Może być inny niż kraj rodziców i zwiększać różnorodność historii."],
+  ["🗣️ Obywatelstwo / języki","Powinny wynikać z historii, a nie być automatycznie utożsamiane z miejscem urodzenia."]
+ ]],
+ ["🏫 Szkoła i edukacja","Życie zawodnika nie składa się wyłącznie z piłki.",[
+  ["🏫 Szkoła","Obowiązki, sprawdziany, oceny, relacje i wydarzenia szkolne."],
+  ["📝 Nauka","Wymaga czasu, ale może zmieniać późniejsze możliwości."],
+  ["🎓 Decyzje edukacyjne","Ważne wybory mogą wpływać na dalszą karierę i życie poza boiskiem."]
+ ]],
+ ["🏖️ Wakacje","Wakacje są symulowane, a nie rozgrywane dzień po dniu.",[
+  ["🏕️ Obóz","Może być sportowy lub pozasportowy; ma koszt, czas i potencjalne skutki."],
+  ["✈️ Wyjazd","Może zaproponować rodzina, znajomi albo sam zawodnik."],
+  ["💳 Kto płaci","Koszt może ponieść zawodnik, rodzice albo zostać podzielony."],
+  ["🎲 Symulacja wyjazdu","Gra rozlicza okres wyjazdu i na końcu może wygenerować decyzję lub wydarzenie wynikające z tego, co się stało."]
+ ]],
+ ["🚗🏠🖋️ Sklep i styl życia","Przedmioty są częścią ekonomii, statusu i PR.",[
+  ["🚗 Auta","Zakup, utrzymanie, sprzedaż i możliwość transportu przy transferze."],
+  ["🏠 Domy","Zakup zwiększa komfort/status; niektóre nieruchomości można rozbudowywać."],
+  ["🛏️ Rozbudowa domu","Dodatkowe pomieszczenia mogą dawać funkcjonalne korzyści, np. lepszą regenerację."],
+  ["🌳 Ogród","Element nieruchomości i stylu życia; może być rozwijany."],
+  ["🏝️ Wyspy / nieruchomości specjalne","Luksusowe zakupy dla późniejszego etapu kariery."],
+  ["🖋️ Tatuaże","Zakup i wygląd mogą wpływać na styl/wizerunek."],
+  ["💎 Biżuteria","Element statusu i stylu, powiązany z PR i majątkiem."]
+ ]],
+ ["📣 PR i wizerunek","To, jak zawodnik jest postrzegany poza boiskiem.",[
+  ["📣 PR","Poziom rozpoznawalności/wizerunku. Może otwierać możliwości medialne i sponsorskie."],
+  ["👥 Followersi","Zainteresowanie społeczności zawodnikiem."],
+  ["⭐ Reputacja","Ogólna opinia o zawodniku."],
+  ["🏷️ Marka","Wartość osobistej marki budowana wynikami i stylem życia."],
+  ["🤝 Sponsor","Może pojawić się dzięki odpowiedniemu poziomowi kariery/PR."],
+  ["📰 Media","Wywiady i kontrowersje mogą poprawiać albo pogarszać wizerunek."],
+  ["🚗🖋️💎 Styl życia","Zakupy mogą zmieniać sposób, w jaki zawodnik jest postrzegany."]
+ ]],
+ ["⚽ Kariera sportowa","Droga od początku do profesjonalnego futbolu.",[
+  ["🏟️ Klub","Aktualny klub wpływa na trening, mecze, możliwości i transfery."],
+  ["📈 Rozwój","Trening i decyzje zmieniają umiejętności, formę i OVR."],
+  ["🔁 Transfer","Zmiana klubu zmienia środowisko życia. Przy przeprowadzce rzeczy można sprzedać albo przetransportować."],
+  ["📦 Przeprowadzka","Dom, auto i przedmioty mogą wymagać sprzedaży, transportu lub ponownego zakupu."],
+  ["🏆 Mecze","Wyniki sportowe mogą wpływać na rozwój, PR, zainteresowanie i wydarzenia."]
+ ]],
+ ["🌍 Reprezentacja","Reprezentacja wynika z historii zawodnika.",[
+  ["🇵🇱🇪🇸🇩🇪 Możliwe kraje","Mogą pochodzić z narodowości rodziców i kraju urodzenia."],
+  ["👀 Zainteresowanie","Federacja nie musi zainteresować się zawodnikiem tylko dlatego, że jest uprawniony."],
+  ["📨 Powołanie","Zainteresowanie może pojawić się jako wydarzenie zależne od wieku, poziomu i kariery."],
+  ["🤝 Przyjmij","Zawodnik przyjmuje kontakt/zgrupowanie."],
+  ["⏳ Poproś o czas","Nie zamyka od razu pozostałych możliwości."],
+  ["✖ Odmów","Odrzucenie zainteresowania zostaje w historii i może mieć późniejsze konsekwencje."],
+  ["U17 → U19 → U21 → senior","Ścieżka reprezentacyjna rozwija się razem z wiekiem i karierą."]
+ ]],
+ ["💎 Osiągnięcia i meta","Postęp, który ma przetrwać restart kariery.",[
+  ["💎 Diamenty","Waluta meta przyznawana za wykonane zadania/tutorial. Docelowe zastosowanie będzie rozwijane."],
+  ["🏅 Osiągnięcia","Najważniejsze cele i kamienie milowe. Nie powinny znikać przy resecie kariery."],
+  ["🔄 Reset kariery","Resetuje bieżącego zawodnika/karierę, ale zachowuje ustalone elementy meta."],
+  ["🛠️ Napraw","W ustawieniach ma odświeżać/odbudowywać interfejs bez kasowania zawodnika."]
+ ]],
+ ["🎨 Ikony i kolory","Legenda interfejsu.",[
+  ["⚽","Futbol / kariera sportowa."],["⭐","OVR, ocena lub wyjątkowy poziom."],["💰","Pieniądze i finanse."],["❤️","Zdrowie, regeneracja lub relacje zależnie od miejsca."],
+  ["😊","Szczęście/zadowolenie."],["⚡","Energia."],["🕐","Czas."],["📅","Dzień/kalendarz."],
+  ["🏫","Szkoła."],["👨‍👩‍👧","Rodzina."],["📖","Historia."],["📊","Statystyki."],
+  ["🛒","Sklep."],["⚙️","Ustawienia."],["🎲","Losowość/wydarzenie."],["⏩","Symulacja/przeskok."],
+  ["📣","PR/wizerunek."],["🚗","Samochód."],["🏠","Dom."],["🖋️","Tatuaż."],["💎","Biżuteria/diamenty."]
+ ]]
+];
+
+function codebookHTML(){
+ let h=`<div class="fl129-codebook-head"><b>📚 KODEKS FOOTBALL LIFE 27</b><p>Instrukcja świata gry. Tu wyjaśniamy mechaniki, statystyki, ikony, decyzje, ekonomię i zasady generatora. Kodeks jest dokumentacją gry — nie zmienia stanu zawodnika.</p></div><input id="fl129-search" class="fl129-search" placeholder="🔎 Szukaj: np. OVR, reprezentacja, dom, energia, reset…">`;
+ BOOK.forEach((sec,i)=>{
+   h+=`<div class="fl129-section" data-code-section="${i}"><button type="button">▸ ${sec[0]}</button><div class="fl129-items" style="display:none">`;
+   sec[2].forEach(it=>h+=`<div class="fl129-item" data-code-text="${(it[0]+" "+it[1]).toLowerCase()}"><b>${it[0]}</b><small>${it[1]}</small></div>`);
+   h+=`</div></div>`;
+ });
+ return h;
+}
+W.FL27_OPEN_CODEBOOK=function(){
+ const main=document.querySelector("#main");if(!main)return;
+ main.querySelectorAll(".fl115-panel,.fl129-codebook").forEach(x=>x.remove());
+ const p=document.createElement("section");p.className="fl115-panel fl129-codebook";
+ p.innerHTML=`<button class="fl129-back" type="button">← WRÓĆ DO USTAWIEŃ</button>${codebookHTML()}`;
+ main.appendChild(p);
+ p.querySelector(".fl129-back").onclick=()=>{try{W.FL27_GET_TAB&&W.FL27_SET_TAB?.("settings")}catch(e){};W.FL27_RENDER_SETTINGS_CODEBOOK?.()};
+ p.querySelectorAll(".fl129-section>button").forEach(b=>b.onclick=()=>{const box=b.nextElementSibling;const open=box.style.display!=="none";box.style.display=open?"none":"grid";b.textContent=(open?"▸ ":"▾ ")+b.textContent.replace(/^[▸▾]\s*/,"")});
+ p.querySelector("#fl129-search").oninput=function(){
+   const q=this.value.toLowerCase().trim();
+   p.querySelectorAll(".fl129-section").forEach(sec=>{
+     let any=false;
+     sec.querySelectorAll(".fl129-item").forEach(it=>{const ok=!q||it.dataset.codeText.includes(q);it.style.display=ok?"block":"none";if(ok)any=true});
+     sec.style.display=any?"block":"none";
+     if(q)sec.querySelector(".fl129-items").style.display=any?"grid":"none";
+   });
+ };
+};
+W.FL27_RENDER_SETTINGS_CODEBOOK=function(){
+ const main=document.querySelector("#main");if(!main)return;
+ main.querySelectorAll(".fl115-panel").forEach(x=>x.remove());
+ const p=document.createElement("section");p.className="fl115-panel";
+ p.innerHTML=`<h2>⚙️ Ustawienia</h2><p>Wygląd, rozgrywka, bezpieczeństwo i instrukcja.</p><div class="fl115-grid">
+ <button class="fl115-card" id="fl129-code"><b>📚 KODEKS GRY</b><small>Pełna instrukcja: każda rubryka, ikona, mechanika, koszt, korzyść, konsekwencja i zasada generatora.</small></button>
+ <button class="fl115-card" onclick="FL27_REPAIR_UI()"><b>🛠️ Napraw interfejs</b><small>Odbuduj panel i przyciski bez resetowania zawodnika.</small></button>
+ <button class="fl115-card" onclick="typeof renderSettings==='function'?renderSettings():alert('Ustawienia szczegółowe są niedostępne w tej chwili.')"><b>⚙️ Ustawienia szczegółowe</b><small>Kolorystyka i pozostałe opcje.</small></button>
+ </div>`;
+ main.appendChild(p);p.querySelector("#fl129-code").onclick=W.FL27_OPEN_CODEBOOK;
+};
+})();
+</script>
+
+
+<style id="fl27-v130-codebook-query">
+.fl130-query{margin:12px 0;padding:13px;border-radius:16px;background:linear-gradient(145deg,#17191d,#0d0f12);border:1px solid rgba(217,170,77,.25)}
+.fl130-query b{font-size:10px}.fl130-query p{margin:4px 0 8px;color:#969ba4;font-size:7px;line-height:11px}
+.fl130-query-row{display:flex;gap:6px}.fl130-query input{flex:1;min-width:0;padding:10px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:#0a0c0f;color:#fff;font-size:8px;outline:none}
+.fl130-query button{border:0;border-radius:10px;padding:0 13px;background:linear-gradient(135deg,#e8c66d,#9d7129);color:#090909;font-size:7px;font-weight:900;cursor:pointer}
+.fl130-answer{display:none;margin-top:9px;padding:11px;border-radius:11px;background:rgba(217,170,77,.055);border-left:2px solid #d9aa4d}
+.fl130-answer.show{display:block}.fl130-answer .title{font-size:9px;font-weight:900}.fl130-answer .body{font-size:7px;line-height:11px;color:#c3c6cb;margin-top:5px}
+.fl130-answer .tags{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px}.fl130-answer .tag{padding:4px 6px;border-radius:7px;background:rgba(255,255,255,.055);font-size:6px;color:#aaa}
+.fl130-suggestions{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.fl130-suggestions button{border:1px solid rgba(255,255,255,.07);background:#171a1e;color:#b9bdc4;border-radius:8px;padding:5px 7px;font-size:6px;cursor:pointer}
+.fl130-noresult{font-size:7px;color:#a8adb5;line-height:11px}
+</style>
+<script id="fl27-v130-codebook-query">
+(function(){
+"use strict";
+const W=window;
+
+const FAQ=[
+ ["OVR","⭐ OVR","OVR to ogólna ocena poziomu sportowego zawodnika. Wpływa na ocenę jego poziomu, rozwój kariery i może zwiększać zainteresowanie klubów oraz reprezentacji.","👤 Zawodnik","⚽ Kariera","🌍 Reprezentacja"],
+ ["energia","⚡ Energia","Energia pokazuje, ile zawodnik może jeszcze zrobić w danym dniu. Aktywności zużywają czas i energię, a odpoczynek oraz sen pomagają ją odzyskać.","⚡ Energia","🕐 Czas","🎯 Aktywności"],
+ ["zdrowie","❤️ Zdrowie","Zdrowie opisuje fizyczny stan zawodnika. Przeciążenie, urazy i złe decyzje mogą je obniżać, a regeneracja pomaga je odbudować.","❤️ Zdrowie","⚽ Trening","🏠 Dom"],
+ ["szczęście","😊 Szczęście","Szczęście/zadowolenie zależy m.in. od odpoczynku, relacji, rodziny, wydarzeń i sposobu spędzania czasu. Wysokie lub niskie wartości mogą wpływać na kolejne sytuacje.","😊 Szczęście","👨‍👩‍👧 Rodzina","🎯 Aktywności"],
+ ["czas","🕐 Czas","Każda zwykła aktywność zajmuje pełne godziny: 1, 2, 3… Nie używamy 30-minutowych aktywności. Po 22:00 zwykły harmonogram dnia się kończy i zawodnik powinien iść spać.","🕐 Czas","🌙 Sen","📅 Kalendarz"],
+ ["trening","⚽ Trening","Trening rozwija zawodnika, ale kosztuje czas i energię. Rodzaj treningu może zmieniać inne parametry, a trening z kolegami dodatkowo wpływa na relacje.","⚽ Kariera","⚡ Energia","👥 Relacje"],
+ ["dom","🏠 Dom","Dom kosztuje pieniądze, może zwiększać komfort i w wybranych przypadkach można go rozbudowywać o pokoje. Niektóre pomieszczenia mogą później dawać konkretne korzyści, np. lepszą regenerację.","🏠 Dom","💰 Finanse","❤️ Zdrowie"],
+ ["transfer","🔁 Transfer","Transfer zmienia klub i może uruchomić przeprowadzkę. Przy zmianie miejsca rzeczy można sprzedać albo przetransportować, a część wyposażenia trzeba odtworzyć w nowym miejscu.","⚽ Kariera","📦 Przeprowadzka","💰 Finanse"],
+ ["przeprowadzka","📦 Przeprowadzka","Po transferze do innego miasta/kraju zawodnik może potrzebować zorganizować mieszkanie, samochód i rzeczy osobiste. Można uwzględnić koszt transportu albo sprzedaż przedmiotów.","📦 Przeprowadzka","🚗 Auto","🏠 Dom"],
+ ["reprezentacja","🌍 Reprezentacja","Reprezentacji nie wybiera się automatycznie na początku. Uprawnienia mogą wynikać z narodowości rodziców i kraju urodzenia. Federacja musi najpierw zainteresować się zawodnikiem.","🌍 Reprezentacja","🧬 Pochodzenie","📨 Powołanie"],
+ ["narodowość","🧬 Narodowość","Narodowość i kraj urodzenia to osobne informacje. Pochodzenie mamy, taty i miejsce urodzenia mogą tworzyć kilka możliwych ścieżek reprezentacyjnych.","🧬 Pochodzenie","🌍 Reprezentacja","👨‍👩‍👧 Rodzina"],
+ ["imię","🔤 Imiona i nazwiska","W Nowej Grze Auto imiona i nazwiska są dobierane z baz odpowiadających pochodzeniu. Przy rodzicach z różnych krajów pule mogą się mieszać.","🔤 Generator","🧬 Pochodzenie","👨‍👩‍👧 Rodzina"],
+ ["rodzina","👨‍👩‍👧 Rodzina","Rodzina obejmuje rodziców, rodzeństwo i dalsze pochodzenie. Relacje mogą zmieniać się przez wspólny czas, prezenty i wydarzenia.","👨‍👩‍👧 Rodzina","🎁 Prezenty","❤️ Relacje"],
+ ["prezent","🎁 Prezenty","Prezent kosztuje pieniądze, ale może poprawić relację z konkretną osobą. Wysokie lub niskie relacje mogą wpływać na przyszłe wydarzenia.","🎁 Prezenty","💰 Finanse","❤️ Relacje"],
+ ["wakacje","🏖️ Wakacje","Wakacje mogą zawierać obozy i wyjazdy. Dłuższy wyjazd jest symulowany jako okres, a po zakończeniu może pojawić się wydarzenie lub decyzja wynikająca z jego przebiegu.","🏖️ Wakacje","🏕️ Obozy","✈️ Wyjazdy"],
+ ["symulacja","⏩ Symuluj do następnej decyzji","Symulacja automatycznie rozlicza zwykłe czynności, szkołę, trening, rodzinę, odpoczynek i upływ czasu. Zatrzymuje się, gdy pojawi się ważna decyzja wymagająca gracza.","⏩ Symulacja","🎲 Decyzje","🕐 Czas"],
+ ["reset","🔄 Reset kariery","Reset rozpoczyna nowego zawodnika/karierę, ale powinien zachować ustalone elementy meta, takie jak osiągnięcia i diamenty. Nie jest tym samym co zwykłe odświeżenie interfejsu.","🔄 Reset","💎 Meta","🛠️ Napraw"],
+ ["diamenty","💎 Diamenty","Diamenty są walutą meta przyznawaną za wykonane zadania, m.in. elementy samouczka. Ich przyszłe zastosowania mogą być rozwijane niezależnie od bieżącej kariery.","💎 Meta","🏅 Osiągnięcia","📚 Kodeks"],
+ ["PR","📣 PR i wizerunek","PR opisuje rozpoznawalność i sposób postrzegania zawodnika. Może wpływać na media, sponsorów, zainteresowanie oraz wydarzenia poza boiskiem.","📣 PR","🤝 Sponsorzy","📰 Media"],
+ ["tatuaż","🖋️ Tatuaże","Tatuaże są elementem stylu i wizerunku. Zakup ma koszt, a ich obecność może być uwzględniana przez system PR i wydarzenia.","🖋️ Tatuaże","📣 PR","💰 Finanse"],
+ ["auto","🚗 Samochody","Samochód jest zakupem majątkowym i elementem stylu życia. Przy transferze można uwzględnić transport auta albo jego sprzedaż i zakup nowego.","🚗 Auta","🔁 Transfer","💰 Finanse"],
+ ["napraw","🛠️ Napraw interfejsu","Naprawa ma odświeżyć warstwę gry i odbudować UI bez resetowania zawodnika. Nie powinna kasować kariery ani postępu meta.","🛠️ Ustawienia","🔄 Reset","⚙️ System"]
+];
+
+function normalize(x){
+ return String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+function answerQuery(raw){
+ const q=normalize(raw).trim();
+ if(!q)return null;
+ const words=q.split(/\s+/).filter(x=>x.length>2);
+ let best=null,bestScore=0;
+ FAQ.forEach(item=>{
+   const hay=normalize(item[0]+" "+item[1]+" "+item[2]+" "+item.slice(3).join(" "));
+   let score=0;
+   if(hay.includes(q))score+=8;
+   words.forEach(w=>{if(hay.includes(w))score+=2});
+   if(normalize(item[0])===q)score+=10;
+   if(score>bestScore){bestScore=score;best=item}
+ });
+ return bestScore>=2?best:null;
+}
+function mountQuery(){
+ const box=document.querySelector(".fl129-codebook");
+ if(!box || box.querySelector("#fl130-query"))return;
+ const q=document.createElement("div");q.id="fl130-query";q.className="fl130-query";
+ q.innerHTML=`<b>💬 ZAPYTAJ KODEKS</b>
+ <p>Nie musisz znać nazwy mechaniki. Zadaj pytanie własnymi słowami — Kodeks znajdzie pasujące zasady.</p>
+ <div class="fl130-query-row"><input id="fl130-q" autocomplete="off" placeholder="np. „Dlaczego nie mogę zrobić treningu?”"><button id="fl130-ask">ZAPYTAJ</button></div>
+ <div class="fl130-suggestions">
+  <button data-q="Dlaczego nie mogę zrobić treningu?">Dlaczego nie mogę trenować?</button>
+  <button data-q="Jak działa reprezentacja?">Jak działa reprezentacja?</button>
+  <button data-q="Co stanie się przy transferze?">Co z rzeczami po transferze?</button>
+  <button data-q="Jak działa dom?">Jak działa dom?</button>
+ </div>
+ <div id="fl130-answer" class="fl130-answer"></div>`;
+ const head=box.querySelector(".fl129-codebook-head");
+ head?.after(q) || box.prepend(q);
+ const input=q.querySelector("#fl130-q"),answer=q.querySelector("#fl130-answer");
+ function ask(text){
+   input.value=text;
+   const hit=answerQuery(text);
+   if(!hit){answer.className="fl130-answer show";answer.innerHTML=`<div class="noresult fl130-noresult">Nie znalazłam dokładnego hasła. Spróbuj krócej, np. „energia”, „transfer”, „rodzina”, „reprezentacja”, „dom” albo „reset”.</div>`;return}
+   answer.className="fl130-answer show";
+   answer.innerHTML=`<div class="title">${hit[1]}</div><div class="body">${hit[2]}</div><div class="tags">${hit.slice(3).map(x=>`<span class="tag">${x}</span>`).join("")}</div>`;
+ }
+ q.querySelector("#fl130-ask").onclick=()=>ask(input.value);
+ input.addEventListener("keydown",e=>{if(e.key==="Enter")ask(input.value)});
+ q.querySelectorAll(".fl130-suggestions button").forEach(b=>b.onclick=()=>ask(b.dataset.q));
+}
+const oldOpen=W.FL27_OPEN_CODEBOOK;
+if(typeof oldOpen==="function"&&!W.__FL27_V130_OPEN){
+ W.FL27_OPEN_CODEBOOK=function(){oldOpen.apply(this,arguments);setTimeout(mountQuery,30);};
+ W.__FL27_V130_OPEN=true;
+}
+setInterval(mountQuery,800);
+})();
+</script>
+
+
+<style id="fl27-v131-loading-screen">
+/* Bigger cinematic loading screen + gameplay tip */
+#fl124-boot .box{width:min(620px,92vw);padding:32px 20px 42px;box-sizing:border-box}
+#fl124-boot .mark{
+ width:min(290px,72vw)!important;height:125px!important;margin:0 auto 22px!important;
+ background-size:contain!important;filter:drop-shadow(0 14px 28px rgba(0,0,0,.55));
+ transform:scale(1.08);
+}
+#fl124-boot .title{font-size:21px!important;letter-spacing:2.8px!important}
+#fl124-boot .sub{font-size:9px!important;margin-top:8px!important}
+#fl124-boot .tip{
+ position:absolute;left:50%;bottom:30px;transform:translateX(-50%);
+ width:min(650px,86vw);text-align:center;color:#9ea2aa;font-size:8px;line-height:13px;
+}
+#fl124-boot .tip b{display:block;color:#d9aa4d;font-size:7px;letter-spacing:1.3px;margin-bottom:3px}
+#fl124-boot .tip-text{transition:opacity .18s ease}
+#fl124-boot .progress{
+ width:min(280px,65vw);height:2px;margin:18px auto 0;border-radius:9px;overflow:hidden;
+ background:rgba(255,255,255,.08)
+}
+#fl124-boot .progress i{display:block;height:100%;width:35%;background:#d9aa4d;border-radius:9px;animation:fl131load 1.35s ease-in-out infinite}
+@keyframes fl131load{0%{transform:translateX(-130%)}100%{transform:translateX(390%)}}
+@media(max-height:650px){
+ #fl124-boot .mark{height:92px!important;margin-bottom:12px!important}
+ #fl124-boot .box{padding-top:20px}
+ #fl124-boot .tip{bottom:16px}
+}
+</style>
+<script id="fl27-v131-loading-screen-js">
+(function(){
+"use strict";
+const tips=[
+ "Każda decyzja może zmienić dalszą historię Twojego zawodnika.",
+ "Czas ma znaczenie — nawet zwykły dzień może przynieść ważne wydarzenie.",
+ "Rodzina i relacje rozwijają się razem z Twoją karierą.",
+ "Przy transferze możesz sprzedać rzeczy albo zorganizować ich transport.",
+ "Mieszane pochodzenie może otworzyć drogę do więcej niż jednej reprezentacji.",
+ "Nie każda aktywność daje tylko jeden efekt — jej konsekwencje mogą pojawić się później.",
+ "Wakacyjne wyjazdy są symulowane, a po nich mogą czekać nowe decyzje.",
+ "Dom można rozwijać, a niektóre pomieszczenia mogą wpływać na regenerację.",
+ "PR rośnie nie tylko dzięki piłce — wpływają na niego również decyzje i styl życia.",
+ "Kodeks gry wyjaśnia wszystkie mechaniki. Możesz zapytać go własnymi słowami."
+];
+function mountTip(){
+ const b=document.getElementById("fl124-boot");if(!b||b.querySelector(".tip"))return;
+ const tip=document.createElement("div");tip.className="tip";
+ tip.innerHTML='<b>💡 PODPOWIEDŹ</b><div class="tip-text"></div>';
+ b.appendChild(tip);
+ const text=tip.querySelector(".tip-text");
+ let i=Math.floor(Math.random()*tips.length);
+ function show(){text.style.opacity="0";setTimeout(()=>{text.textContent=tips[i];text.style.opacity="1"},170);i=(i+1)%tips.length}
+ show();setInterval(()=>{if(document.getElementById("fl124-boot"))show()},3500);
+ const box=b.querySelector(".box");
+ if(box&&!box.querySelector(".progress")){
+   const pr=document.createElement("div");pr.className="progress";pr.innerHTML="<i></i>";box.appendChild(pr);
+ }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountTip,{once:true});
+else mountTip();
+setTimeout(mountTip,30);
 })();
 </script>
