@@ -7308,9 +7308,10 @@ window.renderSettings=function(){
    const d=document.createElement("div");d.className="v20-hub-overlay";
    d.innerHTML=`<div class="v20-hub">
     <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
-    <div class="v20-kicker">NOWA KARIERA</div>
-    <h1>Jak chcesz rozpocząć?</h1>
-    <p>Możesz oddać swoje życie generatorowi albo stworzyć zawodnika samodzielnie. W obu trybach cała historia będzie później rozwijać się dynamicznie.</p>
+    <div class="v20-kicker">WITAJ W FOOTBALL LIFE 27</div>
+    <h1>Witaj! 👋</h1>
+    <p>Tu zaczyna się całe życie Twojego zawodnika — od pierwszego dnia, przez szkołę, rodzinę i treningi, aż po wielką karierę. Najpierw wybierz, jak chcesz rozpocząć nową historię.</p>
+    <div class="v20-kicker" style="margin-top:18px">NOWA GRA</div>
     <div class="v20-modes">
       <button onclick="FL27_startAuto()">
         <strong>🎲 NOWA GRA AUTO</strong>
@@ -7474,7 +7475,7 @@ window.renderSettings=function(){
    if(!creatorStarted){
      const hasDraft=selectedAnswers.length>0||playerName;
      body.innerHTML=`
-       <div class="v52-step">START</div>
+       <div class="v52-step">WITAJ • TWORZENIE POSTACI</div>
        <h1>Stwórz swojego zawodnika</h1>
        <p>Najpierw podaj dane podstawowe: imię, nazwisko, płeć, preferencje i dzień urodzenia. Potem odpowiesz na <b>8 pytań piłkarskich</b>. Łącznie masz <b>10 kluczowych decyzji</b>.</p>
        <div class="v52-name-grid">
@@ -8318,103 +8319,7 @@ window.FL27_confirmPlus=function(){
     return `Mama: ${m} • Tata: ${f} • Mieszkasz: ${residence}`;
   };
 
-  /* ------------------------------------------------------------
-     Replace legacy bottom bars with ONE panel.
-     The navigation is fixed at the bottom; the activity selector
-     sits above it; the selected activity details sit above that.
-     ------------------------------------------------------------ */
-  function mountBottom(){
-    document.querySelectorAll(
-      ".v17-bottom,.v24-bottom,.v25-bottom,.v26-bottom," +
-      ".fl27-v17-extra,.fl27-v24-extra,.fl27-v25-extra," +
-      ".fl27-v26-extra,.fl27-v27-extra"
-    ).forEach(x=>x.remove());
-
-    const A = window.FL27_V17_ACTIONS || [];
-    const V = window.FL27_V17 || {};
-    const hour = Math.floor(Number(window.S?.hour || 0));
-    const day = Math.round(Number(window.S?.day || 1));
-    const selected = V.selected ? A.find(a => a.id === V.selected) : null;
-    const timeLeft = Math.max(0, 22 - hour);
-
-    const nav = [
-      ["🏠","Dziś","render()"],
-      ["⏱️","Dzień","window.scrollTo({top:0,behavior:'smooth'})"],
-      ["⚽","Kariera","window.FL27_openTab?.('career')"],
-      ["❤️","Życie","window.FL27_openTab?.('life')"],
-      ["👨‍👩‍👧","Rodzina","window.FL27_openTab?.('family')"],
-      ["📖","Historia","window.FL27_openTab?.('history')"],
-      ["📊","Statystyki","window.FL27_openTab?.('stats')"],
-      ["🛒","Sklep","window.FL27_openTab?.('shop')"],
-      ["⚙️","Ustawienia","renderSettings()"]
-    ];
-
-    const activityHTML = A.length ? A.map(a => `
-      <button class="v27-activity ${selected && selected.id===a.id ? "active":""}"
-        type="button" onclick="FL27_V17_select('${a.id}')">
-        <span>${a.icon || "•"}</span>
-        <b>${a.name || "Aktywność"}</b>
-      </button>
-    `).join("") : `<div class="v27-no-actions">Brak aktywności</div>`;
-
-    let selectedHTML = `
-      <div class="v27-selected-empty">
-        <span>📋</span>
-        <div><b>Wybierz aktywność</b><small>Po wyborze zobaczysz dokładny koszt czasu i konsekwencje.</small></div>
-      </div>`;
-
-    if(selected){
-      const preview = window.FL27_V17_preview
-        ? window.FL27_V17_preview(selected)
-        : "Sprawdź koszt przed wykonaniem.";
-
-      selectedHTML = `
-        <div class="v27-selected">
-          <div class="v27-selected-info">
-            <b>${selected.icon || "📋"} ${selected.name || "Aktywność"}</b>
-            <small>${preview}</small>
-          </div>
-          <button class="v27-run" type="button"
-            onclick="FL27_V17_run('${selected.id}')">WYKONAJ</button>
-        </div>`;
-    }
-
-    const el = document.createElement("div");
-    el.className = "fl27-v27-extra";
-    el.innerHTML = `
-      <div class="v27-bottom">
-        <div class="v27-status">
-          <div><b>${String(hour).padStart(2,"0")}:00</b><span>Dzień ${day}</span></div>
-          <div><span>⏳ ${timeLeft} h do 22:00</span></div>
-        </div>
-
-        <div class="v27-activities">${activityHTML}</div>
-
-        <div class="v27-selected-row">${selectedHTML}</div>
-
-        <div class="v27-navigation">
-          ${nav.map((x,i)=>`
-            <button type="button" class="${i===0 ? "active":""}" onclick="${x[2]}">
-              <span>${x[0]}</span><b>${x[1]}</b>
-            </button>
-          `).join("")}
-        </div>
-      </div>`;
-
-    document.body.appendChild(el);
-  }
-
-  if(window.render && !window.__FL27_V27_RENDER){
-    const oldRender = window.render;
-    window.__FL27_V27_RENDER = true;
-    window.render = function(){
-      const result = oldRender.apply(this, arguments);
-      requestAnimationFrame(mountBottom);
-      return result;
-    };
-  }
-
-  setTimeout(mountBottom, 100);
+  /* V27 bottom UI removed: activities belong to the canonical Dziś screen. */
   saveFamily();
 })();
 </script>
@@ -8446,78 +8351,6 @@ window.FL27_confirmPlus=function(){
     const overlay=e.target.closest?.(".v19-settings-overlay");
     if(overlay && e.target===overlay && window.closeSettings) window.closeSettings();
   });
-})();
-</script>
-<script>
-/* FL27 V35 — clean permanent chrome
-   Top: permanent player header.
-   Bottom: permanent navigation only.
-   Activities stay on the main game panel, where they are already visible
-   and clickable. No duplicate activity strip at the bottom.
-*/
-(function(){
-  const ICONS={
-    home:'<svg viewBox="0 0 24 24"><path d="M3.5 10.8 12 3.5l8.5 7.3"/><path d="M5.5 10.2V21h13V10.2M9.5 21v-5.5h5V21"/></svg>',
-    time:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>',
-    career:'<svg viewBox="0 0 24 24"><path d="m12 3 4.5 3.2-1.7 5.2h-5.6L7.5 6.2z"/><path d="m7.5 6.2-4 3 1.5 5 4.8 1.5M16.5 6.2l4 3-1.5 5-4.8 1.5M9.5 20.5l2.5-4.8 2.5 4.8"/></svg>',
-    life:'<svg viewBox="0 0 24 24"><path d="M20.3 5.8a4.5 4.5 0 0 0-6.4 0L12 7.7l-1.9-1.9a4.5 4.5 0 0 0-6.4 6.4L12 20.5l8.3-8.3a4.5 4.5 0 0 0 0-6.4Z"/></svg>',
-    family:'<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.3"/><circle cx="7" cy="9" r="2.1"/><circle cx="17" cy="9" r="2.1"/><path d="M7.5 19c.2-3 1.8-4.6 4.5-4.6s4.3 1.6 4.5 4.6M2.8 19c.2-2.5 1.5-3.8 4.2-3.8M17 15.2c2.7 0 4 1.3 4.2 3.8"/></svg>',
-    history:'<svg viewBox="0 0 24 24"><path d="M5 4h14v17H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
-    stats:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V5M16 20v-8M22 20H2"/><path d="m4 8 5-3 5 4 6-6"/></svg>',
-    shop:'<svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5zM6 9l2-5h8l2 5"/><path d="M9 13h6"/></svg>',
-    settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.2 14.8 1.4 1.1-1.8 3-1.7-.7-1.8 1-.2 1.8h-3.6l-.2-1.8-1.8-1-1.7.7-1.8-3 1.4-1.1a7.5 7.5 0 0 1 0-2l-1.4-1.1 1.8-3 1.7.7 1.8-1 .2-1.8h3.6l.2 1.8 1.8 1 1.7-.7 1.8 3-1.4 1.1a7.5 7.5 0 0 1 0 2Z"/></svg>'
-  };
-  const nav=[
-    ['home','Dziś',"go('home')"],['time','Dzień',"go('day')"],
-    ['career','Kariera',"go('career')"],['life','Życie',"go('life')"],
-    ['family','Rodzina',"go('family')"],['history','Historia',"go('history')"],
-    ['stats','Statystyki',"go('careerStats')"],['shop','Sklep',"go('store')"],
-    ['settings','Ustawienia','renderSettings()']
-  ];
-
-  function top(){
-    document.querySelectorAll('.fl27-v35-top').forEach(e=>e.remove());
-    const st=window.S||{};
-    const name=String(st.name||'Zawodnik');
-    const pos=String(st.pos||st.position||'—');
-    const age=st.age??15;
-    const money=Math.floor(Number(st.money||0));
-    const health=Math.round(Number(st.health||0));
-    const ovr=Math.round(Number(st.ovr??st.overall??st.skill??0));
-    const avatar=st.avatar||st.photo||'⚽';
-
-    const e=document.createElement('div');
-    e.className='fl27-v35-top';
-    e.innerHTML=`<header class="v35-header">
-      <div class="v35-brand"><span class="v35-ball">⚽</span><b>FOOTBALL<br><i>LIFE 27</i></b></div>
-      <div class="v35-avatar">${avatar&&typeof avatar==="object"&&window.FL27_avatarSvg?window.FL27_avatarSvg({...avatar,gender:st.gender||avatar.gender}):(String(avatar).startsWith('data:')||String(avatar).startsWith('http')?`<img src="${avatar}" alt="">`:avatar)}</div>
-      <div class="v35-person"><strong>${name}</strong><small>${pos} • ${age} lat</small></div>
-      <div class="v35-stats">
-        <div><small>OVR</small><b>${ovr}</b></div>
-        <div><small>ZDROWIE</small><b>${health}</b></div>
-        <div><small>KASA</small><b>€${money}</b></div>
-      </div>
-    </header>`;
-    document.body.prepend(e);
-  }
-
-  function bottom(){
-    document.querySelectorAll('.fl27-v35-bottom').forEach(e=>e.remove());
-    const e=document.createElement('div');
-    e.className='fl27-v35-bottom';
-    e.innerHTML=`<nav class="v35-nav">${nav.map((n,i)=>`
-      <button type="button" class="${i===0?'active':''}" onclick="${n[2]}">
-        <span>${ICONS[n[0]]}</span><b>${n[1]}</b>
-      </button>`).join('')}</nav>`;
-    document.body.appendChild(e);
-  }
-
-  function mount(){top();bottom();}
-  if(window.render&&!window.__FL27_V35_RENDER){
-    const old=window.render; window.__FL27_V35_RENDER=true;
-    window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(mount);return r;};
-  }
-  setTimeout(mount,100);
 })();
 </script>
 <script id="fl27-final-clean">
@@ -8756,8 +8589,8 @@ function header(){
 function main(){let m=document.getElementById("flc-main");if(!m){m=document.createElement("main");m.id="flc-main";document.body.appendChild(m)}return m}
 function drawer(){
  let d=document.getElementById("flc-drawer");if(d)return d;
- d=document.createElement("aside");d.id="flc-drawer";d.innerHTML=`<button id="flc-toggle">☰ <b>KATALOG GRY</b></button><div id="flc-list">${NAV.map((n,i)=>`${i===8?'<div class="flc-divider"></div>':""}<button class="flc-nav" data-tab="${n[0]}"><span class="ni">${n[1]}</span><b>${n[2]}</b></button>`).join("")}</div>`;document.body.appendChild(d);
- d.querySelector("#flc-toggle").onclick=()=>d.classList.toggle("open");d.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{canonicalTab=b.dataset.tab;render();if(innerWidth<700)d.classList.remove("open")});return d;
+ d=document.createElement("aside");d.id="flc-drawer";d.innerHTML=`<button id="flc-toggle" type="button"><span class="ni">${window.FL27_ICON?.("activity")||"☰"}</span><b>KATALOG GRY</b></button><div id="flc-list">${NAV.map((n,i)=>`${i===8?'<div class="flc-divider"></div>':""}<button class="flc-nav" type="button" data-tab="${n[0]}" title="${n[2]}"><span class="ni">${window.FL27_ICON?.({"home":"home","day":"clock","career":"ball","life":"heart","family":"family","history":"book","careerStats":"chart","store":"shop","social":"activity","wealth":"chart","settings":"settings"}[n[0]])||n[1]}</span><b>${n[2]}</b></button>`).join("")}</div>`;document.body.appendChild(d);
+ d.querySelector("#flc-toggle").onclick=()=>{d.classList.toggle("open");document.body.classList.toggle("fl27-drawer-open",d.classList.contains("open"))};d.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{canonicalTab=b.dataset.tab;render();document.body.classList.remove("fl27-drawer-open");d.classList.remove("open")});return d;
 }
 function cleanLegacy(){document.querySelectorAll(".v20-hub-overlay,#fl110-header,#nav,#fl110-tutorial-fallback,#fl110-activity-fallback").forEach(x=>x.remove())}
 function activity(k){
@@ -8767,8 +8600,7 @@ function activity(k){
 function home(){
  const s=W.S||{},h=Number(s.hour??8),last=s.logs?.[0];
  const acts=[["training","⚽","Trening","2h • rozwój i forma"],["homework","📚","Nauka","1,5h • szkoła"],["friends","👥","Znajomi","2h • relacje"],["family","❤️","Rodzina","2h • relacje"],["hobby","🎵","Hobby","1h • rozwój"],["bike","🚲","Rower","2h • zdrowie"],["pool","🏊","Basen","2h • regeneracja"],["free","🎮","Czas wolny","2h • odpoczynek"],["recovery","🧘","Regeneracja","1h • zdrowie"],["city","🏙️","Miasto","3h • życie"],["reading","📖","Czytanie","1h • nauka"],["walk","🚶","Spacer","1h • zdrowie"],["job","💼","Drobna praca","2h • pieniądze"],["match","⚽","Mecz","terminarz"],["sleep","🌙","Sen","od 22:00"]];
- return `<section class="flc-card flc-hero"><div class="flc-k">FOOTBALL LIFE 27</div><h1 class="flc-title">${esc(nm())}</h1><p class="flc-muted">${esc(s.pos||"—")} • ${Number(s.age||15)} lat • ${esc(s.club||"Bez klubu")}</p></section>
- <section class="flc-card"><div class="flc-k">🔔 OSTATNIE WYDARZENIE</div><h2>${esc(last?.text||"Twoja historia dopiero się zaczyna.")}</h2><p class="flc-muted">Wydarzenia wynikają z czasu, decyzji, relacji i historii zawodnika.</p></section>
+ return `<section class="flc-card" style="margin-top:8px"><div class="flc-k">🔔 OSTATNIE WYDARZENIE</div><h2>${esc(last?.text||"Twoja historia dopiero się zaczyna.")}</h2><p class="flc-muted">Wydarzenia wynikają z czasu, decyzji, relacji i historii zawodnika.</p></section>
  <div class="flc-section"><b>CO ROBISZ TERAZ?</b><span>🕐 ${String(h).padStart(2,"0")}:00 • do 22:00</span></div>
  <section class="flc-actions">${acts.map(a=>`<button class="flc-act" data-act="${a[0]}"><b>${a[1]} ${a[2]}</b><small>${a[3]}</small></button>`).join("")}</section>`;
 }
@@ -8878,14 +8710,49 @@ function drawer(){
  });
 }
 
+const ACTIVITY_CATALOG={
+ training:{icon:"⚽",name:"Trening piłkarski",time:2,cost:0,energy:-16,health:-1,mental:3,happiness:2,skill:2,form:3,desc:"Rozwój umiejętności i formy"},
+ homework:{icon:"📚",name:"Nauka",time:1.5,cost:0,energy:-9,health:0,mental:4,happiness:-1,skill:0,desc:"Szkoła, wiedza i przyszłość"},
+ friends:{icon:"👥",name:"Znajomi",time:2,cost:5,energy:-8,health:0,mental:5,happiness:7,desc:"Relacje i dobre samopoczucie"},
+ family:{icon:"❤️",name:"Rodzina",time:2,cost:0,energy:-6,health:1,mental:6,happiness:6,desc:"Budowanie więzi rodzinnych"},
+ hobby:{icon:"🎵",name:"Hobby",time:1,cost:10,energy:-5,health:0,mental:4,happiness:6,desc:"Rozwój poza futbolem"},
+ bike:{icon:"🚲",name:"Rower",time:1.5,cost:0,energy:-12,health:4,mental:2,happiness:3,form:1,desc:"Ruch, zdrowie i forma"},
+ pool:{icon:"🏊",name:"Basen",time:1.5,cost:8,energy:-10,health:6,mental:3,happiness:3,form:1,desc:"Regeneracja i kondycja"},
+ free:{icon:"🎮",name:"Czas wolny",time:2,cost:0,energy:3,health:0,mental:6,happiness:8,desc:"Odpoczynek i reset głowy"},
+ recovery:{icon:"🧘",name:"Regeneracja",time:1,cost:0,energy:8,health:7,mental:5,happiness:2,form:1,desc:"Odzyskiwanie energii i zdrowia"},
+ city:{icon:"🏙️",name:"Wyjście do miasta",time:3,cost:20,energy:-10,health:0,mental:6,happiness:8,pr:1,desc:"Doświadczenia, ludzie i nowe możliwości"},
+ reading:{icon:"📖",name:"Czytanie",time:1,cost:0,energy:-3,health:0,mental:5,happiness:2,desc:"Wiedza i rozwój osobisty"},
+ walk:{icon:"🚶",name:"Spacer",time:1,cost:0,energy:-4,health:3,mental:4,happiness:4,desc:"Lekki ruch i świeże powietrze"},
+ job:{icon:"💼",name:"Drobna praca",time:2,cost:0,energy:-12,health:-1,mental:-1,happiness:1,money:35,desc:"Mały zarobek poza boiskiem"},
+ gym:{icon:"🏋️",name:"Siłownia",time:1.5,cost:5,energy:-14,health:3,mental:2,happiness:2,form:2,desc:"Siła, kondycja i forma"},
+ run:{icon:"🏃",name:"Bieg",time:1,cost:0,energy:-11,health:4,mental:3,happiness:3,form:2,desc:"Kondycja i wydolność"},
+ stretch:{icon:"🤸",name:"Rozciąganie",time:.5,cost:0,energy:2,health:4,mental:3,happiness:2,form:1,desc:"Mobilność i regeneracja"},
+ meal:{icon:"🍽️",name:"Posiłek",time:.5,cost:12,energy:8,health:2,mental:1,happiness:3,desc:"Jedzenie i odzyskanie energii"},
+ cinema:{icon:"🎬",name:"Kino",time:2.5,cost:18,energy:-3,health:0,mental:5,happiness:9,desc:"Rozrywka i odpoczynek"},
+ gaming:{icon:"🎮",name:"Wieczór z grami",time:2,cost:0,energy:-2,health:0,mental:5,happiness:7,desc:"Rozrywka i relaks"},
+ social:{icon:"📱",name:"FLgram / social media",time:1,cost:0,energy:-2,health:0,mental:2,happiness:3,pr:2,desc:"Budowanie obecności i PR"},
+ volunteer:{icon:"🤝",name:"Pomoc innym",time:2,cost:0,energy:-8,health:0,mental:6,happiness:7,pr:2,desc:"Relacje, charakter i reputacja"}
+};
+
+function fmtHours(v){
+ return Number.isInteger(v)?`${v}h`:`${String(v).replace(".",",")}h`;
+}
+function effectLine(a){
+ const e=[];
+ if(a.energy)e.push(`${a.energy>0?"+":""}${a.energy} energii`);
+ if(a.health)e.push(`${a.health>0?"+":""}${a.health} zdrowia`);
+ if(a.form)e.push(`${a.form>0?"+":""}${a.form} formy`);
+ if(a.skill)e.push(`${a.skill>0?"+":""}${a.skill} OVR`);
+ if(a.happiness)e.push(`${a.happiness>0?"+":""}${a.happiness} szczęścia`);
+ if(a.mental)e.push(`${a.mental>0?"+":""}${a.mental} mentalu`);
+ if(a.pr)e.push(`+${a.pr} PR`);
+ if(a.money)e.push(`+€${a.money}`);
+ return e.slice(0,4).join(" • ");
+}
+
 function activity(k){
- const s=S();
- if(k==="training"){
-   if(typeof window.train==="function")window.train(true);
-   else if(typeof window.startTraining==="function")window.startTraining();
-   else toast("Trening jest chwilowo niedostępny.");
-   return;
- }
+ const s=S(),a=ACTIVITY_CATALOG[k];
+ if(!a)return;
  if(k==="match"){
    if(typeof window.playMatch==="function")window.playMatch();
    else toast("Brak meczu zaplanowanego na tę chwilę.");
@@ -8896,65 +8763,65 @@ function activity(k){
    else if(typeof window.advance==="function"){window.advance(8);window.saveSoon?.();render();}
    return;
  }
- const data={
-  homework:["📚 Nauka",1.5,1,0,2],friends:["👥 Znajomi",2,2,2,0],family:["❤️ Rodzina",2,2,3,0],
-  hobby:["🎵 Hobby",1,2,2,0],bike:["🚲 Rower",2,2,2,0],pool:["🏊 Basen",2,3,2,0],
-  free:["🎮 Czas wolny",2,3,3,0],recovery:["🧘 Regeneracja",1,4,3,0],
-  city:["🏙️ Miasto",3,2,2,0],reading:["📖 Czytanie",1,2,2,0],walk:["🚶 Spacer",1,2,2,0],
-  job:["💼 Drobna praca",2,1,1,0]
- }[k];
- if(!data)return;
  const h=Number(s.hour??8);
- if(h+data[1]>22){toast("Nie masz już wystarczająco czasu przed snem.");return}
- if(Number(s.money||0)<data[4]){toast("Nie masz wystarczająco pieniędzy.");return}
- s.money=Number(s.money||0)-data[4];
- s.energy=Math.max(0,Math.min(100,Number(s.energy||0)-data[1]*7));
- s.health=Math.max(0,Math.min(100,Number(s.health||0)+data[3]));
- s.mental=Math.max(0,Math.min(100,Number(s.mental||0)+data[2]));
- s.happiness=Math.max(0,Math.min(100,Number(s.happiness||0)+data[2]));
- if(typeof window.advance==="function")window.advance(data[1]);
- if(typeof window.log==="function")window.log(data[0]+" • "+data[1]+"h");
- window.saveSoon?.();render();
+ if(h+a.time>22){
+   toast(`Za mało czasu. Ta aktywność zajmuje ${fmtHours(a.time)}.`);
+   return;
+ }
+ if(Number(s.money||0)<Number(a.cost||0)){
+   toast(`Potrzebujesz €${a.cost} na tę aktywność.`);
+   return;
+ }
+ s.money=Number(s.money||0)-Number(a.cost||0);
+ s.energy=Math.max(0,Math.min(100,Number(s.energy||0)+Number(a.energy||0)));
+ s.health=Math.max(0,Math.min(100,Number(s.health||0)+Number(a.health||0)));
+ s.mental=Math.max(0,Math.min(100,Number(s.mental||0)+Number(a.mental||0)));
+ s.happiness=Math.max(0,Math.min(100,Number(s.happiness||0)+Number(a.happiness||0)));
+ s.form=Math.max(0,Math.min(100,Number(s.form||0)+Number(a.form||0)));
+ s.skill=Math.max(0,Math.min(100,Number(s.skill||0)+Number(a.skill||0)));
+ s.pr=Math.max(0,Number(s.pr||0)+Number(a.pr||0));
+ if(a.money)s.money+=a.money;
+ s.totalEarned=Number(s.totalEarned||0)+(a.money||0);
+ s.totalSpent=Number(s.totalSpent||0)+(a.cost||0);
+ if(typeof window.advance==="function")window.advance(a.time);
+ if(typeof window.log==="function")window.log(`${a.icon} ${a.name} • ${fmtHours(a.time)}${a.cost?` • koszt €${a.cost}`:""}`);
+ window.saveSoon?.();
+ render();
 }
+
 function toast(t){if(typeof window.toast==="function")window.toast(t);else alert(t)}
 
 function home(){
- const s=S(),hour=Number(s.hour??8),last=s.logs?.[0], ev=last?.text||last?.message||"Twoja historia dopiero się zaczyna.";
- return `<section class="flc-card flc-hero">
-  <div class="flc-k">FOOTBALL LIFE 27</div>
-  <h1 class="flc-title">${E(player())}</h1>
-  <p class="flc-muted">Piłkarz • ${E(pos())} • ${E(club())} • ${age()} lat</p>
-  <div class="flc-profile-strip">
-   <span class="flc-pill">⭐ OVR <b>${Math.round(Number(s.skill||s.ovr||0))}</b></span>
-   <span class="flc-pill">❤️ Zdrowie <b>${Math.round(Number(s.health||0))}</b></span>
-   <span class="flc-pill">⚡ Energia <b>${Math.round(Number(s.energy||0))}</b></span>
-   <span class="flc-pill">💰 <b>€${Math.floor(Number(s.money||0))}</b></span>
-  </div>
- </section>
- <section class="flc-card flc-event">
+ const s=S(),hour=Number(s.hour??8),last=s.logs?.[0],ev=last?.text||last?.message||"Twoja historia dopiero się zaczyna.";
+ const keys=["training","homework","friends","family","hobby","bike","pool","free","recovery","city","reading","walk","job","gym","run","stretch","meal","cinema","gaming","social","volunteer"];
+ const acts=keys.map(k=>[k,ACTIVITY_CATALOG[k]]).filter(([,a])=>a);
+ const available=Math.max(0,22-hour);
+ const timeLabel=available===1?"1 godzina":available<5?`${String(available).replace(".",",")} godziny`:`${String(available).replace(".",",")} godzin`;
+ return `<section class="flc-card flc-event" style="margin-top:8px">
   <div class="event-meta">🔔 OSTATNIE WYDARZENIE • DZIEŃ ${Number(s.day||1)}</div>
   <h2>${E(ev)}</h2>
-  <div class="event-body">${E(last?.detail||last?.description||"To wydarzenie zostaje zapisane w historii i może wpływać na kolejne decyzje.")}</div>
+  <div class="event-body">${E(last?.detail||last?.description||"Wydarzenia wynikają z czasu, decyzji, relacji i wcześniejszych decyzji.")}</div>
  </section>
- <div class="flc-section"><b>CO ROBISZ TERAZ?</b><span>🕐 ${String(Math.floor(hour)).padStart(2,"0")}:00 • dostępny czas</span></div>
- <section class="flc-home-grid">
-  ${[
-   ["training","⚽","Trening","Rozwój sportowy"],
-   ["homework","📚","Nauka","Szkoła i przyszłość"],
-   ["friends","👥","Znajomi","Relacje"],
-   ["family","❤️","Rodzina","Bliscy"],
-   ["hobby","🎵","Hobby","Życie poza boiskiem"],
-   ["bike","🚲","Aktywność","Ruch i zdrowie"],
-   ["pool","🏊","Basen","Regeneracja"],
-   ["free","🎮","Czas wolny","Odpoczynek"],
-   ["recovery","🧘","Regeneracja","Odzyskaj energię"],
-   ["city","🏙️","Wyjście","Życie i doświadczenia"],
-   ["reading","📖","Czytanie","Rozwój"],
-   ["walk","🚶","Spacer","Lekka aktywność"],
-   ["job","💼","Drobna praca","Zarobek poza boiskiem"],
-   ["match","⚽","Mecz","Tylko jeśli masz mecz"],
-   ["sleep","🌙","Sen","Zakończ dzień"]
-  ].map(a=>`<button class="flc-act" data-act="${a[0]}"><b>${a[1]} ${a[2]}</b><small>${a[3]}</small></button>`).join("")}
+ <section class="flc-time-card">
+   <div><span class="flc-k">🕐 TWÓJ DZIEŃ</span><strong>${String(hour).padStart(2,"0")}:00</strong></div>
+   <div class="flc-time-meta">Dzień ${Number(s.day||1)} • do 22:00 zostało <b>${timeLabel}</b></div>
+   <div class="flc-timebar"><i style="width:${Math.max(0,Math.min(100,((hour-6)/16)*100))}%"></i></div>
+ </section>
+ <div class="flc-section"><b>CO ROBISZ TERAZ?</b><span>Wybierz aktywność — każda zmienia czas i Twoje życie.</span></div>
+ <section class="flc-home-grid fl27-activity-grid">
+ ${acts.map(([k,a])=>{
+   const can=hour+a.time<=22 && Number(s.money||0)>=Number(a.cost||0);
+   return `<button class="flc-act fl27-activity-card ${can?"":"disabled"}" data-act="${k}" ${can?"":"aria-disabled=\"true\""}>
+    <div class="act-top"><b>${a.icon} ${a.name}</b><span>${fmtHours(a.time)}</span></div>
+    <small>${E(a.desc)}</small>
+    <div class="act-meta"><span>${a.cost?`💰 €${a.cost}`:"🆓 bez kosztu"}</span><span>${E(effectLine(a))}</span></div>
+   </button>`;
+ }).join("")}
+ <button class="flc-act fl27-activity-card" data-act="sleep">
+   <div class="act-top"><b>🌙 Sen</b><span>do rana</span></div>
+   <small>Zakończ dzień i odzyskaj energię.</small>
+   <div class="act-meta"><span>🕙 od 22:00</span><span>❤️ regeneracja • ⚡ energia</span></div>
+ </button>
  </section>`;
 }
 
@@ -9029,5 +8896,96 @@ window.FL27_HOME=()=>{tab="home";render()};
 setTimeout(render,40);
 })();
 </script>
+
+<style id="fl27-v173-layout-guard">
+/* V173 — one canonical chrome. The drawer never sits on top of readable game text. */
+#flc-drawer{
+  right:0!important;
+  z-index:2147483647!important;
+  max-height:calc(100vh - 20px)!important;
+  overflow-y:auto!important;
+  scrollbar-width:none!important;
+}
+#flc-drawer::-webkit-scrollbar{display:none!important}
+#flc-drawer.open{
+  width:min(225px,82vw)!important;
+}
+/* When the catalogue is open, the game canvas reserves its width. */
+body.fl27-drawer-open #flc-main{
+  width:calc(min(980px,100vw - 24px) - min(225px,82vw) - 12px)!important;
+  margin-left:12px!important;
+  margin-right:calc(min(225px,82vw) + 0px)!important;
+  transition:width .2s ease,margin .2s ease!important;
+}
+body.fl27-drawer-open #flc-top{
+  width:calc(min(980px,100vw - 14px) - min(225px,82vw) - 12px)!important;
+  margin-left:6px!important;
+  margin-right:calc(min(225px,82vw) + 0px)!important;
+  transition:width .2s ease,margin .2s ease!important;
+}
+#flc-drawer .ni{
+  width:21px!important;height:21px!important;display:flex!important;
+  align-items:center!important;justify-content:center!important;flex:0 0 21px!important;
+}
+#flc-drawer .ni svg{
+  width:21px!important;height:21px!important;fill:none!important;
+  stroke:currentColor!important;stroke-width:1.8!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#flc-drawer .flc-nav b,#flc-drawer #flc-toggle b{
+  white-space:nowrap!important;
+}
+/* The old bottom UI is gone; never reserve space for it. */
+.v27-bottom,.fl27-v27-extra,.fl27-v35-bottom,.fl27-v35-top{display:none!important}
+@media(max-width:520px){
+  #flc-drawer.open{width:178px!important}
+  body.fl27-drawer-open #flc-main{
+    width:calc(100vw - 190px)!important;
+    margin-left:6px!important;margin-right:184px!important;
+  }
+  body.fl27-drawer-open #flc-top{
+    width:calc(100vw - 190px)!important;
+    margin-left:6px!important;margin-right:184px!important;
+  }
+  #flc-drawer .flc-nav b,#flc-drawer #flc-toggle b{font-size:8px!important}
+}
+</style>
+
+
+<style id="fl27-v174-activity-ui">
+.flc-time-card{
+  margin:14px 0 18px;padding:16px 18px;border:1px solid rgba(205,163,57,.34);
+  border-radius:20px;background:linear-gradient(145deg,rgba(28,25,20,.96),rgba(17,20,27,.96));
+}
+.flc-time-card>div:first-child{display:flex;align-items:end;justify-content:space-between;gap:12px}
+.flc-time-card strong{font-size:28px;letter-spacing:.5px}
+.flc-time-meta{margin-top:6px;color:#9ea4b0;font-size:13px}
+.flc-timebar{height:5px;border-radius:99px;background:#252833;margin-top:12px;overflow:hidden}
+.flc-timebar i{display:block;height:100%;background:#d6ad4b;border-radius:99px}
+.fl27-activity-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important}
+.fl27-activity-card{
+  text-align:left!important;min-height:128px!important;padding:15px!important;
+  border-radius:18px!important;background:#151923!important;
+  border:1px solid rgba(255,255,255,.10)!important;transition:.15s ease!important;
+}
+.fl27-activity-card:not(.disabled):active{transform:scale(.985)!important}
+.fl27-activity-card.disabled{opacity:.42!important;filter:saturate(.5);cursor:not-allowed!important}
+.fl27-activity-card .act-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.fl27-activity-card .act-top b{font-size:15px;line-height:1.25}
+.fl27-activity-card .act-top span{
+  flex:0 0 auto;font-size:12px;color:#d7b65d;font-weight:700;
+  background:rgba(214,173,75,.10);padding:4px 7px;border-radius:8px
+}
+.fl27-activity-card small{display:block;margin-top:8px;color:#969da9;font-size:12px;line-height:1.35}
+.fl27-activity-card .act-meta{
+  display:flex;flex-direction:column;gap:4px;margin-top:10px;padding-top:9px;
+  border-top:1px solid rgba(255,255,255,.07);font-size:10.5px;color:#b8bec9;line-height:1.35
+}
+@media(max-width:520px){
+ .fl27-activity-grid{grid-template-columns:1fr!important}
+ .fl27-activity-card{min-height:112px!important}
+}
+</style>
+
 </body>
 </html>
