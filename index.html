@@ -2074,47 +2074,32 @@ function renderWealth(m){
   </section>`;
 }
 function renderCareerHistory(m){
-  ensureCareerStats();
-  const c=S.careerStats.career, seasons=S.careerStats.seasons;
-  const seasonRows=seasons.length?seasons.slice().reverse().map(s=>`
-    <div class="card">
-      <div class="section-title"><b>${esc(String(s.year))} • ${esc(s.club||"Klub")}</b><span>${s.apps} wyst.</span></div>
-      <div class="row"><span>Minuty</span><b>${s.minutes}</b></div>
-      <div class="row"><span>Gole</span><b>${s.goals}</b></div>
-      <div class="row"><span>Asysty</span><b>${s.assists}</b></div>
-      <div class="row"><span>Żółte / czerwone</span><b>${s.yellow} / ${s.red}</b></div>
-      <div class="row"><span>Czyste konta</span><b>${s.cleanSheets}</b></div>
-      <div class="row"><span>Karne</span><b>${s.penaltiesScored} trafione / ${s.penaltiesMissed} nietrafione</b></div>
-      <div class="row"><span>Samobójcze</span><b>${s.ownGoals}</b></div>
-      ${s.trophies?.length?`<div class="pills">${s.trophies.map(t=>`<span class="pill">🏆 ${esc(t)}</span>`).join("")}</div>`:""}
-    </div>`).join(""):`<div class="notice">📖 Profesjonalna historia jeszcze się nie rozpoczęła. Mecze młodzieżowe mogą być zapisywane osobno, a statystyki seniorskie zaczną się od pierwszego profesjonalnego występu.</div>`;
-  m.innerHTML=`<div class="card hero">
-    <div class="kicker">📊 HISTORIA KARIERY</div><h1>Twoje liczby</h1>
-    <p>Każdy profesjonalny mecz będzie aktualizował statystyki. Bez resetowania przy transferze.</p>
-    <div class="pills"><span class="pill">⚽ ${c.goals} goli</span><span class="pill">🎯 ${c.assists} asyst</span><span class="pill">🟨 ${c.yellow}</span><span class="pill">🟥 ${c.red}</span></div>
-  </div>
-  <div class="card">
-    <div class="section-title"><b>🏆 Kariera — łącznie</b><span>${c.apps} występów</span></div>
-    <div class="row"><span>Występy</span><b>${c.apps}</b></div>
-    <div class="row"><span>Podstawowy skład</span><b>${c.starts}</b></div>
-    <div class="row"><span>Minuty</span><b>${c.minutes}</b></div>
-    <div class="row"><span>Gole</span><b>${c.goals}</b></div>
-    <div class="row"><span>Asysty</span><b>${c.assists}</b></div>
-    <div class="row"><span>Żółte kartki</span><b>${c.yellow}</b></div>
-    <div class="row"><span>Czerwone kartki</span><b>${c.red}</b></div>
-    <div class="row"><span>Czyste konta</span><b>${c.cleanSheets}</b></div>
-    <div class="row"><span>Karne</span><b>${c.penaltiesScored} / ${c.penaltiesMissed}</b></div>
-    <div class="row"><span>Samobójcze</span><b>${c.ownGoals}</b></div>
-  </div>
-  <div class="card">
-    <div class="section-title"><b>🏅 Nagrody i trofea</b><span>${S.careerStats.awards.length}</span></div>
-    ${S.careerStats.awards.length?S.careerStats.awards.slice().reverse().map(a=>`<div class="log"><em>${esc(String(a.season||""))}</em>🏆 ${esc(a.name)}</div>`).join(""):`<div class="empty">Jeszcze żadnych nagród. Najpierw trzeba na nie zapracować.</div>`}
-    ${S.careerStats.trophies.length?`<div class="pills">${S.careerStats.trophies.map(t=>`<span class="pill">🏆 ${esc(t)}</span>`).join("")}</div>`:""}
-  </div>
-  ${seasonRows}`;
+ ensureCareerStats();
+ const cs=S.careerStats||{}, c=cs.career||{}, seasons=Array.isArray(cs.seasons)?cs.seasons:[],
+ awards=Array.isArray(cs.awards)?cs.awards:[], trophies=Array.isArray(cs.trophies)?cs.trophies:[],
+ nt=cs.nationalTeam||{apps:0,goals:0,assists:0,country:"—",tournaments:[]};
+ const clubs={};
+ seasons.forEach(x=>{const k=x.club||"Nieznany klub";clubs[k]??={club:k,seasons:0,apps:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,trophies:[]};
+  const q=clubs[k];q.seasons++;q.apps+=+x.apps||0;q.minutes+=+x.minutes||0;q.goals+=+x.goals||0;q.assists+=+x.assists||0;q.yellow+=+x.yellow||0;q.red+=+x.red||0;q.cleanSheets+=+x.cleanSheets||0;
+  if(Array.isArray(x.trophies))q.trophies.push(...x.trophies);
+ });
+ const clubCards=Object.values(clubs).map(x=>`<div class="card"><div class="section-title"><b>🏟️ ${esc(x.club)}</b><span>${x.seasons} ${x.seasons===1?"sezon":"sezony"}</span></div>
+ <div class="row"><span>Występy / minuty</span><b>${x.apps} / ${x.minutes}</b></div><div class="row"><span>Gole / asysty</span><b>${x.goals} / ${x.assists}</b></div>
+ <div class="row"><span>Żółte / czerwone</span><b>${x.yellow} / ${x.red}</b></div><div class="row"><span>Czyste konta</span><b>${x.cleanSheets}</b></div>
+ ${x.trophies.length?`<div class="pills">${x.trophies.map(t=>`<span class="pill">🏆 ${esc(t)}</span>`).join("")}</div>`:""}</div>`).join("");
+ const trophyRows=trophies.map(t=>typeof t==="string"?`<div class="trophy-row"><span>🏆</span><div><b>${esc(t)}</b><small>zdobyte w karierze</small></div></div>`:
+ `<div class="trophy-row"><span>🏆</span><div><b>${esc(t.name||"Trofeum")}</b><small>${esc(t.year||t.season||"—")} • ${esc(t.club||"—")} ${t.reason?`• ${esc(t.reason)}`:""}</small></div></div>`).join("");
+ m.innerHTML=`<div class="card hero"><div class="kicker">📊 STATYSTYKI KARIERY</div><h1>Cała kariera</h1><p>Historia nie znika po transferze.</p>
+ <div class="pills"><span class="pill">⚽ ${+c.goals||0} goli</span><span class="pill">🎯 ${+c.assists||0} asyst</span><span class="pill">👕 ${+c.apps||0} występów</span><span class="pill">⏱️ ${+c.minutes||0} min</span></div></div>
+ <div class="card"><div class="section-title"><b>🌍 ŁĄCZNIE</b><span>wszystkie kluby</span></div>
+ ${[["apps","Występy"],["starts","Podstawowy skład"],["minutes","Minuty"],["goals","Gole"],["assists","Asysty"],["yellow","Żółte kartki"],["red","Czerwone kartki"],["cleanSheets","Czyste konta"],["penaltiesScored","Karne trafione"],["penaltiesMissed","Karne nietrafione"],["ownGoals","Samobójcze"]].map(x=>`<div class="row"><span>${x[1]}</span><b>${+c[x[0]]||0}</b></div>`).join("")}</div>
+ <div class="card"><div class="section-title"><b>🌍 REPREZENTACJA</b><span>${esc(nt.country||"—")}</span></div>
+ <div class="row"><span>Występy</span><b>${+nt.apps||0}</b></div><div class="row"><span>Gole / asysty</span><b>${+nt.goals||0} / ${+nt.assists||0}</b></div>
+ ${(nt.tournaments||[]).map(t=>`<div class="notice">🌍 ${esc(t.name||t)} ${t.result?`• ${esc(t.result)}`:""}</div>`).join("")||"<div class='notice'>Historia reprezentacyjna pojawi się po pierwszym powołaniu.</div>"}</div>
+ <div class="card"><div class="section-title"><b>🏆 GABLOTA TROFEÓW</b><span>${trophies.length}</span></div>${trophyRows||"<div class='notice'>Gablota jest jeszcze pusta. Każde trofeum zapisze się z rokiem, klubem i powodem zdobycia.</div>"}</div>
+ <div class="card"><div class="section-title"><b>🏅 NAGRODY INDYWIDUALNE</b><span>${awards.length}</span></div>${awards.slice().reverse().map(a=>`<div class="trophy-row"><span>🥇</span><div><b>${esc(a.name||a)}</b><small>${esc(a.season||a.year||"—")} ${a.club?`• ${esc(a.club)}`:""} ${a.reason?`• ${esc(a.reason)}`:""}</small></div></div>`).join("")||"<div class='notice'>Brak nagród indywidualnych.</div>"}</div>
+ <div class="card"><div class="section-title"><b>🏟️ KAŻDY KLUB OSOBNO</b><span>${Object.keys(clubs).length}</span></div>${clubCards||"<div class='notice'>Pierwszy klub pojawi się po rozpoczęciu kariery.</div>"}</div>`;
 }
-
-
 const STORE_ITEMS={
  homes:[
   {id:"apt_basic",cat:"home",name:"Małe mieszkanie",price:65000,boost:{mental:1}},
@@ -3404,7 +3389,12 @@ function renderSettings(m){
   <button class="action" onclick="FL27_setDatingPreference('none')"><b>🚫 Nie chcę randkować</b></button>
   <button class="action" onclick="FL27_setDatingPreference('later')"><b>⏳ Jeszcze nie wiem</b></button>
  </div>
- <div class="card"><div class="section-title"><b>🛠️ NAPRAW GRĘ</b><span>bez kasowania kariery</span></div>
+ <div class="card"><div class="section-title"><b>🧪 SZYBKI TEST KATALOGÓW</b><span>bez resetowania</span></div>
+<p class="sub">Otwieraj katalogi po kolei i sprawdzaj ich działanie. Nie zmienia to kariery.</p>
+<div class="fl27-test-grid">
+${[["day","🕐 Przebieg dnia"],["career","⚽ Kariera"],["careerStats","📊 Statystyki kariery"],["life","🌍 Życie"],["family","👨‍👩‍👧 Rodzina"],["history","📖 Historia decyzji"],["relations","🤝 Relacje"],["social","📱 FLgram"],["wealth","💰 Finanse"],["store","🏙️ Sklep i wydatki"],["settings","⚙️ Ustawienia"]].map(x=>`<button class="action" onclick="go('${x[0]}')"><b>${x[1]}</b><small>Otwórz katalog</small></button>`).join("")}
+</div></div>
+<div class="card"><div class="section-title"><b>🛠️ NAPRAW GRĘ</b><span>bez kasowania kariery</span></div>
   <button class="action" onclick="FL27_repairGame()"><b>🔧 Napraw / odśwież zapis</b><small>uzupełnia brakujące struktury danych i nie restartuje kariery</small></button>
  </div>
  <div class="card"><div class="section-title"><b>📖 KODEKS</b><span>instrukcja świata</span></div>
@@ -13553,6 +13543,12 @@ if(typeof window.sleepAndAdvance==="function"){
 .family-parent-finance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .parent-finance-box{padding:12px;border:1px solid rgba(212,166,72,.28);border-radius:14px;background:rgba(212,166,72,.06)}
 @media(max-width:700px){.family-parent-finance{grid-template-columns:1fr}}
+</style>
+<style id="fl27-catalog-final-style">
+.trophy-row{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.trophy-row>span{font-size:1.35rem}.trophy-row small{display:block;opacity:.68;margin-top:3px}
+.fl27-test-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(max-width:700px){.fl27-test-grid{grid-template-columns:1fr}}
 </style>
 </body>
 </html>
