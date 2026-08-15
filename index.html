@@ -9348,26 +9348,54 @@ function sleepAndAdvance(){
  const s=S();
  ensureCalendar(s);
  const h=Math.round(Number(s.hour??8));
+
  if(h<22){
-   toast("Sen będzie dostępny od 22:00. Masz jeszcze czas na aktywność.");
-   return;
+   toast(`Sen jest dostępny od 22:00. Masz jeszcze ${Math.max(0,22-h)} h.`);
+   return false;
  }
+
+ /* ONE canonical sleep transition:
+    22:00 (or later) -> 08:00 next real calendar day.
+    No second advance()/sleep() engine is used here. */
  s.energy=Math.min(100,Number(s.energy||0)+45);
  s.health=Math.min(100,Number(s.health||0)+8);
  s.form=Math.min(100,Number(s.form||0)+2);
  s.mental=Math.min(100,Number(s.mental||0)+8);
  s.happiness=Math.min(100,Number(s.happiness||0)+4);
+
+ const d=gameDateObj(s);
+ d.setDate(d.getDate()+1);
+ s.gameDate=d.toISOString().slice(0,10);
+ s.day=Math.max(1,Math.round(Number(s.day||1)))+1;
+ s.year=d.getFullYear();
+ s.month=d.getMonth()+1;
+ s.dayOfMonth=d.getDate();
  s.hour=8;
- advanceGameDate(s,1);
+ s.minute=0;
+ s.week=Math.floor((s.day-1)/7)+1;
+
+ /* New-day hooks are called once, after the date has actually changed. */
+ if(window.FL27_newWeek && s.day>1 && (s.day-1)%7===0) {
+   try{window.FL27_newWeek(s.week)}catch(e){}
+ }
+ if(window.FL27_unifiedTick)try{window.FL27_unifiedTick()}catch(e){}
+ if(window.FL27_familyArcTick)try{window.FL27_familyArcTick()}catch(e){}
+ if(window.FL27_familyLifeCheck)try{window.FL27_familyLifeCheck()}catch(e){}
  ensureSchoolCalendar(s);
+
  recordCanonicalLog(
    "🌙 Sen",
    "activity",
    `Koniec dnia. Pobudka o 08:00 • następny dzień: ${fmtGameDate(s)}.`
  );
+
  window.saveSoon?.();
  render();
+ return true;
 }
+
+/* Sleep has exactly one public entry point. */
+window.sleep=()=>sleepAndAdvance();
 
 
 function recordCanonicalLog(text,type="activity",detail=""){
@@ -10828,7 +10856,7 @@ body.fl27-drawer-open #flc-top{
   ["🧹 Dom i obowiązki","Własne mieszkanie wymaga utrzymania. Możesz sprzątać samodzielnie, dzielić obowiązki z partnerem albo zatrudnić pomoc."],
   ["⚙️ Ustawienia","Ustawienia zmieniają sposób działania/prezentacji gry, ale nie powinny tworzyć drugiego mechanizmu świata."],
   ["🛠️ Napraw grę","Naprawa odświeża warstwy interfejsu, uzupełnia brakujące dane i usuwa zablokowane okna. Nie kasuje kariery."],
-  ["📖 Historia decyzji","Wszystkie ważne decyzje i wydarzenia zostają zapisane z opisem sytuacji oraz konsekwencjami, żeby można było prześledzić całe życie zawodnika."],["🧠 Żyjący świat","Wcześniejsze wybory tworzą trwałe flagi świata. Dzięki nim kolejne wydarzenia mogą dostać nowe opcje, znikające opcje, inne wymagania albo zupełnie nowe ścieżki. Ten sam typ wydarzenia nie musi więc wyglądać tak samo drugi raz."]
+  ["📖 Historia decyzji","Wszystkie ważne decyzje i wydarzenia zostają zapisane z opisem sytuacji oraz konsekwencjami, żeby można było prześledzić całe życie zawodnika."],["🧠 Żyjący świat","Wcześniejsze wybory tworzą trwałe flagi świata. Dzięki nim kolejne wydarzenia mogą dostać nowe opcje, znikające opcje, inne wymagania albo zupełnie nowe ścieżki. Ten sam typ wydarzenia nie musi więc wyglądać tak samo drugi raz."],["🧠 Specjaliści i mental","Psycholog sportowy, lekarze, fizjoterapeuci, dietetycy i inni specjaliści wpływają na zdrowie, formę i mental. Stan psychiczny wynika również z treningu, relacji, popularności, pieniędzy, presji i wydarzeń."]
  ];
  window.FL27_showCodex=function(){
    document.querySelectorAll(".fl27-v198-overlay").forEach(x=>x.remove());
@@ -11018,7 +11046,31 @@ body.fl27-drawer-open #flc-top{
 </style>
 
 
+
+<style id="fl27-v200-sync-ui">
+.fl27-v200-decision{z-index:1000000}
+.fl27-v200-decision .choice{transition:transform .12s ease,border-color .12s ease}
+.fl27-v200-decision .choice:hover{transform:translateY(-1px)}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="fl27-v205-family">
+.fl27-family-note{font-size:8px;color:#858b95;line-height:1.45}
+</style>
+
 <script>
+/* FL27 V206 — ONE ACTIVE EXTENSION BUNDLE */
+
 /* ============================================================
  FL27 V200 — WORLD SYNCHRONIZATION LAYER
  One state -> one consequence ledger -> one event history.
@@ -11300,12 +11352,1188 @@ body.fl27-drawer-open #flc-top{
 
   FL27_syncWorld("boot");
 })();
-</script>
-<style id="fl27-v200-sync-ui">
-.fl27-v200-decision{z-index:1000000}
-.fl27-v200-decision .choice{transition:transform .12s ease,border-color .12s ease}
-.fl27-v200-decision .choice:hover{transform:translateY(-1px)}
-</style>
 
+
+/* ============================================================
+ FL27 V202 — CAREER / SCOUTING / FAMILY / POTENTIAL
+ Uses the same world state as V200/V201. No second game loop.
+ ============================================================ */
+(function(){
+"use strict";
+if(window.__FL27_V202__) return;
+window.__FL27_V202__=true;
+
+const S0=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const render=()=>{try{window.render?.()}catch(e){}};
+const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,n(v)));
+
+function ensure(){
+ const s=S0();
+ s.careerState ||= {};
+ s.careerState.offers ||= [];
+ s.careerState.scouts ||= [];
+ s.careerState.trials ||= [];
+ s.careerState.clubs ||= [];
+ s.careerState.contracts ||= [];
+ s.careerState.potential ||= {known:false,score:null,confidence:0,injuryRisk:null,assessedAt:null};
+ s.careerState.currentClub ||= null;
+
+ s.family ||= {};
+ s.family.parents ||= [];
+ s.family.guardians ||= [];
+ s.family.home ||= {};
+ s.family.parentalConsent ||= {status:"unknown",history:[]};
+
+ s.sponsorState ||= {active:[],offers:[],history:[]};
+ s.sponsorState.offers ||= [];
+ s.sponsorState.active ||= [];
+ s.sponsorState.history ||= [];
+
+ s.popularity=clamp(s.popularity);
+ s.image=clamp(s.image);
+ return s;
+}
+
+/* -------- GLOBAL CLUB WORLD -------- */
+window.FL27_worldClubs = [
+ ["Brazil","Coritiba","BRA"],["Brazil","Flamengo","BRA"],["Brazil","Palmeiras","BRA"],
+ ["Argentina","River Plate","ARG"],["Argentina","Boca Juniors","ARG"],
+ ["Spain","FC Barcelona","ESP"],["Spain","Real Madrid","ESP"],["Spain","Atlético Madrid","ESP"],
+ ["England","Arsenal","ENG"],["England","Chelsea","ENG"],["England","Liverpool","ENG"],["England","Manchester City","ENG"],
+ ["Germany","Bayern Munich","GER"],["Germany","Borussia Dortmund","GER"],
+ ["France","Paris Saint-Germain","FRA"],["France","Olympique Lyonnais","FRA"],
+ ["Italy","Inter","ITA"],["Italy","AC Milan","ITA"],["Italy","Juventus","ITA"],
+ ["Portugal","Benfica","POR"],["Portugal","Sporting CP","POR"],
+ ["Netherlands","Ajax","NED"],["Belgium","Anderlecht","BEL"],
+ ["Croatia","Dinamo Zagreb","CRO"],["Serbia","Red Star Belgrade","SRB"],
+ ["USA","LA Galaxy","USA"],["USA","Inter Miami","USA"],
+ ["Mexico","Club América","MEX"],["Japan","Kashima Antlers","JPN"],
+ ["South Korea","Jeonbuk Hyundai Motors","KOR"],["Australia","Sydney FC","AUS"],
+ ["Turkey","Galatasaray","TUR"],["Greece","Olympiacos","GRE"],
+ ["Scotland","Celtic","SCO"],["Austria","Red Bull Salzburg","AUT"],
+ ["Switzerland","FC Basel","SUI"],["Denmark","FC Copenhagen","DEN"],
+ ["Sweden","Malmö FF","SWE"],["Norway","Rosenborg","NOR"],
+ ["Poland","Lech Poznań","POL"],["Poland","Legia Warszawa","POL"],
+ ["Czechia","Sparta Prague","CZE"],["Ukraine","Shakhtar Donetsk","UKR"]
+];
+
+/* A club can refuse even a good player: age, finances, position,
+family/guardian consent, relocation and club-specific conditions matter. */
+window.FL27_generateClubOffer=function(){
+ const s=ensure();
+ const age=n(s.age,15);
+ if(age>=18) return FL27_generateAdultOffer();
+
+ /* By 17, at least one club must appear. After the tutorial, offers may
+    appear earlier, but their quality depends on development and context. */
+ const eligible=FL27_worldClubs.filter(c=>c[1]!==s.careerState.currentClub);
+ const club=eligible[Math.floor(Math.random()*eligible.length)];
+ const ovr=n(s.ovr,62);
+ const form=n(s.form,50);
+ const popularity=n(s.popularity,0);
+
+ let level="regional";
+ if(ovr>=70||form>=75) level="international";
+ if(ovr>=80) level="elite";
+ if(age>=17) level=level==="regional"?"professional":level;
+
+ const needsHousing = age<18 && Math.random()<0.55;
+ const guardianNeeded = age<18;
+ const travel = Math.random()<0.45;
+ const conditions=[];
+ if(needsHousing) conditions.push("zapewnienie mieszkania / zakwaterowania");
+ if(guardianNeeded) conditions.push("zgoda rodzica/opiekuna");
+ if(travel) conditions.push("przeprowadzka lub regularne podróże");
+ if(Math.random()<0.35) conditions.push("konkretny plan edukacji");
+
+ const offer={
+   id:"offer_"+Date.now()+"_"+Math.random().toString(36).slice(2,6),
+   club:club[1],country:club[0],code:club[2],level,
+   age,ovr,conditions,
+   status:"new",
+   expiresInDays:7,
+   source:Math.random()<0.55?"skaut":"obserwacja / przypadkowy kontakt",
+   createdAt:s.gameDate||"2026-08-30"
+ };
+ s.careerState.offers.push(offer);
+ s.careerState.scouts.push({
+   club:club[1],country:club[0],source:offer.source,
+   day:s.day,gameDate:s.gameDate
+ });
+ save(); render();
+ return offer;
+};
+
+function FL27_generateAdultOffer(){
+ const s=ensure(), club=FL27_worldClubs[Math.floor(Math.random()*FL27_worldClubs.length)];
+ const offer={
+   id:"offer_"+Date.now(),club:club[1],country:club[0],code:club[2],
+   level:n(s.ovr)>=80?"elite":"professional",
+   age:n(s.age),ovr:n(s.ovr),conditions:[],status:"new",
+   expiresInDays:14,source:"skaut / rynek",createdAt:s.gameDate||""
+ };
+ s.careerState.offers.push(offer); save(); render(); return offer;
+}
+
+/* -------- PARENT / GUARDIAN DECISION -------- */
+window.FL27_parentDecision=function(accepted,reason=""){
+ const s=ensure();
+ const age=n(s.age,15);
+ if(age>=18){s.family.parentalConsent.status="not_required";return true;}
+
+ s.family.parentalConsent.status=accepted?"approved":"refused";
+ s.family.parentalConsent.history.push({
+   date:s.gameDate,day:s.day,accepted,reason
+ });
+
+ if(!accepted){
+   s.family.parentalConsent.lastReason=reason||"Rodzic/opiekun nie wyraził zgody.";
+ }else{
+   s.family.parentalConsent.lastReason="";
+ }
+ save(); render(); return accepted;
+};
+
+/* Different parents can disagree. This never collapses the family state. */
+window.FL27_evaluateParentsForMove=function(offer){
+ const s=ensure(), parents=s.family.parents||[];
+ if(n(s.age)>=18) return {status:"not_required",parents:[]};
+
+ const results=parents.map((p,i)=>{
+   const support=n(p.support,50);
+   const wealth=n(p.wealth,50);
+   const moveTolerance=n(p.moveTolerance,50);
+   const score=support*.45+wealth*.15+moveTolerance*.4;
+   const yes=score>=55;
+   return {index:i,name:p.name||`Rodzic ${i+1}`,accepted:yes,
+           reason:yes?"Widzą szansę rozwoju.":"Obawy dotyczą wieku, szkoły, przeprowadzki lub bezpieczeństwa."};
+ });
+ const accepted=results.filter(x=>x.accepted).length;
+ return {status:accepted===results.length?"approved":accepted===0?"refused":"split",parents:results};
+};
+
+/* If parents split, the world can react: one may move with the player,
+   custody/living arrangements may change, or the offer may be declined. */
+window.FL27_resolveSplitParents=function(offer){
+ const s=ensure(), r=FL27_evaluateParentsForMove(offer);
+ if(r.status!=="split") return r;
+ s.family.parentalConsent.status="split";
+ s.family.parentalConsent.history.push({
+   date:s.gameDate,day:s.day,type:"split",
+   offer:offer.club,parents:r.parents
+ });
+ s.worldFlags ||= {};
+ s.worldFlags.parentConflict=true;
+ save(); render();
+ return r;
+};
+
+/* -------- POTENTIAL / INJURY ASSESSMENT -------- */
+window.FL27_assessPotential=function(type="standard"){
+ const s=ensure();
+ const cost={basic:150,standard:350,advanced:750}[type]||350;
+ const money=n(s.money,0);
+ if(money<cost){
+   try{toast(`Brakuje €${Math.round(cost-money)} na badanie predyspozycji.`)}catch(e){}
+   return {ok:false,reason:"funds"};
+ }
+ s.money=money-cost;
+
+ const ovr=n(s.ovr,50);
+ const form=n(s.form,50);
+ const health=n(s.health,80);
+ const age=n(s.age,15);
+ const variance=type==="advanced"?3:type==="standard"?6:10;
+ const score=clamp(Math.round(ovr+(Math.random()*variance*2-variance)+
+   (age<=17?5:0)),35,99);
+
+ const risk=Math.round(clamp(
+   (100-health)*.55 + (100-n(s.form,50))*.15 + Math.random()*25,
+   1,95));
+
+ s.careerState.potential={
+   known:true,
+   score,
+   confidence:type==="advanced"?90:type==="standard"?70:45,
+   injuryRisk:risk,
+   type,
+   cost,
+   assessedAt:s.gameDate||""
+ };
+ s.careerState.potentialHistory ||= [];
+ s.careerState.potentialHistory.push({...s.careerState.potential});
+ save(); render();
+ return {ok:true,...s.careerState.potential};
+};
+
+/* -------- SCOUTING / TRIALS -------- */
+window.FL27_addScoutingReport=function(offer,notes=[]){
+ const s=ensure();
+ s.careerState.scouts.push({
+   club:offer.club,country:offer.country,
+   report:notes.length?notes:["obserwacja zawodnika","ocena techniki","ocena charakteru"],
+   date:s.gameDate,day:s.day
+ });
+ save(); render();
+};
+
+window.FL27_startTrial=function(offer){
+ const s=ensure();
+ const age=n(s.age,15);
+ if(age<14) return {ok:false,reason:"too_young"};
+ const r=FL27_evaluateParentsForMove(offer);
+ if(age<18 && r.status==="refused") return {ok:false,reason:"parent_refusal",parents:r};
+ s.careerState.trials.push({
+   id:"trial_"+Date.now(),club:offer.club,country:offer.country,
+   start:s.gameDate,status:"pending",durationDays:3
+ });
+ save(); render();
+ return {ok:true};
+};
+
+/* -------- SPONSORS: popularity/image + sport + conditions -------- */
+window.FL27_generateSponsorOffer=function(){
+ const s=ensure();
+ const pop=n(s.popularity), img=n(s.image), ovr=n(s.ovr);
+ const candidates=[
+   {name:"lokalna marka sportowa",min:5,kind:"sprzęt",condition:"regularne publikacje"},
+   {name:"regionalny sklep sportowy",min:12,kind:"zniżki",condition:"pojawienie się na wydarzeniu"},
+   {name:"marka odzieżowa",min:25,kind:"ubrania",condition:"sesja zdjęciowa"},
+   {name:"firma technologiczna",min:40,kind:"sprzęt",condition:"publikacja materiałów"},
+   {name:"międzynarodowa marka sportowa",min:60,kind:"buty i sprzęt",condition:"kontrakt wizerunkowy"},
+   {name:"globalny sponsor",min:80,kind:"duża umowa",condition:"wyłączność w kategorii"}
+ ];
+ const available=candidates.filter(x=>pop>=x.min || (ovr>=75&&x.min<=40));
+ if(!available.length) return null;
+ const c=available[Math.floor(Math.random()*available.length)];
+ const offer={id:"sponsor_"+Date.now(),...c,status:"new",date:s.gameDate};
+ s.sponsorState.offers.push(offer);
+ save(); render(); return offer;
+};
+
+/* Hook into a day transition if the existing engine exposes it. */
+const oldTick=window.FL27_unifiedTick;
+window.FL27_unifiedTick=function(){
+ const s=ensure();
+ if(typeof oldTick==="function") try{oldTick.apply(this,arguments)}catch(e){}
+ /* New offers are probabilistic, not guaranteed. */
+ if(Math.random()<0.12) FL27_generateClubOffer();
+ if(Math.random()<0.08 && n(s.popularity)>3) FL27_generateSponsorOffer();
+};
+
+/* Sync with the existing world synchronizer if present. */
+if(typeof window.FL27_syncWorld==="function"){
+ const oldSync=window.FL27_syncWorld;
+ window.FL27_syncWorld=function(reason){
+   const s=oldSync.apply(this,arguments);
+   ensure();
+   return s;
+ };
+}
+ensure();
+})();
+
+
+/* ============================================================
+ FL27 V203 — SPECIALISTS / MENTAL / FAMILY EXPANSION
+ Same world state. No parallel time engine.
+ ============================================================ */
+(function(){
+"use strict";
+if(window.__FL27_V203__) return;
+window.__FL27_V203__=true;
+
+const S0=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const render=()=>{try{window.render?.()}catch(e){}};
+const toast=x=>{try{window.toast?.(x)}catch(e){}};
+const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,n(v)));
+
+function ensure(){
+ const s=S0();
+ s.specialists ||= {visits:[],offers:[],active:[]};
+ s.specialists.visits ||= [];
+ s.specialists.offers ||= [];
+ s.specialists.active ||= [];
+ s.mental ||= {score:n(s.mental,50),history:[],stress:0,motivation:50,confidence:50};
+ s.mental.history ||= [];
+ s.children ||= [];
+ s.parenthood ||= {plans:[],children:[],leave:null};
+ s.parenthood.plans ||= [];
+ s.parenthood.children ||= [];
+ s.parenthood.leave ||= null;
+ s.family ||= {};
+ s.family.relationships ||= [];
+ s.family.children ||= [];
+ s.dating ||= {preferences:{},history:[]};
+ s.dating.history ||= [];
+ s.careerState ||= {};
+ s.careerState.sideCareers ||= [];
+ return s;
+}
+
+/* ---------- SPECIALISTS ---------- */
+const SPECIALISTS=[
+ {id:"sports_psychologist",name:"Psycholog sportowy",cost:[80,220],
+  effects:"mental",description:"Motywacja, pewność siebie, presja meczowa, stres i koncentracja."},
+ {id:"physio",name:"Fizjoterapeuta",cost:[50,180],
+  effects:"health",description:"Regeneracja, przeciążenia i profilaktyka kontuzji."},
+ {id:"sports_doctor",name:"Lekarz medycyny sportowej",cost:[100,300],
+  effects:"health",description:"Kontrola zdrowia i zdolności do treningu oraz gry."},
+ {id:"dietitian",name:"Dietetyk sportowy",cost:[60,180],
+  effects:"health",description:"Odżywianie, regeneracja i przygotowanie do obciążeń."},
+ {id:"performance_specialist",name:"Specjalista przygotowania motorycznego",cost:[70,220],
+  effects:"form",description:"Szybkość, siła, wydolność i przygotowanie do sezonu."},
+ {id:"sleep_specialist",name:"Specjalista snu i regeneracji",cost:[60,160],
+  effects:"mental",description:"Sen, regeneracja i zarządzanie zmęczeniem."},
+ {id:"career_psychologist",name:"Psycholog kariery",cost:[70,200],
+  effects:"mental",description:"Decyzje dotyczące kariery, presji medialnej i życia poza boiskiem."}
+];
+
+window.FL27_specialists=SPECIALISTS;
+
+window.FL27_visitSpecialist=function(id){
+ const s=ensure(), sp=SPECIALISTS.find(x=>x.id===id);
+ if(!sp) return {ok:false,reason:"unknown"};
+ const cost=Math.round(sp.cost[0]+Math.random()*(sp.cost[1]-sp.cost[0]));
+ if(n(s.money)<cost){
+   toast(`Brakuje €${cost-n(s.money)} na wizytę u ${sp.name}.`);
+   return {ok:false,reason:"funds",cost};
+ }
+ s.money-=cost;
+ let effect={};
+ if(sp.effects==="mental"){
+   const delta=3+Math.round(Math.random()*7);
+   s.mental.score=clamp(n(s.mental.score,50)+delta);
+   s.mental.motivation=clamp(n(s.mental.motivation,50)+Math.round(delta*.6));
+   s.mental.confidence=clamp(n(s.mental.confidence,50)+Math.round(delta*.5));
+   effect={mental:delta};
+ }else if(sp.effects==="health"){
+   const delta=3+Math.round(Math.random()*6);
+   s.health=clamp(n(s.health,80)+delta);
+   effect={health:delta};
+ }else if(sp.effects==="form"){
+   const delta=2+Math.round(Math.random()*5);
+   s.form=clamp(n(s.form,50)+delta);
+   effect={form:delta};
+ }
+ s.specialists.visits.push({
+   id:"visit_"+Date.now(),specialist:sp.name,cost,effect,
+   date:s.gameDate,day:s.day
+ });
+ s.mental.history.push({
+   date:s.gameDate,source:sp.name,effect
+ });
+ save(); render();
+ return {ok:true,specialist:sp.name,cost,effect};
+};
+
+/* Mental state can change naturally and through the whole world.
+   This helper is available to events, training, relationships, FLgram,
+   media, sponsors and career systems. */
+window.FL27_changeMental=function(source,effects={}){
+ const s=ensure();
+ const before={
+   score:n(s.mental.score,50),
+   stress:n(s.mental.stress,0),
+   motivation:n(s.mental.motivation,50),
+   confidence:n(s.mental.confidence,50)
+ };
+ for(const k of ["score","motivation","confidence"])
+   if(effects[k]!==undefined) s.mental[k]=clamp(n(s.mental[k])+n(effects[k]));
+ if(effects.stress!==undefined) s.mental.stress=clamp(n(s.mental.stress)+n(effects.stress),0,100);
+ s.mental.history.push({date:s.gameDate,day:s.day,source,before,effects});
+ save();
+ return s.mental;
+};
+
+/* ---------- DATING / PARTNER PROFILE ---------- */
+window.FL27_createPartnerProfile=function(data={}){
+ const s=ensure();
+ const p={
+   id:data.id||"person_"+Date.now(),
+   name:data.name||"Nowa osoba",
+   age:n(data.age,18),
+   country:data.country||"nieznany",
+   sport:{
+     active:data.sport?.active===true,
+     level:n(data.sport?.level,0),
+     discipline:data.sport?.discipline||null
+   },
+   mental:{
+     stability:clamp(data.mental?.stability,0,100),
+     ambition:clamp(data.mental?.ambition,0,100),
+     support:clamp(data.mental?.support,0,100)
+   },
+   personality:data.personality||[],
+   fertility:data.fertility||"nieznana",
+   career:data.career||null,
+   children:data.children||[],
+   relationshipStatus:"poznana",
+   metAt:s.gameDate
+ };
+ s.family.relationships.push(p);
+ s.dating.history.push({type:"new_person",personId:p.id,date:s.gameDate});
+ save(); render();
+ return p;
+};
+
+/* Relationship compatibility is multi-factor, not a single score. */
+window.FL27_partnerCompatibility=function(p){
+ const s=ensure();
+ const partner=p||{};
+ const sport=n(partner.sport?.level,50);
+ const mental=(
+   n(partner.mental?.stability,50)+
+   n(partner.mental?.ambition,50)+
+   n(partner.mental?.support,50)
+ )/3;
+ const life=50 + (partner.career?5:0);
+ const playerMental=n(s.mental.score,50);
+ const result=clamp(Math.round(
+   sport*.20+mental*.40+life*.10+playerMental*.30
+ ));
+ return {
+   score:result,
+   sport,
+   mental:Math.round(mental),
+   life:Math.round(life)
+ };
+};
+
+/* ---------- PARENTHOOD / CHILD WITHOUT PARTNER ---------- */
+const SURROGATE_PROFILES=[
+ {type:"standard",label:"Surogacja standardowa",cost:[18000,35000],medical:"standardowa",availability:.65},
+ {type:"premium",label:"Program surogacyjny premium",cost:[35000,65000],medical:"rozszerzona opieka",availability:.35},
+ {type:"specialist",label:"Program z rozszerzoną diagnostyką",cost:[60000,100000],medical:"bardzo szczegółowa diagnostyka",availability:.20}
+];
+
+window.FL27_surrogacyOptions=SURROGATE_PROFILES;
+
+window.FL27_startSurrogacy=function(type="standard"){
+ const s=ensure(), age=n(s.age,18);
+ if(age<18){
+   toast("Ta ścieżka jest dostępna dopiero od 18. roku życia.");
+   return {ok:false,reason:"age"};
+ }
+ const profile=SURROGATE_PROFILES.find(x=>x.type===type)||SURROGATE_PROFILES[0];
+ if(Math.random()>profile.availability){
+   toast("Ten program nie jest obecnie dostępny.");
+   return {ok:false,reason:"availability"};
+ }
+ const cost=Math.round(profile.cost[0]+Math.random()*(profile.cost[1]-profile.cost[0]));
+ if(n(s.money)<cost){
+   toast(`Program kosztuje około €${cost.toLocaleString("pl-PL")}.`);
+   return {ok:false,reason:"funds",cost};
+ }
+
+ const plan={
+   id:"parent_"+Date.now(),
+   route:"surrogacy",
+   profile:profile.label,
+   cost,
+   medical:profile.medical,
+   status:"in_progress",
+   started:s.gameDate,
+   estimatedDays:Math.round(30+Math.random()*30)
+ };
+ s.money-=cost;
+ s.parenthood.plans.push(plan);
+ save(); render();
+ return {ok:true,plan};
+};
+
+/* Partner route: child planning depends on relationship stability and
+   both partners' circumstances; it is not an instant purchase. */
+window.FL27_planChildWithPartner=function(partnerId){
+ const s=ensure();
+ const p=s.family.relationships.find(x=>x.id===partnerId);
+ if(!p){
+   toast("Nie znaleziono tej osoby w relacjach.");
+   return {ok:false};
+ }
+ const compatibility=FL27_partnerCompatibility(p);
+ if(compatibility.score<45){
+   return {ok:false,reason:"relationship_unstable",compatibility};
+ }
+ const plan={
+   id:"parent_"+Date.now(),
+   route:"partner",
+   partnerId:p.id,
+   status:"planned",
+   started:s.gameDate,
+   requirements:[
+     "stabilna relacja",
+     "uzgodnienie wspólnej decyzji",
+     "warunki mieszkaniowe",
+     "czas na opiekę nad dzieckiem"
+   ],
+   compatibility
+ };
+ s.parenthood.plans.push(plan);
+ save(); render();
+ return {ok:true,plan};
+};
+
+/* ---------- MATERNITY / PATERNITY LEAVE ---------- */
+window.FL27_setParentalLeave=function(type,days=0){
+ const s=ensure();
+ const valid=["maternity","paternity","parental"];
+ if(!valid.includes(type)) return {ok:false};
+ s.parenthood.leave={
+   type,
+   days:Math.max(0,Math.round(n(days))),
+   started:s.gameDate,
+   status:"planned"
+ };
+ save(); render();
+ return {ok:true,leave:s.parenthood.leave};
+};
+
+/* New child becomes part of the same family/relationship graph. */
+window.FL27_addChild=function(data={}){
+ const s=ensure();
+ const child={
+   id:data.id||"child_"+Date.now(),
+   name:data.name||"Dziecko",
+   birthDate:data.birthDate||s.gameDate,
+   otherParentId:data.otherParentId||null,
+   route:data.route||"partner",
+   parents:data.parents||[],
+   status:"child",
+   createdAt:s.gameDate
+ };
+ s.children.push(child);
+ s.parenthood.children.push(child);
+ s.family.children.push(child);
+ if(child.otherParentId){
+   const p=s.family.relationships.find(x=>x.id===child.otherParentId);
+   if(p){p.children ||= [];p.children.push(child.id);}
+ }
+ save(); render();
+ return child;
+};
+
+/* ---------- UNIFIED LIFE PRESSURE ---------- */
+window.FL27_recalculateMentalFromWorld=function(){
+ const s=ensure();
+ let delta=0;
+ if(n(s.energy)<20) delta-=2;
+ if(n(s.health)<40) delta-=2;
+ if(n(s.form)<30) delta-=1;
+ if(n(s.popularity)>80) delta-=1; // media pressure
+ if(n(s.money)<0) delta-=2;
+ if((s.family?.parentalConsent?.status)==="split") delta-=2;
+ if(s.careerState?.currentClub) delta+=1;
+ if(delta) FL27_changeMental("codzienny bilans świata",{score:delta,motivation:delta,stress:-delta});
+ return s.mental;
+};
+
+const oldTick=window.FL27_unifiedTick;
+window.FL27_unifiedTick=function(){
+ const result=typeof oldTick==="function" ? oldTick.apply(this,arguments):undefined;
+ try{FL27_recalculateMentalFromWorld()}catch(e){}
+ return result;
+};
+
+ensure();
+})();
+
+
+/* ============================================================
+ FL27 V204 — LEGACY / LICENSES / PROPERTY / TRANSPORT
+ One world state, one calendar, one progression system.
+ ============================================================ */
+(function(){
+"use strict";
+if(window.__FL27_V204__) return;
+window.__FL27_V204__=true;
+
+const S0=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const render=()=>{try{window.render?.()}catch(e){}};
+const toast=x=>{try{window.toast?.(x)}catch(e){}};
+const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,n(v)));
+
+function ensure(){
+ const s=S0();
+ s.licenses ||= {owned:[],attempts:[],nextAvailable:{}};
+ s.licenses.owned ||= [];
+ s.licenses.attempts ||= [];
+ s.licenses.nextAvailable ||= {};
+
+ s.transport ||= {owned:[],history:[]};
+ s.transport.owned ||= [];
+ s.transport.history ||= [];
+
+ s.properties ||= {owned:[],currentHomeId:null,history:[]};
+ s.properties.owned ||= [];
+ s.properties.history ||= [];
+
+ s.worldFlags ||= {};
+ s.children ||= [];
+ s.parenthood ||= {children:[],plans:[]};
+ s.parenthood.children ||= [];
+ s.careerState ||= {};
+ s.careerState.legacy ||= {previousCharacters:[],switches:[]};
+ s.careerState.legacy.previousCharacters ||= [];
+ s.careerState.legacy.switches ||= [];
+
+ s.genetics ||= {};
+ s.genetics.inheritanceHistory ||= [];
+ return s;
+}
+
+/* ---------- LICENSES ---------- */
+const LICENSES=[
+ {id:"car",name:"Prawo jazdy kat. B",cost:1200,age:17,
+  prerequisites:[],failRisk:.18,travelBonus:12},
+ {id:"motorcycle",name:"Prawo jazdy na motocykl",cost:900,age:16,
+  prerequisites:[],failRisk:.22,travelBonus:18},
+ {id:"boat",name:"Licencja żeglarska",cost:1500,age:14,
+  prerequisites:[],failRisk:.16,travelBonus:25},
+ {id:"sailing_pro",name:"Licencja jachtowa",cost:3200,age:18,
+  prerequisites:["boat"],failRisk:.14,travelBonus:30},
+ {id:"private_pilot",name:"Licencja pilota prywatnego",cost:18000,age:17,
+  prerequisites:[],failRisk:.20,travelBonus:45},
+ {id:"helicopter",name:"Licencja pilota śmigłowca",cost:26000,age:18,
+  prerequisites:["private_pilot"],failRisk:.18,travelBonus:50}
+];
+window.FL27_LICENSES=LICENSES;
+
+window.FL27_getLicenses=function(){
+ const s=ensure();
+ return LICENSES.map(x=>({...x,owned:s.licenses.owned.includes(x.id)}));
+};
+
+window.FL27_takeLicense=function(id){
+ const s=ensure(), l=LICENSES.find(x=>x.id===id);
+ if(!l) return {ok:false,reason:"unknown"};
+ if(s.licenses.owned.includes(id)) return {ok:false,reason:"already_owned"};
+ if(n(s.age,15)<l.age){
+   toast(`Ta licencja jest dostępna od ${l.age}. roku życia.`);
+   return {ok:false,reason:"age"};
+ }
+ for(const req of l.prerequisites){
+   if(!s.licenses.owned.includes(req)){
+     toast(`Najpierw potrzebujesz: ${LICENSES.find(x=>x.id===req)?.name||req}.`);
+     return {ok:false,reason:"prerequisite",req};
+   }
+ }
+ const course=Math.round(l.cost*.55);
+ if(n(s.money)<course){
+   toast(`Kurs i egzamin kosztują około €${course}.`);
+   return {ok:false,reason:"funds",cost:course};
+ }
+ s.money-=course;
+ const failChance=Math.max(.03,l.failRisk - n(s.mental?.confidence,50)/1000);
+ const passed=Math.random()>=failChance;
+ const attempt={
+   id:"lic_"+Date.now(),license:id,name:l.name,cost:course,
+   date:s.gameDate,passed,
+   reason:passed?"egzamin zdany":"egzamin niezdany — potrzebne dodatkowe przygotowanie"
+ };
+ s.licenses.attempts.push(attempt);
+ if(passed){
+   s.licenses.owned.push(id);
+   s.licenses.nextAvailable[id]=null;
+   toast(`${l.name} — zdane!`);
+ }else{
+   s.licenses.nextAvailable[id]=Math.max(3,Math.round(7+Math.random()*14));
+   toast(`${l.name} — tym razem niezdane. Możesz podejść ponownie później.`);
+ }
+ save(); render();
+ return {ok:true,...attempt};
+};
+
+/* Transport changes commute time. A vehicle without the correct
+   licence cannot be used by the player. */
+window.FL27_getTravelProfile=function(){
+ const s=ensure();
+ const owned=s.licenses.owned;
+ let bonus=0;
+ if(owned.includes("car")) bonus+=12;
+ if(owned.includes("motorcycle")) bonus+=18;
+ if(owned.includes("boat")) bonus+=10;
+ if(owned.includes("private_pilot")) bonus+=35;
+ if(owned.includes("helicopter")) bonus+=45;
+ return {travelBonus:Math.min(70,bonus),licenses:[...owned]};
+};
+
+/* ---------- PROPERTY + EXPANSIONS ---------- */
+const ROOMS=[
+ {id:"cinema",name:"Prywatne kino",cost:65000,requires:["house"],effects:{happiness:8}},
+ {id:"gym",name:"Prywatna siłownia",cost:25000,requires:["house"],effects:{form:5}},
+ {id:"recovery",name:"Strefa regeneracji",cost:45000,requires:["house"],effects:{health:6}},
+ {id:"cryotherapy",name:"Kriokomora",cost:90000,requires:["house"],effects:{health:8,form:3}},
+ {id:"sauna",name:"Sauna / wellness",cost:30000,requires:["house"],effects:{health:4,mental:4}},
+ {id:"pantry",name:"Duża spiżarnia",cost:10000,requires:["house"],effects:{health:2}},
+ {id:"studio",name:"Studio muzyczne",cost:40000,requires:["house"],effects:{sideCareer:"music"}},
+ {id:"creator_room",name:"Studio twórcy",cost:30000,requires:["house"],effects:{sideCareer:"creator"}},
+ {id:"garage_2",name:"Garaż na 2 samochody",cost:35000,requires:["house"],effects:{storage:2}},
+ {id:"garage_5",name:"Garaż kolekcjonerski",cost:120000,requires:["garage_2"],effects:{storage:5}},
+ {id:"pool",name:"Basen",cost:55000,requires:["house","large_garden"],effects:{health:2,happiness:5}},
+ {id:"garden_large",name:"Duży ogród",cost:40000,requires:["house"],effects:{happiness:4}},
+ {id:"guest_house",name:"Domek gościnny",cost:85000,requires:["house","large_garden"],effects:{storage:1}}
+];
+
+window.FL27_ROOMS=ROOMS;
+
+window.FL27_canExpandProperty=function(propertyId,roomId){
+ const s=ensure();
+ const p=s.properties.owned.find(x=>x.id===propertyId);
+ const r=ROOMS.find(x=>x.id===roomId);
+ if(!p||!r) return {ok:false,reason:"unknown"};
+ if(!r.requires.includes(p.type) && !(r.requires.includes("house")&&p.type==="house"))
+   return {ok:false,reason:"property_type"};
+ const have=p.rooms||[];
+ for(const req of r.requires){
+   if(req==="house") continue;
+   const alias=req==="large_garden"?"garden_large":req;
+   if(!have.includes(alias)) return {ok:false,reason:"prerequisite",req};
+ }
+ if(have.includes(roomId)) return {ok:false,reason:"already_built"};
+ return {ok:true,cost:r.cost};
+};
+
+window.FL27_expandProperty=function(propertyId,roomId){
+ const s=ensure(), check=FL27_canExpandProperty(propertyId,roomId);
+ if(!check.ok){
+   toast("Ta rozbudowa nie jest jeszcze możliwa.");
+   return check;
+ }
+ const r=ROOMS.find(x=>x.id===roomId);
+ if(n(s.money)<r.cost){
+   toast(`Rozbudowa kosztuje €${r.cost.toLocaleString("pl-PL")}.`);
+   return {ok:false,reason:"funds",cost:r.cost};
+ }
+ const p=s.properties.owned.find(x=>x.id===propertyId);
+ s.money-=r.cost;
+ p.rooms ||= [];
+ p.rooms.push(roomId);
+ p.investment=(n(p.investment)+r.cost);
+ p.history ||= [];
+ p.history.push({room:roomId,cost:r.cost,date:s.gameDate});
+ s.properties.history.push({type:"expansion",propertyId,room:roomId,cost:r.cost,date:s.gameDate});
+ save(); render();
+ return {ok:true,room:r.name,cost:r.cost};
+};
+
+/* Apartments deliberately have tighter limits; not every property can
+   hold every facility. */
+window.FL27_propertyCapabilities=function(p){
+ if(!p) return [];
+ return ROOMS.filter(r=>{
+   if(r.requires.includes("house") && p.type!=="house") return false;
+   if(r.id==="pool"||r.id==="garden_large"||r.id==="guest_house")
+     return p.type==="house" && n(p.gardenSize,0)>=2;
+   return true;
+ });
+};
+
+/* ---------- GENETICS ---------- */
+function inherit(a,b,variance=8){
+ const base=(n(a,50)+n(b,50))/2;
+ return clamp(Math.round(base+(Math.random()*variance*2-variance)));
+}
+
+window.FL27_generateChildGenetics=function(parentA={},parentB={}){
+ const s=ensure();
+ const traits={
+   pace:inherit(parentA.pace,parentB.pace),
+   strength:inherit(parentA.strength,parentB.strength),
+   stamina:inherit(parentA.stamina,parentB.stamina),
+   coordination:inherit(parentA.coordination,parentB.coordination),
+   technique:inherit(parentA.technique,parentB.technique),
+   mental:inherit(parentA.mental,parentB.mental),
+   injuryResistance:inherit(parentA.injuryResistance,parentB.injuryResistance)
+ };
+ /* Genetics are a tendency, never a guaranteed OVR. Environment, training,
+    education, health, money and decisions still matter. */
+ s.genetics.inheritanceHistory.push({
+   date:s.gameDate,parentA,parentB,traits
+ });
+ save();
+ return traits;
+};
+
+/* ---------- SWITCH TO CHILD AT 15 ---------- */
+window.FL27_canSwitchToChild=function(childId){
+ const s=ensure();
+ const child=s.children.find(c=>c.id===childId)||s.parenthood.children.find(c=>c.id===childId);
+ if(!child) return {ok:false,reason:"unknown"};
+ const birth=new Date(child.birthDate||s.gameDate);
+ const now=new Date(s.gameDate||new Date().toISOString().slice(0,10));
+ let age=now.getFullYear()-birth.getFullYear();
+ const before=[now.getMonth(),now.getDate()]<[birth.getMonth(),birth.getDate()];
+ if(before) age--;
+ if(age<15) return {ok:false,reason:"age",age};
+ return {ok:true,age};
+};
+
+window.FL27_switchToChild=function(childId){
+ const s=ensure(), check=FL27_canSwitchToChild(childId);
+ if(!check.ok){
+   toast(check.reason==="age"?`Dziecko ma ${check.age} lat — zmiana postaci jest możliwa od 15 lat.`:"Nie znaleziono dziecka.");
+   return check;
+ }
+ const child=s.children.find(c=>c.id===childId)||s.parenthood.children.find(c=>c.id===childId);
+
+ /* Freeze the parent as an NPC / legacy character instead of deleting
+    the old career. */
+ const parentSnapshot={
+   name:s.name||s.playerName||"Zawodnik",
+   age:n(s.age),
+   position:s.position||s.pos||null,
+   ovr:n(s.ovr),
+   club:s.careerState?.currentClub||null,
+   money:n(s.money),
+   popularity:n(s.popularity),
+   image:n(s.image),
+   status:"legacy_npc",
+   frozenAt:s.gameDate
+ };
+ s.careerState.legacy.previousCharacters.push(parentSnapshot);
+
+ s.careerState.legacy.switches.push({
+   date:s.gameDate,from:parentSnapshot.name,to:child.name,childId
+ });
+
+ /* Keep family, assets and history. The active character changes only. */
+ s.activeCharacterId=child.id;
+ s.name=child.name;
+ s.age=check.age;
+ s.position=child.position||s.position;
+ s.ovr=n(child.ovr,n(s.ovr,50));
+ s.health=n(child.health,80);
+ s.energy=n(child.energy,70);
+ s.form=n(child.form,50);
+ s.money=n(child.money,0);
+ s.genetics.current=child.genetics||s.genetics.current||null;
+ s.careerState.currentClub=child.club||null;
+ s.careerState.activeRole="child";
+ s.worldFlags ||= {};
+ s.worldFlags.legacyCareer=true;
+
+ save(); render();
+ toast(`${child.name} ma 15 lat — rozpoczynasz jego/jej własną karierę.`);
+ return {ok:true,child};
+};
+
+/* Parent remains part of the world and can have events after the switch. */
+window.FL27_getLegacyCharacters=function(){
+ return ensure().careerState.legacy.previousCharacters;
+};
+
+/* ---------- VACATIONS / TRAVEL GATING ---------- */
+window.FL27_canTravel=function(destination={requiredLicense:null,transport:"land"}){
+ const s=ensure();
+ const req=destination.requiredLicense;
+ if(req && !s.licenses.owned.includes(req))
+   return {ok:false,reason:"license",license:req};
+ if(destination.transport==="air" && !s.licenses.owned.includes("private_pilot"))
+   return {ok:true,reason:"commercial_flight_available"};
+ if(destination.transport==="helicopter" && !s.licenses.owned.includes("helicopter"))
+   return {ok:false,reason:"license",license:"helicopter"};
+ return {ok:true};
+};
+
+ensure();
+})();
+
+
+/* ============================================================
+ FL27 V205 — FAMILY LIFE / TREATMENT / CHILD DEVELOPMENT / HOME
+ One shared world: partners, children, health and housing affect each other.
+ ============================================================ */
+(function(){
+"use strict";
+if(window.__FL27_V205__) return;
+window.__FL27_V205__=true;
+
+const G=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const render=()=>{try{window.render?.()}catch(e){}};
+const toast=x=>{try{window.toast?.(x)}catch(e){}};
+const N=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+const C=(v,a=0,b=100)=>Math.max(a,Math.min(b,N(v)));
+
+function ensure(){
+ const s=G();
+ s.family ||= {};
+ s.family.relationships ||= [];
+ s.family.children ||= [];
+ s.family.parents ||= [];
+ s.family.homeComfort ||= {score:70,history:[]};
+ s.children ||= [];
+ s.children.forEach(c=>{
+   c.health=C(c.health,0,100);
+   c.potentialKnown=!!c.potentialKnown;
+   c.activities ||= [];
+   c.school ||= {name:null,type:null,sportTrack:false};
+   c.events ||= [];
+ });
+ s.partnerState ||= {events:[],breakups:[],current:null};
+ s.partnerState.events ||= [];
+ s.partnerState.breakups ||= [];
+ s.healthState ||= {conditions:[],treatments:[],history:[]};
+ s.healthState.conditions ||= [];
+ s.healthState.treatments ||= [];
+ s.healthState.history ||= [];
+ s.properties ||= {owned:[],currentHomeId:null,history:[]};
+ s.properties.owned ||= [];
+ return s;
+}
+
+/* ---------- PARTNER LIFE EVENTS ---------- */
+const PARTNER_EVENTS=[
+ {id:"relationship_tired",title:"Partner ma dość",weight:8,
+  condition:p=>N(p.relationshipLevel,50)<40||N(p.stress,0)>75,
+  text:"Partner/partnerka sygnalizuje, że ostatnio czuje się odsunięta od Twojego życia.",
+  options:["Porozmawiaj i zaplanujcie wspólny czas","Zignoruj problem i skup się na karierze","Zaproponuj zmianę codziennych obowiązków"]},
+ {id:"partner_job",title:"Zmiana sytuacji partnera",weight:7,
+  condition:p=>true,
+  text:"Partner/partnerka dostał(a) propozycję pracy lub zmianę zawodową, która może wpłynąć na Wasze wspólne życie.",
+  options:["Poprzyj zmianę","Poproś o spokojne przeanalizowanie sytuacji","Postaw przede wszystkim na stabilność rodziny"]},
+ {id:"partner_support",title:"Partner wspiera Twoją karierę",weight:6,
+  condition:p=>N(p.mental?.support,50)>70,
+  text:"Partner/partnerka proponuje, że przejmie część obowiązków, żebyś mógł/mogła skupić się na ważnym okresie kariery.",
+  options:["Przyjmij pomoc","Podzielcie obowiązki po równo","Nie chcesz przerzucać obowiązków na partnera"]},
+ {id:"partner_conflict",title:"Poważniejszy konflikt",weight:4,
+  condition:p=>N(p.stress,0)>65||N(p.relationshipLevel,50)<30,
+  text:"Napięcie w związku narasta. Potrzebna jest konkretna decyzja.",
+  options:["Terapia/rozmowa ze specjalistą","Przerwa i ochłonięcie","Spróbujcie rozwiązać problem sami"]}
+];
+
+window.FL27_partnerLifeEvent=function(partnerId){
+ const s=ensure();
+ const p=s.family.relationships.find(x=>x.id===partnerId)||s.partnerState.current;
+ if(!p) return null;
+ const pool=PARTNER_EVENTS.filter(e=>e.condition(p));
+ if(!pool.length) return null;
+ const e=pool[Math.floor(Math.random()*pool.length)];
+ s.partnerState.events.push({id:"pe_"+Date.now(),event:e.id,title:e.title,partnerId,date:s.gameDate});
+ s.worldFlags ||= {};
+ s.worldFlags["partnerEvent_"+e.id]=true;
+ save(); render();
+ return e;
+};
+
+window.FL27_partnerDecision=function(partnerId,eventId,choice=0){
+ const s=ensure();
+ const p=s.family.relationships.find(x=>x.id===partnerId)||s.partnerState.current;
+ if(!p) return {ok:false};
+ p.relationshipLevel=N(p.relationshipLevel,50);
+ p.stress=N(p.stress,0);
+ if(eventId==="relationship_tired"){
+   if(choice===0){p.relationshipLevel=C(p.relationshipLevel+8);p.stress=C(p.stress-12);}
+   if(choice===1){p.relationshipLevel=C(p.relationshipLevel-12);p.stress=C(p.stress+12);}
+   if(choice===2){p.relationshipLevel=C(p.relationshipLevel+4);p.stress=C(p.stress-5);}
+ }
+ if(eventId==="partner_conflict"){
+   if(choice===0){p.relationshipLevel=C(p.relationshipLevel+5);p.stress=C(p.stress-15);}
+   if(choice===1){p.relationshipLevel=C(p.relationshipLevel-2);p.stress=C(p.stress-5);}
+   if(choice===2){p.relationshipLevel=C(p.relationshipLevel+2);p.stress=C(p.stress-2);}
+ }
+ if(p.relationshipLevel<15 && Math.random()<.35){
+   p.relationshipStatus="ex";
+   s.partnerState.breakups.push({partnerId,date:s.gameDate,reason:"relacja zakończona po serii wydarzeń"});
+   s.worldFlags.partnerBreakup=true;
+ }
+ save();render();
+ return {ok:true,partner:p};
+};
+
+/* ---------- CHILD EVENTS + DEVELOPMENT ---------- */
+const CHILD_EVENTS=[
+ {id:"child_school",title:"Dziecko ma problem w szkole",text:"Nauczyciel informuje o trudnościach z nauką lub adaptacją.",choices:["Korepetycje","Rozmowa z nauczycielem","Zmiana planu dnia i więcej odpoczynku"]},
+ {id:"child_sport",title:"Dziecko wykazuje talent sportowy",text:"Trener zauważa ponadprzeciętne predyspozycje.",choices:["Zapisać do akademii","Najpierw dodatkowe zajęcia","Nie naciskać i pozwolić dziecku zdecydować"]},
+ {id:"child_no_talent",title:"Sport nie jest mocną stroną dziecka",text:"Kolejne testy nie pokazują szczególnych predyspozycji.",choices:["Spróbować innej dyscypliny","Rozwijać inne zainteresowania","Dać dziecku czas"]},
+ {id:"child_social",title:"Dziecko potrzebuje więcej uwagi",text:"Dziecko coraz częściej sygnalizuje, że rodzice są zbyt zajęci.",choices:["Wspólny dzień bez pracy","Zatrudnić pomoc i odzyskać czas","Porozmawiać i ustalić nowe zasady"]},
+ {id:"child_injury",title:"Kontuzja dziecka",text:"Podczas aktywności pojawia się uraz.",choices:["Lekarz i pełna diagnostyka","Odpoczynek i obserwacja","Fizjoterapia"]}
+];
+
+window.FL27_childLifeEvent=function(childId){
+ const s=ensure(),c=s.children.find(x=>x.id===childId);
+ if(!c)return null;
+ const e=CHILD_EVENTS[Math.floor(Math.random()*CHILD_EVENTS.length)];
+ c.events.push({event:e.id,date:s.gameDate});
+ save();render();return e;
+};
+
+/* Parent can pay for an actual potential assessment for the child.
+   It reveals a range rather than guaranteeing a future career. */
+window.FL27_assessChildPotential=function(childId,level="standard"){
+ const s=ensure(),c=s.children.find(x=>x.id===childId);
+ if(!c)return {ok:false,reason:"unknown"};
+ const cost={basic:150,standard:350,advanced:800}[level]||350;
+ if(N(s.money)<cost){toast(`Brakuje €${cost-N(s.money)} na badanie predyspozycji.`);return {ok:false,reason:"funds"}}
+ s.money-=cost;
+ c.genetics ||= {};
+ const geneticBase=Object.values(c.genetics).filter(v=>typeof v==="number").reduce((a,b)=>a+b,0);
+ const estimated=C(Math.round((geneticBase||55)/Math.max(1,Object.keys(c.genetics).length)+(Math.random()*12-6)),35,95);
+ c.potentialKnown=true;
+ c.potentialRange={min:Math.max(30,estimated-(level==="advanced"?3:level==="standard"?7:12)),max:Math.min(99,estimated+(level==="advanced"?3:level==="standard"?7:12))};
+ c.potentialConfidence=level==="advanced"?90:level==="standard"?70:45;
+ c.potentialAssessedAt=s.gameDate;
+ c.potentialAssessmentCost=cost;
+ save();render();
+ return {ok:true,range:c.potentialRange,confidence:c.potentialConfidence};
+};
+
+window.FL27_enrollChildSport=function(childId,activity="football"){
+ const s=ensure(),c=s.children.find(x=>x.id===childId);
+ if(!c)return {ok:false};
+ c.activities ||= [];
+ if(!c.activities.includes(activity))c.activities.push(activity);
+ c.school ||= {};
+ c.school.sportTrack=true;
+ c.school.sport=activity;
+ c.development ||= {training:0,education:50};
+ c.development.training=N(c.development.training)+3;
+ c.sportInterest=activity;
+ save();render();
+ return {ok:true,child:c};
+};
+
+/* ---------- MEDICAL: CONDITIONS, TREATMENT, TIME ---------- */
+const TREATMENTS=[
+ {id:"basic",name:"Podstawowe leczenie",cost:250,days:3,effect:15},
+ {id:"specialist",name:"Leczenie specjalistyczne",cost:900,days:7,effect:30},
+ {id:"advanced",name:"Rozszerzona terapia",cost:2500,days:14,effect:50},
+ {id:"longterm",name:"Długoterminowe leczenie",cost:5000,days:30,effect:65}
+];
+
+window.FL27_addCondition=function(name,severity=30,durationDays=7,childId=null){
+ const s=ensure();
+ const target=childId?s.children.find(c=>c.id===childId):s;
+ const condition={id:"cond_"+Date.now(),name,severity:C(severity),remainingDays:Math.max(1,durationDays),status:"active",target:childId?"child":"player"};
+ if(childId){target.health=C(N(target.health,80)-severity*.25);target.conditions ||= [];target.conditions.push(condition);}
+ else {s.healthState.conditions.push(condition);s.health=C(N(s.health,80)-severity*.25);}
+ save();render();return condition;
+};
+
+window.FL27_treatCondition=function(conditionId,treatmentId="standard",childId=null){
+ const s=ensure(),t=TREATMENTS.find(x=>x.id===treatmentId)||TREATMENTS[0];
+ const target=childId?s.children.find(c=>c.id===childId):null;
+ const list=target?.conditions||s.healthState.conditions;
+ const cond=list.find(x=>x.id===conditionId);
+ if(!cond)return {ok:false,reason:"unknown"};
+ if(N(s.money)<t.cost){toast(`Leczenie kosztuje €${t.cost}.`);return {ok:false,reason:"funds"}}
+ s.money-=t.cost;
+ cond.severity=C(cond.severity-t.effect,0,100);
+ cond.remainingDays=Math.max(1,Math.min(cond.remainingDays,t.days));
+ if(cond.severity<=0){cond.status="resolved";cond.remainingDays=0;}
+ const rec={date:s.gameDate,conditionId,treatment:t.id,cost:t.cost,days:t.days};
+ s.healthState.treatments.push(rec);
+ save();render();return {ok:true,record:rec};
+};
+
+/* ---------- FAMILY HOME COMFORT ---------- */
+window.FL27_recalculateFamilyHomeComfort=function(){
+ const s=ensure();
+ const home=s.properties.owned.find(p=>p.id===s.properties.currentHomeId)||s.properties.owned.find(p=>p.current);
+ const kids=s.children||[];
+ const adults=(s.family.relationships||[]).filter(p=>p.relationshipStatus!=="ex").length;
+ const rooms=home?.rooms?.length||0;
+ const capacity=N(home?.roomsCount,home?.capacity||1);
+ const people=Math.max(1,1+adults+kids.length);
+ let score=70;
+ if(home){
+   score += Math.min(15,rooms*3);
+   score += capacity>=people?8:-Math.min(20,(people-capacity)*8);
+   if(home.type==="apartment" && people>capacity)score-=8;
+ }else score-=15;
+ if(kids.length>=3 && capacity<people)score-=10;
+ s.family.homeComfort.score=C(Math.round(score),0,100);
+ s.family.homeComfort.people=people;
+ s.family.homeComfort.capacity=capacity;
+ s.family.homeComfort.history.push({date:s.gameDate,score:s.family.homeComfort.score,people,capacity});
+ if(s.family.homeComfort.history.length>100)s.family.homeComfort.history.shift();
+ return s.family.homeComfort;
+};
+
+window.FL27_familyHomeEvent=function(){
+ const s=ensure(),h=FL27_recalculateFamilyHomeComfort();
+ if(h.score>55)return null;
+ const e={
+   id:"home_overcrowded",
+   title:"W domu zaczyna brakować miejsca",
+   text:`W domu mieszka ${h.people} osób, a komfortowa pojemność to około ${h.capacity}. Rodzina zaczyna odczuwać skutki.`,
+   choices:["Rozbuduj dom","Poszukaj większego mieszkania/domu","Na razie pogódźcie się z mniejszym komfortem"]
+ };
+ s.worldFlags.homeComfortProblem=true;
+ save();render();return e;
+};
+
+/* ---------- DAILY FAMILY CHECK ---------- */
+const oldTick=window.FL27_unifiedTick;
+window.FL27_unifiedTick=function(){
+ const result=typeof oldTick==="function"?oldTick.apply(this,arguments):undefined;
+ try{
+   const s=ensure();
+   FL27_recalculateFamilyHomeComfort();
+   if(Math.random()<.10 && s.children.length) {
+     const c=s.children[Math.floor(Math.random()*s.children.length)];
+     FL27_childLifeEvent(c.id);
+   }
+   if(Math.random()<.08){
+     const p=(s.family.relationships||[]).find(x=>x.relationshipStatus!=="ex");
+     if(p)FL27_partnerLifeEvent(p.id);
+   }
+ }catch(e){console.error(e)}
+ return result;
+};
+
+ensure();
+})();
+
+
+/* FL27 V206 — SINGLE ACTIVE EXTENSION BUNDLE + ROUTE DIAGNOSTICS */
+(function(){
+  'use strict';
+  if(window.__FL27_V206_RUNTIME__) return;
+  window.__FL27_V206_RUNTIME__=true;
+  const required=['S','render','saveSoon','toast','go','sleep','closeModal'];
+  const diagnostics={missing:[],checkedAt:new Date().toISOString()};
+  for(const name of required) if(typeof window[name]!=='function') diagnostics.missing.push(name);
+  window.FL27_RUNTIME_DIAGNOSTICS=diagnostics;
+
+  // Catch a broken inline action without freezing the game.
+  window.addEventListener('error',function(ev){
+    if(!ev||!ev.message) return;
+    window.FL27_RUNTIME_DIAGNOSTICS.lastError={message:String(ev.message),at:Date.now()};
+    try{window.toast?.('Gra napotkała błąd akcji — stan kariery nie został zresetowany.')}catch(e){}
+  });
+
+  // One navigation compatibility bridge: if an older route exists, use it;
+  // otherwise do nothing rather than opening a second panel/modal.
+  window.FL27_route=function(route){
+    if(typeof window.go==='function') return window.go(route);
+    return false;
+  };
+
+  // Expose a simple health check for Settings -> Napraw grę.
+  window.FL27_repairRuntime=function(){
+    try{
+      window.FL27_syncWorld?.('repair');
+      window.FL27_cleanupUI?.();
+      window.saveSoon?.();
+      window.render?.();
+      window.FL27_RUNTIME_DIAGNOSTICS.lastRepair=Date.now();
+      window.toast?.('Gra została odświeżona bez restartowania kariery.');
+      return true;
+    }catch(e){
+      window.FL27_RUNTIME_DIAGNOSTICS.repairError=String(e);
+      return false;
+    }
+  };
+})();
+
+</script>
 </body>
 </html>
