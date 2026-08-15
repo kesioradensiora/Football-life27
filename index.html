@@ -15093,3 +15093,90 @@ new MutationObserver(bind).observe(document.documentElement,{subtree:true,childL
 setInterval(bind,300);
 })();
 </script>
+
+<!-- FL27 V149 — CANONICAL NEW GAME+ ENGINE BRIDGE -->
+<script id="fl27-v149">
+(function(){
+"use strict";
+const W=window;
+
+function toast(x){try{W.toast?.(x)}catch(e){}}
+function save(){try{W.saveSoon?.();W.save?.()}catch(e){}}
+
+W.FL27_confirmPlus=function(){
+  try{
+    const x=W.FL27_NEW_GAME||{};
+    const first=String(x.firstName||"").trim();
+    const last=String(x.lastName||"").trim();
+    if(!first||!last){
+      toast("Brakuje imienia i nazwiska.");
+      return false;
+    }
+
+    /* The canonical creator already owns the 10 answers:
+       2 basic answers + 8 varied career decisions. */
+    if(typeof selectedAnswers==="undefined" || selectedAnswers.length!==10){
+      toast("Odpowiedz na wszystkie 10 decyzji.");
+      return false;
+    }
+
+    const full=(first+" "+last).replace(/\s+/g," ").trim();
+    const gender=x.gender==="K"?"Kobieta":"Mężczyzna";
+    const orientation=x.orientation||"N";
+    const birth=String(x.birthDate||"2011-11-30");
+
+    /* Feed the real game engine — do not call the legacy creator UI. */
+    playerName=full;
+    creatorStarted=true;
+    W.selectedAnswers=selectedAnswers;
+    W.__FL27_AVATAR_CONFIG={gender:x.gender,orientation};
+
+    const engine=W.FL27_INTERNAL_START_CAREER||W.__FL27_ORIGINAL_START_CAREER;
+    if(typeof engine!=="function"){
+      throw new Error("Brak prawdziwego silnika kariery");
+    }
+
+    engine();
+
+    if(!W.S?.started){
+      throw new Error("Silnik nie ustawił S.started");
+    }
+
+    /* Apply canonical profile data after fresh() has created the world. */
+    W.S.firstName=first;
+    W.S.lastName=last;
+    W.S.name=full;
+    W.S.gender=gender;
+    W.S.orientation=orientation;
+    W.S.birthDate=birth;
+    W.S.birthMonth=Number(birth.slice(5,7));
+    W.S.birthDay=Number(birth.slice(8,10));
+    W.S.creatorDecisions=[...selectedAnswers];
+    W.S.creatorProfile={
+      firstName:first,lastName:last,gender:x.gender,
+      orientation,birthDate:birth
+    };
+
+    x.playerName=full;
+    x.ready=true;
+    W.FL27_NEW_GAME=x;
+    try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(x))}catch(e){}
+
+    W.__FL27_PLUS_CREATOR_ACTIVE=false;
+    W.__FL27_CANONICAL_STARTED=false;
+
+    document.querySelectorAll(".v20-hub-overlay").forEach(el=>el.remove());
+
+    save();
+    if(typeof W.render==="function")W.render();
+    toast("⚽ Kariera rozpoczęta!");
+
+    return true;
+  }catch(e){
+    console.error("FL27 V149 canonical start",e);
+    toast("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+    return false;
+  }
+};
+})();
+</script>
