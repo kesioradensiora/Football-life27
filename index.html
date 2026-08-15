@@ -9293,150 +9293,107 @@ input:focus,select:focus,textarea:focus{
 </script>
 
 
-<style id="fl27-v87-visual-only">
-/* =========================================================
-   V87 — VISUAL ONLY
-   No gameplay, routing, storage or click logic is changed.
-   ========================================================= */
+<style id="fl27-v88-visual-final">
+/* V88 — FINAL VISUAL LAYER ONLY. No JS. */
 :root{
-  --fl27-bg:#070707;
-  --fl27-bg2:#0b0b0c;
-  --fl27-card:#121315;
-  --fl27-card2:#18191c;
-  --fl27-gold:#d8aa4f;
-  --fl27-gold-hi:#f0c96e;
-  --fl27-white:#f5f5f2;
-  --fl27-muted:#96979d;
-  --fl27-red:#d94a59;
-  --fl27-blue:#6f9fe8;
+ --fl-bg:#080808;--fl-surface:#111214;--fl-surface2:#17181b;
+ --fl-gold:#d9aa4d;--fl-gold2:#f1cb70;--fl-white:#f5f5f2;--fl-muted:#92949a;
+ --fl-red:#df4b5b;--fl-blue:#6d9fe9;
 }
-
-html,body{
-  background:var(--fl27-bg)!important;
-  color:var(--fl27-white)!important;
-}
-
+html,body{background:#080808!important;color:#f5f5f2!important}
 body{
-  background:
-    radial-gradient(900px 560px at 72% -110px,rgba(216,170,79,.075),transparent 68%),
-    radial-gradient(650px 520px at 0 55%,rgba(255,255,255,.018),transparent 70%),
-    linear-gradient(180deg,#090909 0%,#050505 100%)!important;
+ background:
+  radial-gradient(900px 600px at 75% -140px,rgba(217,170,77,.08),transparent 70%),
+  linear-gradient(180deg,#0a0a0a 0%,#050505 100%)!important;
 }
-
-/* Very subtle football outline — decorative only, never clickable. */
+/* Decorative football outline only. */
 body::before{
-  content:"⚽";
-  position:fixed;
-  left:50%;
-  top:52%;
-  transform:translate(-50%,-50%);
-  z-index:0;
-  font-size:min(78vw,620px);
-  line-height:1;
-  color:transparent;
-  -webkit-text-stroke:1px rgba(255,255,255,.024);
-  opacity:.9;
-  pointer-events:none!important;
-  user-select:none;
+ content:"⚽"!important;position:fixed!important;left:50%!important;top:54%!important;
+ transform:translate(-50%,-50%)!important;z-index:0!important;
+ font-size:min(76vw,610px)!important;line-height:1!important;
+ color:transparent!important;-webkit-text-stroke:1px rgba(255,255,255,.022)!important;
+ opacity:1!important;pointer-events:none!important;
 }
-
 body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none!important;
-  background:radial-gradient(circle at 50% 42%,transparent 32%,rgba(0,0,0,.28) 100%);
+ content:""!important;position:fixed!important;inset:0!important;z-index:0!important;
+ pointer-events:none!important;
+ background:radial-gradient(circle at 50% 45%,transparent 30%,rgba(0,0,0,.30) 100%)!important;
 }
+body>.app,body>#main,body>header,body>main{position:relative!important;z-index:2!important}
 
-body>*{position:relative;z-index:1}
-
-/* Graphite cards instead of the old blue/red appearance. */
-.card,.panel,.box,
+/* Existing surfaces */
+.card,.panel,.box,.stat-card,.summary-card,
 [class*="card"],[class*="panel"],[class*="summary"]{
-  background:
-    linear-gradient(145deg,rgba(24,25,28,.98),rgba(13,14,16,.98))
-    !important;
-  border-color:rgba(255,255,255,.085)!important;
-  box-shadow:0 14px 36px rgba(0,0,0,.22);
+ background:linear-gradient(145deg,#17181b,#0e0f10)!important;
+ border-color:rgba(255,255,255,.085)!important;
+ box-shadow:0 14px 36px rgba(0,0,0,.24)!important;
+ color:#f5f5f2!important;
 }
+h1,h2,h3,h4,h5,strong,b,.title,.section-title{color:#f5f5f2!important}
+.muted,.sub,.subtitle,.hint,small{color:#92949a!important}
 
-/* Gold is the default FL27 brand accent. */
-.primary,button.primary,.btn-primary{
-  background:linear-gradient(135deg,var(--fl27-gold-hi),#b9832f)!important;
-  color:#080808!important;
-  border-color:var(--fl27-gold-hi)!important;
-  box-shadow:0 8px 24px rgba(216,170,79,.16)!important;
+/* Gold default brand accent */
+.primary,.btn-primary,button.primary{
+ background:linear-gradient(135deg,#f1cb70,#b9812d)!important;
+ color:#080808!important;
+ border:1px solid #f1cb70!important;
+ box-shadow:0 8px 24px rgba(217,170,77,.16)!important;
 }
-
 input,select,textarea{
-  background:#090b0d!important;
-  color:var(--fl27-white)!important;
-  border-color:rgba(216,170,79,.28)!important;
+ background:#090a0c!important;color:#f5f5f2!important;
+ border:1px solid rgba(217,170,77,.30)!important;
 }
-
 input:focus,select:focus,textarea:focus{
-  outline:none!important;
-  border-color:var(--fl27-gold)!important;
-  box-shadow:0 0 0 3px rgba(216,170,79,.09)!important;
+ border-color:#d9aa4d!important;
+ box-shadow:0 0 0 3px rgba(217,170,77,.09)!important;
+ outline:none!important;
 }
 
-/* The side drawer follows the logo: black + white + gold. */
+/* V86 right-side drawer — make it unmistakably the new design. */
 #fl86-menu{
-  background:linear-gradient(180deg,#18191c,#08090a)!important;
-  border-color:rgba(216,170,79,.22)!important;
+ width:54px!important;height:154px!important;
+ background:linear-gradient(180deg,#191a1e,#070809)!important;
+ border:1px solid rgba(217,170,77,.28)!important;border-right:0!important;
+ border-radius:18px 0 0 18px!important;
+ box-shadow:-12px 0 35px rgba(0,0,0,.48)!important;
 }
-
-#fl86-menu .lines i{
-  background:var(--fl27-gold)!important;
-}
-
+#fl86-menu .lines i{background:#d9aa4d!important}
 #fl86-drawer{
-  background:linear-gradient(180deg,#111214 0%,#070708 100%)!important;
-  border-left-color:rgba(216,170,79,.22)!important;
+ width:min(340px,88vw)!important;
+ background:linear-gradient(180deg,#141518 0%,#08090a 100%)!important;
+ border-left:1px solid rgba(217,170,77,.24)!important;
+ box-shadow:-28px 0 80px rgba(0,0,0,.7)!important;
 }
-
-#fl86-drawer>div:first-child{
-  color:var(--fl27-white)!important;
-}
-
 .fl86-item{
-  background:transparent!important;
-  border-color:transparent!important;
-  color:var(--fl27-white)!important;
+ min-height:62px!important;
+ background:transparent!important;border:1px solid transparent!important;
+ color:#f5f5f2!important;border-radius:16px!important;
 }
-
+.fl86-item:hover{background:rgba(255,255,255,.045)!important}
 .fl86-item.active{
-  background:
-    linear-gradient(90deg,rgba(216,170,79,.17),rgba(216,170,79,.025))
-    !important;
-  border-color:rgba(216,170,79,.20)!important;
-  box-shadow:inset 4px 0 var(--fl27-gold)!important;
+ background:linear-gradient(90deg,rgba(217,170,77,.19),rgba(217,170,77,.035))!important;
+ border-color:rgba(217,170,77,.24)!important;
+ box-shadow:inset 4px 0 #d9aa4d!important;
 }
-
 .fl86-icon{
-  background:rgba(255,255,255,.055)!important;
+ width:42px!important;height:42px!important;
+ background:rgba(255,255,255,.055)!important;border-radius:12px!important;
 }
-
-.fl86-item.active .fl86-icon{
-  background:rgba(216,170,79,.15)!important;
-}
-
+.fl86-item.active .fl86-icon{background:rgba(217,170,77,.16)!important}
 .fl86-close{
-  background:rgba(255,255,255,.045)!important;
-  border-color:rgba(255,255,255,.10)!important;
+ background:rgba(255,255,255,.045)!important;
+ border:1px solid rgba(255,255,255,.11)!important;color:#fff!important;
 }
 
-/* Creator card: same premium black/gold identity. */
+/* Creator */
 .v52-creator{
-  background:
-    radial-gradient(430px 230px at 87% 0,rgba(216,170,79,.09),transparent 70%),
-    linear-gradient(145deg,#171719,#0d0e10)!important;
-  border-color:rgba(216,170,79,.24)!important;
+ background:linear-gradient(145deg,#18191c,#0d0e10)!important;
+ border:1px solid rgba(217,170,77,.25)!important;
+ box-shadow:0 18px 50px rgba(0,0,0,.34)!important;
 }
 
-/* Keep the three selectable accent identities available in settings. */
-.fl27-accent-gold{--fl27-user-accent:var(--fl27-gold)}
-.fl27-accent-red{--fl27-user-accent:var(--fl27-red)}
-.fl27-accent-blue{--fl27-user-accent:var(--fl27-blue)}
+/* Three accent choices available to settings */
+[data-accent="gold"],.accent-gold{--user-accent:#d9aa4d!important}
+[data-accent="red"],.accent-red{--user-accent:#df4b5b!important}
+[data-accent="blue"],.accent-blue{--user-accent:#6d9fe9!important}
 </style>
