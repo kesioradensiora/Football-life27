@@ -726,52 +726,7 @@ function resetCreator(){
   creatorStarted=false; playerName=""; selectedAnswers=[];
   renderCreator();
 }
-function renderCreator(){
- const main=document.getElementById("main");
- if(!creatorStarted){
-  const hasDraft=selectedAnswers.length>0||playerName;
-  main.innerHTML=`<div class="card hero">
-   <div class="hero-badge">⚽ CAREER MODE</div><div class="kicker">FOOTBALL LIFE 27</div>
-   <h1>Stwórz swoją karierę</h1>
-   <p>Wpisz imię i odpowiedz na <b>10 pytań</b>. Klub startowy nie jest wybierany — zostanie wylosowany.</p>
-   <label style="display:block;margin-top:14px;color:#9bc7ec;font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase">Twoje imię / imię i nazwisko</label>
-   <input id="creatorName" value="${escText(playerName)}" maxlength="32" placeholder="np. Natalia K." oninput="playerName=this.value.trim();saveCreatorDraft()" style="width:100%;margin-top:6px;padding:13px 14px;border-radius:15px;border:1px solid rgba(130,181,226,.3);background:#081523;color:#fff;font-size:15px;outline:none">
-   <div class="pills"><span class="pill">10 pytań</span><span class="pill">pozycja</span><span class="pill">styl</span><span class="pill">relacje</span><span class="pill">klub marzeń</span></div>
-   <button class="action green" style="width:100%;margin-top:14px;text-align:center" onclick="beginCreator()"><b>${hasDraft?"▶️ KONTYNUUJ":"⚽ ZACZNIJ TWORZENIE POSTACI"}</b><small>${hasDraft?`Zapisane odpowiedzi: ${selectedAnswers.length}/10`:"Każda odpowiedź zostanie zapamiętana."}</small></button>
-   ${hasDraft?`<button class="choice" style="margin-top:8px;text-align:center" onclick="resetCreator()"><b>🗑️ Zacznij od początku</b></button>`:""}
-  </div>
-  <div class="card"><div class="section-title"><b>Co ustalasz?</b><span>10 decyzji</span></div>
-   <div class="row"><span>👤 Płeć i zainteresowanie</span><b>relacje</b></div>
-   <div class="row"><span>⚽ Pozycja i noga</span><b>rozwój</b></div>
-   <div class="row"><span>🎮 Styl gry</span><b>predyspozycje</b></div>
-   <div class="row"><span>🏆 Klub marzeń</span><b>cel kariery</b></div>
-   <div class="row"><span>🧠 Charakter i priorytety</span><b>konsekwencje</b></div>
-   <div class="notice" style="margin-top:12px">🏟️ <b>Klubu startowego nie wybierasz.</b> Gra losuje go na początku, a później wyniki i decyzje wpływają na Twoją drogę.</div>
-  </div>`;
-  return;
- }
- 
-
-if(selectedAnswers.length>=QUESTIONS.length){
-  main.innerHTML=`<div class="card hero"><div class="kicker">Tworzenie zakończone</div><h1>${esc(playerName||`Twój ${genderLabel()}`)}</h1><p>Profil gotowy. Teraz gra wylosuje klub startowy i warunki początku kariery.</p>
-   <div class="pills">${selectedAnswers.map((x,i)=>`<span class="pill">${esc(QUESTIONS[i][0])}: ${esc(x).split(" — ")[0]}</span>`).join("")}</div>
-   <button class="action green" style="width:100%;margin-top:12px;text-align:center" onclick="startCareer()"><b>⚽ ROZPOCZNIJ KARIERĘ</b><small>Losujemy klub i szkołę.</small></button>
-   <button class="choice" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()"><b>✏️ Cofnij ostatnią odpowiedź</b></button>
-  </div>`;
-  return;
- }
- const q=QUESTIONS[selectedAnswers.length],isPos=q[0]==="Pozycja na boisku";
- const options=q[1].map(v=>{
-  const parts=v.split(" — ");
-  const js=JSON.stringify(v).replace(/'/g,"&#39;").replace(/</g,"&lt;");
-  return `<button class="choice" onclick='answer(${js})'><b>${esc(parts[0])}</b>${parts[1]?`<span>${esc(parts.slice(1).join(" — "))}</span>`:""}</button>`;
- }).join("");
- main.innerHTML=`<div class="card"><div class="kicker">TWORZENIE POSTACI • ${selectedAnswers.length+1}/${QUESTIONS.length}</div>
-  <div class="progress" style="margin:9px 0 15px"><i style="width:${selectedAnswers.length/QUESTIONS.length*100}%"></i></div>
-  <h2>${esc(q[0])}</h2><p class="sub">${isPos?"Przeczytaj opis każdej pozycji. Wybór wpłynie na trening, atrybuty, rolę w drużynie i późniejsze wydarzenia.":"Wybierz odpowiedź, która najbardziej pasuje do Twojej postaci. Niektóre decyzje wrócą później jako konsekwencje."}</p>
-  ${options}${selectedAnswers.length>0?`<button class="choice" style="background:#0a1626" onclick="selectedAnswers.pop();saveCreatorDraft();renderCreator()">← Wróć do poprzedniego pytania</button>`:""}
- </div>`;
-}
+function renderCreator(){ /* OBSOLETE CREATOR REMOVED — V52 is canonical */ }
 
 function chooseOrigin(v){
   originChoice=v;
@@ -14039,5 +13994,402 @@ setInterval(()=>{
     }
   }catch(e){}
 },500);
+})();
+</script>
+
+<!-- FL27 V143 — NEW GAME+ TRUE RESET / BASIC PROFILE FIRST / NO GENDER IN AVATAR -->
+<style id="fl27-v143">
+/* Final avatar screen must not reserve visual space for removed profile fields. */
+.v52-avatar-editor .v20-avatar-controls .v20-grid label[data-v143-hidden]{display:none!important}
+.v143-start-error{margin-top:8px;text-align:center;font-size:9px;color:#ff9b9b;min-height:14px}
+</style>
+<script id="fl27-v143">
+(function(){
+"use strict";
+const W=window;
+
+function ng(){return W.FL27_NEW_GAME||(W.FL27_NEW_GAME={})}
+function persist(){try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(ng()))}catch(e){}}
+function getRoot(){return document.querySelector(".v20-hub-overlay")}
+
+function resetPlusState(){
+  /* Reset ONLY the career/player state. UI settings are intentionally kept. */
+  try{
+    if(typeof selectedAnswers!=="undefined") selectedAnswers.length=0;
+    W.selectedAnswers=(typeof selectedAnswers!=="undefined")?selectedAnswers:[];
+    if(typeof playerName!=="undefined") playerName="";
+    if(typeof creatorStarted!=="undefined") creatorStarted=false;
+    if(typeof originChoice!=="undefined") originChoice="";
+  }catch(e){console.error("V143 reset",e)}
+  W.FL27_NEW_GAME={mode:"plus",ready:false,birthDate:null,playerName:""};
+  persist();
+}
+
+function hideAvatarProfileFields(){
+  const body=document.getElementById("v52-creator-body");
+  if(!body)return;
+  body.querySelectorAll(".v20-avatar-controls label").forEach(label=>{
+    const text=(label.textContent||"").replace(/\s+/g," ").trim();
+    if(/^Płeć\b/i.test(text) || /^Osoby,\s*które\s*Cię\s*interesują/i.test(text)){
+      label.setAttribute("data-v143-hidden","1");
+      label.remove();
+    }
+  });
+  const help=body.querySelector(".v20-avatar-help");
+  if(help)help.textContent="Karnacja, fryzura, kolor włosów, oczy i strój. Płeć i preferencje ustaliliśmy już na początku.";
+}
+
+/* The original renderer is authoritative for the 10-decision flow. We only
+   clean the final appearance view after it has rendered. */
+function cleanFinal(){
+  hideAvatarProfileFields();
+  const body=document.getElementById("v52-creator-body");
+  if(!body)return;
+  const step=body.querySelector(".v52-step");
+  if(step && /GOTOWE/i.test(step.textContent||"")){
+    /* The first two chips are profile data, not avatar choices. */
+    const summary=body.querySelector(".v52-summary");
+    if(summary){
+      const chips=[...summary.querySelectorAll("span")];
+      chips.slice(0,2).forEach(x=>x.remove());
+    }
+  }
+}
+
+/* A real New Game+ must always begin on the basic-data screen, never on the
+   previous avatar/decision screen left in memory by a prior attempt. */
+const originalStartPlus=W.FL27_startPlus;
+W.FL27_startPlus=function(){
+  resetPlusState();
+  if(typeof originalStartPlus==="function") return originalStartPlus.apply(this,arguments);
+  W.FL27_showCreator?.();
+};
+
+/* Auto mode also needs a fresh lexical decision array. */
+const originalAuto=W.FL27_startAuto;
+W.FL27_startAuto=function(){
+  try{
+    if(typeof selectedAnswers!=="undefined")selectedAnswers.length=0;
+    if(typeof playerName!=="undefined")playerName="";
+    if(typeof creatorStarted!=="undefined")creatorStarted=false;
+    W.selectedAnswers=(typeof selectedAnswers!=="undefined")?selectedAnswers:[];
+  }catch(e){}
+  return typeof originalAuto==="function"?originalAuto.apply(this,arguments):undefined;
+};
+
+/* Basic profile fields are saved immediately, not only when the user advances. */
+document.addEventListener("input",function(ev){
+  const id=ev.target?.id;
+  if(!["creatorName","creatorSurname","creatorBirthDate","v141-gender","v141-orientation"].includes(id))return;
+  const x=ng();
+  if(id==="creatorName")x.firstName=ev.target.value;
+  if(id==="creatorSurname")x.lastName=ev.target.value;
+  if(id==="creatorBirthDate")x.birthDate=ev.target.value;
+  if(id==="v141-gender")x.gender=ev.target.value;
+  if(id==="v141-orientation")x.orientation=ev.target.value;
+  persist();
+},false);
+document.addEventListener("change",function(ev){
+  const id=ev.target?.id;
+  if(!["v141-gender","v141-orientation","creatorBirthDate"].includes(id))return;
+  const x=ng();
+  if(id==="v141-gender")x.gender=ev.target.value;
+  if(id==="v141-orientation")x.orientation=ev.target.value;
+  if(id==="creatorBirthDate")x.birthDate=ev.target.value;
+  persist();
+},false);
+
+/* V141's injected basic profile is guaranteed to appear on the START screen.
+   If an old render skipped it, insert it now. */
+function ensureBasicProfile(){
+  const body=document.getElementById("v52-creator-body");
+  if(!body || typeof creatorStarted!=="undefined" && creatorStarted)return;
+  if(!body.querySelector("#creatorName")||!body.querySelector("#creatorSurname"))return;
+  if(body.querySelector(".v141-basic-profile"))return;
+  const box=document.createElement("section");
+  box.className="v141-basic-profile";
+  const x=ng();
+  box.innerHTML=`
+    <div class="v141-basic-title">DANE PODSTAWOWE ZAWODNIKA</div>
+    <div class="v141-basic-grid">
+      <label>Płeć
+        <select id="v141-gender">
+          <option value="K" ${x.gender==="K"?"selected":""}>Kobieta</option>
+          <option value="M" ${x.gender==="M"?"selected":""}>Mężczyzna</option>
+        </select>
+      </label>
+      <label>Preferencje romantyczne
+        <select id="v141-orientation">
+          <option value="K" ${x.orientation==="K"?"selected":""}>Kobiety</option>
+          <option value="M" ${x.orientation==="M"?"selected":""}>Mężczyźni</option>
+          <option value="B" ${x.orientation==="B"?"selected":""}>Kobiety i mężczyźni</option>
+          <option value="N" ${x.orientation==="N"?"selected":""}>Na razie nikim / nie wiem</option>
+        </select>
+      </label>
+    </div>
+    <div class="v141-basic-help">To wybierasz raz. Nie będzie ponownie pytane przy avatarze.</div>`;
+  const grid=body.querySelector(".v52-name-grid");
+  if(grid)grid.insertAdjacentElement("afterend",box);
+  else body.appendChild(box);
+}
+
+/* Keep the original 10-decision engine, but guarantee the first two decisions
+   are exactly the basic profile selected by the player. */
+W.FL27_beginV52=function(){
+  const root=getRoot();
+  const first=String(root?.querySelector("#creatorName")?.value||"").trim();
+  const last=String(root?.querySelector("#creatorSurname")?.value||"").trim();
+  const gender=root?.querySelector("#v141-gender")?.value||"";
+  const orientation=root?.querySelector("#v141-orientation")?.value||"N";
+  const date=root?.querySelector("#creatorBirthDate")?.value||"";
+
+  if(!first||!last){W.toast?.("Wpisz imię i nazwisko zawodnika.");return false}
+  if(!gender){W.toast?.("Wybierz płeć zawodnika.");return false}
+
+  const x=ng();
+  x.firstName=first;x.lastName=last;
+  x.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+  x.gender=gender;x.orientation=orientation;
+  if(date)x.birthDate=date;
+  x.ready=false;persist();
+
+  try{
+    if(typeof selectedAnswers!=="undefined"){
+      /* Never replace the array — mutate it so every old/new handler sees it. */
+      selectedAnswers.length=0;
+      selectedAnswers.push(gender==="K"?"Kobieta":"Mężczyzna");
+      const o={K:"Kobiety",M:"Mężczyźni",B:"Kobiety i mężczyźni",N:"Na razie nikim — nie szukam związku"}[orientation]||"Na razie nikim — nie szukam związku";
+      selectedAnswers.push(o);
+      W.selectedAnswers=selectedAnswers;
+    }
+    if(typeof playerName!=="undefined")playerName=x.playerName;
+    if(typeof creatorStarted!=="undefined")creatorStarted=true;
+    saveCreatorDraft?.();
+    W.FL27_renderCreatorV52?.();
+    return true;
+  }catch(e){
+    console.error("V143 begin",e);
+    W.toast?.("Nie udało się przejść do pytań.");
+    return false;
+  }
+};
+
+/* Final start: no avatar gender/orientation fields are read. */
+W.FL27_confirmPlus=function(){
+  try{
+    const root=getRoot(), x=ng();
+    const first=String(x.firstName||root?.querySelector("#creatorName")?.value||"").trim();
+    const last=String(x.lastName||root?.querySelector("#creatorSurname")?.value||"").trim();
+    if(!first||!last){W.toast?.("Brakuje imienia i nazwiska.");return false}
+    if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==10){
+      W.toast?.("Odpowiedz na wszystkie 10 pytań.");return false;
+    }
+    const bd=x.birthDate||root?.querySelector("#creatorBirthDate")?.value||"";
+    const gender=x.gender||"M", orientation=x.orientation||"N";
+    x.playerName=(first+" "+last).replace(/\s+/g," ").trim();
+    x.birthDate=bd;x.ready=true;persist();
+
+    /* Avatar contains appearance only. Profile data is supplied separately. */
+    const av=W.FL27_saveAvatar?.()||{};
+    av.gender=gender;
+    W.__FL27_AVATAR_CONFIG={...av,gender,orientation};
+
+    if(typeof W.FL27_INTERNAL_START_CAREER==="function")W.FL27_INTERNAL_START_CAREER();
+    else if(typeof W.__FL27_ORIGINAL_START_CAREER==="function")W.__FL27_ORIGINAL_START_CAREER();
+    else throw new Error("Brak silnika startu kariery");
+
+    if(!W.S?.started)throw new Error("Kariera nie została uruchomiona");
+
+    W.S.firstName=first;W.S.lastName=last;W.S.name=x.playerName;
+    W.S.gender=gender==="K"?"Kobieta":"Mężczyzna";
+    W.S.orientation=orientation;
+    W.S.avatar={...(W.S.avatar||{}),...av,gender};
+    if(bd){
+      W.S.birthDate=bd;
+      W.S.birthMonth=Number(bd.slice(5,7));
+      W.S.birthDay=Number(bd.slice(8,10));
+    }
+    W.S.creatorDecisions=[...selectedAnswers];
+    W.S.creatorProfile={firstName:first,lastName:last,gender,orientation,birthDate:bd};
+    W.__FL27_PLUS_CREATOR_ACTIVE=false;
+    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
+    W.saveSoon?.();W.render?.();
+    W.toast?.("⚽ Kariera rozpoczęta!");
+    return true;
+  }catch(e){
+    console.error("V143 start",e);
+    W.toast?.("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+    return false;
+  }
+};
+
+/* Re-run cleanup after every creator render and after any delayed legacy render. */
+let lastCreatorRoot=null;
+const obs=new MutationObserver(()=>{
+  const body=document.getElementById("v52-creator-body");
+  if(body && body!==lastCreatorRoot){
+    lastCreatorRoot=body;
+    setTimeout(()=>{ensureBasicProfile();cleanFinal()},0);
+  }else if(body){
+    setTimeout(cleanFinal,0);
+  }
+});
+obs.observe(document.documentElement,{subtree:true,childList:true});
+
+setTimeout(()=>{ensureBasicProfile();cleanFinal()},80);
+setTimeout(()=>{ensureBasicProfile();cleanFinal()},400);
+setTimeout(()=>{ensureBasicProfile();cleanFinal()},1000);
+})();
+</script>
+
+<!-- FL27 V144 — GUARANTEED START BUTTON -->
+<style id="fl27-v144">
+.v52-start-career{
+  width:100%!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  position:relative!important;
+  z-index:2147483647!important;
+}
+.v52-start-career:disabled{opacity:.55!important;cursor:not-allowed!important}
+</style>
+<script id="fl27-v144">
+(function(){
+"use strict";
+const W=window;
+
+function startFromButton(btn){
+  try{
+    const fn=W.FL27_confirmPlus;
+    if(typeof fn!=="function"){
+      W.toast?.("Silnik rozpoczęcia kariery nie jest gotowy. Spróbuj ponownie.");
+      return false;
+    }
+
+    btn.disabled=true;
+    btn.classList.add("is-starting");
+
+    const result=fn();
+
+    /* If the engine reports failure, unlock the button so the player can retry. */
+    if(result===false){
+      setTimeout(()=>{
+        btn.disabled=false;
+        btn.classList.remove("is-starting");
+      },250);
+      return false;
+    }
+    return true;
+  }catch(e){
+    console.error("V144 START BUTTON",e);
+    btn.disabled=false;
+    btn.classList.remove("is-starting");
+    W.toast?.("Nie udało się rozpocząć kariery — spróbuj ponownie.");
+    return false;
+  }
+}
+
+/*
+ * Capture the click BEFORE old inline handlers and legacy modules.
+ * This is deliberate: the old creator had several competing click handlers,
+ * which could make the button appear clickable but do nothing.
+ */
+document.addEventListener("click",function(ev){
+  const el=ev.target?.closest?.("button");
+  if(!el)return;
+
+  const txt=(el.textContent||"").replace(/\s+/g," ").trim().toUpperCase();
+  if(!txt.includes("ROZPOCZNIJ KARIERĘ"))return;
+
+  const creator=document.getElementById("v52-creator-body");
+  if(!creator || !creator.contains(el))return;
+
+  ev.preventDefault();
+  ev.stopPropagation();
+  ev.stopImmediatePropagation();
+
+  startFromButton(el);
+},true);
+
+/* Every dynamically rendered final button gets an explicit id/type and
+   remains usable even after another renderer replaces its parent. */
+const mo=new MutationObserver(()=>{
+  document.querySelectorAll('#v52-creator-body button.v20-confirm').forEach(btn=>{
+    const txt=(btn.textContent||"").replace(/\s+/g," ").trim().toUpperCase();
+    if(txt.includes("ROZPOCZNIJ KARIĘ") || txt.includes("ROZPOCZNIJ KARIERĘ")){
+      btn.id="fl27-start-career";
+      btn.type="button";
+      btn.classList.add("v52-start-career");
+      btn.disabled=false;
+      btn.style.pointerEvents="auto";
+    }
+  });
+});
+mo.observe(document.documentElement,{subtree:true,childList:true});
+
+setTimeout(()=>{
+  document.querySelectorAll('#v52-creator-body button.v20-confirm').forEach(btn=>{
+    const txt=(btn.textContent||"").replace(/\s+/g," ").trim().toUpperCase();
+    if(txt.includes("ROZPOCZNIJ KARIERĘ")||txt.includes("ROZPOCZNIJ KARIĘ")){
+      btn.id="fl27-start-career";
+      btn.type="button";
+      btn.classList.add("v52-start-career");
+      btn.disabled=false;
+    }
+  });
+},100);
+})();
+</script>
+
+<!-- FL27 V145 — CLEAN ACTIVE UI / LEGACY CREATOR REMOVED -->
+<script id="fl27-v145-clean-active">
+(function(){
+"use strict";
+const W=window;
+
+/* The old base creator is now a no-op at source level. The V52 creator is
+   the only creator that may render. This cleanup does not touch the career
+   engine, decisions, finances, calendar or saves. */
+function cleanActiveUI(){
+  try{
+    const main=document.getElementById("main");
+    const overlayList=[...document.querySelectorAll(".v20-hub-overlay")];
+
+    /* Never let the old #main creator coexist with the current creator. */
+    if(!W.S?.started && overlayList.length){
+      if(main) main.innerHTML="";
+    }
+
+    /* A single current creator overlay. */
+    overlayList.slice(1).forEach(x=>x.remove());
+
+    /* Remove duplicate legacy nodes only when they are exact duplicate IDs
+       outside the active creator overlay. */
+    const seen=new Set();
+    document.querySelectorAll("[id]").forEach(el=>{
+      if(el.closest(".v20-hub-overlay")) return;
+      if(seen.has(el.id) && el.id) el.remove();
+      else if(el.id) seen.add(el.id);
+    });
+  }catch(e){console.error("V145 cleanup",e)}
+}
+
+function boot(){
+  if(!W.S?.started){
+    if(!document.querySelector(".v20-hub-overlay") && typeof W.FL27_showCreator==="function"){
+      W.FL27_showCreator();
+    }
+  }
+  cleanActiveUI();
+}
+
+const mo=new MutationObserver(()=>requestAnimationFrame(cleanActiveUI));
+mo.observe(document.documentElement,{subtree:true,childList:true});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});
+else boot();
+setTimeout(boot,250);
+setTimeout(boot,900);
+setTimeout(boot,1800);
 })();
 </script>
