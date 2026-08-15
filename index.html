@@ -8353,294 +8353,7 @@ window.FL27_confirmPlus=function(){
   });
 })();
 </script>
-<script id="fl27-final-clean">
-(function(){
-"use strict";
-const W=window;
-if(W.__FL27_FINAL_CLEAN)return;
-W.__FL27_FINAL_CLEAN=true;
-
-/* ---------- one persistent random-question system ---------- */
-const QPOOL={
- style:[
-  ["Jak najbardziej naturalnie grasz piłką?",["Techniczny","Szybki","Fizyczny","Kreatywny","Uniwersalny"]],
-  ["Co najbardziej opisuje Twój styl?",["Kreatywny","Techniczny","Uniwersalny","Szybki","Fizyczny"]],
-  ["Gdy masz piłkę, czego szukasz najpierw?",["Techniczny","Kreatywny","Szybki","Fizyczny","Uniwersalny"]],
-  ["Jak chcesz być zapamiętany na boisku?",["Kreatywny","Szybki","Techniczny","Fizyczny","Uniwersalny"]],
-  ["Który sposób gry najbardziej Cię przyciąga?",["Szybki","Techniczny","Kreatywny","Uniwersalny","Fizyczny"]],
-  ["W czym chcesz mieć największą przewagę?",["Fizyczny","Szybki","Techniczny","Kreatywny","Uniwersalny"]]
- ],
- inspiration:[
-  ["Kogo najchętniej oglądasz, gdy chcesz się czegoś nauczyć?",["Lionel Messi","Cristiano Ronaldo","Jude Bellingham","Kylian Mbappé","Alexia Putellas","Aitana Bonmatí","Mohamed Salah","Lamine Yamal"]],
-  ["Czyja droga najbardziej Cię inspiruje?",["Cristiano Ronaldo","Lionel Messi","Aitana Bonmatí","Jude Bellingham","Kylian Mbappé","Alexia Putellas","Erling Haaland","Lamine Yamal"]],
-  ["Gdybyś miał wybrać jednego mentora z futbolu, kto by to był?",["Jude Bellingham","Lionel Messi","Cristiano Ronaldo","Alexia Putellas","Kylian Mbappé","Mohamed Salah","Aitana Bonmatí"]],
-  ["Którego zawodnika najczęściej obserwujesz?",["Lamine Yamal","Cristiano Ronaldo","Lionel Messi","Erling Haaland","Aitana Bonmatí","Kylian Mbappé"]],
-  ["Czyj styl chciałbyś choć częściowo przenieść do swojej gry?",["Lionel Messi","Kylian Mbappé","Jude Bellingham","Alexia Putellas","Cristiano Ronaldo","Aitana Bonmatí"]]
- ],
- dream:[
-  ["Jaki klub najbardziej chciałbyś kiedyś reprezentować?",["FC Barcelona","Real Madryt","Manchester City","Bayern Monachium","Arsenal","Liverpool","Inter","AC Milan","Borussia Dortmund"]],
-  ["Gdzie najbardziej widzisz siebie w szczycie kariery?",["FC Barcelona","Real Madryt","Manchester City","Bayern Monachium","Arsenal","Liverpool","Inter","AC Milan"]],
-  ["Który stadion chciałbyś kiedyś wybiec przed pełnymi trybunami?",["Camp Nou","Santiago Bernabéu","Etihad Stadium","Allianz Arena","Emirates Stadium","Anfield","San Siro"]],
-  ["Jaki kierunek kariery najbardziej Cię kusi?",["Hiszpania","Anglia","Niemcy","Włochy","Francja","Polska"]]
- ],
- risk:[
-  ["Co robisz, gdy mecz zaczyna wymykać się spod kontroli?",["Walczę do końca","Zachowuję spokój","Biorę odpowiedzialność","Szukam wsparcia u drużyny","Ryzykuję i próbuję odwrócić mecz"]],
-  ["Jak reagujesz w najtrudniejszym momencie spotkania?",["Biorę odpowiedzialność","Walczę do końca","Zachowuję spokój","Szukam wsparcia u drużyny","Próbuję czegoś nieoczywistego"]],
-  ["Co wybierasz przy wyniku 1:1 w ostatnich minutach?",["Ryzykuję","Gram bezpiecznie","Szukam podania","Biorę akcję na siebie","Czekam na błąd rywala"]],
-  ["Jak zachowujesz się po własnym błędzie?",["Od razu próbuję się zrehabilitować","Zachowuję spokój","Szukam wsparcia","Analizuję sytuację","Gram jeszcze odważniej"]]
- ],
- priority:[
-  ["Co powinno być dla Ciebie najważniejsze w karierze?",["Rozwój i umiejętności","Trofea","Pieniądze","Sława i rozpoznawalność","Reprezentowanie Polski","Dobra atmosfera i ludzie"]],
-  ["Za co najbardziej warto poświęcić czas na początku kariery?",["Rozwój i umiejętności","Trofea","Pieniądze","Sława i rozpoznawalność","Reprezentowanie Polski","Dobra atmosfera i ludzie"]],
-  ["Gdy kariera przyspieszy, czego nie chcesz stracić?",["Rozwój i umiejętności","Dobra atmosfera i ludzie","Trofea","Pieniądze","Sława i rozpoznawalność","Reprezentowanie Polski"]],
-  ["Co będzie dla Ciebie oznaką, że kariera idzie w dobrą stronę?",["Rozwój i umiejętności","Trofea","Dobra atmosfera i ludzie","Reprezentowanie Polski","Pieniądze","Sława i rozpoznawalność"]]
- ],
- goal:[
-  ["Jaki jest Twój największy piłkarski cel?",["Zostać zawodnikiem/zawodniczką światowego poziomu","Zagrać w klubie marzeń","Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zbudować karierę i jednocześnie mieć normalne życie"]],
-  ["Po czym poznasz, że osiągnąłeś swój cel?",["Zostać zawodnikiem/zawodniczką światowego poziomu","Zagrać w klubie marzeń","Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zbudować karierę i jednocześnie mieć normalne życie"]],
-  ["Które marzenie wybierasz, gdy możesz spełnić tylko jedno?",["Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zagrać w klubie marzeń","Zostać zawodnikiem/zawodniczką światowego poziomu","Zbudować karierę i jednocześnie mieć normalne życie"]],
-  ["Jak wyglądałby dla Ciebie idealny finał kariery?",["Zostać zawodnikiem/zawodniczką światowego poziomu","Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zagrać w klubie marzeń","Zbudować karierę i jednocześnie mieć normalne życie"]]
- ]};
-
-function rnd(n){if(window.crypto?.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n}return Math.floor(Math.random()*n)}
-function sh(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=rnd(i+1);[x[i],x[j]]=[x[j],x[i]]}return x}
-function makeQSet(){
- let prev="";try{prev=localStorage.getItem("FL27_FINAL_QSET")||""}catch(_){}
- let set,lastSig="",tries=0;
- do{
-   set=["style","inspiration","dream","risk","priority","goal"].map(cat=>{
-     const q=QPOOL[cat][rnd(QPOOL[cat].length)];
-     return {cat,title:q[0],options:sh(q[1])};
-   });
-   lastSig=set.map(q=>q.cat+":"+q.title).join("|");tries++;
- }while(lastSig===prev&&tries<20);
- try{localStorage.setItem("FL27_FINAL_QSET",lastSig)}catch(_){}
- return set;
-}
-
-/* ---------- clean New Game+ creator ---------- */
-let creator=null, busy=false, qset=[];
-const NEWKEY="FL27_V20_NEW_GAME";
-function freshNG(){
- try{localStorage.removeItem(NEWKEY)}catch(_){}
- try{["FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION","FL27_V16_TIME","FL27_V17_ACTIVITY"].forEach(k=>localStorage.removeItem(k))}catch(_){}
- W.FL27_NEW_GAME={mode:"plus",ready:false};
-}
-function closeCreator(){document.getElementById("flc-creator")?.remove()}
-function showCreator(){
- closeCreator();qset=makeQSet();
- creator={first:"",last:"",gender:"M",orientation:"N",birth:"2011-11-30",answers:[],step:0};
- const e=document.createElement("div");e.id="flc-creator";document.body.appendChild(e);renderCreator();
-}
-function renderCreator(){
- const e=document.getElementById("flc-creator");if(!e||!creator)return;
- const basic=creator.step===0, qstep=creator.step>=1&&creator.step<=10, done=creator.step===11;
- if(basic){
-  e.innerHTML=`<div class="flc-box"><div class="flc-logo">⚽ FL FOOTBALL <span>Life 27</span></div>
-   <div class="flc-kicker">NOWA GRA + • NOWY ZAWODNIK</div><h1>Stwórz swoją postać</h1>
-   <p class="flc-sub">Każda nowa kariera losuje inny zestaw pytań. Nie dostajesz za każdym razem tego samego kreatora.</p>
-   <div class="flc-grid">
-    <label>Imię<input id="flc-first" maxlength="24" placeholder="np. Artur"></label>
-    <label>Nazwisko<input id="flc-last" maxlength="30" placeholder="np. Lisiak"></label>
-    <label>Płeć<select id="flc-gender"><option value="K">Kobieta</option><option value="M" selected>Mężczyzna</option></select></label>
-    <label>Osoby, które Cię interesują<select id="flc-orient"><option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N" selected>Na razie nikim</option></select></label>
-    <label style="grid-column:1/-1">Data urodzenia<input id="flc-birth" type="date" value="2011-11-30"></label>
-   </div>
-   <button class="flc-btn" id="flc-basic-next">PRZEJDŹ DO PYTAŃ →</button>
-   <button class="flc-secondary" id="flc-cancel">← Wróć</button>
-  </div>`;
-  document.getElementById("flc-basic-next").onclick=()=>{
-    const f=document.getElementById("flc-first").value.trim(),l=document.getElementById("flc-last").value.trim();
-    if(!f||!l){alert("Wpisz imię i nazwisko zawodnika.");return}
-    creator.first=f;creator.last=l;creator.gender=document.getElementById("flc-gender").value;creator.orientation=document.getElementById("flc-orient").value;creator.birth=document.getElementById("flc-birth").value||"2011-11-30";creator.step=1;renderCreator();
-  };
-  document.getElementById("flc-cancel").onclick=()=>{closeCreator();W.FL27_showNewGame?.()};
-  return;
- }
- if(qstep){
-  const idx=creator.step-1, q=qset[idx];
-  e.innerHTML=`<div class="flc-box"><div class="flc-logo">⚽ FL FOOTBALL <span>Life 27</span></div>
-   <div class="flc-kicker">NOWA GRA + • DECYZJA ${idx+1}/10</div>
-   <div class="flc-progress"><i style="width:${idx/10*100}%"></i></div>
-   <h2>${esc(q.title)}</h2><p class="flc-sub">Ten blok jest losowany dla tej konkretnej kariery. Kolejna Nowa Gra+ może dać zupełnie inne pytanie i inne odpowiedzi.</p>
-   <div class="flc-options">${q.options.map((v,i)=>`<button class="flc-choice" data-q="${i}"><b>${esc(v)}</b></button>`).join("")}</div>
-   ${idx?`<button class="flc-secondary" id="flc-back">← Poprzednie pytanie</button>`:""}</div>`;
-  e.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{creator.answers[idx]=q.options[Number(b.dataset.q)];creator.step++;renderCreator()});
-  e.querySelector("#flc-back")?.addEventListener("click",()=>{creator.answers.pop();creator.step--;renderCreator()});
-  return;
- }
- e.innerHTML=`<div class="flc-box"><div class="flc-logo">⚽ FL FOOTBALL <span>Life 27</span></div>
-  <div class="flc-kicker">TWORZENIE POSTACI • GOTOWE</div><div class="flc-progress"><i style="width:100%"></i></div>
-  <h1>${esc(creator.first)} ${esc(creator.last)}</h1><p class="flc-sub">10 decyzji gotowych. Rodzina, pochodzenie, miasto, szkoła i klub zostaną wygenerowane przez właściwy silnik świata.</p>
-  <div class="flc-summary">
-   <div>⚽ Pozycja: <b>${esc(creator.answers[0]||"")}</b></div>
-   <div>🧠 Styl: <b>${esc(creator.answers[1]||"")}</b></div>
-   <div>⭐ Inspiracja: <b>${esc(creator.answers[2]||"")}</b></div>
-   <div>🎯 Cel: <b>${esc(creator.answers[5]||"")}</b></div>
-  </div>
-  <button class="flc-btn" id="flc-start">⚽ URUCHOM KARIERĘ</button>
-  <button class="flc-secondary" id="flc-back">← Wróć do ostatniego pytania</button>
- </div>`;
- e.querySelector("#flc-start").onclick=startPlus;
- e.querySelector("#flc-back").onclick=()=>{creator.answers.pop();creator.step=10;renderCreator()};
-}
-function startPlus(){
- if(busy)return;busy=true;
- const answers=[creator.gender,creator.orientation,creator.answers[0],creator.answers[1],creator.answers[2],creator.answers[3],creator.answers[4],creator.answers[5],creator.answers[6],creator.answers[7]];
- /* Engine semantics: [gender, orientation, position, foot, style, inspiration, dream, risk, priority, goal].
-    The random categories deliberately map to the legacy engine's 5..10 fields. */
- /* qset has 6 random blocks; first random = style, second = inspiration, third = dream,
-    fourth = risk, fifth = priority, sixth = goal. */
- answers[2]=creator.answers[0]; /* style? corrected below */
- answers.splice(0,10,
-   creator.gender,creator.orientation,
-   creator.answers[0],creator.answers[1],
-   creator.answers[2],creator.answers[3],creator.answers[4],creator.answers[5],creator.answers[6],creator.answers[7]
- );
- /* We need a real position + dominant foot. The first two random blocks above are
-    replaced by dedicated random position/foot values generated for this run. */
- const posOpts=["Bramkarz (BR)","Środkowy obrońca (ŚO)","Lewy obrońca (LO)","Prawy obrońca (PO)","Środkowy pomocnik (ŚP)","Lewy pomocnik (LP)","Prawy pomocnik (PP)","Lewy skrzydłowy (LS)","Prawy skrzydłowy (PS)","Napastnik (N)"];
- const footOpts=["Lewa","Prawa"];
- answers[2]=posOpts[rnd(posOpts.length)];
- answers[3]=footOpts[rnd(footOpts.length)];
- /* qset answers 0..5 are style,inspiration,dream,risk,priority,goal */
- answers[4]=creator.answers[0];
- answers[5]=creator.answers[1];
- answers[6]=creator.answers[2];
- answers[7]=creator.answers[3];
- answers[8]=creator.answers[4];
- answers[9]=creator.answers[5];
- try{
-   selectedAnswers.splice(0,selectedAnswers.length,...answers);
-   W.selectedAnswers=selectedAnswers;
-   playerName=(creator.first+" "+creator.last).replace(/\s+/g," ").trim();
-   W.FL27_NEW_GAME={mode:"plus",ready:true,firstName:creator.first,lastName:creator.last,playerName,birthDate:creator.birth,gender:creator.gender,orientation:creator.orientation};
-   localStorage.setItem(NEWKEY,JSON.stringify(W.FL27_NEW_GAME));
-   showStartLoader();
-   setTimeout(()=>{
-     try{
-       W.FL27_AUTO_START=false;
-       W.__FL27_AUTO_START=false;
-       const engine=W.__FL27_ORIGINAL_START_CAREER||W.startCareer;
-       if(typeof engine!=="function")throw new Error("Brak podstawowego silnika startu.");
-       engine();
-       if(!W.S?.started)throw new Error("Silnik nie ustawił S.started.");
-       W.S.firstName=creator.first;W.S.lastName=creator.last;W.S.name=playerName;
-       W.S.gender=creator.gender==="K"?"Kobieta":"Mężczyzna";W.S.orientation=creator.orientation;
-       W.S.birthDate=creator.birth;W.S.birthMonth=Number(creator.birth.slice(5,7));W.S.birthDay=Number(creator.birth.slice(8,10));
-       W.S.creatorDecisions=[...answers];W.S.creatorQuestionSet=qset.map(q=>({category:q.cat,title:q.title}));
-       W.S.creatorProfile={firstName:creator.first,lastName:creator.last,gender:creator.gender,orientation:creator.orientation,birthDate:creator.birth};
-       W.saveSoon?.();W.save?.();
-       closeCreator();document.getElementById("flc-loader")?.remove();busy=false;canonicalTab="home";render();W.toast?.("⚽ Kariera rozpoczęta!");
-     }catch(err){
-       console.error("FL27 FINAL CLEAN start",err);document.getElementById("flc-loader")?.remove();busy=false;
-       alert("Nie udało się uruchomić kariery. Silnik został zatrzymany bez pozostawienia ekranu ładowania.");
-       renderCreator();
-     }
-   },180);
- }catch(err){busy=false;console.error(err);alert("Nie udało się przygotować kariery.");}
-}
-function showStartLoader(){
- const e=document.createElement("div");e.id="flc-loader";e.innerHTML=`<div class="flc-loader-box"><span class="flc-ball">⚽</span><h2>Tworzymy Twoje życie</h2><p id="flc-load-text">Łączymy decyzje z generatorem świata…</p><div class="flc-track"><i id="flc-load-bar"></i></div><div class="flc-pct" id="flc-load-pct">10%</div></div>`;document.body.appendChild(e);
- let n=10;const t=setInterval(()=>{n=Math.min(85,n+15);const b=document.getElementById("flc-load-bar"),p=document.getElementById("flc-load-pct");if(b)b.style.width=n+"%";if(p)p.textContent=n+"%"},45);setTimeout(()=>clearInterval(t),190);
-}
-
-/* ---------- override every old New Game+ entry point ---------- */
-W.FL27_startPlus=()=>{freshNG();showCreator()};
-W.FL27_showCreator=showCreator;
-W.FL27_confirmPlus=startPlus;
-
-/* ---------- one Auto entry point ---------- */
-W.FL27_startAuto=function(){
- freshNG();
- try{
-   const pick=a=>a[rnd(a.length)];
-   selectedAnswers.splice(0,selectedAnswers.length,
-     pick(["Kobieta","Mężczyzna"]),
-     pick(["Kobiety","Mężczyźni","Kobiety i mężczyźni","Na razie nikim — nie szukam związku"]),
-     pick(["Bramkarz (BR)","Środkowy obrońca (ŚO)","Lewy obrońca (LO)","Prawy obrońca (PO)","Środkowy pomocnik (ŚP)","Lewy pomocnik (LP)","Prawy pomocnik (PP)","Lewy skrzydłowy (LS)","Prawy skrzydłowy (PS)","Napastnik (N)"]),
-     pick(["Lewa","Prawa"]),
-     pick(["Techniczny","Szybki","Fizyczny","Kreatywny","Uniwersalny"]),
-     pick(["Lionel Messi","Cristiano Ronaldo","Jude Bellingham","Kylian Mbappé","Alexia Putellas","Aitana Bonmatí"]),
-     pick(["FC Barcelona","Real Madryt","Manchester City","Bayern Monachium","Arsenal","Liverpool","Inter","AC Milan"]),
-     pick(["Walczę do końca","Zachowuję spokój","Biorę odpowiedzialność","Szukam wsparcia u drużyny"]),
-     pick(["Rozwój i umiejętności","Trofea","Pieniądze","Sława i rozpoznawalność","Reprezentowanie Polski","Dobra atmosfera i ludzie"]),
-     pick(["Zostać zawodnikiem/zawodniczką światowego poziomu","Zagrać w klubie marzeń","Zdobyć Ligę Mistrzów","Zagrać dla reprezentacji","Zbudować karierę i jednocześnie mieć normalne życie"])
-   );
-   const names=[["Artur","Lisiak"],["Kuba","Nowak"],["Lena","Kowalska"],["Maja","Silva"],["Alex","Costa"],["Nina","Santos"],["Oskar","Garcia"],["Sara","Rossi"]];
-   const nm=pick(names);playerName=nm.join(" ");
-   W.FL27_AUTO_START=true;
-   const engine=W.startCareer;if(typeof engine!=="function")throw new Error("Brak silnika startu");
-   engine();W.FL27_AUTO_START=false;
-   if(!W.S?.started)throw new Error("Auto nie uruchomiło kariery");
-   W.saveSoon?.();render();
- }catch(err){W.FL27_AUTO_START=false;console.error(err);alert("Nie udało się uruchomić Nowej Gry Auto.")}
-};
-
-/* ---------- one canonical game chrome ---------- */
-let canonicalTab="home";
-const NAV=[["home","⌂","Dziś"],["day","◷","Dzień"],["career","⚽","Kariera"],["life","♥","Życie"],["family","♟","Rodzina"],["history","▤","Historia"],["careerStats","▥","Statystyki"],["store","▢","Sklep"],["social","◎","FLgram"],["wealth","€","Finanse"],["settings","⚙","Ustawienia"]];
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function nm(){const s=W.S||{};return String(s.name||[s.firstName,s.lastName].filter(Boolean).join(" ")||"Zawodnik")}
-function header(){
- let x=document.getElementById("flc-top");if(!x){x=document.createElement("header");x.id="flc-top";document.body.prepend(x)}
- const s=W.S||{};x.innerHTML=`<div class="logo"></div><div class="identity"><span class="flc-name">${esc(nm())}</span><span class="flc-meta">${esc(s.pos||"—")} • ${Number(s.age??15)} lat • <span class="flc-club">${esc(s.club||"Bez klubu")}</span></span></div><div class="stats"><div class="flc-stat"><i>⭐</i><b>${Math.round(s.skill||0)}</b></div><div class="flc-stat"><i>❤️</i><b>${Math.round(s.health||0)}</b></div><div class="flc-stat"><i>💰</i><b>€${Math.floor(s.money||0)}</b></div><div class="flc-stat"><i>😊</i><b>${Math.round(s.happiness||s.mental||0)}</b></div><div class="flc-stat"><i>⚡</i><b>${Math.round(s.energy||0)}</b></div></div>`;
-}
-function main(){let m=document.getElementById("flc-main");if(!m){m=document.createElement("main");m.id="flc-main";document.body.appendChild(m)}return m}
-function drawer(){
- let d=document.getElementById("flc-drawer");if(d)return d;
- d=document.createElement("aside");d.id="flc-drawer";d.innerHTML=`<button id="flc-toggle" type="button"><span class="ni">${window.FL27_ICON?.("activity")||"☰"}</span><b>KATALOG GRY</b></button><div id="flc-list">${NAV.map((n,i)=>`${i===8?'<div class="flc-divider"></div>':""}<button class="flc-nav" type="button" data-tab="${n[0]}" title="${n[2]}"><span class="ni">${window.FL27_ICON?.({"home":"home","day":"clock","career":"ball","life":"heart","family":"family","history":"book","careerStats":"chart","store":"shop","social":"activity","wealth":"chart","settings":"settings"}[n[0]])||n[1]}</span><b>${n[2]}</b></button>`).join("")}</div>`;document.body.appendChild(d);
- d.querySelector("#flc-toggle").onclick=()=>{d.classList.toggle("open");document.body.classList.toggle("fl27-drawer-open",d.classList.contains("open"))};d.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{canonicalTab=b.dataset.tab;render();document.body.classList.remove("fl27-drawer-open");d.classList.remove("open")});return d;
-}
-function cleanLegacy(){document.querySelectorAll(".v20-hub-overlay,#fl110-header,#nav,#fl110-tutorial-fallback,#fl110-activity-fallback").forEach(x=>x.remove())}
-function activity(k){
- if(k==="training"){W.train?.(true);return}if(k==="match"){W.playMatch?.();return}if(k==="sleep"){W.sleep?.();return}
- const map={homework:[1.5,"📚 Nauka",0,1,0],friends:[2,"👥 Znajomi",0,2,2],family:[2,"❤️ Rodzina",0,2,3],hobby:[1,"🎵 Hobby",0,2,1],bike:[2,"🚲 Rower",0,2,1],pool:[2,"🏊 Basen",0,3,2],free:[2,"🎮 Czas wolny",0,3,1],recovery:[1,"🧘 Regeneracja",0,4,3],city:[3,"🏙️ Miasto",8,2,2],reading:[1,"📖 Czytanie",0,2,1],walk:[1,"🚶 Spacer",0,2,1],job:[2,"💼 Drobna praca",0,1,0]};const a=map[k];if(!a)return;const s=W.S,h=Number(s.hour||8);if(h+a[0]>22){W.toast?.("Ta aktywność nie zmieści się dziś przed 22:00.");return}if(Number(s.money||0)<a[2]){W.toast?.("Nie masz wystarczająco pieniędzy.");return}if(a[2])s.money-=a[2];s.energy=Math.max(0,Math.min(100,Number(s.energy||0)-a[0]*7));s.health=Math.max(0,Math.min(100,Number(s.health||0)+a[4]));s.mental=Math.max(0,Math.min(100,Number(s.mental||0)+a[3]));s.happiness=Math.max(0,Math.min(100,Number(s.happiness||0)+a[3]));W.advance?.(a[0]);W.log?.(`${a[1]} • ${a[0]}h`);W.saveSoon?.();render();
-}
-function home(){
- const s=W.S||{},h=Number(s.hour??8),last=s.logs?.[0];
- const acts=[["training","⚽","Trening","2h • rozwój i forma"],["homework","📚","Nauka","1,5h • szkoła"],["friends","👥","Znajomi","2h • relacje"],["family","❤️","Rodzina","2h • relacje"],["hobby","🎵","Hobby","1h • rozwój"],["bike","🚲","Rower","2h • zdrowie"],["pool","🏊","Basen","2h • regeneracja"],["free","🎮","Czas wolny","2h • odpoczynek"],["recovery","🧘","Regeneracja","1h • zdrowie"],["city","🏙️","Miasto","3h • życie"],["reading","📖","Czytanie","1h • nauka"],["walk","🚶","Spacer","1h • zdrowie"],["job","💼","Drobna praca","2h • pieniądze"],["match","⚽","Mecz","terminarz"],["sleep","🌙","Sen","od 22:00"]];
- return `<section class="flc-card" style="margin-top:8px"><div class="flc-k">🔔 OSTATNIE WYDARZENIE</div><h2>${esc(last?.text||"Twoja historia dopiero się zaczyna.")}</h2><p class="flc-muted">Wydarzenia wynikają z czasu, decyzji, relacji i historii zawodnika.</p></section>
- <div class="flc-section"><b>CO ROBISZ TERAZ?</b><span>🕐 ${String(h).padStart(2,"0")}:00 • do 22:00</span></div>
- <section class="flc-actions">${acts.map(a=>`<button class="flc-act" data-act="${a[0]}"><b>${a[1]} ${a[2]}</b><small>${a[3]}</small></button>`).join("")}</section>`;
-}
-function career(){
- const s=W.S||{};return `<section class="flc-card flc-hero"><div class="flc-k">⚽ KARIERA</div><h1 class="flc-title">${esc(s.club||"Bez klubu")}</h1><p class="flc-muted">Rozwój piłkarski i życie poza boiskiem są częścią jednego świata.</p><div class="flc-row"><span>Umiejętności / OVR</span><b>${Math.round(s.skill||0)}</b></div><div class="flc-row"><span>Forma</span><b>${Math.round(s.form||0)}</b></div><div class="flc-row"><span>Zdrowie</span><b>${Math.round(s.health||0)}</b></div><div class="flc-row"><span>PR</span><b>${Math.round(s.pr||0)}</b></div></section>
- <section class="flc-card"><div class="flc-k">📈 STATYSTYKI MECZOWE</div><div class="flc-row"><span>Mecze</span><b>${s.matches||0}</b></div><div class="flc-row"><span>Gole</span><b>${s.goals||0}</b></div><div class="flc-row"><span>Asysty</span><b>${s.assists||0}</b></div></section>`;
-}
-function canonicalRender(){
- const m=main();
- if(canonicalTab==="home")m.innerHTML=home();
- else if(canonicalTab==="career")m.innerHTML=career();
- else{
-   m.innerHTML="";
-   const fn={day:"renderDay",life:"renderLife",family:"renderFamily",history:"renderHistory",careerStats:"renderCareerHistory",store:"renderStore",social:"renderSocial",wealth:"renderWealth"}[canonicalTab];
-   if(fn&&typeof W[fn]==="function")W[fn](m);
-   else m.innerHTML=`<section class="flc-card"><div class="flc-k">USTAWIENIA</div><h2>Ustawienia gry</h2><p class="flc-muted">Panel ustawień pozostaje częścią podstawowego silnika.</p></section>`;
-   /* old renderers write into #main, but here #flc-main is authoritative;
-      this branch is intentionally limited to one renderer per tab. */
- }
- m.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>activity(b.dataset.act));
-}
-function render(){
- cleanLegacy();
- if(!W.S?.started){
-   document.getElementById("flc-top")?.remove();document.getElementById("flc-drawer")?.remove();document.getElementById("flc-main")?.remove();
-   if(!document.getElementById("flc-creator")&&!busy)W.FL27_showNewGame?.();
-   return;
- }
- closeCreator();header();drawer();canonicalRender();
- const d=document.getElementById("flc-drawer");d?.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===canonicalTab));
-}
-W.FL27_ROUTE=tab=>{canonicalTab=tab;render();return false};
-W.FL27_GET_TAB=()=>canonicalTab;
-W.render=render;
-
-/* Initial boot. */
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(render,80),{once:true});else setTimeout(render,80);
-})();
-</script>
-<script id="fl27-v165-shell-js">
+<script id="fl27-canonical-engine-js">
 (function(){
 "use strict";
 if(window.__FL27_V165_SHELL)return;
@@ -8697,45 +8410,53 @@ const NAV=[
 
 function drawer(){
  let d=document.getElementById("flc-drawer");
- if(!d){
-  d=document.createElement("aside");d.id="flc-drawer";
-  d.innerHTML=`<button id="flc-toggle">☰ <b>KATALOG GRY</b></button>
-   <div id="flc-list">${NAV.map(n=>`<button class="flc-nav" data-tab="${n[0]}"><span class="ni">${n[1]}</span><b>${n[2]}</b></button>`).join("")}</div>`;
-  document.body.appendChild(d);
-  d.querySelector("#flc-toggle").onclick=()=>d.classList.toggle("open");
- }
- d.querySelectorAll("[data-tab]").forEach(b=>{
-   b.onclick=()=>{tab=b.dataset.tab;render();if(innerWidth<700)d.classList.remove("open")};
-   b.classList.toggle("active",b.dataset.tab===tab);
- });
+ if(d)return d;
+ const groups=[
+  ["GŁÓWNE",[["home","home","Dziś"],["day","clock","Przebieg dnia"]]],
+  ["KARIERA",[["career","ball","Kariera"],["careerStats","chart","Statystyki kariery"]]],
+  ["ŻYCIE",[["life","heart","Życie"],["family","family","Rodzina"]]],
+  ["HISTORIA",[["history","book","Historia decyzji"]]],
+  ["SPOŁECZNOŚĆ",[["social","activity","FLgram"]]],
+  ["FINANSE I ZAKUPY",[["wealth","chart","Finanse"],["store","shop","Sklep i wydatki"]]],
+  ["SYSTEM",[["settings","settings","Ustawienia"]]]
+ ];
+ d=document.createElement("aside");
+ d.id="flc-drawer";
+ d.innerHTML=`<button id="flc-toggle" type="button" aria-label="Otwórz katalog gry" aria-expanded="false"><span class="ni">☰</span><b>KATALOG GRY</b></button>
+ <div id="flc-list">${groups.map(g=>`<div class="flc-nav-group"><div class="flc-nav-group-title">${g[0]}</div>${g[1].map(n=>`<button class="flc-nav" type="button" data-tab="${n[0]}" title="${n[2]}"><span class="ni">${window.FL27_ICON?.(n[1])||"•"}</span><b>${n[2]}</b></button>`).join("")}</div>`).join("")}</div>`;
+ document.body.appendChild(d);
+ const close=()=>{d.classList.remove("open");document.body.classList.remove("fl27-drawer-open");d.querySelector("#flc-toggle").setAttribute("aria-expanded","false")};
+ d.querySelector("#flc-toggle").onclick=()=>{if(d.classList.contains("open"))close();else{d.classList.add("open");document.body.classList.add("fl27-drawer-open");d.querySelector("#flc-toggle").setAttribute("aria-expanded","true")}};
+ d.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{tab=btn.dataset.tab;render();close()});
+ return d;
 }
-
 const ACTIVITY_CATALOG={
  training:{icon:"⚽",name:"Trening piłkarski",time:2,cost:0,energy:-16,health:-1,mental:3,happiness:2,skill:2,form:3,desc:"Rozwój umiejętności i formy"},
- homework:{icon:"📚",name:"Nauka",time:1.5,cost:0,energy:-9,health:0,mental:4,happiness:-1,skill:0,desc:"Szkoła, wiedza i przyszłość"},
+ homework:{icon:"📚",name:"Nauka",time:2,cost:0,energy:-9,health:0,mental:4,happiness:-1,skill:0,desc:"Szkoła, wiedza i przyszłość"},
  friends:{icon:"👥",name:"Znajomi",time:2,cost:5,energy:-8,health:0,mental:5,happiness:7,desc:"Relacje i dobre samopoczucie"},
  family:{icon:"❤️",name:"Rodzina",time:2,cost:0,energy:-6,health:1,mental:6,happiness:6,desc:"Budowanie więzi rodzinnych"},
  hobby:{icon:"🎵",name:"Hobby",time:1,cost:10,energy:-5,health:0,mental:4,happiness:6,desc:"Rozwój poza futbolem"},
- bike:{icon:"🚲",name:"Rower",time:1.5,cost:0,energy:-12,health:4,mental:2,happiness:3,form:1,desc:"Ruch, zdrowie i forma"},
- pool:{icon:"🏊",name:"Basen",time:1.5,cost:8,energy:-10,health:6,mental:3,happiness:3,form:1,desc:"Regeneracja i kondycja"},
+ bike:{icon:"🚲",name:"Rower",time:2,cost:0,energy:-12,health:4,mental:2,happiness:3,form:1,desc:"Ruch, zdrowie i forma"},
+ pool:{icon:"🏊",name:"Basen",time:2,cost:8,energy:-10,health:6,mental:3,happiness:3,form:1,desc:"Regeneracja i kondycja"},
  free:{icon:"🎮",name:"Czas wolny",time:2,cost:0,energy:3,health:0,mental:6,happiness:8,desc:"Odpoczynek i reset głowy"},
  recovery:{icon:"🧘",name:"Regeneracja",time:1,cost:0,energy:8,health:7,mental:5,happiness:2,form:1,desc:"Odzyskiwanie energii i zdrowia"},
  city:{icon:"🏙️",name:"Wyjście do miasta",time:3,cost:20,energy:-10,health:0,mental:6,happiness:8,pr:1,desc:"Doświadczenia, ludzie i nowe możliwości"},
  reading:{icon:"📖",name:"Czytanie",time:1,cost:0,energy:-3,health:0,mental:5,happiness:2,desc:"Wiedza i rozwój osobisty"},
  walk:{icon:"🚶",name:"Spacer",time:1,cost:0,energy:-4,health:3,mental:4,happiness:4,desc:"Lekki ruch i świeże powietrze"},
  job:{icon:"💼",name:"Drobna praca",time:2,cost:0,energy:-12,health:-1,mental:-1,happiness:1,money:35,desc:"Mały zarobek poza boiskiem"},
- gym:{icon:"🏋️",name:"Siłownia",time:1.5,cost:5,energy:-14,health:3,mental:2,happiness:2,form:2,desc:"Siła, kondycja i forma"},
+ gym:{icon:"🏋️",name:"Siłownia",time:2,cost:5,energy:-14,health:3,mental:2,happiness:2,form:2,desc:"Siła, kondycja i forma"},
  run:{icon:"🏃",name:"Bieg",time:1,cost:0,energy:-11,health:4,mental:3,happiness:3,form:2,desc:"Kondycja i wydolność"},
  stretch:{icon:"🤸",name:"Rozciąganie",time:.5,cost:0,energy:2,health:4,mental:3,happiness:2,form:1,desc:"Mobilność i regeneracja"},
  meal:{icon:"🍽️",name:"Posiłek",time:.5,cost:12,energy:8,health:2,mental:1,happiness:3,desc:"Jedzenie i odzyskanie energii"},
- cinema:{icon:"🎬",name:"Kino",time:2.5,cost:18,energy:-3,health:0,mental:5,happiness:9,desc:"Rozrywka i odpoczynek"},
+ cinema:{icon:"🎬",name:"Kino",time:3,cost:18,energy:-3,health:0,mental:5,happiness:9,desc:"Rozrywka i odpoczynek"},
  gaming:{icon:"🎮",name:"Wieczór z grami",time:2,cost:0,energy:-2,health:0,mental:5,happiness:7,desc:"Rozrywka i relaks"},
  social:{icon:"📱",name:"FLgram / social media",time:1,cost:0,energy:-2,health:0,mental:2,happiness:3,pr:2,desc:"Budowanie obecności i PR"},
  volunteer:{icon:"🤝",name:"Pomoc innym",time:2,cost:0,energy:-8,health:0,mental:6,happiness:7,pr:2,desc:"Relacje, charakter i reputacja"}
 };
 
 function fmtHours(v){
- return Number.isInteger(v)?`${v}h`:`${String(v).replace(".",",")}h`;
+ const n=Math.max(1,Math.round(Number(v)||1));
+ return `${n}h`;
 }
 function effectLine(a){
  const e=[];
@@ -8987,5 +8708,83 @@ body.fl27-drawer-open #flc-top{
 }
 </style>
 
+
+<style id="fl27-v175-final">
+html,body{overflow-x:hidden!important}
+body:not(.creator-screen){padding-top:84px!important;padding-bottom:20px!important}
+
+/* Permanent player header */
+#flc-top{
+ position:fixed!important;top:8px!important;left:50%!important;transform:translateX(-50%)!important;
+ z-index:2147483000!important;width:min(980px,calc(100vw - 14px))!important;margin:0!important;
+}
+
+/* Collapsed = ONLY hamburger */
+#flc-drawer{
+ position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
+ z-index:2147483647!important;width:58px!important;max-height:calc(100vh - 24px)!important;
+ padding:7px!important;box-sizing:border-box!important;border-radius:18px 0 0 18px!important;
+ overflow-y:auto!important;scrollbar-width:none!important;transition:width .22s ease!important;
+}
+#flc-drawer::-webkit-scrollbar{display:none!important}
+#flc-toggle{
+ width:100%!important;height:52px!important;border:0!important;border-radius:13px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:0!important;background:rgba(217,170,77,.11)!important;color:#f1ce73!important;cursor:pointer!important;
+}
+#flc-toggle .ni{font-size:24px!important;line-height:1!important}
+#flc-toggle b{display:none!important}
+#flc-drawer:not(.open) #flc-list{display:none!important}
+
+/* Expanded = complete labelled catalogue */
+#flc-drawer.open{width:min(286px,82vw)!important}
+#flc-drawer.open #flc-list{display:block!important;margin-top:7px!important}
+.flc-nav-group{padding:7px 0!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
+.flc-nav-group-title{display:block!important;color:#d9aa4d!important;font-size:8px!important;font-weight:900!important;letter-spacing:1.8px!important;padding:3px 9px 6px!important}
+.flc-nav{width:100%!important;height:43px!important;border:0!important;border-radius:12px!important;background:transparent!important;color:#a8acb4!important;display:flex!important;align-items:center!important;gap:10px!important;padding:0 10px!important;text-align:left!important;cursor:pointer!important}
+.flc-nav:hover,.flc-nav.active{background:rgba(217,170,77,.12)!important;color:#f2cf78!important}
+.flc-nav .ni{width:23px!important;height:23px!important;flex:0 0 23px!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:18px!important}
+.flc-nav .ni svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.flc-nav b{display:block!important;font-size:11px!important;white-space:nowrap!important}
+
+/* Never cover readable content: main + header reserve drawer width while open */
+body.fl27-drawer-open #flc-main{
+ width:calc(min(980px,100vw - 24px) - min(286px,82vw) - 12px)!important;
+ margin-left:12px!important;margin-right:min(286px,82vw)!important;
+ transition:width .22s ease,margin .22s ease!important;
+}
+body.fl27-drawer-open #flc-top{
+ width:calc(min(980px,100vw - 14px) - min(286px,82vw) - 12px)!important;
+ margin-left:calc(min(286px,82vw) / -2)!important;
+ transition:width .22s ease,margin .22s ease!important;
+}
+
+/* Remove every known obsolete bottom strip */
+.v17-bottom,.v24-bottom,.v26-bottom,.v27-bottom,.fl27-v27-extra,
+.fl27-v35-bottom,.fl27-v35-top,.fl27-bottom,.fl27-sticky-bottom,
+#fl110-activity-fallback{display:none!important}
+
+/* Whole-hour labels */
+.fl27-activity-card .act-top span{min-width:34px;text-align:center}
+
+@media(max-width:520px){
+ body:not(.creator-screen){padding-top:78px!important}
+ #flc-top{width:calc(100vw - 12px)!important}
+ #flc-drawer.open{width:210px!important}
+ body.fl27-drawer-open #flc-main{width:calc(100vw - 222px)!important;margin-left:5px!important;margin-right:217px!important}
+ body.fl27-drawer-open #flc-top{width:calc(100vw - 222px)!important;left:5px!important;transform:none!important;margin:0!important}
+}
+</style>
+
+
+<script id="fl27-v175-bottom-cleanup">
+(function(){
+ const sels=[".v17-bottom",".v24-bottom",".v26-bottom",".v27-bottom",".fl27-v27-extra",
+ ".fl27-v35-bottom",".fl27-v35-top",".fl27-bottom",".fl27-sticky-bottom"];
+ const purge=()=>sels.forEach(sel=>document.querySelectorAll(sel).forEach(n=>n.remove()));
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",purge,{once:true});else purge();
+ window.FL27_PURGE_OLD_BOTTOM=purge;
+})();
+</script>
 </body>
 </html>
