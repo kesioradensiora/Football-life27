@@ -9397,3 +9397,1117 @@ input:focus,select:focus,textarea:focus{
 [data-accent="red"],.accent-red{--user-accent:#df4b5b!important}
 [data-accent="blue"],.accent-blue{--user-accent:#6d9fe9!important}
 </style>
+
+
+<style id="fl27-v89-time-ui">
+/* V89 — fixed identity header + in-page hourly planner. */
+#fl89-top{
+ position:fixed!important;left:0!important;right:0!important;top:0!important;
+ z-index:2147482000!important;height:68px!important;box-sizing:border-box!important;
+ display:flex!important;align-items:center!important;gap:8px!important;padding:7px 10px!important;
+ background:rgba(9,9,10,.97)!important;border-bottom:1px solid rgba(216,170,79,.24)!important;
+ box-shadow:0 8px 28px rgba(0,0,0,.34)!important;backdrop-filter:blur(14px)!important;
+ pointer-events:none!important;
+}
+#fl89-top .brand{display:flex;align-items:center;gap:6px;min-width:74px}
+#fl89-top .brandmark{
+ width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+ background:linear-gradient(145deg,#e6bc62,#a9762b);color:#080808;font-weight:1000;font-size:12px;
+ box-shadow:0 5px 15px rgba(216,170,79,.18)
+}
+#fl89-top .brandtext{font:1000 8px/8px system-ui;letter-spacing:.6px}
+#fl89-top .brandtext i{font-style:normal;color:#d9aa4d}
+#fl89-top .avatar{
+ width:40px;height:40px;min-width:40px;border-radius:12px;overflow:hidden;display:grid;place-items:center;
+ background:#18191c;border:1px solid rgba(255,255,255,.10);font-size:19px
+}
+#fl89-top .avatar img{width:100%;height:100%;object-fit:cover}
+#fl89-top .who{min-width:0;flex:1;display:grid;gap:2px}
+#fl89-top .who b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fl89-top .who small{font-size:8px;color:#9b9ca2}
+#fl89-top .chips{display:flex;gap:4px}
+#fl89-top .chip{min-width:42px;padding:4px 5px;border-radius:8px;background:rgba(255,255,255,.045);text-align:center}
+#fl89-top .chip small{display:block;font-size:5.5px;color:#92949a}
+#fl89-top .chip b{display:block;font-size:9px;color:#f5f5f2;margin-top:1px}
+body{padding-top:76px!important;padding-bottom:24px!important}
+
+/* Hide all old fixed activity/header/navigation chrome. The new planner lives in the page. */
+.fl27-v17-extra,.fl27-v27-extra,.fl27-v31-extra,.fl27-v35-top,.fl27-v35-bottom,
+.v16-player-header,.v16-player-header+*{
+ display:none!important;pointer-events:none!important;
+}
+
+#fl89-planner{
+ margin:14px auto 28px;max-width:980px;padding:14px;
+ border:1px solid rgba(216,170,79,.20);border-radius:22px;
+ background:linear-gradient(145deg,rgba(24,25,28,.97),rgba(11,12,14,.97));
+ box-shadow:0 16px 42px rgba(0,0,0,.25);
+}
+#fl89-planner .planner-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:12px}
+#fl89-planner .eyebrow{font:900 8px/1 system-ui;letter-spacing:1.8px;color:#d9aa4d}
+#fl89-planner h2{margin:5px 0 0;font-size:20px}
+#fl89-planner .clock{font-size:20px;font-weight:1000}
+#fl89-planner .until{font-size:8px;color:#92949a;text-align:right;margin-top:2px}
+#fl89-planner .timeline{
+ height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:4px 0 13px
+}
+#fl89-planner .timeline i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#d9aa4d,#f1cb70)}
+#fl89-planner .section{font-size:9px;font-weight:900;letter-spacing:.8px;color:#8f9198;margin:13px 0 7px}
+#fl89-planner .actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.fl89-action{
+ min-height:76px;padding:9px;border-radius:14px;border:1px solid rgba(255,255,255,.075);
+ background:rgba(255,255,255,.035);color:#fff;text-align:left;cursor:pointer;
+ transition:.15s;touch-action:manipulation;
+}
+.fl89-action:hover{border-color:rgba(216,170,79,.42);transform:translateY(-1px)}
+.fl89-action:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.fl89-action .ico{font-size:21px;display:block;margin-bottom:6px}
+.fl89-action b{font-size:10px;display:block}.fl89-action small{font-size:7px;color:#92949a;line-height:10px;display:block;margin-top:3px}
+.fl89-action .cost{font-size:7px;color:#d9aa4d;display:block;margin-top:4px}
+#fl89-planner .selected{
+ margin-top:10px;padding:10px;border-radius:14px;background:rgba(216,170,79,.07);
+ border:1px solid rgba(216,170,79,.22);display:flex;align-items:center;gap:10px
+}
+#fl89-planner .selected .copy{flex:1;min-width:0}.selected b{font-size:10px}.selected small{display:block;font-size:7px;color:#a7a8ad;margin-top:3px}
+#fl89-planner .run{
+ border:0;border-radius:10px;padding:10px 14px;background:linear-gradient(135deg,#f1cb70,#b9832f);
+ color:#080808;font-size:9px;font-weight:1000;cursor:pointer
+}
+#fl89-planner .run:disabled{opacity:.4;cursor:not-allowed}
+#fl89-planner .sleep-note{
+ margin-top:10px;padding:9px;border-radius:12px;background:rgba(255,255,255,.035);
+ color:#a3a4a9;font-size:8px;line-height:12px
+}
+@media(max-width:700px){#fl89-planner .actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:390px){#fl89-top{gap:5px;padding:6px}.brandtext{display:none!important}#fl89-top .brand{min-width:34px}#fl89-top .chips{gap:2px}#fl89-top .chip{min-width:36px;padding:3px 3px}}
+</style>
+
+<script id="fl27-v89-time-ui-js">
+(function(){
+ "use strict";
+
+ function st(){return window.S||{}}
+ function hour(){return Number(st().hour??8)}
+ function day(){return Number(st().day??1)}
+ function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+ function fmt(min){const h=Math.floor(min/60),m=min%60;return h?`${h}h${m?` ${m}m`:""}`:`${m} min`}
+ function can(min){return hour()*60+min<=22*60}
+
+ function avatarHTML(){
+   const Sx=st(), a=Sx.avatar;
+   try{
+     if(a&&typeof a==="object"&&typeof window.FL27_avatarSvg==="function")
+       return window.FL27_avatarSvg({...a,gender:Sx.gender||a.gender});
+   }catch(e){}
+   if(typeof a==="string"&&(a.startsWith("data:")||a.startsWith("http")))return `<img src="${a}" alt="">`;
+   return a||"⚽";
+ }
+
+ function mountTop(){
+   document.querySelectorAll("#fl89-top").forEach(x=>x.remove());
+   const Sx=st(), pos=Sx.pos||Sx.position||"—", age=Sx.age??15;
+   const ovr=Math.round(Number(Sx.ovr??Sx.overall??Sx.skill??0));
+   const energy=Math.round(Number(Sx.energy??100)), money=Math.floor(Number(Sx.money??0));
+   const e=document.createElement("header");e.id="fl89-top";
+   e.innerHTML=`<div class="brand"><span class="brandmark">FL</span><span class="brandtext">FOOTBALL<br><i>LIFE 27</i></span></div>
+   <div class="avatar">${avatarHTML()}</div>
+   <div class="who"><b>${esc(Sx.name||"Zawodnik")}</b><small>${esc(pos)} • ${age} lat • dzień ${day()}</small></div>
+   <div class="chips"><div class="chip"><small>GODZ.</small><b>${String(hour()).padStart(2,"0")}:00</b></div>
+   <div class="chip"><small>ENERGIA</small><b>${energy}</b></div><div class="chip"><small>OVR</small><b>${ovr}</b></div>
+   <div class="chip"><small>€</small><b>${money}</b></div></div>`;
+   document.body.appendChild(e);
+ }
+
+ function actions(){
+   const A=window.FL27_V17_ACTIONS||[];
+   const extra=[
+    {id:"study_test",icon:"📝",name:"Nauka do sprawdzianu",min:60,money:0,energy:-5,health:0,form:0,mental:3},
+    {id:"extra_friends",icon:"⚽",name:"Trening z kolegami",min:60,money:0,energy:-15,health:-1,form:4,mental:3},
+    {id:"bike_1h",icon:"🚲",name:"Jazda na rowerze",min:60,money:0,energy:-8,health:2,form:2,mental:4},
+    {id:"pool_1h",icon:"🏊",name:"Basen",min:60,money:0,energy:-10,health:3,form:2,mental:4},
+    {id:"mom_time",icon:"👩",name:"Czas z mamą",min:60,money:0,energy:-2,health:1,form:0,mental:7},
+    {id:"dad_time",icon:"👨",name:"Czas z tatą",min:60,money:0,energy:-2,health:1,form:0,mental:7},
+    {id:"sister_time",icon:"👧",name:"Czas z siostrą",min:60,money:0,energy:-2,health:1,form:0,mental:6},
+    {id:"walk_1h",icon:"🚶",name:"Spacer",min:60,money:0,energy:-4,health:2,form:1,mental:3}
+   ];
+   extra.forEach(x=>{if(!A.some(a=>a.id===x.id))A.push(x)});
+   return A;
+ }
+
+ function preview(a){
+   const parts=[`⏱ ${fmt(a.min)}`];
+   if(a.energy)parts.push(`⚡ ${a.energy>0?"+":"−"}${Math.abs(a.energy)}`);
+   if(a.health)parts.push(`❤️ ${a.health>0?"+":"−"}${Math.abs(a.health)}`);
+   if(a.form)parts.push(`🏃 ${a.form>0?"+":"−"}${Math.abs(a.form)}`);
+   if(a.mental)parts.push(`🧠 ${a.mental>0?"+":"−"}${Math.abs(a.mental)}`);
+   return parts.join(" • ");
+ }
+
+ function mountPlanner(){
+   document.querySelectorAll("#fl89-planner").forEach(x=>x.remove());
+   const host=document.querySelector("#main")||document.querySelector("main")||document.querySelector(".app");
+   if(!host)return;
+   const A=actions(), h=hour(), rem=Math.max(0,22-h);
+   const selectedId=window.FL27_V17?.selected;
+   const selected=A.find(a=>a.id===selectedId);
+   const pct=Math.max(0,Math.min(100,(h-8)/14*100));
+   const e=document.createElement("section");e.id="fl89-planner";
+   const daily=A.filter(a=>a.id!=="sleep");
+   e.innerHTML=`<div class="planner-head"><div><div class="eyebrow">TWÓJ DZIEŃ</div><h2>Co robisz teraz?</h2></div>
+     <div><div class="clock">${String(h).padStart(2,"0")}:00</div><div class="until">${rem} h do 22:00</div></div></div>
+     <div class="timeline"><i style="width:${pct}%"></i></div>
+     <div class="section">SZKOŁA • FUTBOL • NAUKA • ŻYCIE</div>
+     <div class="actions">${daily.map(a=>{
+       const ok=typeof a.min==="number"&&can(a.min)&&!(a.energy<0&&Number(st().energy??100)+a.energy<0);
+       return `<button type="button" class="fl89-action" data-a="${a.id}" ${ok?"":"disabled"}>
+        <span class="ico">${a.icon||"•"}</span><b>${esc(a.name)}</b><small>${ok?"Dostępne teraz":"Za mało czasu / energii"}</small><span class="cost">${preview(a)}</span></button>`;
+     }).join("")}</div>
+     <div class="section">RODZINA</div>
+     <div class="actions">${daily.filter(a=>/mom_time|dad_time|sister_time/.test(a.id)).map(a=>`<button type="button" class="fl89-action" data-a="${a.id}" ${can(a.min)?"":"disabled"}><span class="ico">${a.icon}</span><b>${esc(a.name)}</b><small>1 godzina</small><span class="cost">${preview(a)}</span></button>`).join("")}</div>
+     <div class="selected">${selected?`<div class="copy"><b>${selected.icon} ${esc(selected.name)}</b><small>${preview(selected)}</small></div><button class="run" type="button" data-run="${selected.id}" ${can(selected.min)?"":"disabled"}>WYKONAJ</button>`:`<div class="copy"><b>Wybierz aktywność</b><small>Każda czynność zabiera realny czas. O 22:00 dzień się kończy.</small></div>`}</div>
+     <div class="sleep-note">🌙 <b>Sen od 22:00.</b> Po 22:00 nie wykonujesz kolejnych aktywności — sen rozpoczyna następny dzień i regeneruje energię.</div>`;
+   host.appendChild(e);
+
+   e.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>{
+     const id=b.dataset.a; window.FL27_V17_select?.(id); setTimeout(mountPlanner,0);
+   }));
+   const run=e.querySelector("[data-run]");
+   if(run)run.addEventListener("click",()=>{window.FL27_V17_run?.(run.dataset.run);setTimeout(mountPlanner,0)});
+ }
+
+ /* Extend the existing activity system — do not replace its state engine. */
+ function patchActions(){
+   const A=actions();
+   const oldRun=window.FL27_V17_run;
+   if(!oldRun||oldRun.__v89)return;
+   function run(id){
+     if(id==="sleep"){
+       if(hour()<22){window.toast?.("🌙 Sen jest dostępny od 22:00.");return}
+       window.sleep?.(); setTimeout(mountPlanner,0); return;
+     }
+     return oldRun(id);
+   }
+   run.__v89=true;window.FL27_V17_run=run;
+ }
+
+ function patchRender(){
+   if(!window.render||window.__FL27_V89_RENDER)return;
+   const old=window.render;window.__FL27_V89_RENDER=true;
+   window.render=function(){
+     const r=old.apply(this,arguments);
+     requestAnimationFrame(()=>{mountTop();patchActions();mountPlanner()});
+     return r;
+   };
+   setTimeout(()=>{mountTop();patchActions();mountPlanner()},80);
+ }
+
+ function boot(){patchRender();mountTop();patchActions();mountPlanner()}
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+})();
+</script>
+
+
+<style id="fl27-v90-store-style">
+.fl90-store-extra{
+ margin-top:10px;padding:14px;border-radius:18px;
+ background:linear-gradient(145deg,#17181b,#0d0e10);
+ border:1px solid rgba(216,170,79,.20);
+}
+.fl90-store-extra h2{margin:0 0 4px;font-size:18px}
+.fl90-store-extra .subhead{font-size:8px;color:#92949a;margin-bottom:11px}
+.fl90-store-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl90-store-item{
+ padding:11px;border-radius:14px;background:rgba(255,255,255,.035);
+ border:1px solid rgba(255,255,255,.075);color:#fff;
+}
+.fl90-store-item .pic{font-size:25px;margin-bottom:5px}
+.fl90-store-item b{font-size:10px;display:block}
+.fl90-store-item small{font-size:7px;color:#92949a;display:block;line-height:10px;margin:3px 0 7px}
+.fl90-store-item .price{color:#d9aa4d;font-weight:900;font-size:9px}
+.fl90-store-item button{
+ width:100%;margin-top:7px;padding:8px;border-radius:9px;border:1px solid rgba(216,170,79,.28);
+ background:linear-gradient(135deg,#eec76a,#b27d2c);color:#090909;font-weight:900;font-size:8px;
+}
+.fl90-owned{color:#7ee0a0!important;background:rgba(70,180,110,.09)!important;border-color:rgba(70,180,110,.2)!important}
+@media(max-width:520px){.fl90-store-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+<script id="fl27-v90-store-life-js">
+(function(){
+ "use strict";
+
+ function ensure(){
+   if(typeof window.ensureStore==="function")window.ensureStore();
+   if(!window.S)return;
+   S.store=S.store||{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]};
+   S.store.tattoos=S.store.tattoos||[];
+ }
+
+ /* Expanded real-life store catalogue. Existing items remain intact. */
+ function addItems(){
+   if(!window.STORE_ITEMS)return;
+   STORE_ITEMS.homes=STORE_ITEMS.homes||[];
+   STORE_ITEMS.cars=STORE_ITEMS.cars||[];
+   STORE_ITEMS.tattoos=STORE_ITEMS.tattoos||[];
+
+   const homes=[
+    {id:"apt_luxury",cat:"home",name:"Apartament premium w centrum",price:420000,boost:{mental:3,pr:2}},
+    {id:"house_family",cat:"home",name:"Dom rodzinny z ogrodem",price:620000,boost:{mental:4,health:2}},
+    {id:"house_smart",cat:"home",name:"Nowoczesny dom smart",price:980000,boost:{mental:5,health:2,pr:2}},
+    {id:"villa_sea",cat:"home",name:"Willa z basenem",price:2400000,boost:{mental:6,health:3,pr:3}},
+    {id:"penthouse",cat:"home",name:"Penthouse",price:3800000,boost:{mental:7,pr:4}}
+   ];
+   const cars=[
+    {id:"car7",cat:"car",name:"Volkswagen Golf",price:32000,boost:{mobility:1}},
+    {id:"car8",cat:"car",name:"Toyota GR Yaris",price:48000,boost:{mobility:2,pr:1}},
+    {id:"car9",cat:"car",name:"BMW M3",price:105000,boost:{mobility:2,pr:3}},
+    {id:"car10",cat:"car",name:"Audi RS5",price:125000,boost:{mobility:2,pr:3}},
+    {id:"car11",cat:"car",name:"Porsche 911",price:190000,boost:{mobility:3,pr:5}},
+    {id:"car12",cat:"car",name:"Mercedes-AMG GT",price:230000,boost:{mobility:3,pr:5}}
+   ];
+   homes.forEach(x=>{if(!STORE_ITEMS.homes.some(y=>y.id===x.id))STORE_ITEMS.homes.push(x)});
+   cars.forEach(x=>{if(!STORE_ITEMS.cars.some(y=>y.id===x.id))STORE_ITEMS.cars.push(x)});
+
+   const tattoos=[
+    {id:"tattoo_small",cat:"tattoo",name:"Mały tatuaż — symbol",price:120,boost:{mental:1}},
+    {id:"tattoo_name",cat:"tattoo",name:"Napis / data",price:180,boost:{mental:1,pr:1}},
+    {id:"tattoo_sleeve",cat:"tattoo",name:"Rękaw — czarno-szary",price:650,boost:{mental:2,pr:1}},
+    {id:"tattoo_sleeve_color",cat:"tattoo",name:"Rękaw — kolorowy",price:950,boost:{mental:2,pr:2}},
+    {id:"tattoo_back",cat:"tattoo",name:"Tatuaż na plecach",price:800,boost:{mental:2,pr:1}},
+    {id:"tattoo_custom",cat:"tattoo",name:"Projekt autorski",price:1500,boost:{mental:3,pr:3}}
+   ];
+   tattoos.forEach(x=>{if(!STORE_ITEMS.tattoos.some(y=>y.id===x.id))STORE_ITEMS.tattoos.push(x)});
+ }
+ function owned(id){return !!S?.store?.owned?.includes(id)}
+ function buy(id){
+   ensure(); addItems();
+   if(!window.STORE_ITEMS?.tattoos?.some(x=>x.id===id)){
+     window.storeBuy?.(id);return;
+   }
+   const it=STORE_ITEMS.tattoos.find(x=>x.id===id);
+   if(owned(id)){window.toast?.("Już to posiadasz.");return}
+   if(typeof window.spend==="function"&&!window.spend(it.price,`Tatuaż: ${it.name}`))return;
+   S.store.owned.push(it.id);S.store.tattoos.push(it.id);
+   Object.entries(it.boost||{}).forEach(([k,v])=>{
+     if(k==="mental")S.mental=typeof window.clamp==="function"?clamp(Number(S.mental||0)+v):Number(S.mental||0)+v;
+     if(k==="pr")S.pr=typeof window.clamp==="function"?clamp(Number(S.pr||0)+v):Number(S.pr||0)+v;
+   });
+   S.tattoos=S.tattoos||[];S.tattoos.push({id:it.id,name:it.name,day:S.day});
+   window.log?.(`💉 Nowy tatuaż: ${it.name}.`);
+   window.saveSoon?.();window.render?.();
+ }
+ function tattooHTML(){
+   ensure();addItems();
+   const list=STORE_ITEMS.tattoos||[];
+   return `<section class="fl90-store-extra"><h2>💉 Studio tatuażu</h2>
+    <div class="subhead">Twój wygląd może się zmieniać razem z historią zawodnika. Tatuaże zostają w historii postaci.</div>
+    <div class="fl90-store-grid">${list.map(it=>`<div class="fl90-store-item">
+      <div class="pic">🖋️</div><b>${it.name}</b>
+      <small>${Object.entries(it.boost||{}).map(([k,v])=>`+${v} ${k}`).join(" • ")}</small>
+      <span class="price">${it.price.toLocaleString("pl-PL")}€</span>
+      <button type="button" class="${owned(it.id)?"fl90-owned":""}" data-tattoo="${it.id}">${owned(it.id)?"✓ POSIADASZ":"KUP TATUAŻ"}</button>
+    </div>`).join("")}</div></section>`;
+ }
+ function mount(){
+   ensure();addItems();
+   const host=document.querySelector("main")||document.querySelector("#main");
+   if(!host)return;
+   host.querySelectorAll(".fl90-store-extra").forEach(x=>x.remove());
+   const tab=window.FL27_GET_TAB?window.FL27_GET_TAB():"";
+   /* Only mount the store catalogue while the Store page is actually active. */
+   if(tab && tab!=="store")return;
+   const block=document.createElement("div");block.innerHTML=tattooHTML();
+   const el=block.firstElementChild;host.appendChild(el);
+   el.querySelectorAll("[data-tattoo]").forEach(b=>b.addEventListener("click",()=>buy(b.dataset.tattoo)));
+ }
+ if(window.render&&!window.__FL27_V90_RENDER){
+   const old=window.render;window.__FL27_V90_RENDER=true;
+   window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(mount);return r};
+ }
+ setTimeout(()=>{addItems();mount()},120);
+ window.FL27_V90_STORE={addItems,mount,buy};
+})();
+</script>
+
+
+<style id="fl27-v91-home-upgrades-style">
+.fl91-home{
+ margin-top:10px;padding:14px;border-radius:18px;
+ background:linear-gradient(145deg,#17181b,#0d0e10);
+ border:1px solid rgba(216,170,79,.20);
+}
+.fl91-home h2{margin:0 0 4px;font-size:18px}.fl91-home .subhead{font-size:8px;color:#92949a;margin-bottom:11px;line-height:12px}
+.fl91-room-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl91-room{padding:11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
+.fl91-room .pic{font-size:23px;margin-bottom:5px}.fl91-room b{display:block;font-size:10px}.fl91-room small{display:block;font-size:7px;color:#92949a;line-height:10px;margin:3px 0 7px}
+.fl91-room button{width:100%;padding:8px;border-radius:9px;border:1px solid rgba(216,170,79,.28);background:linear-gradient(135deg,#eec76a,#b27d2c);color:#090909;font-weight:900;font-size:8px}
+.fl91-room button.owned{background:rgba(70,180,110,.09);border-color:rgba(70,180,110,.2);color:#7ee0a0}
+.fl91-room button.locked{opacity:.4}
+.fl91-benefits{margin-top:10px;padding:10px;border-radius:12px;background:rgba(216,170,79,.06);font-size:8px;line-height:12px;color:#b9babf}
+</style>
+
+<script id="fl27-v91-home-upgrades-js">
+(function(){
+ "use strict";
+ function ensure(){
+   if(typeof window.ensureStore==="function")window.ensureStore();
+   if(!window.S)return;
+   S.store=S.store||{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]};
+   S.store.homeUpgrades=S.store.homeUpgrades||[];
+ }
+ const ROOMS=[
+  {id:"room_recovery",icon:"🛏️",name:"Pokój regeneracji",price:15000,
+   desc:"Profesjonalne łóżko, ciemne zasłony i sprzęt regeneracyjny.",
+   effect:"Regeneracja po śnie +15%"},
+  {id:"room_gym",icon:"🏋️",name:"Prywatna siłownia",price:35000,
+   desc:"Podstawowy sprzęt treningowy dostępny w domu.",
+   effect:"Możesz wykonać trening domowy bez kosztu siłowni"},
+  {id:"room_ice",icon:"🧊",name:"Pokój odnowy",price:55000,
+   desc:"Wanna lodowa, sauna i podstawowe wyposażenie odnowy.",
+   effect:"Odnowa po meczu/treningu bez płacenia za zewnętrzne usługi"},
+  {id:"room_physio",icon:"🩺",name:"Gabinet fizjo",price:85000,
+   desc:"Miejsce do rehabilitacji i podstawowej profilaktyki.",
+   effect:"Tańsza regeneracja urazów i szybszy powrót do treningu"},
+  {id:"room_gaming",icon:"🎮",name:"Pokój rozrywki",price:18000,
+   desc:"Konsola, TV i strefa odpoczynku.",
+   effect:"Tani sposób na poprawę mentalu w wolnym czasie"},
+  {id:"room_study",icon:"📚",name:"Gabinet do nauki",price:12000,
+   desc:"Biurko, komputer i spokojna przestrzeń.",
+   effect:"Nauka do szkoły zajmuje mniej czasu"},
+  {id:"room_media",icon:"🎥",name:"Studio medialne",price:45000,
+   desc:"Kamera, oświetlenie i miejsce do tworzenia treści.",
+   effect:"Lepszy FLgram/PR przy aktywnościach medialnych"},
+  {id:"room_laundry",icon:"🧺",name:"Duża garderoba",price:25000,
+   desc:"Miejsce na stroje, sprzęt i codzienne rzeczy.",
+   effect:"Więcej miejsca na wyposażenie i stroje"}
+ ];
+ function has(id){return !!S?.store?.homeUpgrades?.includes(id)}
+ function homeTier(){
+   const id=S?.store?.home;
+   if(!id)return 0;
+   if(/villa|penthouse|house_modern|house_smart|house_family|house_suburb/.test(id))return 3;
+   if(/apt_luxury|apt_city/.test(id))return 2;
+   return 1;
+ }
+ function buy(id){
+   ensure();
+   const r=ROOMS.find(x=>x.id===id);if(!r)return;
+   if(has(id)){window.toast?.("Ten pokój już masz.");return}
+   if(homeTier()===0){window.toast?.("Najpierw kup nieruchomość.");return}
+   if(typeof window.spend==="function"&&!window.spend(r.price,`Rozbudowa domu: ${r.name}`))return;
+   S.store.homeUpgrades.push(id);
+   S.homeUpgrades=S.homeUpgrades||{};S.homeUpgrades.push(id);
+   window.log?.(`🏠 Rozbudowa domu: ${r.name}. ${r.effect}`);
+   window.saveSoon?.();window.render?.();
+ }
+ function render(){
+   ensure();
+   const host=document.querySelector("main")||document.querySelector("#main");if(!host)return;
+   host.querySelectorAll(".fl91-home").forEach(x=>x.remove());
+   const tab=window.FL27_GET_TAB?window.FL27_GET_TAB():"";
+   if(tab&&tab!=="store")return;
+   if(!S.store.home)return;
+   const block=document.createElement("section");block.className="fl91-home";
+   block.innerHTML=`<h2>🏠 Rozbudowa domu</h2>
+   <div class="subhead">Nie każda nieruchomość daje wszystko od razu. Możesz ją stopniowo rozbudowywać o pomieszczenia, które zmieniają sposób regeneracji, treningu, nauki i życia. Dzięki temu część rzeczy, za które normalnie płacisz poza domem, możesz robić u siebie.</div>
+   <div class="fl91-room-grid">${ROOMS.map(r=>`<div class="fl91-room">
+     <div class="pic">${r.icon}</div><b>${r.name}</b><small>${r.desc}<br><strong>${r.effect}</strong></small>
+     <button type="button" class="${has(r.id)?"owned":""}" data-room="${r.id}">${has(r.id)?"✓ ZBUDOWANE":r.price.toLocaleString("pl-PL")+"€ • ROZBUDUJ"}</button>
+   </div>`).join("")}</div>
+   <div class="fl91-benefits">💡 <b>Pomieszczenia mają znaczenie długoterminowe.</b> Dom nie jest tylko zakupem statusowym — jego wyposażenie może realnie zmienić koszty i czas codziennego życia zawodnika.</div>`;
+   host.appendChild(block);
+   block.querySelectorAll("[data-room]").forEach(b=>b.addEventListener("click",()=>buy(b.dataset.room)));
+ }
+ if(window.render&&!window.__FL27_V91_RENDER){
+   const old=window.render;window.__FL27_V91_RENDER=true;
+   window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(render);return r};
+ }
+ setTimeout(render,150);
+ window.FL27_V91_HOME={ROOMS,buy,render};
+})();
+</script>
+
+
+<style id="fl27-v92-calendar-decisions">
+.fl92-calendar{
+ margin:12px auto;max-width:980px;padding:14px;border-radius:20px;
+ background:linear-gradient(145deg,#17181b,#0d0e10);
+ border:1px solid rgba(216,170,79,.20)
+}
+.fl92-calendar .ey{font-size:8px;letter-spacing:1.5px;color:#d9aa4d;font-weight:900}
+.fl92-calendar h2{margin:4px 0 5px;font-size:19px}
+.fl92-calendar .info{font-size:8px;color:#92949a;line-height:12px;margin-bottom:10px}
+.fl92-events{display:grid;gap:8px}
+.fl92-event{padding:11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+.fl92-event .date{font-size:7px;color:#d9aa4d;font-weight:900;letter-spacing:.7px}
+.fl92-event b{display:block;font-size:11px;margin:3px 0}
+.fl92-event small{font-size:8px;color:#92949a;line-height:11px;display:block}
+.fl92-event .choices{display:grid;gap:6px;margin-top:8px}
+.fl92-event button{
+ width:100%;padding:9px;border-radius:10px;text-align:left;cursor:pointer;
+ background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+ color:#fff;font-size:8px;touch-action:manipulation
+}
+.fl92-event button:hover{border-color:rgba(216,170,79,.45);background:rgba(216,170,79,.08)}
+.fl92-badge{display:inline-block;padding:3px 6px;border-radius:7px;background:rgba(216,170,79,.11);color:#e9c46c;font-size:7px;font-weight:900}
+</style>
+
+<script id="fl27-v92-calendar-decisions-js">
+(function(){
+ "use strict";
+
+ /* Calendar is deliberately date-driven. It uses the player's country when
+    available, and currently has a complete Polish school/holiday baseline. */
+ const PL_HOLIDAYS={
+   "01-01":"Nowy Rok","01-06":"Święto Trzech Króli","05-01":"Święto Pracy",
+   "05-03":"Święto Konstytucji 3 Maja","08-15":"Wniebowzięcie Najświętszej Maryi Panny",
+   "11-01":"Wszystkich Świętych","11-11":"Narodowe Święto Niepodległości",
+   "12-25":"Boże Narodzenie","12-26":"Boże Narodzenie — drugi dzień"
+ };
+ const FIXED_EVENTS={
+   "09-01":{title:"Pierwszy dzień szkoły",desc:"Nowy rok szkolny zaczyna się naprawdę. To nie jest tylko informacja w kalendarzu — poznajesz klasę, nauczycieli i nowe możliwości.",school:true},
+   "06-01":{title:"Dzień Dziecka",desc:"Jeżeli jesteś jeszcze w wieku szkolnym, dzień może przynieść prezent, kieszonkowe, wyjście z rodziną albo niespodziewaną okazję.",school:true},
+   "12-24":{title:"Wigilia",desc:"Rodzinny wieczór. Wybór sposobu spędzenia czasu może wpłynąć na relacje i kolejne wydarzenia.",family:true}
+ };
+
+ function S(){return window.S||{}}
+ function age(){return Number(S().age??15)}
+ function isSchoolAge(){const a=age();return a>=6&&a<=19}
+ function dateObj(){
+   const y=Number(S().year||new Date().getFullYear());
+   const m=Math.max(1,Number(S().month||1));
+   const d=Math.max(1,Number(S().date||S().dayOfMonth||1));
+   return new Date(y,m-1,d);
+ }
+ function key(dt){return String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0")}
+ function isWeekend(dt){return dt.getDay()===0||dt.getDay()===6}
+ function isHoliday(dt){
+   const k=key(dt);return !!PL_HOLIDAYS[k]
+ }
+ function schoolOff(dt){
+   if(!isSchoolAge())return true;
+   return isWeekend(dt)||isHoliday(dt)||dt.getMonth()===6||dt.getMonth()===7;
+ }
+ function dayLabel(dt){
+   return ["Niedziela","Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota"][dt.getDay()]
+ }
+
+ function choicesFor(type){
+   if(type==="first_school")return [
+    ["Przygotuj wszystko wieczorem i idź wcześniej spać.","📚 +organizacja • mniejsze zmęczenie następnego dnia",function(){S().organization=(S().organization||0)+2;S().mental=(S().mental||0)+1}],
+    ["Spotkaj się rano z kolegami przed szkołą.","👥 +relacje • +mental • mniej energii",function(){S().social=(S().social||0)+2;S().mental=(S().mental||0)+2;S().energy=Math.max(0,(S().energy??100)-4)}],
+    ["Skup się tylko na piłce — po szkole dodatkowy trening.","⚽ +forma • ale mniej czasu na naukę",function(){S().form=(S().form||0)+4;S().trainingLevel=(S().trainingLevel||0)+1}]
+   ];
+   if(type==="holiday")return [
+    ["Zostań z rodziną.","👨‍👩‍👧 +relacje rodzinne • +mental",function(){S().familyRel=(S().familyRel||0)+3;S().mental=(S().mental||0)+2}],
+    ["Wykorzystaj dzień na trening.","⚽ +forma • -energia",function(){S().form=(S().form||0)+3;S().energy=Math.max(0,(S().energy??100)-8)}],
+    ["Spędź dzień ze znajomymi.","👥 +social • możliwe kolejne wydarzenia",function(){S().social=(S().social||0)+3}]
+   ];
+   return [
+    ["Spędź dzień spokojnie z bliskimi.","❤️ +relacje",function(){S().familyRel=(S().familyRel||0)+2;S().mental=(S().mental||0)+1}],
+    ["Zrób coś dla swojej kariery.","⚽ +forma/rozwój • -energia",function(){S().form=(S().form||0)+2;S().energy=Math.max(0,(S().energy??100)-5)}],
+    ["Wyjdź z domu i zrób coś spontanicznego.","🎲 +social • wydarzenie może otworzyć nową ścieżkę",function(){S().social=(S().social||0)+2}]
+   ];
+ }
+
+ function eventId(dt,type){return `fl92_${S().year||2026}_${key(dt)}_${type}`}
+ function completed(id){return Array.isArray(S().calendarChoices)&&S().calendarChoices.includes(id)}
+ function applyChoice(id,fn,label){
+   const st=S();st.calendarChoices=st.calendarChoices||[];if(completed(id))return;
+   fn();st.calendarChoices.push(id);
+   window.log?.(`📅 ${label}`);window.saveSoon?.();window.render?.();
+ }
+
+ function currentEvents(){
+   const dt=dateObj(), k=key(dt), out=[];
+   if(isSchoolAge()&&k==="09-01"){
+     out.push({id:eventId(dt,"first_school"),badge:"SZKOŁA",title:FIXED_EVENTS[k].title,desc:FIXED_EVENTS[k].desc,type:"first_school"});
+   }
+   if(isSchoolAge()&&FIXED_EVENTS[k]?.family){
+     out.push({id:eventId(dt,"family"),badge:"RODZINA",title:FIXED_EVENTS[k].title,desc:FIXED_EVENTS[k].desc,type:"holiday"});
+   }
+   if(isHoliday(dt)){
+     out.push({id:eventId(dt,"holiday"),badge:"DZIEŃ WOLNY",title:PL_HOLIDAYS[k],desc:"W kalendarzu jest święto ustawowo wolne. Jeżeli jesteś w wieku szkolnym, nie ma dziś zwykłych zajęć szkolnych.",type:"holiday"});
+   }
+   return out;
+ }
+
+ function render(){
+   const host=document.querySelector("main")||document.querySelector("#main");if(!host)return;
+   host.querySelectorAll(".fl92-calendar").forEach(x=>x.remove());
+   const dt=dateObj(), weekend=isWeekend(dt), holiday=isHoliday(dt), off=schoolOff(dt);
+   const events=currentEvents();
+   const el=document.createElement("section");el.className="fl92-calendar";
+   el.innerHTML=`<div class="ey">KALENDARZ ŻYCIA</div><h2>📅 ${dayLabel(dt)}, ${dt.getDate()}.${String(dt.getMonth()+1).padStart(2,"0")}.${dt.getFullYear()}</h2>
+    <div class="info">${weekend?'<span class="fl92-badge">WEEKEND</span> Brak szkoły. ':''}${holiday?`<span class="fl92-badge">ŚWIĘTO</span> ${PL_HOLIDAYS[key(dt)]}. `:''}${isSchoolAge()?(off?'Dziś nie ma zwykłych zajęć szkolnych.':'Normalny dzień szkolny.'):'Nie jesteś już w wieku szkolnym — kalendarz nie uruchamia szkolnych wydarzeń.'}</div>
+    <div class="fl92-events">${events.length?events.map(ev=>{
+      const done=completed(ev.id), ch=choicesFor(ev.type);
+      return `<article class="fl92-event"><div class="date">${ev.badge}</div><b>${ev.title}</b><small>${ev.desc}</small>
+       ${done?'<div style="margin-top:8px;color:#7ee0a0;font-size:8px">✓ Decyzja podjęta — jej skutki zostają w historii.</div>':
+       `<div class="choices">${ch.map((c,i)=>`<button type="button" data-cal="${ev.id}" data-choice="${i}">${c[0]}<br><span style="opacity:.55">${c[1]}</span></button>`).join("")}</div>`}</article>`;
+    }).join(""):'<div class="fl92-event"><b>Brak specjalnego wydarzenia</b><small>Dzień płynie normalnie, a dostępne aktywności zależą od godziny, wieku, szkoły i wcześniejszych decyzji.</small></div>'}</div>`;
+   host.appendChild(el);
+   el.querySelectorAll("[data-cal]").forEach(b=>b.addEventListener("click",()=>{
+      const ev=currentEvents().find(x=>x.id===b.dataset.cal);if(!ev)return;
+      const c=choicesFor(ev.type)[Number(b.dataset.choice)];if(!c)return;
+      applyChoice(ev.id,c[2],c[0]);
+   }));
+ }
+
+ /* School availability helper for the hourly planner. */
+ window.FL27_calendar={
+   isWeekend,isHoliday,schoolOff,isSchoolAge,holidayName:(dt)=>PL_HOLIDAYS[key(dt)]||null,
+   today:dateObj,events:currentEvents,render
+ };
+
+ if(window.render&&!window.__FL27_V92_RENDER){
+   const old=window.render;window.__FL27_V92_RENDER=true;
+   window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(render);return r};
+ }
+ setTimeout(render,180);
+})();
+</script>
+
+
+<style id="fl27-v93-transfer-move">
+.fl93-move{
+ margin-top:12px;padding:14px;border-radius:18px;
+ background:linear-gradient(145deg,#17181b,#0d0e10);
+ border:1px solid rgba(216,170,79,.20)
+}
+.fl93-move h2{margin:0 0 4px;font-size:18px}.fl93-move .sub{font-size:8px;color:#92949a;line-height:12px;margin-bottom:10px}
+.fl93-choice{display:grid;gap:7px}.fl93-choice button{
+ padding:10px;border-radius:11px;text-align:left;cursor:pointer;color:#fff;
+ background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:9px
+}
+.fl93-choice button:hover{border-color:rgba(216,170,79,.45);background:rgba(216,170,79,.07)}
+.fl93-summary{padding:9px;border-radius:12px;background:rgba(216,170,79,.06);font-size:8px;color:#b9babf;line-height:12px}
+</style>
+
+<script id="fl27-v93-transfer-move-js">
+(function(){
+ "use strict";
+
+ function ensure(){
+   if(!window.S)return;
+   S.move=S.move||{status:"home",origin:null,destination:null,method:null,cost:0,pending:false};
+   S.store=S.store||{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]};
+   S.store.owned=S.store.owned||[];
+   S.store.transport=S.store.transport||{packed:[],pending:[],cost:0};
+ }
+
+ /*
+  * Transfer does NOT automatically delete possessions.
+  * The player decides what happens to them:
+  * transport, sell, store with family, or replace at destination.
+  */
+ function inventory(){
+   ensure();
+   const all=[];
+   const ids=S.store.owned||[];
+   const catalogue=window.STORE_ITEMS?
+     [...(STORE_ITEMS.homes||[]),...(STORE_ITEMS.cars||[]),...(STORE_ITEMS.boots||[]),...(STORE_ITEMS.accessories||[]),...(STORE_ITEMS.tattoos||[])]:[];
+   ids.forEach(id=>{const x=catalogue.find(i=>i.id===id);if(x)all.push(x)});
+   return all;
+ }
+
+ function transportCost(item,distance){
+   distance=Math.max(1,Number(distance||800));
+   const base=item.cat==="home"?0:item.cat==="car"?Math.round(distance*.45):Math.max(20,Math.round(distance*.08));
+   return base;
+ }
+
+ function prepareTransfer(destination,distance){
+   ensure();
+   const items=inventory();
+   S.move.pending=true;S.move.destination=destination;S.move.distance=distance;
+   S.move.options=items.map(it=>({id:it.id,name:it.name,cat:it.cat,transport:transportCost(it,distance)}));
+   window.log?.(`🚚 Transfer do ${destination}: wybierz, co zabierasz ze sobą.`);
+   window.saveSoon?.();window.render?.();
+ }
+
+ function transport(ids){
+   ensure();
+   const selected=inventory().filter(x=>ids.includes(x.id));
+   const distance=Number(S.move.distance||800);
+   const cost=selected.reduce((n,x)=>n+transportCost(x,distance),0);
+   if(typeof window.spend==="function"&&!window.spend(cost,"Transport rzeczy przy transferze"))return;
+   S.store.transport={packed:selected.map(x=>x.id),pending:[],cost};
+   S.move.method="transport";S.move.pending=false;
+   window.log?.(`🚚 Przetransportowano ${selected.length} rzeczy do ${S.move.destination}.`);
+   window.saveSoon?.();window.render?.();
+ }
+
+ function sell(ids){
+   ensure();
+   const selected=inventory().filter(x=>ids.includes(x.id));
+   let refund=0;
+   selected.forEach(x=>{
+     refund+=Math.round(Number(x.price||0)*.55);
+     S.store.owned=S.store.owned.filter(id=>id!==x.id);
+     if(S.store.home===x.id)S.store.home=null;
+     if(S.store.car===x.id)S.store.car=null;
+   });
+   S.money=(Number(S.money||0)+refund);
+   S.move.method="sell";S.move.pending=false;
+   window.log?.(`💰 Sprzedano rzeczy przed transferem. Otrzymujesz ${refund.toLocaleString("pl-PL")}€.`);
+   window.saveSoon?.();window.render?.();
+ }
+
+ function familyStorage(ids){
+   ensure();
+   const selected=inventory().filter(x=>ids.includes(x.id));
+   S.store.transport.pending=selected.map(x=>x.id);
+   S.move.method="family_storage";S.move.pending=false;
+   window.log?.(`📦 ${selected.length} rzeczy zostaje u rodziny. Możesz je później przetransportować.`);
+   window.saveSoon?.();window.render?.();
+ }
+
+ function render(){
+   ensure();
+   const host=document.querySelector("main")||document.querySelector("#main");if(!host)return;
+   host.querySelectorAll(".fl93-move").forEach(x=>x.remove());
+   if(!S.move.pending)return;
+
+   const opts=S.move.options||[];
+   const e=document.createElement("section");e.className="fl93-move";
+   e.innerHTML=`<h2>🚚 Przeprowadzka po transferze</h2>
+   <div class="sub">Nowy klub oznacza nowe miasto/kraj. Twoje rzeczy nie znikają — musisz zdecydować, co zabierasz, co sprzedajesz, a co zostawiasz u rodziny.</div>
+   <div class="fl93-summary">📦 ${opts.length} posiadanych rzeczy znalezionych w magazynie. Domu nie da się „przenieść” — nieruchomość zostaje na miejscu i może zostać wynajęta, sprzedana albo zachowana jako inwestycja.</div>
+   <div class="fl93-choice" style="margin-top:9px">
+    <button type="button" data-move="transport">🚚 <b>Transportuję rzeczy</b><br><span style="opacity:.55">Płacę za przewóz i zachowuję wyposażenie.</span></button>
+    <button type="button" data-move="sell">💰 <b>Sprzedaję część rzeczy przed wyjazdem</b><br><span style="opacity:.55">Dostaję używaną wartość i kupuję potrzebne rzeczy na miejscu.</span></button>
+    <button type="button" data-move="family">📦 <b>Zostawiam część u rodziny</b><br><span style="opacity:.55">Nie płacę za przewóz wszystkiego. Można to później sprowadzić.</span></button>
+   </div>`;
+   host.appendChild(e);
+
+   e.querySelectorAll("[data-move]").forEach(b=>b.addEventListener("click",()=>{
+     const mode=b.dataset.move;
+     const ids=opts.map(x=>x.id);
+     if(mode==="transport")transport(ids);
+     if(mode==="sell")sell(ids);
+     if(mode==="family")familyStorage(ids);
+   }));
+ }
+
+ /*
+  * Public API for the future transfer system.
+  * A real club transfer can call:
+  * FL27_TRANSFER_MOVE.start("Manchester", 1800)
+  */
+ window.FL27_TRANSFER_MOVE={
+   start:prepareTransfer,
+   inventory,transport,sell,familyStorage,render
+ };
+
+ if(window.render&&!window.__FL27_V93_RENDER){
+   const old=window.render;window.__FL27_V93_RENDER=true;
+   window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(render);return r};
+ }
+ setTimeout(render,200);
+})();
+</script>
+
+
+<style id="fl27-v94-gifts">
+.fl94-gifts{
+ margin-top:12px;padding:14px;border-radius:18px;
+ background:linear-gradient(145deg,#17181b,#0d0e10);
+ border:1px solid rgba(216,170,79,.20)
+}
+.fl94-gifts h2{margin:0 0 4px;font-size:18px}.fl94-gifts .sub{font-size:8px;color:#92949a;line-height:12px;margin-bottom:10px}
+.fl94-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl94-gift{padding:11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
+.fl94-gift .pic{font-size:23px;margin-bottom:5px}.fl94-gift b{font-size:10px;display:block}.fl94-gift small{font-size:7px;color:#92949a;line-height:10px;display:block;margin:3px 0 7px}
+.fl94-gift .price{font-size:8px;color:#d9aa4d;font-weight:900}
+.fl94-gift button{width:100%;margin-top:7px;padding:8px;border-radius:9px;border:1px solid rgba(216,170,79,.28);background:linear-gradient(135deg,#eec76a,#b27d2c);color:#090909;font-weight:900;font-size:8px}
+.fl94-relation{margin-top:9px;padding:10px;border-radius:12px;background:rgba(216,170,79,.055);font-size:8px;line-height:12px;color:#b9babf}
+</style>
+
+<script id="fl27-v94-gifts-relations-time">
+(function(){
+ "use strict";
+
+ function ensure(){
+   if(!window.S)return;
+   S.relations=S.relations||{};
+   S.gifts=S.gifts||[];
+   S.money=Number(S.money||0);
+ }
+ const PEOPLE=[
+  {id:"mom",icon:"👩",name:"Mama"},
+  {id:"dad",icon:"👨",name:"Tata"},
+  {id:"sister",icon:"👧",name:"Siostra"},
+  {id:"brother",icon:"👦",name:"Brat"},
+  {id:"partner",icon:"❤️",name:"Partner/partnerka"},
+  {id:"friend",icon:"👥",name:"Najlepszy przyjaciel"},
+  {id:"coach",icon:"⚽",name:"Trener"},
+  {id:"agent",icon:"💼",name:"Agent"}
+ ];
+ const GIFTS=[
+  {id:"gift_flowers",icon:"💐",name:"Kwiaty",price:25,min:30,rel:2,desc:"Mały gest — dobry na zwykły dzień."},
+  {id:"gift_chocolate",icon:"🍫",name:"Czekoladki",price:15,min:20,rel:1,desc:"Drobny prezent bez wielkiej okazji."},
+  {id:"gift_dinner",icon:"🍽️",name:"Kolacja",price:90,min:120,rel:4,desc:"Wspólny czas jest ważniejszy niż sam przedmiot."},
+  {id:"gift_jersey",icon:"👕",name:"Koszulka",price:180,min:30,rel:4,desc:"Sportowy prezent dla bliskiej osoby."},
+  {id:"gift_headphones",icon:"🎧",name:"Słuchawki",price:350,min:30,rel:5,desc:"Praktyczny prezent dla młodej osoby."},
+  {id:"gift_watch",icon:"⌚",name:"Zegarek",price:900,min:30,rel:7,desc:"Droższy prezent — może mieć większe znaczenie."},
+  {id:"gift_phone",icon:"📱",name:"Telefon",price:1800,min:60,rel:9,desc:"Duży wydatek, który może wywołać specjalną reakcję."},
+  {id:"gift_trip",icon:"✈️",name:"Wspólny wyjazd",price:2500,min:360,rel:12,desc:"Prezent, który jest jednocześnie wspólnie spędzonym czasem."}
+ ];
+
+ function relation(id){
+   ensure();
+   if(!S.relations[id])S.relations[id]=50;
+   return Number(S.relations[id]);
+ }
+ function addRelation(id,v){
+   S.relations[id]=Math.max(0,Math.min(100,relation(id)+v));
+ }
+ function advanceTime(minutes){
+   const st=S;
+   let total=Number(st.hour||8)*60+Number(st.minute||0)+minutes;
+   while(total>=22*60){
+     if(total<24*60){st.hour=22;st.minute=0;return}
+     total-=24*60;
+     st.day=Number(st.day||1)+1;
+   }
+   st.hour=Math.floor(total/60);st.minute=total%60;
+ }
+ function available(g){
+   return Number(S.hour||8)*60+Number(S.minute||0)+g.min<=22*60;
+ }
+ function buyGift(person,gift){
+   ensure();
+   if(!available(gift)){window.toast?.("⏰ Nie masz już tyle czasu przed 22:00.");return}
+   if(S.money<gift.price){window.toast?.("💸 Nie stać Cię na ten prezent.");return}
+   S.money-=gift.price;
+   advanceTime(gift.min);
+   addRelation(person.id,gift.rel);
+   S.gifts.push({day:S.day,hour:S.hour,to:person.id,gift:gift.id,price:gift.price,rel:gift.rel});
+   window.log?.(`${person.icon} Prezent dla ${person.name}: ${gift.name}. Relacja +${gift.rel}.`);
+   window.saveSoon?.();window.render?.();
+ }
+
+ function render(){
+   ensure();
+   const host=document.querySelector("main")||document.querySelector("#main");if(!host)return;
+   host.querySelectorAll(".fl94-gifts").forEach(x=>x.remove());
+   const tab=window.FL27_GET_TAB?window.FL27_GET_TAB():"";
+   if(tab&&tab!=="life"&&tab!=="family"&&tab!=="store")return;
+
+   const e=document.createElement("section");e.className="fl94-gifts";
+   e.innerHTML=`<h2>🎁 Prezenty i relacje</h2>
+    <div class="sub">Prezent kosztuje nie tylko pieniądze — zabiera również czas. To, komu coś kupujesz, co wybierasz i jak często to robisz, może zmieniać relacje oraz uruchamiać późniejsze wydarzenia.</div>
+    <div class="fl94-grid">${PEOPLE.map(p=>{
+      const rel=relation(p.id);
+      return `<div class="fl94-gift">
+       <div class="pic">${p.icon}</div><b>${p.name}</b>
+       <small>Relacja: <strong>${rel}/100</strong><br>Wybierz prezent:</small>
+       ${GIFTS.slice(0,6).map(g=>`<button type="button" data-person="${p.id}" data-gift="${g.id}" ${available(g)&&S.money>=g.price?"":"disabled"}>${g.icon} ${g.name} · ${g.price}€ · ${g.min} min</button>`).join("")}
+      </div>`;
+    }).join("")}</div>
+    <div class="fl94-relation">❤️ <b>Relacje są pamiętane.</b> Powtarzające się drogie prezenty nie muszą zawsze działać tak samo — odbiorca może być wdzięczny, podejrzliwy, przyzwyczajony albo uznać, że ważniejszy był wspólny czas. Późniejsze wydarzenia mogą korzystać z historii prezentów.</div>`;
+   host.appendChild(e);
+   e.querySelectorAll("[data-person]").forEach(b=>b.addEventListener("click",()=>{
+     const p=PEOPLE.find(x=>x.id===b.dataset.person),g=GIFTS.find(x=>x.id===b.dataset.gift);
+     if(p&&g)buyGift(p,g);
+   }));
+ }
+ window.FL27_GIFTS={PEOPLE,GIFTS,buyGift,relation,addRelation};
+ if(window.render&&!window.__FL27_V94_RENDER){
+   const old=window.render;window.__FL27_V94_RENDER=true;
+   window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(render);return r};
+ }
+ setTimeout(render,220);
+})();
+</script>
+
+
+<style id="fl27-v95-market">
+.fl95-market{margin-top:12px;padding:14px;border-radius:18px;background:linear-gradient(145deg,#17181b,#0d0e10);border:1px solid rgba(216,170,79,.2)}
+.fl95-market h2{margin:0 0 4px;font-size:18px}.fl95-market .sub{font-size:8px;color:#92949a;line-height:12px;margin-bottom:11px}
+.fl95-tabs{display:flex;gap:6px;overflow:auto;margin-bottom:10px}.fl95-tabs button{flex:0 0 auto;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#fff;font-size:8px}
+.fl95-tabs button.active{background:rgba(216,170,79,.13);border-color:rgba(216,170,79,.35);color:#f1cb70}
+.fl95-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fl95-item{padding:11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
+.fl95-item .pic{font-size:25px;margin-bottom:5px}.fl95-item b{display:block;font-size:10px}.fl95-item small{display:block;font-size:7px;color:#92949a;line-height:10px;margin:3px 0 7px}.fl95-item .price{font-size:8px;color:#d9aa4d;font-weight:900}
+.fl95-item button{width:100%;margin-top:7px;padding:8px;border-radius:9px;border:1px solid rgba(216,170,79,.28);background:linear-gradient(135deg,#eec76a,#b27d2c);color:#090909;font-weight:900;font-size:8px}
+.fl95-item button:disabled{opacity:.4}
+.fl95-item .owned{color:#7ee0a0;background:rgba(70,180,110,.09);border-color:rgba(70,180,110,.2)}
+</style>
+
+<script id="fl27-v95-market-js">
+(function(){
+"use strict";
+function ensure(){
+ if(!window.S)return;
+ S.store=S.store||{owned:[],home:null,car:null,boots:null,accessories:[],sponsors:[]};
+ S.store.owned=S.store.owned||[];
+ S.assets=S.assets||[];
+}
+const CATALOG={
+ cars:[
+  ["car_family","🚗","Samochód rodzinny",28000,"Wygodne auto na co dzień."],
+  ["car_sport","🏎️","Sportowe coupe",85000,"Pierwszy samochód dla zawodnika."],
+  ["car_lux","🚘","Luksusowe auto",180000,"Wygoda + prestiż."],
+  ["car_super","🏎️","Supersamochód",650000,"Ogromny wydatek i PR."],
+  ["car_hyper","🏁","Hipersamochód",2400000,"Rzadki symbol statusu."]
+ ],
+ jewelry:[
+  ["j_silver","💍","Srebrny pierścionek",300,"Drobna biżuteria."],
+  ["j_gold","💎","Złoty łańcuszek",1200,"Klasyczny luksus."],
+  ["j_diamond","💎","Pierścionek z diamentem",18000,"Bardzo drogi prezent."],
+  ["j_watch","⌚","Luksusowy zegarek",45000,"Prestiż i kolekcjonowanie."],
+  ["j_custom","💎","Biżuteria na zamówienie",120000,"Unikatowy projekt."]
+ ],
+ homes:[
+  ["h_apartment","🏢","Apartament",420000,"Pierwsza własna nieruchomość."],
+  ["h_house","🏠","Dom z ogrodem",750000,"Więcej przestrzeni dla rodziny."],
+  ["h_modern","🏡","Nowoczesny dom",1500000,"Duża nieruchomość z możliwością rozbudowy."],
+  ["h_villa","🏝️","Willa z basenem",4200000,"Luksusowa nieruchomość."],
+  ["h_mansion","🏰","Rezydencja",12000000,"Ogromny dom z rozbudowanym zapleczem."]
+ ],
+ gardens:[
+  ["g_basic","🌳","Podstawowy ogród",15000,"Trawnik, drzewa i miejsce do odpoczynku."],
+  ["g_pool","🏊","Basen",85000,"Basen przy domu."],
+  ["g_sport","⚽","Boisko treningowe",180000,"Prywatne boisko do treningów."],
+  ["g_recovery","🧊","Strefa regeneracji",250000,"Sauna, jacuzzi i odnowa."],
+  ["g_full","🌴","Ogród premium",500000,"Rozbudowana prywatna strefa wypoczynku."]
+ ],
+ islands:[
+  ["i_private","🏝️","Prywatna wyspa",25000000,"Prywatna nieruchomość wypoczynkowa."],
+  ["i_resort","🌴","Wyspa pod resort",75000000,"Inwestycja w luksusowy obiekt."],
+  ["i_tropical","🏝️","Tropikalna wyspa",180000000,"Ekstremalnie luksusowa nieruchomość."]
+ ],
+ gifts:[
+  ["g_car","🚗","Samochód dla kogoś",50000,"Możesz podarować go wybranej osobie."],
+  ["g_jewel","💎","Biżuteria dla kogoś",5000,"Prezent o wysokiej wartości."],
+  ["g_home","🏠","Mieszkanie dla kogoś",300000,"Możesz pomóc rodzinie lub bliskiej osobie."],
+  ["g_trip","🏝️","Wakacje na wyspie",25000,"Wspólny luksusowy wyjazd."]
+ ]
+};
+const NAMES={cars:"🚗 Auta",jewelry:"💎 Biżuteria",homes:"🏠 Domy",gardens:"🌳 Ogrody",islands:"🏝️ Wyspy",gifts:"🎁 Dla innych"};
+function own(id){return !!S?.store?.owned?.includes(id)||!!S?.assets?.some(x=>x.id===id)}
+function buy(cat,id){
+ ensure();const x=(CATALOG[cat]||[]).find(a=>a[0]===id);if(!x)return;
+ if(cat==="gifts"){window.FL27_GIFTS?.giftAsset?.(x);return}
+ if(own(id)){window.toast?.("Już to posiadasz.");return}
+ if(Number(S.money||0)<x[3]){window.toast?.("💸 Nie stać Cię na ten zakup.");return}
+ S.money-=x[3];S.store.owned.push(id);S.assets.push({id,cat,name:x[2],price:x[3],day:S.day});
+ if(cat==="cars")S.store.car=id;
+ if(cat==="homes")S.store.home=id;
+ window.log?.(`🛍️ Kupiono: ${x[2]}.`);
+ window.saveSoon?.();window.render?.();
+}
+function render(){
+ ensure();const host=document.querySelector("main")||document.querySelector("#main");if(!host)return;
+ host.querySelectorAll(".fl95-market").forEach(x=>x.remove());
+ const tab=window.FL27_GET_TAB?window.FL27_GET_TAB():"";
+ if(tab&&tab!=="store")return;
+ const e=document.createElement("section");e.className="fl95-market";
+ e.innerHTML=`<h2>🛍️ Rynek życia</h2>
+ <div class="sub">Kupujesz nie tylko rzeczy. Auta, nieruchomości, ogrody, biżuteria i wyspy mogą być własnością zawodnika, inwestycją albo prezentem dla kogoś. Zakupy zapisują się w historii.</div>
+ <div class="fl95-tabs">${Object.keys(CATALOG).map((c,i)=>`<button type="button" class="${i===0?"active":""}" data-cat="${c}">${NAMES[c]}</button>`).join("")}</div>
+ <div class="fl95-grid" data-market-grid></div>`;
+ host.appendChild(e);
+ const grid=e.querySelector("[data-market-grid]");
+ function show(cat){
+  e.querySelectorAll("[data-cat]").forEach(b=>b.classList.toggle("active",b.dataset.cat===cat));
+  grid.innerHTML=(CATALOG[cat]||[]).map(x=>`<article class="fl95-item"><div class="pic">${x[1]}</div><b>${x[2]}</b><small>${x[4]}</small><span class="price">${x[3].toLocaleString("pl-PL")}€</span><button type="button" class="${own(x[0])?"owned":""}" data-buy="${x[0]}" data-cat-buy="${cat}">${own(x[0])?"✓ POSIADASZ":"KUP"}</button></article>`).join("");
+  grid.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click",()=>buy(b.dataset.catBuy,b.dataset.buy)));
+ }
+ e.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.cat)));
+ show("cars");
+}
+if(window.render&&!window.__FL27_V95_RENDER){const old=window.render;window.__FL27_V95_RENDER=true;window.render=function(){const r=old.apply(this,arguments);requestAnimationFrame(render);return r}}
+setTimeout(render,240);
+window.FL27_MARKET={CATALOG,buy,render};
+})();
+</script>
+
+
+<style id="fl27-v96-branding-avatar">
+:root{
+ --fl27-bg:#070707;--fl27-bg2:#0d0e10;--fl27-card:#131416;
+ --fl27-white:#f5f5f2;--fl27-muted:#96979d;
+ --fl27-accent:#d9aa4d;--fl27-accent-hi:#f1cc70;
+ --fl27-red:#d84b5b;--fl27-blue:#6f9fe8;--fl27-green:#63c48a;
+}
+html,body{
+ background:#070707!important;color:var(--fl27-white)!important;
+}
+body{
+ background:
+  radial-gradient(900px 600px at 72% -140px,rgba(217,170,77,.075),transparent 70%),
+  linear-gradient(180deg,#090909 0%,#050505 100%)!important;
+}
+/* permanent, subtle football watermark */
+body::before{
+ content:"⚽"!important;position:fixed!important;left:50%!important;top:54%!important;
+ transform:translate(-50%,-50%)!important;z-index:0!important;
+ font-size:min(76vw,610px)!important;line-height:1!important;
+ color:transparent!important;-webkit-text-stroke:1px rgba(255,255,255,.023)!important;
+ pointer-events:none!important;
+}
+body::after{
+ content:""!important;position:fixed!important;inset:0!important;z-index:0!important;
+ pointer-events:none!important;
+ background:radial-gradient(circle at 50% 45%,transparent 30%,rgba(0,0,0,.3) 100%)!important;
+}
+body>*{position:relative;z-index:1}
+
+/* Consistent black/white/gold surfaces */
+.card,.panel,.box,.stat-card,.summary-card,
+[class*="card"],[class*="panel"],[class*="summary"]{
+ background:linear-gradient(145deg,#17181b,#0d0e10)!important;
+ color:var(--fl27-white)!important;
+ border-color:rgba(255,255,255,.085)!important;
+ box-shadow:0 14px 36px rgba(0,0,0,.24)!important;
+}
+h1,h2,h3,h4,h5,strong,b,.title,.section-title{color:var(--fl27-white)!important}
+.muted,.sub,.subtitle,.hint,small{color:var(--fl27-muted)!important}
+.primary,.btn-primary,button.primary{
+ background:linear-gradient(135deg,var(--fl27-accent-hi),#b9822d)!important;
+ color:#080808!important;border-color:var(--fl27-accent-hi)!important;
+ box-shadow:0 8px 24px rgba(217,170,77,.16)!important;
+}
+input,select,textarea{
+ background:#090b0d!important;color:var(--fl27-white)!important;
+ border-color:rgba(217,170,77,.30)!important;
+}
+input:focus,select:focus,textarea:focus{
+ outline:none!important;border-color:var(--fl27-accent)!important;
+ box-shadow:0 0 0 3px rgba(217,170,77,.09)!important;
+}
+
+/* Permanent brand lockup: independent from user accent. */
+#fl96-brand{
+ position:fixed!important;left:10px!important;top:8px!important;z-index:2147482500!important;
+ height:48px!important;display:flex!important;align-items:center!important;gap:8px!important;
+ pointer-events:none!important;user-select:none!important;
+}
+#fl96-brand .mark{
+ width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+ background:linear-gradient(145deg,#f1cc70,#b9822d)!important;
+ color:#090909!important;font:1000 11px/1 system-ui;letter-spacing:-.4px;
+ box-shadow:0 7px 20px rgba(217,170,77,.18);
+}
+#fl96-brand .name{
+ font:1000 10px/10px system-ui;letter-spacing:1px;color:#fff;
+ text-shadow:0 2px 8px #000;
+}
+#fl96-brand .name span{color:var(--fl27-accent-hi)}
+
+/* Keep V89 top info, but make it a clean black/gold identity bar. */
+#fl89-top{
+ background:rgba(7,7,8,.96)!important;
+ border-bottom:1px solid rgba(217,170,77,.22)!important;
+ box-shadow:0 8px 28px rgba(0,0,0,.38)!important;
+}
+#fl89-top .brand{visibility:hidden!important}
+#fl89-top .chip{
+ background:rgba(255,255,255,.045)!important;
+ border:1px solid rgba(255,255,255,.045)!important;
+}
+#fl89-top .chip b{color:#fff!important}
+#fl89-top .who b{color:#fff!important}
+
+/* Right drawer remains the only navigation drawer. */
+#fl86-menu{
+ background:linear-gradient(180deg,#191a1e,#070809)!important;
+ border-color:rgba(217,170,77,.28)!important;
+}
+#fl86-menu .lines i{background:var(--fl27-accent)!important}
+#fl86-drawer{
+ background:linear-gradient(180deg,#141518,#070809)!important;
+ border-left-color:rgba(217,170,77,.24)!important;
+}
+.fl86-item.active{
+ background:linear-gradient(90deg,rgba(217,170,77,.18),rgba(217,170,77,.03))!important;
+ border-color:rgba(217,170,77,.24)!important;
+ box-shadow:inset 4px 0 var(--fl27-accent)!important;
+}
+.fl86-icon{background:rgba(255,255,255,.055)!important}
+.fl86-item.active .fl86-icon{background:rgba(217,170,77,.15)!important}
+
+/* Creator/avatar: premium presentation without replacing the working creator logic. */
+.v52-creator{
+ background:
+  radial-gradient(440px 260px at 86% 0,rgba(217,170,77,.10),transparent 70%),
+  linear-gradient(145deg,#18191c,#0d0e10)!important;
+ border:1px solid rgba(217,170,77,.25)!important;
+ box-shadow:0 18px 52px rgba(0,0,0,.36)!important;
+}
+.v52-creator img,.v52-creator .avatar,.v52-creator [class*="avatar"]{
+ border-radius:20px!important;
+ border:1px solid rgba(217,170,77,.24)!important;
+ box-shadow:0 15px 35px rgba(0,0,0,.35)!important;
+}
+
+/* Settings accent swatches: four accents; changing them affects accents,
+   never the permanent black/white base or logo. */
+.fl96-accent-swatches{
+ display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important;
+ margin-top:8px!important;
+}
+.fl96-accent-swatches button{
+ min-height:42px!important;border-radius:12px!important;
+ border:1px solid rgba(255,255,255,.1)!important;color:#fff!important;
+ font-size:8px!important;font-weight:900!important;cursor:pointer!important;
+}
+.fl96-gold{background:#d9aa4d!important;color:#080808!important}
+.fl96-red{background:#d84b5b!important}
+.fl96-blue{background:#6f9fe8!important;color:#080808!important}
+.fl96-green{background:#63c48a!important;color:#080808!important}
+
+/* Store keeps the same premium visual language. */
+.fl95-market,.fl94-gifts,.fl93-move,.fl91-home,.fl92-calendar,.fl89-planner{
+ background:linear-gradient(145deg,#17181b,#0d0e10)!important;
+ border-color:rgba(217,170,77,.20)!important;
+}
+</style>
+
+<script id="fl27-v96-branding-avatar-js">
+(function(){
+"use strict";
+
+/* This script ONLY mounts permanent branding and four visual accent choices.
+   Existing gameplay, time, store, transfer and relation engines are untouched. */
+function mountBrand(){
+ if(document.getElementById("fl96-brand"))return;
+ const b=document.createElement("div");b.id="fl96-brand";
+ b.innerHTML='<div class="mark">FL<br><span style="font-size:6px">27</span></div><div class="name">FOOTBALL<br><span>LIFE 27</span></div>';
+ document.body.appendChild(b);
+}
+function mountAccentChoices(){
+ const root=document.querySelector("#settings,#settingsView,.settings,.settings-panel");
+ if(!root||root.querySelector(".fl96-accent-swatches"))return;
+ const box=document.createElement("div");
+ box.className="fl96-accent-swatches";
+ box.innerHTML='<button type="button" class="fl96-gold" data-fl96-accent="#d9aa4d">ZŁOTY</button>'+
+ '<button type="button" class="fl96-red" data-fl96-accent="#d84b5b">CZERWONY</button>'+
+ '<button type="button" class="fl96-blue" data-fl96-accent="#6f9fe8">NIEBIESKI</button>'+
+ '<button type="button" class="fl96-green" data-fl96-accent="#63c48a">ZIELONY</button>';
+ const title=document.createElement("div");
+ title.style.cssText="font:900 9px system-ui;letter-spacing:1px;margin-top:14px;color:#96979d";
+ title.textContent="KOLOR AKCENTU";
+ root.appendChild(title);root.appendChild(box);
+ box.querySelectorAll("[data-fl96-accent]").forEach(btn=>btn.addEventListener("click",()=>{
+   const c=btn.dataset.fl96Accent;
+   document.documentElement.style.setProperty("--fl27-accent",c);
+   const light=c==="#d9aa4d"?"#f1cc70":c;
+   document.documentElement.style.setProperty("--fl27-accent-hi",light);
+   try{localStorage.setItem("fl27Accent",c)}catch(e){}
+ }));
+}
+function boot(){
+ mountBrand();mountAccentChoices();
+ try{
+  const c=localStorage.getItem("fl27Accent");
+  if(c)document.documentElement.style.setProperty("--fl27-accent",c);
+ }catch(e){}
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+window.FL27_V96_BRANDING={mountBrand,mountAccentChoices};
+})();
+</script>
