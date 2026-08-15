@@ -685,8 +685,8 @@ function makeFamily(){
   const cityPool=cities[residenceCountry]||cities["Polska"];
   const residenceCity=cityPool[Math.floor(Math.random()*cityPool.length)];
   const income=["niski","stabilny","średni","dobrze zarabiający"][Math.floor(Math.random()*4)];
-  const namesF=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
-  const namesM=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
+  const namesF=["Tomasz","Marek","Piotr","Adam","Paweł","Michał","Krzysztof","Daniel"];
+  const namesM=["Anna","Katarzyna","Magdalena","Joanna","Agnieszka","Monika","Natalia","Karolina"];
   return {
     father:{name:namesF[Math.floor(Math.random()*namesF.length)],age:fatherAge,job:pair[0],country:fatherCountry},
     mother:{name:namesM[Math.floor(Math.random()*namesM.length)],age:motherAge,job:pair[1],country:motherCountry},
@@ -699,7 +699,7 @@ function makeFamily(){
 }
 function ensureFamily(){
   if(!S.familyProfile || !S.familyProfile.father || !S.familyProfile.father.name){
-    S.familyProfile=window.__FL27_AUTO_FAMILY || makeFamily();
+    S.familyProfile=makeFamily();
     S.birthCountry=S.familyProfile.homeCountry;
     S.residenceCountry=S.familyProfile.residenceCountry||S.familyProfile.homeCountry;
     S.nationalities=[S.familyProfile.father.country];
@@ -1068,7 +1068,6 @@ function renderSocial(m){
   </div>`;
 }
 
-
 function renderFamily(m){
   ensureFamily(); checkGeneticsResearch();
   const f=S.familyProfile;
@@ -1082,8 +1081,6 @@ function renderFamily(m){
   </div>
   <div class="card">
     <div class="section-title"><b>👨‍👩‍👧 Rodzina</b><span>zawsze aktualna</span></div>
-    <div class="v58-family-note">💡 Zamożniejsza rodzina może oznaczać większe kieszonkowe, prezenty albo opłacanie części wydatków, ale <b>nic nie jest gwarantowane</b>. Rodzice mogą być hojni, zajęci, mieć gorszy okres albo odmówić. Ich zawód również czasem pomaga — jeśli chcą.</div>
-    <button class="action" style="width:100%;margin:10px 0" onclick="FL27_familyMoment()"><b>🎲 Sprawdź, co dziś wydarzyło się w rodzinie</b><small>losowa sytuacja • pieniądze / prezent / czas / wsparcie</small></button>
     <div class="row"><span>Ojciec</span><b>${esc(f.father.name)} • ${f.father.age} lat</b></div>
     <div class="row"><span>Zawód</span><b>${esc(f.father.job)}</b></div>
     <div class="row"><span>Pochodzenie</span><b>${esc(f.father.country)}</b></div>
@@ -1474,32 +1471,34 @@ function renderTab(tab){
  if(tab==="social")renderSocial(m);
 }
 function renderHome(m){
-  const diff=Number(S.nextMatchDay||7)-Number(S.day||1);
-  const next=diff<=0?"DZIŚ":`za ${diff} ${diff===1?"dzień":"dni"}`;
-  const task=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
-  const event=S.logs?.[0]?.text||"Brak nowych wydarzeń.";
-  m.innerHTML=`
-    <div class="card hero">
-      <div class="kicker">📅 DZISIAJ</div>
-      <h1>${esc(S.name||"Moja kariera")}</h1>
-      <p>${Number(S.age||15)} lat • ${esc(S.club||"Bez klubu")}</p>
-    </div>
-    <div class="card">
-      <div class="section-title"><b>⚡ TERAZ</b><span>${next}</span></div>
-      <p>${diff<=0?"Mecz jest dostępny — wejdź, aby podejmować decyzje boiskowe.":"Sprawdź <b>Dzień</b>, aby zobaczyć dostępne czynności i czas."}</p>
-      <div class="actions">
-        <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${next}</small></button>
-        <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>plan dnia</small></button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-title"><b>🎲 Ostatnie wydarzenie</b><span>Historia →</span></div>
-      <div class="log">${esc(event)}</div>
-    </div>
-    <div class="card">
-      <div class="section-title"><b>🎓 Samouczek</b><span>💎</span></div>
-      ${task}
-    </div>`;
+ try{m.innerHTML=FL27_renderNews();}catch(e){}
+
+ const md=Number(S.nextMatchDay||7);
+ const diff=md-S.day;
+ const nextMatch=diff<=0?"DZIŚ":("za "+diff+" "+(diff===1?"dzień":"dni"));
+ m.innerHTML=`
+ <div class="card hero"><div class="kicker">Życie piłkarskie</div><h1>${esc(S.name||"Moja kariera")}</h1><p>${S.gender==="Kobieta"?"Piłkarka":"Piłkarz"} • ${esc(S.pos)} • ${esc(S.club)} • klub marzeń: ${esc(S.dream)}</p>
+ <div class="pills"><span class="pill">💞 ${esc(S.orientation||"brak danych")}</span></div>
+ <div class="pills"><span class="pill">⭐ OVR ${Math.round(S.skill)}</span><span class="pill">🧠 Mental ${Math.round(S.mental)}</span><span class="pill">❤️ Zdrowie ${Math.round(S.health)}</span></div></div>
+ <div class="card" style="border:1px solid #3c5d8e;background:linear-gradient(135deg,#142544,#0d1728)">
+   <div class="kicker">📅 PIERWSZY DZIEŃ</div>
+   <h2>Twoja kariera właśnie się zaczęła</h2>
+   <p>Wybierz dowolną czynność poniżej. Każda czynność przesuwa godzinę, zmienia energię i zapisuje się automatycznie.</p>
+ </div>
+ <div class="section-title"><b>Co robisz teraz?</b><span>${S.injury>0?"⚠️ uraz":"gotowy/a"}</span></div>
+ <div class="card"><div class="actions">
+ <button class="action green" onclick="train(true)"><b>🏋️ Trening</b><small>2h • -18⚡ • rozwój większy</small></button>
+ <button class="action" onclick="train(false)"><b>⏩ Symuluj trening</b><small>1h • -10⚡ • tylko po odblokowaniu</small></button>
+ <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${nextMatch} • wynik + statystyki</small></button>
+ <button class="action" onclick="sleep()"><b>😴 Idź spać</b><small>regeneracja • następny dzień</small></button>
+ </div></div>
+ <div class="card"><div class="section-title"><b>Twój stan</b><span>zapis automatyczny</span></div>
+ <div class="row"><span>Energia</span><b>${Math.round(S.energy)}/100</b></div><div class="progress"><i style="width:${S.energy}%"></i></div>
+ <div class="row"><span>Forma</span><b>${Math.round(S.form)}/100</b></div><div class="progress"><i style="width:${S.form}%"></i></div>
+ <div class="row"><span>Zdrowie</span><b>${Math.round(S.health)}/100</b></div><div class="progress"><i style="width:${S.health}%"></i></div>
+ </div>
+ <div class="card"><button class="choice" onclick="newGame()"><b>🔄 TEST: Nowa kariera od początku</b><span>Kasuje tylko zapis tej wersji prototypu.</span></button></div>
+ <div class="card"><div class="section-title"><b>Ostatnie wydarzenie</b><span>${S.logs[0]?S.logs[0].day+". dzień":"—"}</span></div><div class="log">${S.logs[0]?esc(S.logs[0].text):"Zacznij swoją historię."}</div></div>`;
 }
 function renderDay(m){
  m.innerHTML=`<div class="card hero"><div class="kicker">Doba</div><h1>${fmtDate()}</h1><p>Godziny są symulowane. Każda czynność zabiera czas i wpływa na energię, formę, pieniądze lub relacje.</p></div>
@@ -4658,7 +4657,7 @@ window.FL27_MASTER_FEATURES = [
   /* A new tutorial decision can unlock a different tutorial task.
      These are still randomly generated and never have to repeat in another career. */
   const BASE_TASK_POOL=[
-    {id:"family",name:"Poznaj swoją rodzinę",desc:"Otwórz Rodzinę i sprawdź rodziców, ich sytuację, zawody, możliwości finansowe i relacje.",reward:4,kind:"tab"},
+    {id:"home",name:"Poznaj ekran „Dziś”",desc:"Sprawdź aktualności i możliwości.",reward:2,kind:"tab"},
     {id:"day",name:"Sprawdź przebieg dnia",desc:"Zobacz, jak działa czas.",reward:2,kind:"tab"},
     {id:"career",name:"Zajrzyj do kariery",desc:"Sprawdź pozycję i rozwój.",reward:3,kind:"tab"},
     {id:"life",name:"Sprawdź swoje życie",desc:"Zobacz życie poza boiskiem.",reward:3,kind:"tab"},
@@ -4745,12 +4744,11 @@ window.FL27_MASTER_FEATURES = [
       <div class="v37-task-list">
         ${tasks.map((t,i)=>{
           const ok=!!P.panelTasks[t.id]?.done;
-          const route={family:"family",day:"day",career:"career",life:"life",history:"history",stats:"careerStats",shop:"store",settings:"settings",home:"home"}[t.id];
-          return `<button type="button" class="v37-task ${ok?'done':''}" ${route?`onclick="FL27_tutorialRoute('${route}')"`:""} style="width:100%;text-align:left;cursor:${route?"pointer":"default"}">
+          return `<div class="v37-task ${ok?'done':''}">
             <span class="v37-task-num">${ok?'✓':i+1}</span>
             <div><b>${t.name}</b><small>${t.desc}</small></div>
             <em>+${t.reward} 💎</em>
-          </button>`;
+          </div>`;
         }).join("")}
       </div>
       <div class="v37-gem-note">🎲 Każda nowa kariera losuje inny kontekst, wydarzenia i konsekwencje. Ta sama sytuacja może rozwinąć się inaczej przez wcześniejsze decyzje.</div>
@@ -4792,12 +4790,11 @@ window.FL27_MASTER_FEATURES = [
       <div class="v37-task-list">
         ${PANEL_TASKS.map((t,i)=>{
           const ok=!!P.panelTasks[t.id]?.done;
-          const route={family:"family",day:"day",career:"career",life:"life",history:"history",stats:"careerStats",shop:"store",settings:"settings",home:"home"}[t.id];
-          return `<button type="button" class="v37-task ${ok?'done':''}" ${route?`onclick="FL27_tutorialRoute('${route}')"`:""} style="width:100%;text-align:left;cursor:${route?"pointer":"default"}">
+          return `<div class="v37-task ${ok?'done':''}">
             <span class="v37-task-num">${ok?'✓':i+1}</span>
             <div><b>${t.name}</b><small>${t.desc}</small></div>
             <em>+${t.reward} 💎</em>
-          </button>`;
+          </div>`;
         }).join("")}
       </div>
       <div class="v37-gem-note">💎 Diamenty nie są zwykłą walutą. Zbierasz je za samouczek i później będziesz wydawać je na specjalne rzeczy, które dodamy do gry.</div>
@@ -6756,23 +6753,18 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
    </svg>`;
  };
  window.FL27_saveAvatar=function(){
-    const genderAnswer=selectedAnswers?.[0]||"Kobieta";
-    const orientationAnswer=selectedAnswers?.[1]||"Na razie nikim — nie szukam związku";
-    const gender=genderAnswer.startsWith("K")?"K":"M";
-    const orientation=orientationAnswer.startsWith("Kobiety i")?"B":orientationAnswer.startsWith("Kobiety")?"K":orientationAnswer.startsWith("Mężczyźni")?"M":"N";
-    const a={
-      skin:document.getElementById("v20-skin")?.value||AVATAR_OPTIONS.skin[1],
-      hair:document.getElementById("v20-hair")?.value||"short",
-      hairColor:document.getElementById("v20-hairColor")?.value||AVATAR_OPTIONS.hairColor[0],
-      eyes:document.getElementById("v20-eyes")?.value||AVATAR_OPTIONS.eyes[0],
-      jersey:document.getElementById("v20-jersey")?.value||AVATAR_OPTIONS.jersey[0],
-      gender,orientation
-    };
-    const box=document.getElementById("v20-avatar-preview");
-    if(box)box.innerHTML=FL27_avatarSvg(a);
-    window.__FL27_AVATAR_CONFIG=a;
-    return a;
-  }
+   const a={
+     skin:document.getElementById("v20-skin")?.value,
+     hair:document.getElementById("v20-hair")?.value,
+     hairColor:document.getElementById("v20-hairColor")?.value,
+     eyes:document.getElementById("v20-eyes")?.value,
+     jersey:document.getElementById("v20-jersey")?.value,
+     gender:document.getElementById("v20-gender")?.value
+   };
+   const box=document.getElementById("v20-avatar-preview");
+   if(box)box.innerHTML=FL27_avatarSvg(a);
+   return a;
+ };
  window.FL27_randomAvatar=function(){
    const pick=(x)=>x[Math.floor(Math.random()*x.length)];
    const a={skin:pick(AVATAR_OPTIONS.skin),hair:pick(AVATAR_OPTIONS.hair),hairColor:pick(AVATAR_OPTIONS.hairColor),eyes:pick(AVATAR_OPTIONS.eyes),jersey:pick(AVATAR_OPTIONS.jersey),gender:document.getElementById("v20-gender")?.value||"M"};
@@ -6844,7 +6836,8 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
          <div class="v20-avatar-title"><b>WYGLĄD ZAWODNIKA</b><button type="button" onclick="FL27_randomAvatar()">🎲 LOSOWY</button></div>
          <div class="v20-avatar-help">Płeć, karnacja, fryzura, kolor włosów, oczy i strój. Możesz zmieniać wszystko przed startem.</div>
          <div class="v20-grid">
-          <div class="v57-inherited">👤 Płeć i osoby, którymi zawodnik może być zainteresowany zostały już wybrane w 10 pytaniach.</div>
+          <label>Płeć<select id="v20-gender" onchange="FL27_saveAvatar()"><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+          <label>Osoby, które Cię interesują<select id="v20-orientation"><option value="K">Kobiety</option><option value="M">Mężczyźni</option><option value="B">Kobiety i mężczyźni</option><option value="N">Na razie nikim</option></select></label>
           <label>Karnacja<select id="v20-skin" onchange="FL27_saveAvatar()">
             <option value="#f8dcc3">Bardzo jasna</option><option value="#f1c9a8">Jasna</option><option value="#e7b58f" selected>Średnia</option><option value="#d7a07a">Ciepła</option><option value="#c98f68">Oliwkowa</option><option value="#a97452">Brązowa</option><option value="#9a6345">Ciemnobrązowa</option><option value="#6b402d">Ciemna</option><option value="#4b2b1e">Bardzo ciemna</option>
           </select></label>
@@ -6878,38 +6871,26 @@ body[data-fl-theme="green"]{--fl-accent:#39c56f;--fl-bg:#08130d}body[data-fl-the
   }
 })();
 window.FL27_confirmPlus=function(){
-   if(window.__FL27_STARTING)return;
-   const first=(playerName||"").split(" ")[0], last=(playerName||"").split(" ").slice(1).join(" ");
+   const first=playerName.split(" ")[0], last=playerName.split(" ").slice(1).join(" ");
    if(!first||!last){alert("Wpisz imię i nazwisko zawodnika.");return}
-   if(!Array.isArray(selectedAnswers)||selectedAnswers.length!==QUESTIONS.length){
-     alert("Odpowiedz na wszystkie 10 pytań.");return;
-   }
-   const av=window.FL27_saveAvatar()||{};
-   const orientation=av.orientation||"N";
+   const av=window.FL27_saveAvatar?.()||{};
+   const orientation=document.getElementById("v20-orientation")?.value||"N";
    window.__FL27_AVATAR_CONFIG={...av,orientation};
-   window.__FL27_STARTING=true;
-
-   try{
-     if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
-       window.__FL27_ORIGINAL_START_CAREER();
-     }else if(typeof startCareer==="function"){
-       startCareer();
-     }else{
-       throw new Error("Brak funkcji startCareer");
-     }
-     if(window.S){
-       S.firstName=first;S.lastName=last;S.name=playerName;
-       S.avatar=av;S.gender=av.gender;S.orientation=orientation;
-       S.position=S.pos;
-     }
-     saveSoon();
-     document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
-     render();
-   }catch(e){
-     window.__FL27_STARTING=false;
-     console.error(e);
-     alert("Nie udało się rozpocząć kariery. Spróbuj ponownie.");
+   /*
+    * The original 10-question startCareer remains authoritative for career
+    * generation. We add avatar data after it initializes S.
+    */
+   if(selectedAnswers.length!==QUESTIONS.length){alert("Odpowiedz na wszystkie 10 pytań.");return}
+   if(typeof window.__FL27_ORIGINAL_START_CAREER==="function"){
+     window.__FL27_ORIGINAL_START_CAREER();
+   }else{
+     startCareer();
    }
+   try{
+     S.firstName=first;S.lastName=last;S.name=playerName;
+     S.avatar=av;S.orientation=orientation;
+     saveSoon();render();
+   }catch(e){}
  };
 
 
@@ -9177,1790 +9158,285 @@ body:not(.creator-screen) .fl27-v35-bottom .v35-nav button{
 </script>
 
 
-<style id="fl27-v53-side-nav">
-/* ============================================================
-   V53 — SIDE DRAWER NAVIGATION
-   Replaces the tiny bottom-tab targets with one large thumb-friendly
-   handle. The existing bottom nav is hidden; routing stays the same.
-   ============================================================ */
-body:not(.creator-screen){
-  padding-bottom:18px!important;
-}
-body:not(.creator-screen) .fl27-v35-bottom{
-  display:none!important;
-}
-
-/* Floating handle */
-.fl27-v53-handle{
-  position:fixed!important;
-  right:0!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  width:42px!important;
-  min-height:142px!important;
-  z-index:2147483646!important;
-  border:1px solid rgba(255,255,255,.13)!important;
-  border-right:0!important;
-  border-radius:18px 0 0 18px!important;
-  background:linear-gradient(180deg,rgba(28,39,56,.97),rgba(12,18,28,.98))!important;
-  color:#fff!important;
-  box-shadow:-10px 0 30px rgba(0,0,0,.28)!important;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:8px!important;
-  cursor:pointer!important;
-  touch-action:manipulation!important;
-}
-.fl27-v53-handle .handle-icon{font-size:20px!important;line-height:1}
-.fl27-v53-handle .handle-lines{display:grid;gap:4px!important}
-.fl27-v53-handle .handle-lines i{
-  display:block;width:18px;height:2px;border-radius:4px;
-  background:#76a9ff;
-}
-.fl27-v53-handle small{
-  writing-mode:vertical-rl;
-  font-size:7px;font-weight:900;letter-spacing:1.4px;opacity:.62;
-}
-
-/* Drawer */
-.fl27-v53-drawer{
-  position:fixed!important;
-  top:0!important;right:0!important;bottom:0!important;
-  width:min(320px,88vw)!important;
-  z-index:2147483647!important;
-  transform:translateX(105%)!important;
-  transition:transform .22s ease!important;
-  background:linear-gradient(180deg,#111b29,#091019)!important;
-  border-left:1px solid rgba(255,255,255,.10)!important;
-  box-shadow:-24px 0 70px rgba(0,0,0,.52)!important;
-  overflow-y:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-  padding:20px 14px calc(24px + env(safe-area-inset-bottom))!important;
-  box-sizing:border-box!important;
-}
-.fl27-v53-drawer.open{transform:translateX(0)!important}
-.fl27-v53-drawer-backdrop{
-  position:fixed!important;inset:0!important;z-index:2147483645!important;
-  background:rgba(0,0,0,.48)!important;
-  opacity:0;pointer-events:none;transition:opacity .2s ease!important;
-}
-.fl27-v53-drawer-backdrop.open{opacity:1;pointer-events:auto}
-
-.v53-head{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;padding-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,.08)
-}
-.v53-head strong{font-size:14px}
-.v53-close{
-  width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.05);color:#fff;font-size:20px;cursor:pointer
-}
-.v53-nav-list{display:grid;gap:8px}
-.v53-nav-btn{
-  width:100%;min-height:58px;padding:9px 12px;
-  display:flex;align-items:center;gap:12px;text-align:left;
-  border:1px solid rgba(255,255,255,.07);border-radius:14px;
-  background:rgba(255,255,255,.035);color:#fff;cursor:pointer;
-  touch-action:manipulation;transition:.15s ease
-}
-.v53-nav-btn:active{transform:scale(.98)}
-.v53-nav-btn.active{
-  background:linear-gradient(90deg,rgba(118,169,255,.18),rgba(118,169,255,.05));
-  border-color:rgba(118,169,255,.36);
-  box-shadow:inset 4px 0 0 #76a9ff;
-}
-.v53-icon{
-  width:38px;height:38px;min-width:38px;border-radius:11px;
-  display:grid;place-items:center;font-size:20px;
-  background:var(--v53-bg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)
-}
-.v53-label{font-size:12px;font-weight:900}
-.v53-desc{font-size:8px;color:#8998aa;margin-top:2px}
-.v53-arrow{margin-left:auto;opacity:.45;font-size:18px}
-</style>
-
-<script id="fl27-v53-side-nav-js">
-(function(){
-  const ITEMS=[
-    ["home","🏠","Dziś","Co dzieje się teraz","#4f9cff"],
-    ["day","🕐","Dzień","Plan dnia i czas","#ffd166"],
-    ["career","⚽","Kariera","Klub, trening i rozwój","#55d88a"],
-    ["life","💬","Życie","Relacje i życie prywatne","#ff6fb5"],
-    ["family","👨‍👩‍👧","Rodzina","Rodzice i bliscy","#ff9f43"],
-    ["history","📖","Historia","Twoje decyzje i wydarzenia","#b18cff"],
-    ["careerStats","📊","Statystyki","Atrybuty i liczby","#45d6d6"],
-    ["store","🛍️","Sklep","Zakupy i rzeczy","#ffcf4a"],
-    ["settings","⚙️","Ustawienia","Gra i ustawienia","#aeb9c8"]
-  ];
-
-  function make(){
-    if(document.querySelector(".fl27-v53-handle"))return;
-    const backdrop=document.createElement("div");
-    backdrop.className="fl27-v53-drawer-backdrop";
-    backdrop.addEventListener("click",close);
-
-    const handle=document.createElement("button");
-    handle.className="fl27-v53-handle";
-    handle.type="button";
-    handle.innerHTML=`<span class="handle-icon">☰</span><span class="handle-lines"><i></i><i></i><i></i></span><small>MENU</small>`;
-    handle.addEventListener("click",open);
-
-    const drawer=document.createElement("aside");
-    drawer.className="fl27-v53-drawer";
-    drawer.setAttribute("aria-label","Nawigacja gry");
-    drawer.innerHTML=`<div class="v53-head"><strong>⚽ FOOTBALL LIFE 27</strong><button class="v53-close" type="button">×</button></div><div class="v53-nav-list"></div>`;
-    drawer.querySelector(".v53-close").addEventListener("click",close);
-
-    const list=drawer.querySelector(".v53-nav-list");
-    ITEMS.forEach(([key,icon,label,desc,color])=>{
-      const b=document.createElement("button");
-      b.className="v53-nav-btn";b.type="button";b.dataset.tab=key;
-      b.innerHTML=`<span class="v53-icon" style="--v53-bg:${color}22">${icon}</span><span><span class="v53-label">${label}</span><span class="v53-desc">${desc}</span></span><span class="v53-arrow">›</span>`;
-      b.addEventListener("click",()=>{
-        if(key==="settings"){
-          window.renderSettings?.();
-        }else{
-          window.FL27_ROUTE?.(key);
-        }
-        sync();
-        close();
-      });
-      list.appendChild(b);
-    });
-
-    document.body.append(backdrop,handle,drawer);
-    window.FL27_V53_OPEN=open;
-    window.FL27_V53_CLOSE=close;
-    sync();
-  }
-
-  function sync(){
-    const active=window.FL27_GET_TAB?.()||"home";
-    document.querySelectorAll(".v53-nav-btn").forEach(b=>{
-      b.classList.toggle("active",b.dataset.tab===active);
-    });
-  }
-  function open(){
-    document.querySelector(".fl27-v53-drawer")?.classList.add("open");
-    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.add("open");
-    sync();
-  }
-  function close(){
-    document.querySelector(".fl27-v53-drawer")?.classList.remove("open");
-    document.querySelector(".fl27-v53-drawer-backdrop")?.classList.remove("open");
-  }
-
-  const mo=new MutationObserver(()=>requestAnimationFrame(()=>{
-    if(!document.body.classList.contains("creator-screen"))make();
-    sync();
-  }));
-  mo.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(make,100));
-  setTimeout(make,100);
-})();
-</script>
-
-
-<style id="fl27-v53-color-boost">
-/* Color boost — existing cards only, no extra panels. */
-.section-title b,.kicker,.hero-badge{color:var(--fl-accent,#76a9ff)}
-.card .section-title span{color:#ffd166}
-.row b{color:#65d6a0}
-.action.green{box-shadow:0 8px 22px rgba(75,210,140,.12)}
-.choice:hover{border-color:rgba(118,169,255,.34)!important}
-.toast{border-color:rgba(118,169,255,.25)!important}
-</style>
-
-
-<style id="fl27-v54-tutorial-diamonds">
-/* V54 — keep the tutorial visible and readable on Dziś. */
-.v37-tasks{display:block!important;visibility:visible!important;opacity:1!important}
-.v37-task-list{display:grid!important}
-@media(max-width:520px){
-  .v37-task-list{grid-template-columns:1fr!important}
-}
-.v54-diamond-badge{
-  display:inline-flex;align-items:center;gap:5px;margin-left:6px;
-  padding:4px 7px;border-radius:999px;background:rgba(177,124,255,.12);
-  border:1px solid rgba(177,124,255,.22);color:#d5b7ff;font-size:8px;font-weight:900
-}
-</style>
-<script id="fl27-v54-tutorial-diamonds-js">
-(function(){
-  const MAP={home:"home",day:"day",career:"career",life:"life",family:"family",history:"history",careerStats:"stats",store:"shop"};
-
-  function complete(tab){
-    try{
-      if(typeof window.FL27_panelTask!=="function")return;
-      if(MAP[tab])window.FL27_panelTask(MAP[tab]);
-      if(tab==="settings" && typeof window.FL27_panelTask==="function")window.FL27_panelTask("settings");
-    }catch(e){}
-  }
-
-  /* Side drawer buttons bypassed the old go() wrapper. Connect them to
-     the same tutorial rewards so the 10 tasks still teach the panel. */
-  function bind(){
-    document.querySelectorAll(".v53-nav-btn").forEach(b=>{
-      if(b.dataset.v54Bound==="1")return;
-      b.dataset.v54Bound="1";
-      b.addEventListener("click",()=>complete(b.dataset.tab),true);
-    });
-  }
-
-  /* If an older render accidentally drops the task section, restore it
-     inside the existing Dziś main panel — never as a separate overlay. */
-  function ensureHomeTasks(){
-    if(document.body.classList.contains("creator-screen"))return;
-    const main=document.getElementById("main");
-    if(!main)return;
-    const tab=window.FL27_GET_TAB?.()||"home";
-    if(tab!=="home")return;
-    if(main.querySelector(".v37-tasks"))return;
-    if(typeof window.panelTasksHTML!=="function")return;
-    const wrap=document.createElement("div");
-    wrap.innerHTML=window.panelTasksHTML();
-    const section=wrap.firstElementChild;
-    if(section)main.insertBefore(section,main.querySelector(".v9-timebar")||main.firstChild);
-  }
-
-  const mo=new MutationObserver(()=>requestAnimationFrame(()=>{bind();ensureHomeTasks()}));
-  mo.observe(document.body,{childList:true,subtree:true});
-  setTimeout(()=>{bind();ensureHomeTasks()},100);
-  setTimeout(()=>{bind();ensureHomeTasks()},500);
-
-  /* Make the diamond balance easy to spot without adding a new panel. */
-  window.FL27_V54_TUTORIAL_READY=true;
-})();
-</script>
-
-
-<style id="fl27-v55-match-decisions">
-.v55-match-modal .modal{border-top:3px solid #55d88a}
-.v55-match-tag{
-  display:inline-block;padding:5px 8px;border-radius:999px;
-  background:rgba(85,216,138,.10);color:#79e6a3;font-size:8px;font-weight:900;
-  margin-bottom:8px
-}
-.v55-match-note{
-  padding:9px 10px;margin:8px 0 10px;border-radius:10px;
-  background:rgba(118,169,255,.06);font-size:9px;line-height:1.4;color:#aeb8c6
-}
-</style>
-<script id="fl27-v55-match-decisions">
-(function(){
-  function ensureMatchMemory(){
-    S.matchDecisionHistory=S.matchDecisionHistory||[];
-    S.coachTrust=Number(S.coachTrust??50);
-    S.matchConfidence=Number(S.matchConfidence??50);
-    S.matchRole=S.matchRole||"rotation";
-  }
-
-  function remember(type,choice,effect){
-    ensureMatchMemory();
-    S.matchDecisionHistory.push({
-      day:S.day,age:S.age,type,choice,effect
-    });
-    if(S.matchDecisionHistory.length>80)S.matchDecisionHistory.shift();
-    saveSoon();
-  }
-
-  function matchFinish(gf,ga,st,result){
-    ensureMatchMemory();
-    S.energy=Math.max(0,S.energy-28);
-    S.matches=(S.matches||0)+1;
-    if(gf>ga){S.wins=(S.wins||0)+1;S.form=clamp(S.form+7);S.pr+=3}
-    else if(gf===ga){S.draws=(S.draws||0)+1;S.form=clamp(S.form+2);S.pr+=1}
-    else{S.losses=(S.losses||0)+1;S.form=clamp(S.form-5)}
-    const personal=Math.random();
-    if(st.starts && st.minutes>=45){
-      if(personal<.45){S.goals=(S.goals||0)+1;st.goals+=1;S.pr+=2;log(`Mecz ${gf}:${ga} — ${result}. Strzelasz gola! ⚽`)}
-      else if(personal<.72){S.assists=(S.assists||0)+1;st.assists+=1;S.pr+=1;log(`Mecz ${gf}:${ga} — ${result}. Notujesz asystę.`)}
-      else log(`Mecz ${gf}:${ga} — ${result}.`);
-    }else{
-      log(`Mecz ${gf}:${ga} — ${result}. Nie wychodzisz w podstawowym składzie.`);
-    }
-    if(Math.random()<.16 && st.minutes>0){st.yellow=1;log("Dostajesz żółtą kartkę.");}
-    if(ga===0 && S.pos==="BR" && st.minutes>0){log("Czyste konto! 🧤");}
-    recordMatchStats(st);
-    S.nextMatchDay=S.day+7+Math.floor(Math.random()*8);
-    advance(2);
-    toast(`${result} • następny mecz: za ${S.nextMatchDay-S.day} dni`);
-    randomEventChance("match");
-    render();
-  }
-
-  function playBenchDecision(gf,ga){
-    openModal("🪑 Mecz • ławka rezerwowych",
-      `<span class="v55-match-tag">NIE ZACZYNASZ MECZU</span>
-       <div class="v55-match-note">Trener posadził Cię na ławce. To, co zrobisz teraz, może wpłynąć na zaufanie trenera, mental i kolejne powołania.</div>
-       <b>Wybierz jedną reakcję:</b>`,
-      [
-        ["🔥 Rozgrzewasz się cały czas i jesteś gotowy wejść",()=>{
-          S.coachTrust=clamp(S.coachTrust+4);S.matchConfidence=clamp(S.matchConfidence+3);
-          remember("bench","ciągła rozgrzewka","+zaufanie trenera, +pewność siebie");
-          const sub=Math.random()<(.22+S.coachTrust/400);
-          if(sub){
-            const mins=15+Math.floor(Math.random()*31);
-            const st={apps:1,starts:0,minutes:mins,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-            S.form=clamp(S.form+2);S.pr+=1;
-            log(`Trener wpuszcza Cię z ławki na ${mins} minut. 🟢`);
-            matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
-          }else{
-            const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-            S.mental=clamp(S.mental-1);
-            log("Nie dostajesz dziś szansy. Trener widzi jednak Twoje zaangażowanie.");
-            matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
-          }
-        }],
-        ["🧠 Analizujesz mecz i zapisujesz uwagi dla siebie",()=>{
-          S.coachTrust=clamp(S.coachTrust+1);S.skill=clamp(S.skill+1);S.mental=clamp(S.mental+2);
-          remember("bench","analiza","+skill, +mental");
-          log("Z ławki analizujesz ustawienie i zachowania zawodników. Wyciągasz wnioski.");
-          const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-          matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
-        }],
-        ["😤 Pokazujesz niezadowolenie z decyzji trenera",()=>{
-          S.coachTrust=clamp(S.coachTrust-7);S.mental=clamp(S.mental-3);S.pr=Math.max(0,S.pr-1);
-          remember("bench","konflikt","-zaufanie trenera, -mental");
-          log("Okazujesz frustrację. Trener nie jest zachwycony Twoją reakcją.");
-          const st={apps:0,starts:0,minutes:0,goals:0,assists:0,yellow:0,red:0,cleanSheets:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-          matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
-        }]
-      ],true);
-  }
-
-  function playStarterDecision(gf,ga){
-    openModal("⚽ Mecz • wychodzisz w podstawowym składzie",
-      `<span class="v55-match-tag">PIERWSZY SKŁAD</span>
-       <div class="v55-match-note">Masz dziś realny wpływ na mecz. Pierwsza decyzja może zmienić ocenę trenera i późniejsze sytuacje.</div>
-       <b>Jak podchodzisz do początku spotkania?</b>`,
-      [
-        ["🚀 Ryzykuję i gram agresywnie do przodu",()=>{
-          S.matchConfidence=clamp(S.matchConfidence+4);S.coachTrust=clamp(S.coachTrust+1);S.form=clamp(S.form+2);
-          S.skill=clamp(S.skill+1);remember("starter","agresja","+confidence, +form, +skill");
-          playSecondHalfDecision(gf,ga,"aggressive");
-        }],
-        ["🎯 Gram spokojnie i realizuję plan trenera",()=>{
-          S.coachTrust=clamp(S.coachTrust+5);S.matchConfidence=clamp(S.matchConfidence+2);
-          remember("starter","plan","+zaufanie trenera");
-          playSecondHalfDecision(gf,ga,"plan");
-        }],
-        ["🧱 Skupiam się przede wszystkim na zabezpieczeniu zespołu",()=>{
-          S.coachTrust=clamp(S.coachTrust+3);S.mental=clamp(S.mental+2);S.form=clamp(S.form+1);
-          remember("starter","bezpieczeństwo","+zaufanie, +mental");
-          playSecondHalfDecision(gf,ga,"safe");
-        }]
-      ],true);
-  }
-
-  function playSecondHalfDecision(gf,ga,style){
-    openModal("⏱️ Przerwa • decyzja meczowa",
-      `<span class="v55-match-tag">PRZERWA</span>
-       <div class="v55-match-note">Wynik i przebieg meczu mogą wpłynąć na Twoją decyzję. Nie każda decyzja daje natychmiastowy bonus — część buduje konsekwencje na kolejne mecze.</div>
-       <b>Co robisz po rozmowie z trenerem?</b>`,
-      [
-        ["🔥 Proszę o większą rolę w drugiej połowie",()=>{
-          S.matchConfidence=clamp(S.matchConfidence+5);S.coachTrust=clamp(S.coachTrust+(style==="plan"?3:-1));S.pr+=1;
-          remember("halftime","większa rola","+confidence, możliwa większa rola");
-          finishStarter(gf,ga,style,1.0);
-        }],
-        ["🧠 Trzymam się dokładnie założeń taktycznych",()=>{
-          S.coachTrust=clamp(S.coachTrust+4);S.mental=clamp(S.mental+1);
-          remember("halftime","taktyka","+zaufanie");
-          finishStarter(gf,ga,style,.9);
-        }],
-        ["⚡ Próbuję zrobić coś efektownego, nawet jeśli jest ryzyko",()=>{
-          S.pr+=2;S.matchConfidence=clamp(S.matchConfidence+3);
-          if(Math.random()<.28)S.form=clamp(S.form-4);
-          remember("halftime","ryzyko","+PR, ryzyko formy");
-          finishStarter(gf,ga,style,1.12);
-        }]
-      ],true);
-  }
-
-  function finishStarter(gf,ga,style,mult){
-    let minutes=90;
-    if(Math.random()<.12){minutes=60+Math.floor(Math.random()*20);S.coachTrust=clamp(S.coachTrust+1);log("Trener zdejmuje Cię wcześniej, żeby zachować siły.");}
-    const st={apps:1,starts:1,minutes,goals:0,assists:0,yellow:0,red:0,cleanSheets:ga===0?1:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-    if(Math.random()<.22*mult){st.assists=1;S.assists=(S.assists||0)+1;}
-    matchFinish(gf,ga,st,gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴");
-  }
-
-  window.FL27_playMatchWithDecisions=function(){
-    ensureMatchMemory();
-    if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
-    const target=Number(S.nextMatchDay||7);
-    if(S.day<target){
-      const left=target-S.day;
-      toast(`Mecz jest dopiero za ${left} ${left===1?"dzień":"dni"} ⚽`);
-      log(`Sprawdzasz terminarz — najbliższy mecz za ${left} dni.`);
-      saveSoon();render();return;
-    }
-    if(S.energy<28){toast("Za mało energii na mecz.");return}
-
-    /* Selection depends on development, form, trust and age — not a fixed roll. */
-    const starterScore=(Number(S.skill||0)*.55)+(Number(S.form||0)*.18)+(Number(S.trainingLevel||0)*2)+(Number(S.coachTrust||50)*.22)+(Math.random()*35-17);
-    const starter=starterScore>=58;
-    const gf=Math.max(0,Math.round((S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12))/42+Math.random()*1.4-.5));
-    const ga=Math.max(0,Math.round(((55+Math.random()*30)/42)+Math.random()*1.4-.5));
-    if(starter){
-      S.matchRole="starter";
-      log("📋 Trener wystawia Cię w podstawowym składzie.");
-      playStarterDecision(gf,ga);
-    }else{
-      S.matchRole="bench";
-      log("📋 Trener zostawia Cię dziś na ławce rezerwowych.");
-      playBenchDecision(gf,ga);
-    }
-  };
-
-  /* Override only the existing match button handler. No new match panel. */
-  window.playMatch=window.FL27_playMatchWithDecisions;
-})();
-</script>
-
-
-<style id="fl27-v56-match-scenarios">
-.v56-live-event .modal{border-top:3px solid #ffd166}
-.v56-situation{
-  padding:10px 11px;margin:8px 0 12px;border-radius:12px;
-  background:linear-gradient(135deg,rgba(118,169,255,.09),rgba(255,209,102,.045));
-  border:1px solid rgba(255,255,255,.08);font-size:10px;line-height:1.5
-}
-.v56-live-tag{font-size:8px;font-weight:900;letter-spacing:.12em;color:#ffd166}
-
-<style id="fl27-v57-creator-fix">
-.v57-inherited{
-  grid-column:1/-1;padding:9px 11px;border-radius:10px;
-  background:rgba(118,169,255,.06);border:1px solid rgba(118,169,255,.12);
-  color:#9eabbc;font-size:9px;line-height:1.4;margin-top:6px
-}
-.v52-creator .v20-confirm{
-  position:relative!important;z-index:20!important;pointer-events:auto!important;
-  cursor:pointer!important;touch-action:manipulation!important;
-  min-height:48px!important;width:100%!important;
-}
-.v52-creator .v20-back{position:relative!important;z-index:20!important}
-.v52-avatar-editor{overflow:visible!important}
-</style>
-<script id="fl27-v56-match-scenarios">
-(function(){
-  /*
-   * V56: match is a sequence of contextual situations.
-   * The library is generated from many situation families and varied
-   * parameters, giving thousands of possible combinations while keeping
-   * position/role/score/minute context coherent.
-   */
-  const F={
-    attack:[
-      ["Dostajesz piłkę na skraju pola karnego. Obrońca zamyka środek, a kolega wychodzi na wolne pole.","strzal","podanie","drybling"],
-      ["Wbiegasz w pole karne. Bramkarz skraca kąt, a obrońca naciska z boku.","strzal","minięcie","podanie"],
-      ["Masz piłkę przed szesnastką. Partner pokazuje się między obrońcami.","strzal_z_dystansu","prostopadle","przerzut"],
-      ["Kolega dośrodkowuje, a piłka spada w okolice piątego metra.","strzal_z_powietrza","zgranie","odpuszczenie"],
-      ["Wychodzisz sam na sam. Bramkarz rusza do Ciebie.","lob","kiwka_bramkarza","strzal_obok"],
-      ["Przejmujesz piłkę po błędzie obrońcy. Masz sekundę na decyzję.","szybki_strzal","podanie","utrzymanie"],
-      ["Kontra 3 na 2. Jeden obrońca idzie do Ciebie, drugi pilnuje skrzydła.","podanie_w_bok","prostopadle","indywidualnie"],
-      ["Jesteś na skrzydle i masz miejsce. Napastnik czeka w polu karnym.","dosrodkowanie","zejscie_do_srodka","podanie_wstecz"],
-      ["W polu karnym jest tłok, ale masz pół metra przestrzeni.","strzal_niski","zwod","odegranie"],
-      ["Otrzymujesz piłkę plecami do bramki, rywal jest bardzo blisko.","odegranie","obrot","faulowanie_rywala"]
-    ],
-    duel:[
-      ["Rywal wchodzi Ci mocno w nogi. Sędzia jest kilka metrów dalej.","utrzymaj_sie","przewroc_sie","odskocz"],
-      ["Przeciwnik próbuje Cię minąć, a Ty jesteś ostatnim zawodnikiem przed obroną.","czysty_wslizg","asekuracja","ryzykowny_wslizg"],
-      ["Napastnik rywala wychodzi za Twoje plecy.","bieg_za_nim","spalony","faul_taktyczny"],
-      ["Rywal łapie Cię za koszulkę przy kontrze.","graj_dalej","wymus_faul","odpusc"],
-      ["Kolega z drużyny zostaje sfaulowany bardzo ostro przy linii.","pomoc","upomnij_rywala","odejdz"],
-      ["Rywal leży po starciu, a sędzia pozwala grać dalej. Masz piłkę.","wybij","graj_dalej","sprawdz_kolege"],
-      ["Przeciwnik prowokuje Cię po starciu.","ignoruj","odpowiedz","odejdz"],
-      ["Sędzia nie zauważył kontaktu w polu karnym.","kontynuuj","reklamuj","podaj_sie_do_przepisu"]
-    ],
-    setpiece:[
-      ["Rzut wolny z dogodnej pozycji. Możesz uderzyć albo rozegrać.","strzal","dosrodkowanie","krotko"],
-      ["Rzut rożny. Trener wcześniej wskazał konkretny wariant.","wariant_trenera","bliski_slup","drugi_slup"],
-      ["Rzut karny. Bramkarz długo patrzy Ci w oczy.","lewy","srodek","prawy"],
-      ["Wrzut z autu w końcówce. Drużyna prowadzi jednym golem.","bezpiecznie","szybko","do_przodu"]
-    ],
-    team:[
-      ["Twój kolega traci piłkę i zaczyna gestykulować. Przeciwnik rusza z kontrą.","asekuruj","krzyknij","wracaj"],
-      ["Kapitan prosi Cię o uspokojenie gry.","zwolnij","graj_szybko","wez_odpowiedzialnosc"],
-      ["Kolega z drużyny jest wyraźnie zdenerwowany po zmarnowanej okazji.","wesprzyj","zostaw","zmobilizuj"],
-      ["Trener krzyczy z ławki nowe ustawienie, ale nie jesteś pewien, czy dobrze usłyszałeś.","zapytaj","domysl_sie","trzymaj_plan"]
-    ],
-    endgame:[
-      ["90. minuta. Prowadzicie 1:0. Rywal rzuca wszystko do ataku.","utrzymaj","kontra","wybij_daleko"],
-      ["88. minuta. Jest remis. Masz piłkę przy polu karnym.","ryzykuj","przytrzymaj","podaj"],
-      ["Końcówka meczu. Przegrywacie jednym golem.","atakuj","uspokoj","daleka_pilka"],
-      ["Doliczony czas. Dostajesz ostatnią piłkę w polu karnym.","strzal","podanie","zwod"]
-    ]
-  };
-
-  const LABEL={
-    strzal:"⚽ Strzelaj na bramkę",podanie:"🎯 Podaj do kolegi",drybling:"🔥 Spróbuj dryblingu",
-    strzal_z_dystansu:"🚀 Uderz z dystansu",prostopadle:"🪄 Zagraj prostopadłą",przerzut:"↔️ Przerzuć na skrzydło",
-    strzal_z_powietrza:"💥 Uderz z powietrza",zgranie:"🤝 Zgraj piłkę",odpuszczenie:"🧠 Odpuść akcję",
-    lob:"🎈 Przelobuj bramkarza",kiwka_bramkarza:"🪄 Omiń bramkarza",strzal_obok:"🎯 Uderz obok",
-    szybki_strzal:"⚡ Szybki strzał",utrzymanie:"🧱 Utrzymaj piłkę",podanie_w_bok:"↗️ Podaj na bok",
-    dosrodkowanie:"📐 Dośrodkuj",zejscie_do_srodka:"↙️ Zejdź do środka",podanie_wstecz:"↩️ Podaj do tyłu",
-    strzal_niski:"⬇️ Niski strzał",zwod:"🎭 Zwód",odegranie:"🤝 Odegraj",
-    utrzymaj_sie:"💪 Walcz dalej",przewroc_sie:"🫳 Zasygnalizuj faul",odskocz:"↩️ Odskocz",
-    czysty_wslizg:"🛡️ Czysty wślizg",asekuracja:"🧠 Zabezpiecz akcję",ryzykowny_wslizg:"⚠️ Ryzykowny wślizg",
-    bieg_za_nim:"🏃 Biegnij za nim",spalony:"🚩 Złap na spalonym",faul_taktyczny:"🟨 Zatrzymaj faulem",
-    graj_dalej:"▶️ Graj dalej",wymus_faul:"🫳 Spróbuj wywalczyć faul",odpusc:"↩️ Odpuść",
-    pomoc:"🤝 Pomóż koledze wstać",upomnij_rywala:"🗣️ Upomnij rywala",odejdz:"🚶 Odejdz",
-    wybij:"🦶 Wybij piłkę",sprawdz_kolege:"❤️ Sprawdź kolegę",ignoruj:"🧊 Ignoruj prowokację",
-    odpowiedz:"🗣️ Odpowiedz",kontynuuj:"▶️ Kontynuuj",reklamuj:"🙋 Zasygnalizuj sędziemu",
-    podaj_sie_do_przepisu:"📜 Zostaw decyzję sędziemu",strzal:"⚽ Strzał",dosrodkowanie:"📐 Dośrodkowanie",
-    krotko:"🔄 Rozegraj krótko",wariant_trenera:"📋 Wykonaj wariant trenera",bliski_slup:"🥅 Bliski słupek",
-    drugi_slup:"🥅 Drugi słupek",lewy:"⬅️ Lewy róg",srodek:"⬆️ Środek",prawy:"➡️ Prawy róg",
-    bezpiecznie:"🛡️ Bezpiecznie",szybko:"⚡ Szybki wrzut",do_przodu:"🚀 Do przodu",
-    krzyknij:"📣 Krzyknij do niego",wracaj:"🏃 Natychmiast wróć",wesprzyj:"❤️ Wesprzyj go",
-    zostaw:"↩️ Zostaw go",zmobilizuj:"🔥 Zmobilizuj",zapytaj:"❓ Zapytaj trenera",
-    domysl_sie:"🧠 Zdecyduj sam",trzymaj_plan:"📋 Trzymaj plan",utrzymaj:"🧱 Utrzymaj wynik",
-    kontra:"⚡ Rusz z kontrą",wybij_daleko:"🦶 Wybij daleko",ryzykuj:"🔥 Zaryzykuj",
-    uspokoj:"🧠 Uspokój grę",daleka_pilka:"🚀 Daleka piłka",atakuj:"⚔️ Atakuj",strzal_obok:"🎯 Uderz obok"
-  };
-
-  function situationPool(){
-    const arr=[];
-    Object.keys(F).forEach(k=>F[k].forEach(x=>arr.push({family:k,text:x[0],opts:x.slice(1)})));
-    return arr;
-  }
-  const POOL=situationPool();
-
-  function makeChoices(opts,context){
-    return opts.map((key,idx)=>[LABEL[key]||key,()=>resolve(key,context,idx)]);
-  }
-
-  function resolve(key,ctx,idx){
-    const p=ctx.position, pos=S.pos||"";
-    let delta={form:0,mental:0,skill:0,pr:0,coach:0,energy:0};
-    let result="";
-    const roll=Math.random();
-
-    if(key.includes("strzal")||key==="lob"||key==="kiwka_bramkarza"){
-      const chance=.28+(Number(S.skill||0)/300)+(Number(S.form||0)/500)+(Number(S.matchConfidence||50)/800);
-      if(roll<chance){delta.form+=4;delta.pr+=4;result="⚽ GOL! Twoja decyzja przynosi efekt."}
-      else if(roll<chance+.22){delta.form+=1;result="Bramkarz broni. Akcja była dobra, ale nie kończy się golem."}
-      else{delta.form-=2;delta.mental-=1;result="Rywal blokuje akcję. Musisz szybko wrócić do gry."}
-    }else if(key==="podanie"||key==="prostopadle"||key==="podanie_w_bok"||key==="dosrodkowanie"||key==="podanie_wstecz"||key==="zgranie"||key==="odegranie"){
-      if(roll<.68){delta.skill+=1;delta.pr+=1;result="🎯 Podanie trafia do partnera i akcja się rozwija."}
-      else{delta.mental-=1;result="Rywal czyta zamiar i przejmuje piłkę."}
-    }else if(key==="faul_taktyczny"||key==="ryzykowny_wslizg"){
-      if(roll<.62){delta.coach+=1;delta.mental+=1;result="🛡️ Zatrzymujesz akcję, ale sędzia może wyciągnąć kartkę."}
-      else{delta.coach-=4;delta.mental-=2;result="🟥 Sędzia uznaje zagranie za zbyt ostre. Problemy z kartką!"}
-    }else if(key==="przewroc_sie"||key==="wymus_faul"){
-      if(roll<.38){delta.pr+=2;result="Sędzia odgwizduje przewinienie."}
-      else{delta.mental-=2;delta.pr-=1;result="Sędzia nie daje się nabrać. Rywale komentują Twoją reakcję."}
-    }else if(key==="pomoc"||key==="wesprzyj"){
-      delta.mental+=3;delta.coach+=1;result="❤️ Reagujesz jak członek zespołu. Kolega to zapamięta.";
-    }else if(key==="odpowiedz"||key==="upomnij_rywala"){
-      delta.mental-=1;delta.coach-=1;result="Emocje rosną. Sędzia zwraca uwagę na zachowanie.";
-    }else if(key==="ignoruj"||key==="odejdz"){
-      delta.mental+=1;delta.coach+=1;result="🧊 Zachowujesz zimną krew.";
-    }else if(key==="wariant_trenera"||key==="trzymaj_plan"||key==="graj_dalej"||key==="bezpiecznie"||key==="utrzymaj"){
-      delta.coach+=3;delta.mental+=1;result="📋 Trener docenia wykonanie założeń.";
-    }else if(key==="ryzykuj"||key==="atakuj"||key==="kontra"||key==="szybko"||key==="do_przodu"){
-      delta.pr+=2;delta.form+=1;delta.mental+=1;result="🔥 Ryzyko zmienia przebieg akcji — możesz zyskać albo stracić.";
-    }else{
-      delta.mental+=1;result="Podejmujesz decyzję i gra toczy się dalej.";
-    }
-
-    S.form=clamp(S.form+delta.form);S.mental=clamp(S.mental+delta.mental);S.skill=clamp(S.skill+delta.skill);
-    S.pr=Math.max(0,(S.pr||0)+delta.pr);S.coachTrust=clamp((S.coachTrust||50)+delta.coach);
-    S.energy=clamp((S.energy||50)+delta.energy);
-    S.matchDecisionHistory=S.matchDecisionHistory||[];
-    S.matchDecisionHistory.push({day:S.day,minute:ctx.minute,family:ctx.family,key,result});
-    if(S.matchDecisionHistory.length>200)S.matchDecisionHistory.shift();
-    log(`⏱️ ${ctx.minute}'. ${result}`);
-    saveSoon();
-    toast(result);
-  }
-
-  function openLive(ctx){
-    const item=POOL[Math.floor(Math.random()*POOL.length)];
-    /* Make match situations position-aware. Goal/attack events favour attackers,
-       defensive/duel events favour defenders, but everyone can still receive them. */
-    let family=item.family;
-    if(ctx.position==="BR" && Math.random()<.55){
-      const g=POOL.filter(x=>x.family==="duel"||x.family==="setpiece");
-      item=g[Math.floor(Math.random()*g.length)];
-    }else if((ctx.position==="N"||ctx.position==="S") && Math.random()<.62){
-      const g=POOL.filter(x=>x.family==="attack"||x.family==="team"||x.family==="endgame");
-      item=g[Math.floor(Math.random()*g.length)];
-    }else if((ctx.position==="O"||ctx.position==="D") && Math.random()<.62){
-      const g=POOL.filter(x=>x.family==="duel"||x.family==="team"||x.family==="endgame");
-      item=g[Math.floor(Math.random()*g.length)];
-    }
-    const choices=makeChoices(item.opts.slice(0,3),{...ctx,family:item.family});
-    const html=`<span class="v56-live-tag">⚡ SYTUACJA MECZOWA • ${ctx.minute}'</span>
-      <div class="v56-situation">${item.text}</div>
-      <div class="v55-match-note">Twoja decyzja nie ma jednej zawsze dobrej odpowiedzi. Wynik zależy od pozycji, umiejętności, formy, mentalu, wyniku meczu, wcześniejszych decyzji i losowości.</div>`;
-    openModal("⚽ Co robisz?",html,choices,true);
-  }
-
-  /* Extend the existing match flow: after the starting/bench choice, trigger
-     several live situations. Each match can produce 2–5, with different
-     contexts and a final outcome. */
-  function runSequence(gf,ga,role){
-    const count=2+Math.floor(Math.random()*4);
-    let i=0;
-    const next=()=>{
-      if(i>=count){
-        const st={apps:role==="bench"&&Math.random()<.55?0:1,starts:role==="starter"?1:0,
-          minutes:role==="starter"?90:(role==="bench"?15+Math.floor(Math.random()*31):0),
-          goals:0,assists:0,yellow:0,red:0,cleanSheets:ga===0?1:0,penaltiesScored:0,penaltiesMissed:0,ownGoals:0};
-        matchFinishV56(gf,ga,st);
-        return;
-      }
-      i++;
-      const minute=role==="starter"?10+i*20+Math.floor(Math.random()*15):55+i*8;
-      openLive({minute,position:S.pos,role,family:""});
-      /* Override modal actions only for this live sequence. */
-      const original=window.modalChoices;
-      const wrapped=original.map(c=>[c[0],()=>{c[1](); if(i<count)setTimeout(next,120);else setTimeout(next,120)}]);
-      window.modalChoices=wrapped;
-    };
-    next();
-  }
-
-  function matchFinishV56(gf,ga,st){
-    ensureCareerStats();
-    const result=gf>ga?"WYGRANA 🟢":gf===ga?"REMIS 🟡":"PORAŻKA 🔴";
-    if(gf>ga){S.wins=(S.wins||0)+1;S.form=clamp(S.form+5);S.pr+=2}
-    else if(gf===ga){S.draws=(S.draws||0)+1}
-    else{S.losses=(S.losses||0)+1;S.form=clamp(S.form-4)}
-    S.matches=(S.matches||0)+1;
-    S.energy=Math.max(0,S.energy-28);
-    recordMatchStats(st);
-    S.nextMatchDay=S.day+7+Math.floor(Math.random()*8);
-    advance(2);
-    log(`🏁 Koniec meczu ${gf}:${ga} — ${result}.`);
-    toast(`${result} • mecz zakończony`);
-    randomEventChance("match");
-    render();
-  }
-
-  /* Replace the V55 entry point with a richer sequence. */
-  window.FL27_playMatchWithDecisions=function(){
-    ensureMatchMemory();
-    if(S.injury>0){toast("Masz uraz — najpierw regeneracja.");return}
-    const target=Number(S.nextMatchDay||7);
-    if(S.day<target){toast(`Mecz jest dopiero za ${target-S.day} ${target-S.day===1?"dzień":"dni"} ⚽`);return}
-    if(S.energy<28){toast("Za mało energii na mecz.");return}
-    const score=(Number(S.skill||0)*.55)+(Number(S.form||0)*.18)+(Number(S.trainingLevel||0)*2)+(Number(S.coachTrust||50)*.22)+(Math.random()*35-17);
-    const starter=score>=58;
-    const gf=Math.max(0,Math.round((S.skill*.65+S.form*.25+S.mental*.1+(Math.random()*24-12))/42+Math.random()*1.4-.5));
-    const ga=Math.max(0,Math.round(((55+Math.random()*30)/42)+Math.random()*1.4-.5));
-    log(starter?"📋 Wychodzisz w podstawowym składzie.":"📋 Zaczynasz mecz na ławce.");
-    S.matchRole=starter?"starter":"bench";
-    runSequence(gf,ga,starter?"starter":"bench");
-  };
-  window.playMatch=window.FL27_playMatchWithDecisions;
-})();
-</script>
-
-
-<script id="fl27-v58-tutorial-routing">
-window.FL27_tutorialRoute=function(tab){
-  if(tab==="settings"){window.renderSettings?.();return}
-  if(typeof window.FL27_ROUTE==="function"){window.FL27_ROUTE(tab);return}
-  if(typeof window.go==="function"){window.go(tab);return}
-};
-</script>
-<style id="fl27-v58-tutorial-style">
-.v37-task{font:inherit;color:inherit}
-.v37-task:hover{border-color:rgba(118,169,255,.35)!important;transform:translateY(-1px)}
-</style>
-
-
-<script id="fl27-v58-family-economics">
-(function(){
-  window.FL27_familyEconomics=function(){
-    const parents=S.parents||{};
-    const wealth=Number(parents.wealth??S.familyWealth??50);
-    const weekly=Number(S.allowance||0);
-    const giftChance=Math.min(.55,Math.max(.08,wealth/180));
-    const gift= Math.random()<giftChance;
-    const amount=gift?Math.max(5,Math.round((8+Math.random()*35)*(0.6+wealth/100))):0;
-    return {wealth,gift,amount,weekly};
-  };
-})();
-</script>
-<style id="fl27-v58-family-card">
-.v58-family-note{padding:11px;border-radius:12px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.13);font-size:9px;line-height:1.5;color:#aeb8c6}
-</style>
-
-
-<script id="fl27-v59-position-sync">
-(function(){
-  const MAP=[
-    [/^Bramkarz\b/i,"BR"],[/^Środkowy obrońca\b/i,"ŚO"],[/^Lewy obrońca\b/i,"LO"],[/^Prawy obrońca\b/i,"PO"],
-    [/^Środkowy pomocnik\b/i,"ŚP"],[/^Lewy pomocnik\b/i,"LP"],[/^Prawy pomocnik\b/i,"PP"],
-    [/^Lewy skrzydłowy\b/i,"LS"],[/^Prawy skrzydłowy\b/i,"PS"],[/^Napastnik\b/i,"N"]
-  ];
-  function canonical(v){
-    const x=String(v||"").trim();
-    if(["BR","ŚO","LO","PO","ŚP","LP","PP","LS","PS","N"].includes(x))return x;
-    for(const [r,c] of MAP)if(r.test(x))return c;
-    if(/^pomocnik$/i.test(x))return "ŚP";
-    return x.replace(/\s*—.*$/,"").trim();
-  }
-  function sync(){
-    if(!window.S)return;
-    const p=canonical(S.pos||S.position);
-    if(p){
-      S.pos=p;
-      S.position=p; // ONE source of truth; no stale "Pomocnik" can survive.
-    }
-  }
-  window.FL27_SYNC_POSITION=sync;
-  const oldRender=window.render;
-  if(typeof oldRender==="function" && !window.__FL27_V59_RENDER){
-    window.__FL27_V59_RENDER=true;
-    window.render=function(){sync();return oldRender.apply(this,arguments)};
-  }
-  setTimeout(sync,100);
-})();
-</script>
-<style id="fl27-v59-position-style">
-.v59-position-badge{
-  display:inline-flex!important;align-items:center;gap:5px;padding:4px 8px;
-  border-radius:999px;background:rgba(85,216,138,.10);
-  border:1px solid rgba(85,216,138,.20);color:#7ee6a4;font-weight:900
-}
-</style>
-
-
-<style id="fl27-v60-family-support">
-.v60-support-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.v60-support-card{padding:10px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
-.v60-support-card b{display:block;font-size:10px}.v60-support-card small{display:block;margin-top:3px;color:#8f9daf;font-size:8px;line-height:1.35}
-@media(max-width:520px){.v60-support-grid{grid-template-columns:1fr}}
-</style>
-<script id="fl27-v60-family-support">
-(function(){
-  function ensure(){
-    if(!window.S)return;
-    if(!S.familyProfile && typeof window.ensureFamily==="function")window.ensureFamily();
-    const f=S.familyProfile||{};
-    const A=window.FL27_familyArc;
-    if(A){
-      A.profile=A.profile||{};
-      if(A.profile.careerCommitment==null)A.profile.careerCommitment=Math.random();
-      if(A.profile.fatherCareerCommitment==null)A.profile.fatherCareerCommitment=.25+Math.random()*.7;
-      if(A.profile.motherCareerCommitment==null)A.profile.motherCareerCommitment=.25+Math.random()*.7;
-      if(A.profile.fatherSupport==="normal"||!A.profile.fatherSupport)A.profile.fatherSupport="occasional";
-      if(A.profile.motherSupport==="normal"||!A.profile.motherSupport)A.profile.motherSupport="occasional";
-    }
-  }
-
-  function wealthScore(){
-    const f=S.familyProfile||{};
-    const income=String(f.income||"").toLowerCase();
-    if(/niski|pracują/.test(income))return 20;
-    if(/dobrze|zamoż/.test(income))return 72;
-    return 48;
-  }
-
-  window.FL27_familyMoment=function(){
-    ensure();
-    const f=S.familyProfile||{}, A=window.FL27_familyArc?.profile||{};
-    const base=wealthScore();
-    const fatherCommit=Number(A.fatherCareerCommitment??.55);
-    const motherCommit=Number(A.motherCareerCommitment??.55);
-    const parentPool=[];
-    const fJob=String(f.father?.job||"");
-    const mJob=String(f.mother?.job||"");
-
-    /* Financial status and willingness are deliberately independent. */
-    if(base<35 && fatherCommit>.65) parentPool.push(
-      ["💶 Tata odkłada z własnej wypłaty na Twoje korki",12+Math.floor(Math.random()*34),"father","career"],
-      ["🚌 Tata rezygnuje z własnego wydatku, żeby zawieźć Cię na trening",0,"father","time"],
-      ["🏕️ Rodzic znajduje tani obóz i pomaga Ci go opłacić",8+Math.floor(Math.random()*22),"father","career"]
-    );
-    if(base<35 && motherCommit>.65) parentPool.push(
-      ["❤️ Mama bierze dodatkową zmianę, żeby pomóc opłacić wyjazd",15+Math.floor(Math.random()*45),"mother","career"],
-      ["🍽️ Mama przygotowuje Ci jedzenie na cały turniej, żebyś nie wydawał/a pieniędzy",0,"mother","career"]
-    );
-    if(base>=65 && fatherCommit<.35) parentPool.push(
-      ["🛑 Tata może sobie pozwolić na wydatek, ale mówi, że tym razem nie finansuje piłki",0,"father","boundary"],
-      ["💬 Tata proponuje pieniądze tylko jeśli przedstawisz mu konkretny plan",0,"father","boundary"]
-    );
-    if(base>=65 && motherCommit<.35) parentPool.push(
-      ["🛑 Mama mówi, że pieniądze są, ale nie chce opłacać kolejnego obozu",0,"mother","boundary"]
-    );
-
-    parentPool.push(
-      ["🪙 Dostajesz zwykłe kieszonkowe",3+Math.floor(Math.random()*13),"family","allowance"],
-      ["🎁 Rodzic kupuje Ci potrzebną rzecz, bo zauważył, że Twoja się zużyła",0,"family","gift"],
-      ["❤️ Rodzic zamiast pieniędzy poświęca Ci czas i pomaga przygotować się do treningu",0,"family","time"],
-      ["😐 Rodzice mówią, że tym razem musisz poradzić sobie sam/a",0,"family","none"]
-    );
-
-    /* A parent's profession can create an occasional non-cash advantage. */
-    if(/trener|sport|fizjoter|lekarz|diet|psych|nauczyc|informatyk/.test(fJob.toLowerCase()))
-      parentPool.push(["🧑‍🏫 Tata pomaga Ci dzięki swojemu zawodowi — bez płacenia za zewnętrzną poradę",0,"father","professional"]);
-    if(/trener|sport|fizjoter|lekarz|diet|psych|nauczyc|informatyk/.test(mJob.toLowerCase()))
-      parentPool.push(["🧑‍🏫 Mama pomaga Ci dzięki swojemu zawodowi — bez płacenia za zewnętrzną poradę",0,"mother","professional"]);
-
-    const pick=parentPool[Math.floor(Math.random()*parentPool.length)];
-    const [text,amount,parent,type]=pick;
-
-    if(amount){S.money=Math.max(0,(S.money||0)+amount);}
-    if(type==="career"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+3);S.mental=clamp((S.mental||50)+2);}
-    else if(type==="time"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+4);S.mental=clamp((S.mental||50)+3);}
-    else if(type==="gift"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)+2);}
-    else if(type==="boundary"){S.rel.Rodzice=clamp((S.rel.Rodzice||50)-1);S.mental=clamp((S.mental||50)+1);}
-    else if(type==="professional"){S.skill=clamp((S.skill||50)+1);S.rel.Rodzice=clamp((S.rel.Rodzice||50)+2);}
-    else if(type==="none"){S.mental=clamp((S.mental||50)-1);}
-
-    const title=amount?`${text} (+${amount}€)`:text;
-    if(window.log)log(title);
-    if(A){
-      A.events=A.events||[];
-      A.events.push({day:S.day,title:"👨‍👩‍👧 Rodzinne wsparcie",text:title,effects:{money:amount}});
-      if(A.events.length>80)A.events.shift();
-      A.profile.lastEventDay=S.day;
-      if(parent==="father"&&type==="career")A.profile.fatherSupport="financial";
-      if(parent==="mother"&&type==="career")A.profile.motherSupport="financial";
-      try{localStorage.setItem("FL27_FAMILY_ARC_V9",JSON.stringify(A))}catch(e){}
-    }
-    saveSoon();toast(amount?`Rodzina: +${amount}€ 💶`:"Rodzina: wydarzyło się coś ważnego ❤️");render();
-  };
-
-  /* Add a compact, always-visible explanation to the existing family panel. */
-  const oldRenderFamily=window.renderFamily;
-  if(typeof oldRenderFamily==="function"&&!window.__FL27_V60_FAMILY_RENDER){
-    window.__FL27_V60_FAMILY_RENDER=true;
-    window.renderFamily=function(m){
-      ensure();
-      oldRenderFamily.apply(this,arguments);
-      const card=document.createElement("div");
-      card.className="card";
-      const f=S.familyProfile||{}, A=window.FL27_familyArc?.profile||{};
-      const wealth=String(f.socialClass||"klasa średnia");
-      const fs=String(A.fatherSupport||"okazjonalne");
-      const ms=String(A.motherSupport||"okazjonalne");
-      card.innerHTML=`<div class="section-title"><b>❤️ Wsparcie dla Twojej kariery</b><span>niezależne od majątku</span></div>
-        <p class="sub">Rodzina może być biedna, ale rodzic może poświęcać bardzo dużo dla Twojej kariery. Zamożny rodzic może natomiast stawiać granice i nie finansować wszystkiego. Pieniądze i zaangażowanie są osobnymi cechami.</p>
-        <div class="v60-support-grid">
-          <div class="v60-support-card"><b>💰 Majątek rodziny</b><small>${esc(wealth)}</small></div>
-          <div class="v60-support-card"><b>⚽ Tata</b><small>wsparcie: ${esc(fs)}</small></div>
-          <div class="v60-support-card"><b>⚽ Mama</b><small>wsparcie: ${esc(ms)}</small></div>
-          <div class="v60-support-card"><b>🎲 Dzisiaj</b><small>wsparcie nie jest gwarantowane</small></div>
-        </div>`;
-      m.appendChild(card);
-    };
-  }
-  ensure();
-})();
-</script>
-
-
-<script id="fl27-v60-guards">
-(function(){
-  if(window.S){
-    S.rel=S.rel||{};
-    S.rel.Rodzice=Number.isFinite(Number(S.rel.Rodzice))?Number(S.rel.Rodzice):50;
-  }
-})();
-</script>
-
-
-<style id="fl27-v61-today-clean">
-/* DZIŚ is intentionally a summary. Detailed data lives in its own tab. */
-#main .hero p{font-size:9px}
-#main .card .section-title span{white-space:nowrap}
-</style>
-<script id="fl27-v61-today-contract">
-(function(){
-  window.FL27_TABS_CONTRACT={
-    today:"aktualności + bieżące wydarzenie + samouczek",
-    day:"czas + plan dnia + aktywności + koszty",
-    career:"pozycja + OVR + rozwój + klub + mecze + kontrakty",
-    life:"znajomi + relacje + social media + wydarzenia życia",
-    family:"rodzice + rodzeństwo + majątek + zawody + wsparcie + genetyka",
-    history:"decyzje + konsekwencje + historia wydarzeń",
-    stats:"pełne statystyki zawodnika i kariery",
-    store:"wydawanie pieniędzy + rzeczy + luksusy",
-    settings:"ustawienia + reset + avatar/płeć + drzewo genealogiczne"
-  };
-})();
-</script>
-
-
-<script id="fl27-v62-final-home">
-(function(){
-  function cleanHome(m){
-    const md=Number(S?.nextMatchDay||7), diff=md-Number(S?.day||1);
-    const next=diff<=0?"DZIŚ":`za ${diff} ${diff===1?"dzień":"dni"}`;
-    const task=typeof window.panelTasksHTML==="function"?window.panelTasksHTML():"";
-    const last=S?.logs?.[0]?.text||"Brak nowych wydarzeń.";
-    const age=Number(S?.age||15);
-    const status=Number(S?.injury||0)>0?"⚠️ Uraz":"🟢 Dostępny/a";
-
-    m.innerHTML=`
-      <div class="card hero">
-        <div class="kicker">📅 DZISIAJ</div>
-        <h1>${esc(S?.name||"Moja kariera")}</h1>
-        <p>${status} • ${age} lat • dzień ${Number(S?.day||1)}</p>
-      </div>
-
-      <div class="card v62-now">
-        <div class="section-title"><b>⚡ TERAZ</b><span>${next}</span></div>
-        <h2>${diff<=0?"Mecz jest dostępny":"Twój dzień trwa"}</h2>
-        <p>${diff<=0
-          ?"Najbliższy mecz jest dostępny. Kliknij, żeby wejść w interaktywny mecz."
-          :"Sprawdź zakładkę <b>Dzień</b>, aby zobaczyć dokładnie, co możesz zrobić w pozostałym czasie."}</p>
-      </div>
-
-      <div class="card">
-        <div class="section-title"><b>🎲 Ostatnie wydarzenie</b><span>szczegóły → Historia</span></div>
-        <div class="log">${esc(last)}</div>
-      </div>
-
-      <div class="card">
-        <div class="section-title"><b>🎓 Samouczek</b><span>💎</span></div>
-        ${task}
-      </div>
-
-      <div class="card">
-        <div class="section-title"><b>⚡ Szybki dostęp</b><span>bez duplikowania zakładek</span></div>
-        <div class="actions">
-          <button class="action gold" onclick="playMatch()"><b>⚽ Mecz</b><small>${next}</small></button>
-          <button class="action" onclick="go('day')"><b>🕐 Dzień</b><small>czas i aktywności</small></button>
-        </div>
-      </div>`;
-  }
-
-  window.renderHome=cleanHome;
-  window.FL27_RENDER_HOME_FINAL=cleanHome;
-})();
-</script>
-<style id="fl27-v62-home">
-.v62-now{border:1px solid rgba(118,169,255,.22)!important;background:linear-gradient(135deg,rgba(20,37,68,.96),rgba(13,23,40,.96))!important}
-#main .v37-tasks{margin-top:0}
-</style>
-
-
-<style id="fl27-v63-single-ui">
-/* V63 — one UI layer only. Legacy inline navigation remains in DOM for
-   compatibility, but is not rendered. The side drawer is the only nav. */
-body:not(.creator-screen) > .fl27-v35-bottom,
-body:not(.creator-screen) #nav,
-body:not(.creator-screen) .v17-bottom,
-body:not(.creator-screen) .v19-settings-btn{display:none!important}
-
-/* Keep only the persistent V35 header; hide the original app header to avoid
-   duplicated player/status information. */
-body:not(.creator-screen) > .app > header{display:none!important}
-body:not(.creator-screen){padding-top:0!important;padding-bottom:18px!important}
-body:not(.creator-screen) #main{padding-top:76px!important;padding-bottom:24px!important}
-</style>
-<script id="fl27-v63-consolidation">
-(function(){
-  /* ---- SINGLE SOURCE OF TRUTH FOR NAVIGATION ---- */
-  const ROUTES={
-    home:"home",day:"day",career:"career",life:"life",family:"family",
-    history:"history",careerStats:"careerStats",store:"store",settings:"settings"
-  };
-
-  window.FL27_ROUTE=function(tab){
-    const key=ROUTES[tab]||"home";
-    if(key==="settings"){
-      if(typeof window.renderSettings==="function")window.renderSettings();
-      return false;
-    }
-    window.__FL27_ACTIVE_TAB=key;
-    if(typeof window.go==="function"){
-      /* legacy go() is used only as the router; its old nav is hidden */
-      window.go(key);
-    }else{
-      currentTab=key;render();
-    }
-    return false;
-  };
-  window.FL27_GET_TAB=function(){return window.__FL27_ACTIVE_TAB||currentTab||"home"};
-
-  /* ---- RESET PLAYER: ALWAYS RETURN TO THE MODE CHOOSER ---- */
-  window.FL27_resetPlayer=function(){
-    if(!confirm(
-      "RESETUJ TYLKO ZAWODNIKA?\\n\\n"+
-      "Usunięta zostanie obecna kariera, zawodnik, rodzina, relacje, pieniądze, "+
-      "FLgram, historia i decyzje.\\n\\n"+
-      "Ustawienia gry pozostaną. Po resecie wrócisz do wyboru NOWA GRA."
-    ))return false;
-
-    try{
-      if(typeof window.clearPlayerOnly==="function")window.clearPlayerOnly();
-      else{
-        const keys=[
-          "footballLife27_v6","FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL",
-          "FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION","FL27_V16_TIME",
-          "FL27_V17_ACTIVITY","FL27_V19_SETTINGS","FL27_FAMILY_ARC_V9",
-          "FL27_NEW_GAME"
-        ];
-        keys.forEach(k=>localStorage.removeItem(k));
-      }
-    }catch(e){console.error(e)}
-
-    /* Clear only runtime player state; preserve theme/vibration/settings. */
-    try{
-      if(window.H){window.H={mode:null,ready:false,player:null};localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(window.H))}
-      if(window.P){
-        P.panelTasks={};P.panelTaskSet=[];P.panelTutorialVersion=0;
-        P.tutorialSeen=[];P.tutorialChoiceCount=0;P.tutorialFlags={};
-        P.tutorialBranch=[];P.lifeGraph={seen:[],flags:{},links:{},routes:[],chains:[]};
-        P.lifeEventSeen=[];P.flags={};
-      }
-    }catch(e){}
-
-    document.querySelectorAll(
-      ".v19-settings-overlay,.v20-hub-overlay,.fl27-v53-drawer-backdrop,.fl27-v53-drawer"
-    ).forEach(x=>x.remove());
-    document.body.classList.remove("fl27-settings-open");
-
-    /* IMPORTANT: no direct creator launch here. Always show the two-mode hub. */
-    if(typeof window.FL27_showNewGame==="function"){
-      window.FL27_showNewGame();
-    }else{
-      location.reload();
-    }
-    return false;
-  };
-
-  /* ---- Ensure settings can never silently send Reset Player to creator ---- */
-  window.FL27_SETTINGS_RESET_PLAYER=window.FL27_resetPlayer;
-
-  /* ---- First tutorial task routes to Family, then the panel stays focused. ---- */
-  window.FL27_tutorialRoute=function(tab){
-    const key=ROUTES[tab]||"home";
-    window.FL27_ROUTE(key);
-  };
-
-  /* ---- Do not let old render wrappers re-add hidden navigation. ---- */
-  const observer=new MutationObserver(()=>{
-    if(document.body.classList.contains("creator-screen"))return;
-    document.querySelectorAll("#nav,.v17-bottom,.fl27-v35-bottom").forEach(el=>{
-      el.style.display="none";
-    });
-  });
-  observer.observe(document.body,{childList:true,subtree:true});
-  setTimeout(()=>document.querySelectorAll("#nav,.v17-bottom,.fl27-v35-bottom").forEach(el=>el.style.display="none"),50);
-})();
-</script>
-
-
-<style id="fl27-v64-new-game-modes">
-.v64-mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
-.v64-mode-grid button{text-align:left;padding:15px 16px;border-radius:15px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#fff;cursor:pointer}
-.v64-mode-grid button:hover{border-color:rgba(118,169,255,.45);transform:translateY(-1px)}
-.v64-mode-grid strong{display:block;font-size:13px}.v64-mode-grid span{display:block;margin-top:5px;color:#9ba8b9;font-size:9px;line-height:1.45}
-.v64-mode-grid .manual{border-color:rgba(118,169,255,.28);background:rgba(118,169,255,.07)}
-.v64-mode-grid .same{border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.045)}
-</style>
-<script id="fl27-v64-new-game-modes">
-(function(){
-  const START_KEY="FL27_V64_START_PROFILE";
-  const namesM=["Jan","Antoni","Jakub","Leon","Kacper","Mikołaj","Mateusz","Szymon","Adam","Filip","Oskar","Maksymilian"];
-  const namesF=["Zuzanna","Julia","Maja","Lena","Oliwia","Amelia","Natalia","Laura","Hanna","Pola","Wiktoria","Alicja"];
-  const surnames=["Nowak","Kowalski","Wiśniewski","Wójcik","Kowalczyk","Kamiński","Lewandowski","Zieliński","Szymański","Woźniak","Dąbrowski","Mazur"];
-
-  const pick=a=>a[Math.floor(Math.random()*a.length)];
-  const randomAnswers=()=>{
-    const answers=QUESTIONS.map(q=>pick(q[1]));
-    return answers;
-  };
-  const randomName=(gender)=>{
-    const first=pick(gender==="K"?namesF:namesM);
-    return first+" "+pick(surnames);
-  };
-
-  /* Save the exact starting profile. "Nowa gra" can therefore recreate the
-     same person/family without resurrecting any football history. */
-  window.FL27_SAVE_START_PROFILE=function(){
-    try{
-      if(!window.S||!S.started)return;
-      const keep=[
-        "name","gender","orientation","pos","position","foot","style","inspiration","dream","risk","priority","goal",
-        "familyProfile","birthCountry","residenceCountry","nationalities","birthMonth","birthDay","age",
-        "money","allowance","school","social","avatar","origin"
-      ];
-      const profile={};
-      keep.forEach(k=>{if(S[k]!==undefined)profile[k]=JSON.parse(JSON.stringify(S[k]))});
-      localStorage.setItem(START_KEY,JSON.stringify(profile));
-    }catch(e){console.error("START_PROFILE",e)}
-  };
-
-  /* Hook once, after the existing startCareer has initialized the full game. */
-  if(typeof window.startCareer==="function"&&!window.__FL27_V64_START_HOOK){
-    window.__FL27_V64_START_HOOK=true;
-    const original=window.startCareer;
-    window.startCareer=function(){
-      const result=original.apply(this,arguments);
-      try{window.FL27_SAVE_START_PROFILE()}catch(e){}
-      return result;
-    };
-  }
-
-  function clearForNew(){
-    try{
-      const keys=[
-        "FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION",
-        "FL27_V16_TIME","FL27_V17_ACTIVITY","FL27_V20_NEW_GAME","FL27_V21_PROFILE",
-        "FL27_V22_CAREER","FL27_V23_GLOBAL","FL27_FAMILY_ARC_V9"
-      ];
-      keys.forEach(k=>localStorage.removeItem(k));
-    }catch(e){}
-  }
-
-  function openRandomCreator(mode){
-    clearForNew();
-    const gender=Math.random()<.5?"K":"M";
-    window.__FL27_V64_MODE=mode;
-    selectedAnswers=[];
-    playerName=randomName(gender);
-    creatorStarted=false;
-    window.FL27_showCreator();
-    setTimeout(()=>{
-      const first=document.getElementById("creatorName"),last=document.getElementById("creatorSurname");
-      if(first)first.value=playerName.split(" ")[0];
-      if(last)last.value=playerName.split(" ").slice(1).join(" ");
-      window.FL27_beginV52();
-      setTimeout(()=>{
-        const answers=mode==="randomPlayer"
-          ? QUESTIONS.map((q,i)=>i===0?(gender==="K"?"Kobieta":"Mężczyzna")
-            :i===2?pick(q[1])
-            :q[1][0])
-          :randomAnswers();
-        let i=0;
-        const next=()=>{
-          if(i<answers.length){
-            answer(answers[i++]);
-            setTimeout(next,0);
-            return;
-          }
-          setTimeout(()=>{
-            if(typeof window.FL27_randomAvatar==="function")window.FL27_randomAvatar();
-            setTimeout(()=>{
-              if(typeof window.FL27_confirmPlus==="function")window.FL27_confirmPlus();
-            },20);
-          },20);
-        };
-        next();
-      },20);
-    },20);
-  }
-
-  /* Random player = random identity/position; other starting answers use the
-     first/default option. Random everything = every starting answer + avatar. */
-  window.FL27_startRandomPlayer=function(){openRandomCreator("randomPlayer")};
-  window.FL27_startRandomEverything=function(){openRandomCreator("randomEverything")};
-
-  /* Auto is a fully automatic, balanced setup — different from pure random:
-     it uses a plausible profile rather than independently randomizing every field. */
-  window.FL27_startAutoV64=function(){
-    clearForNew();
-    const gender=Math.random()<.5?"K":"M";
-    window.__FL27_V64_MODE="auto";
-    selectedAnswers=[];
-    playerName=randomName(gender);
-    creatorStarted=false;
-    window.FL27_showCreator();
-    setTimeout(()=>{
-      const first=document.getElementById("creatorName"),last=document.getElementById("creatorSurname");
-      if(first)first.value=playerName.split(" ")[0];
-      if(last)last.value=playerName.split(" ").slice(1).join(" ");
-      window.FL27_beginV52();
-      setTimeout(()=>{
-        /* Balanced profile: not every field is random independently. */
-        const pos=pick(QUESTIONS[2][1]);
-        const style=pick(["Techniczny — drybling i kontrola","Szybki — sprint i gra za plecy obrony","Fizyczny — siła i pojedynki","Kreatywny — podania i wizja","Uniwersalny — potrafię robić wszystko po trochu"]);
-        const answers=[
-          gender==="K"?"Kobieta":"Mężczyzna",
-          pick(QUESTIONS[1][1]),pos,
-          pick(QUESTIONS[3][1]),pick(QUESTIONS[4][1]),pick(QUESTIONS[5][1]),
-          pick(QUESTIONS[6][1]),pick(QUESTIONS[7][1]),pick(QUESTIONS[8][1]),pick(QUESTIONS[9][1])
-        ];
-        /* force coherent style rather than independent chaos */
-        answers[3]=style;
-        let i=0;const next=()=>{if(i<answers.length){answer(answers[i++]);setTimeout(next,0);return}
-          setTimeout(()=>{FL27_randomAvatar();setTimeout(()=>FL27_confirmPlus(),20)},20)};
-        next();
-      },20);
-    },20);
-  };
-
-  /* Same current starting data, football history only reset. It uses the saved
-     starting profile, not the current mid-career state, so age/family/identity
-     remain coherent. */
-  window.FL27_startSameData=function(){
-    let profile=null;
-    try{profile=JSON.parse(localStorage.getItem(START_KEY)||"null")}catch(e){}
-    if(!profile){
-      alert("Nie ma jeszcze zapisanego zestawu danych startowych. Najpierw rozpocznij karierę.");
-      return;
-    }
-    clearForNew();
-    try{
-      /* Rebuild S from a clean game, then restore the exact non-football data. */
-      S=fresh();
-      Object.keys(profile).forEach(k=>{S[k]=profile[k]});
-      S.started=true;
-      S.club="";
-      S.skill=50;S.form=70;S.health=100;S.pr=50;S.mental=70;S.energy=100;
-      S.money=Number(profile.money??35);
-      S.allowance=Number(profile.allowance??14);
-      S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;
-      S.nextMatchDay=7;S.lastJobWeekKey="";S.eventHistory={};S.logs=[];S.usedEvents=[];
-      S.social=JSON.parse(JSON.stringify(profile.social||{unlocked:true,handle:"FL27_"+Math.floor(1000+Math.random()*9000),followers:0,posts:[],lastPostDay:0}));
-      save();
-      try{localStorage.setItem("FL27_V64_MODE","same")}catch(e){}
-      location.reload();
-    }catch(e){console.error(e);alert("Nie udało się odtworzyć danych startowych.")}
-  };
-
-  /* Replace the hub LAST, so all earlier hub versions are superseded rather
-     than stacked. */
-  window.FL27_showNewGame=function(){
-    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
-    const d=document.createElement("div");d.className="v20-hub-overlay";
-    const hasSaved=!!localStorage.getItem(START_KEY);
-    d.innerHTML=`<div class="v20-hub">
-      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
-      <div class="v20-kicker">NOWA KARIERA</div>
-      <h1>Jak chcesz rozpocząć?</h1>
-      <p>Każda opcja tworzy inną historię. Wybierz dokładnie, ile chcesz losowości, a ile kontroli.</p>
-      <div class="v64-mode-grid">
-        <button onclick="FL27_startRandomPlayer()">
-          <strong>🎲 LOSOWY ZAWODNIK</strong>
-          <span>Losowe imię, nazwisko, płeć, avatar i pozycja. Pozostałe podstawowe cechy są ustawione spójnie, a rodzina i świat zostają wygenerowane przez grę.</span>
-        </button>
-        <button onclick="FL27_startRandomEverything()">
-          <strong>🎰 LOSOWE WSZYSTKO</strong>
-          <span>Losowany jest cały start: zawodnik, 10 odpowiedzi, avatar, rodzina, kraj, miejsce życia, sytuacja finansowa i początkowe warunki.</span>
-        </button>
-        <button onclick="FL27_startAutoV64()">
-          <strong>🤖 NOWA GRA AUTO</strong>
-          <span>Gra sama tworzy spójnego zawodnika i jego startową historię. To automatyczny, bardziej logiczny profil, a nie czyste losowanie każdej wartości osobno.</span>
-        </button>
-        <button class="same" onclick="FL27_startSameData()" ${hasSaved?"":"disabled"}>
-          <strong>🔄 NOWA GRA — TE SAME DANE</strong>
-          <span>Twoje zapisane dane startowe pozostają takie same. Resetowana jest wyłącznie historia piłkarska, żeby rozpocząć karierę od początku z tym samym zawodnikiem i rodziną.</span>
-        </button>
-        <button class="manual" onclick="FL27_startPlus()">
-          <strong>✨ NOWA GRA +</strong>
-          <span>Wszystko wpisujesz i wybierasz sam/a: imię, nazwisko, 10 pytań, pozycję, avatar itd. Rodzina i świat są następnie generowane na podstawie Twoich decyzji.</span>
-        </button>
-      </div>
-      <small>Ustawienia gry, np. motyw i wibracje, nie są resetowane.</small>
-    </div>`;
-    document.body.appendChild(d);
-  };
-})();
-</script>
-
-
-<style id="fl27-v65-three-modes">
-.v65-mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
-.v65-mode-grid button{display:block;width:100%;text-align:left;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#fff;cursor:pointer;touch-action:manipulation}
-.v65-mode-grid button:hover{border-color:rgba(118,169,255,.42);transform:translateY(-1px)}
-.v65-mode-grid strong{display:block;font-size:13px}.v65-mode-grid span{display:block;margin-top:5px;color:#9ba8b9;font-size:9px;line-height:1.5}
-.v65-mode-grid .auto{border-color:rgba(85,216,138,.25);background:rgba(85,216,138,.045)}
-.v65-mode-grid .plus{border-color:rgba(118,169,255,.28);background:rgba(118,169,255,.06)}
-.v65-mode-grid .same{border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.045)}
-</style>
-<script id="fl27-v65-three-modes">
-(function(){
-  const START_KEY="FL27_V64_START_PROFILE";
-  const pick=a=>a[Math.floor(Math.random()*a.length)];
-
-  /* Country-specific starter database. These are common/popular first names
-     and surnames used as a gameplay database, not a claim of a live ranking. */
-  const DB={
-    "Polska":{
-      M:["Jakub","Antoni","Jan","Szymon","Franciszek","Aleksander","Mikołaj","Leon","Wojciech","Kacper"],
-      K:["Zofia","Zuzanna","Laura","Hanna","Maja","Julia","Oliwia","Alicja","Maria","Lena"],
-      S:["Nowak","Kowalski","Wiśniewski","Wójcik","Kowalczyk","Kamiński","Lewandowski","Zieliński","Szymański","Woźniak"]},
-    "Hiszpania":{
-      M:["Mateo","Hugo","Martín","Lucas","Leo","Daniel","Alejandro","Pablo","Álvaro","Adrián"],
-      K:["Sofía","Lucía","Martina","María","Valeria","Julia","Paula","Emma","Daniela","Carla"],
-      S:["García","Rodríguez","González","Fernández","López","Martínez","Sánchez","Pérez","Gómez","Martín"]},
-    "Niemcy":{
-      M:["Emil","Noah","Matteo","Paul","Leon","Theo","Ben","Elias","Finn","Felix"],
-      K:["Emma","Mia","Sophia","Hanna","Emilia","Lina","Mila","Ella","Clara","Lea"],
-      S:["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann"]},
-    "Francja":{
-      M:["Gabriel","Léo","Raphaël","Louis","Arthur","Jules","Adam","Maël","Lucas","Hugo"],
-      K:["Louise","Jade","Ambre","Alba","Emma","Rose","Alice","Anna","Mia","Chloé"],
-      S:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau"]},
-    "Anglia":{
-      M:["Oliver","George","Arthur","Noah","Muhammad","Leo","Oscar","Henry","Archie","Harry"],
-      K:["Olivia","Amelia","Isla","Ava","Lily","Ivy","Freya","Florence","Isabella","Sophia"],
-      S:["Smith","Jones","Taylor","Brown","Williams","Wilson","Johnson","Davies","Patel","Robinson"]},
-    "Włochy":{
-      M:["Leonardo","Francesco","Alessandro","Lorenzo","Andrea","Mattia","Gabriele","Tommaso","Riccardo","Edoardo"],
-      K:["Sofia","Aurora","Ginevra","Vittoria","Giulia","Beatrice","Ludovica","Alice","Emma","Matilde"],
-      S:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco"]},
-    "Portugalia":{
-      M:["João","Afonso","Francisco","Martim","Tomás","Duarte","Miguel","Gabriel","Guilherme","Rodrigo"],
-      K:["Maria","Leonor","Matilde","Beatriz","Carolina","Madalena","Alice","Benedita","Inês","Sofia"],
-      S:["Silva","Santos","Ferreira","Pereira","Oliveira","Costa","Rodrigues","Martins","Jesus","Sousa"]},
-    "Brazylia":{
-      M:["Miguel","Arthur","Heitor","Gael","Bernardo","Theo","Davi","Gabriel","Ravi","Samuel"],
-      K:["Helena","Alice","Laura","Maria","Valentina","Heloísa","Cecília","Maitê","Sophia","Aurora"],
-      S:["Silva","Santos","Oliveira","Souza","Pereira","Costa","Rodrigues","Almeida","Nascimento","Lima"]},
-    "USA":{
-      M:["Liam","Noah","Oliver","James","Elijah","Mateo","Theodore","Henry","Lucas","William"],
-      K:["Olivia","Emma","Amelia","Charlotte","Mia","Sophia","Isabella","Ava","Evelyn","Luna"],
-      S:["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"]},
-    "Czechy":{
-      M:["Jakub","Jan","Matyáš","Tomáš","Adam","Filip","Matěj","Vojtěch","Lukáš","David"],
-      K:["Eliška","Viktorie","Anna","Sofie","Tereza","Natálie","Karolína","Amálie","Adéla","Ema"],
-      S:["Novák","Svoboda","Novotný","Dvořák","Černý","Procházka","Kučera","Veselý","Horák","Němec"]},
-    "Holandia":{
-      M:["Noah","Liam","Lucas","Daan","Finn","Levi","Sem","Mees","James","Milan"],
-      K:["Emma","Olivia","Sophie","Julia","Mila","Nora","Tess","Sofie","Yara","Lotte"],
-      S:["De Jong","Jansen","De Vries","Van den Berg","Van Dijk","Bakker","Janssen","Visser","Smit","Meijer"]},
-    "Belgia":{
-      M:["Arthur","Louis","Noah","Jules","Victor","Lucas","Liam","Milan","Adam","Gabriel"],
-      K:["Olivia","Emma","Louise","Alice","Camille","Juliette","Marie","Lina","Mila","Nora"],
-      S:["Peeters","Janssens","Maes","Jacobs","Mertens","Willems","Claes","Goossens","De Smet","Vermeulen"]},
-    "Argentyna":{
-      M:["Mateo","Benjamín","Thiago","Santino","Valentino","Tomás","Joaquín","Bautista","Dante","Franco"],
-      K:["Sofía","Valentina","Martina","Emma","Catalina","Julieta","Mía","Renata","Josefina","Alma"],
-      S:["González","Rodríguez","Gómez","Fernández","López","Martínez","Díaz","Pérez","Sánchez","Romero"]},
-    "Chorwacja":{
-      M:["Luka","Jakov","Ivan","Marko","Petar","Mateo","Josip","David","Fran","Leon"],
-      K:["Lucija","Mia","Ema","Nika","Ana","Petra","Lana","Marta","Sara","Iva"],
-      S:["Horvat","Kovačević","Babić","Marić","Jurić","Novak","Knežević","Radić","Vuković","Perić"]},
-    "Szwecja":{
-      M:["William","Liam","Noah","Hugo","Oliver","Lucas","Elias","Oscar","Leo","Viggo"],
-      K:["Alice","Elsa","Maja","Astrid","Wilma","Alma","Freja","Selma","Ebba","Signe"],
-      S:["Johansson","Andersson","Karlsson","Nilsson","Eriksson","Larsson","Olsson","Persson","Svensson","Gustafsson"]}
-  };
-
-  const countryPool=c=>DB[c]||DB["Polska"];
-  function mixedPool(c1,c2,key){
-    const a=countryPool(c1)[key]||[],b=countryPool(c2)[key]||[];
-    return [...new Set([...a,...b])];
-  }
-  function autoName(family,gender){
-    const fc=family?.father?.country||family?.homeCountry||"Polska";
-    const mc=family?.mother?.country||fc;
-    const bc=family?.homeCountry||fc;
-    /* Birth country gets priority, but parents' countries expand the pool. */
-    const first=mixedPool(bc,fc,gender==="K"?"K":"M").concat(countryPool(mc)[gender==="K"?"K":"M"]||[]);
-    const surn=mixedPool(fc,mc,"S").concat(countryPool(bc).S||[]);
-    return pick([...new Set(first)])+" "+pick([...new Set(surn)]);
-  }
-
-  function clearFootballHistory(){
-    const keys=["FL27_ALL_IN_ONE_V14","FL27_V11_TUTORIAL","FL27_V12_FAMILY_SOCIAL","FL27_V13_POSITION",
-      "FL27_V16_TIME","FL27_V17_ACTIVITY","FL27_V20_NEW_GAME","FL27_V21_PROFILE","FL27_V22_CAREER","FL27_V23_GLOBAL","FL27_FAMILY_ARC_V9"];
-    keys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
-  }
-
-  window.FL27_startNewGame=function(){
-    let p=null;try{p=JSON.parse(localStorage.getItem(START_KEY)||"null")}catch(e){}
-    if(!p){alert("Najpierw rozpocznij karierę, żeby zapisać dane zawodnika.");return}
-    clearFootballHistory();
-    try{
-      S=fresh();Object.assign(S,JSON.parse(JSON.stringify(p)));
-      S.started=true;
-      /* Reset football progression, NOT identity/origin/family/position. */
-      S.club=pickRealLocalClub(S.familyProfile?.residenceCity||"");
-      S.skill=50;S.form=70;S.health=100;S.pr=50;S.mental=70;S.energy=100;
-      S.money=Number(p.money??35);S.allowance=Number(p.allowance??14);
-      S.month=9;S.dayOfMonth=1;S.day=1;S.year=2015;S.hour=8;S.week=1;
-      S.nextMatchDay=7;S.lastJobWeekKey="";S.eventHistory={};S.logs=[];S.usedEvents=[];
-      S.social=JSON.parse(JSON.stringify(p.social||S.social||{unlocked:true,followers:0,posts:[],lastPostDay:0}));
-      S.transferHistory=[];S.contract=null;S.trophies=[];S.season={};S.matchHistory=[];
-      S.injury=0;S.geneticsResearch=null;
-      save();location.reload();
-    }catch(e){console.error(e);alert("Nie udało się rozpocząć nowej gry.")}
-  };
-
-  window.FL27_startAutoV65=function(){
-    clearFootballHistory();
-    try{
-      /* Generate family FIRST; name is then generated from birth + parent countries. */
-      const family=makeFamily();
-      const gender=Math.random()<.5?"K":"M";
-      const answers=QUESTIONS.map(q=>pick(q[1]));
-      answers[0]=gender==="K"?"Kobieta":"Mężczyzna";
-      const name=autoName(family,gender);
-      window.__FL27_AUTO_FAMILY=family;
-      selectedAnswers=answers;playerName=name;creatorStarted=true;
-      /* Auto avatar, but always coherent with generated gender. */
-      window.__FL27_AUTO_AVATAR={
-        skin:pick(AVATAR_OPTIONS.skin),hair:pick(AVATAR_OPTIONS.hair),
-        hairColor:pick(AVATAR_OPTIONS.hairColor),eyes:pick(AVATAR_OPTIONS.eyes),
-        jersey:pick(AVATAR_OPTIONS.jersey),gender
-      };
-      window.FL27_showCreator();
-      /* Start directly after creator is built; no manual fields are shown. */
-      setTimeout(()=>{
-        try{
-          if(typeof window.FL27_confirmPlus==="function")window.FL27_confirmPlus();
-        }catch(e){console.error(e)}
-      },30);
-    }catch(e){console.error(e);alert("Nie udało się wygenerować automatycznej gry.")}
-  };
-
-  /* Ensure auto uses the generated avatar instead of the editor defaults. */
-  const oldSaveAvatar=window.FL27_saveAvatar;
-  if(typeof oldSaveAvatar==="function"&&!window.__FL27_V65_AVATAR_HOOK){
-    window.__FL27_V65_AVATAR_HOOK=true;
-    window.FL27_saveAvatar=function(){
-      if(window.__FL27_AUTO_AVATAR){
-        const a=window.__FL27_AUTO_AVATAR;
-        const box=document.getElementById("v20-avatar-preview");
-        if(box)box.innerHTML=window.FL27_avatarSvg(a);
-        return a;
-      }
-      return oldSaveAvatar.apply(this,arguments);
-    };
-  }
-
-  window.FL27_showNewGame=function(){
-    document.querySelectorAll(".v20-hub-overlay").forEach(x=>x.remove());
-    const d=document.createElement("div");d.className="v20-hub-overlay";
-    const hasSaved=!!localStorage.getItem(START_KEY);
-    d.innerHTML=`<div class="v20-hub">
-      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
-      <div class="v20-kicker">NOWA KARIERA</div>
-      <h1>Jak chcesz rozpocząć?</h1>
-      <p>Wybierz jeden z trzech sposobów rozpoczęcia gry.</p>
-      <div class="v65-mode-grid">
-        <button class="same" onclick="FL27_startNewGame()" ${hasSaved?"":"disabled"}>
-          <strong>🔄 NOWA GRA</strong>
-          <span>Wyzerowanie całej postaci i historii piłkarskiej. Zachowujesz pochodzenie, imię i nazwisko, płeć, pozycję, nogę, styl, rodzinę i pozostałe dane startowe. Zaczynasz od pierwszego dnia kariery.</span>
-        </button>
-        <button class="auto" onclick="FL27_startAutoV65()">
-          <strong>🤖 NOWA GRA AUTO</strong>
-          <span>Wszystko generuje się od nowa. Kraj urodzenia i rodzice są losowani jako pierwsze, a imię i nazwisko powstają z baz popularnych imion i nazwisk tych krajów. Przy rodzicach z różnych krajów pula się łączy. Losowane są też 10 odpowiedzi, pozycja, avatar i cała sytuacja startowa.</span>
-        </button>
-        <button class="plus" onclick="FL27_startPlus()">
-          <strong>✨ NOWA GRA +</strong>
-          <span>Ty wpisujesz imię i nazwisko oraz sam/a wybierasz 10 odpowiedzi, pozycję i avatar. Rodzina, pochodzenie i świat gry zostają wygenerowane na podstawie Twoich wyborów i losowości.</span>
-        </button>
-      </div>
-      <small>Ustawienia gry, np. motyw i wibracje, pozostają bez zmian.</small>
-    </div>`;
-    document.body.appendChild(d);
-  };
-})();
-</script>
-
-
-<style id="fl27-v66-final-ui">
-.v66-mode button{pointer-events:auto!important;touch-action:manipulation!important;position:relative!important;z-index:10001!important}
-.v66-mode{pointer-events:auto!important}
-.v66-mode-overlay{pointer-events:auto!important;z-index:10000!important}
-</style>
-<script id="fl27-v66-final">
-(function(){
-  function showError(e){console.error(e);alert("Nie udało się uruchomić tego trybu. Sprawdź konsolę gry.");}
-  function call(name){
-    try{
-      if(typeof window[name]!=="function")throw new Error(name+" is not available");
-      return window[name]();
-    }catch(e){showError(e)}
-  }
-
-  /* Make Auto robust: if the rich country/name generator cannot complete,
-     fall back to the existing tested Auto path instead of doing nothing. */
-  window.FL27_START_AUTO_SAFE=function(){
-    try{
-      if(typeof window.FL27_startAutoV65==="function"){
-        const r=window.FL27_startAutoV65();
-        return r;
-      }
-    }catch(e){console.warn("V65 auto fallback",e)}
-    return call("FL27_startAuto");
-  };
-
-  window.FL27_SHOW_NEW_GAME_FINAL=function(){
-    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay").forEach(x=>x.remove());
-    const d=document.createElement("div");
-    d.className="v66-mode-overlay v20-hub-overlay";
-    d.innerHTML=`<div class="v20-hub v66-mode">
-      <div class="v20-logo">⚽ <b>FOOTBALL LIFE <i>27</i></b></div>
-      <div class="v20-kicker">NOWA KARIERA</div>
-      <h1>Wybierz sposób rozpoczęcia</h1>
-      <p>Tylko trzy tryby. Każdy robi coś innego.</p>
-      <div class="v65-mode-grid">
-        <button id="v66-new"><strong>🔄 NOWA GRA</strong><span>Ten sam zawodnik i jego dane startowe: pochodzenie, imię, nazwisko, płeć, pozycja, avatar, rodzina itd. Zerowana jest cała historia piłkarska i zaczynasz od początku.</span></button>
-        <button id="v66-auto" class="auto"><strong>🤖 NOWA GRA AUTO</strong><span>Wszystko od nowa i losowo. Najpierw kraj urodzenia i rodzice, potem imię/nazwisko z odpowiednich baz krajowych; przy rodzicach z różnych krajów pula się łączy. Losowane są też 10 pytań, pozycja, avatar i reszta startu.</span></button>
-        <button id="v66-plus" class="plus"><strong>✨ NOWA GRA +</strong><span>Ty wpisujesz imię i nazwisko oraz wybierasz płeć, 10 odpowiedzi, pozycję, avatar i pozostałe elementy kreatora.</span></button>
-      </div>
-      <small>Ustawienia gry pozostają zachowane.</small>
-    </div>`;
-    document.body.appendChild(d);
-    d.querySelector("#v66-new").addEventListener("click",()=>call("FL27_startNewGame"));
-    d.querySelector("#v66-auto").addEventListener("click",()=>window.FL27_START_AUTO_SAFE());
-    d.querySelector("#v66-plus").addEventListener("click",()=>call("FL27_startPlus"));
-  };
-
-  /* This is the last definition, so old V20/V64/V65 hubs cannot overwrite it. */
-  window.FL27_showNewGame=window.FL27_SHOW_NEW_GAME_FINAL;
-
-  /* Prevent old hidden nav/panels from returning after a render. */
-  const clean=function(){
-    if(document.body.classList.contains("creator-screen"))return;
-    document.querySelectorAll("#nav,.fl27-v35-bottom,.v17-bottom,.v19-settings-btn").forEach(el=>{
-      el.style.display="none";
-    });
-  };
-  new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
-  setTimeout(clean,0);
-})();
-</script>
-
-
-<style id="fl27-v84-click-drawer-fix">
-/* V84: remove every legacy bottom navigation layer. The side drawer is the only nav. */
-html body #nav,
-html body .v17-bottom,
-html body .fl27-v17-extra,
-html body .v24-bottom,
-html body .fl27-v24-extra,
-html body .fl27-v26-extra,
-html body .fl27-v27-extra,
-html body .fl27-v31-extra,
-html body .fl27-v35-bottom{
-  display:none!important;
-  visibility:hidden!important;
-  pointer-events:none!important;
-}
-
-/* Do not let a legacy fixed layer steal taps from the creator. */
-html body.creator-screen #main,
-html body.creator-screen #main .v52-creator,
-html body.creator-screen #main .v52-creator *{
-  pointer-events:auto!important;
-  touch-action:manipulation;
-}
-html body.creator-screen .v52-creator{
-  position:relative!important;
-  z-index:10!important;
-}
-
-/* The side menu remains visible even during character creation. */
-#fl27-v84-menu{
- position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
- z-index:2147483640!important;width:48px!important;height:150px!important;border:0!important;
- border-radius:18px 0 0 18px!important;background:linear-gradient(180deg,#191d26,#090b10)!important;
- color:#fff!important;box-shadow:-8px 0 28px rgba(0,0,0,.45)!important;
- display:flex!important;align-items:center!important;justify-content:center!important;
- flex-direction:column!important;gap:8px!important;cursor:pointer!important;
- pointer-events:auto!important;touch-action:manipulation!important
-}
-#fl27-v84-menu .bars{display:grid;gap:4px}
-#fl27-v84-menu i{width:20px;height:2px;background:#d7a64a;border-radius:3px}
-#fl27-v84-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.65}
-#fl27-v84-shade{
- position:fixed!important;inset:0!important;z-index:2147483641!important;background:rgba(0,0,0,.58)!important;
- opacity:0!important;pointer-events:none!important;transition:opacity .2s!important
-}
-#fl27-v84-shade.open{opacity:1!important;pointer-events:auto!important}
-#fl27-v84-drawer{
- position:fixed!important;top:0!important;right:0!important;bottom:0!important;width:min(330px,88vw)!important;
- z-index:2147483642!important;transform:translateX(105%)!important;transition:transform .22s ease!important;
- background:linear-gradient(180deg,#111318,#07080a)!important;border-left:1px solid rgba(215,166,74,.22)!important;
- box-shadow:-25px 0 70px rgba(0,0,0,.65)!important;padding:18px 14px!important;box-sizing:border-box!important;
- overflow:auto!important;pointer-events:none!important
-}
-#fl27-v84-drawer.open{transform:translateX(0)!important;pointer-events:auto!important}
-.fl27-v84-nav{
- width:100%!important;min-height:58px!important;border:1px solid rgba(255,255,255,.08)!important;
- border-radius:15px!important;background:rgba(255,255,255,.045)!important;color:#fff!important;
- display:flex!important;align-items:center!important;gap:12px!important;padding:9px 12px!important;
- margin:0 0 8px!important;text-align:left!important;cursor:pointer!important;
- pointer-events:auto!important;touch-action:manipulation!important
-}
-.fl27-v84-nav.active{border-color:rgba(215,166,74,.55)!important;background:rgba(215,166,74,.11)!important;box-shadow:inset 4px 0 #d7a64a!important}
-.fl27-v84-icon{width:38px!important;height:38px!important;border-radius:11px!important;display:grid!important;place-items:center!important;font-size:20px!important;background:rgba(255,255,255,.06)!important}
-.fl27-v84-close{width:42px!important;height:42px!important;border-radius:12px!important;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.1)!important;color:#fff!important;font-size:20px!important;cursor:pointer!important}
-</style>
-
-<script id="fl27-v84-click-drawer-fix-js">
-(function(){
-  "use strict";
-
-  function removeLegacy(){
-    document.querySelectorAll(
-      "#nav,.v17-bottom,.fl27-v17-extra,.v24-bottom,.fl27-v24-extra,.fl27-v26-extra,.fl27-v27-extra,.fl27-v31-extra,.fl27-v35-bottom"
-    ).forEach(function(el){el.remove();});
-    document.querySelectorAll(".v20-hub-overlay,.v66-mode-overlay,.v19-settings-overlay").forEach(function(el){
-      /* Do not remove an actually open settings modal. */
-      if(!el.classList.contains("open")) el.remove();
-    });
-  }
-
-  function route(key){
-    try{
-      if(key==="settings" && typeof window.renderSettings==="function"){window.renderSettings();return;}
-      if(typeof window.FL27_ROUTE==="function"){window.FL27_ROUTE(key);return;}
-      if(typeof window.go==="function"){window.go(key);return;}
-    }catch(e){console.error("FL27 route:",e);}
-  }
-
-  function build(){
-    if(!document.body || document.getElementById("fl27-v84-menu"))return;
-
-    var shade=document.createElement("div");shade.id="fl27-v84-shade";
-    var menu=document.createElement("button");menu.id="fl27-v84-menu";menu.type="button";
-    menu.innerHTML='<span style="font-size:20px">☰</span><span class="bars"><i></i><i></i><i></i></span><small>MENU</small>';
-
-    var drawer=document.createElement("aside");drawer.id="fl27-v84-drawer";
-    drawer.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><b style="font-size:14px">⚽ FOOTBALL LIFE 27</b><button type="button" class="fl27-v84-close">×</button></div>';
-
-    var items=[
-      ["home","🏠","Dziś"],["day","🕐","Dzień"],["career","⚽","Kariera"],
-      ["life","❤️","Życie"],["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],
-      ["careerStats","📊","Statystyki"],["store","🛍️","Sklep"],["settings","⚙️","Ustawienia"]
-    ];
-
-    function close(){drawer.classList.remove("open");shade.classList.remove("open")}
-    function sync(){
-      var active=window.FL27_GET_TAB?window.FL27_GET_TAB():"home";
-      drawer.querySelectorAll(".fl27-v84-nav").forEach(function(b){b.classList.toggle("active",b.dataset.tab===active)});
-    }
-
-    items.forEach(function(it){
-      var b=document.createElement("button");b.type="button";b.className="fl27-v84-nav";b.dataset.tab=it[0];
-      b.innerHTML='<span class="fl27-v84-icon">'+it[1]+'</span><b>'+it[2]+'</b><span style="margin-left:auto;opacity:.4;font-size:20px">›</span>';
-      b.addEventListener("click",function(){route(it[0]);close();setTimeout(sync,50)});
-      drawer.appendChild(b);
-    });
-
-    menu.addEventListener("click",function(){drawer.classList.add("open");shade.classList.add("open");sync()});
-    shade.addEventListener("click",close);
-    drawer.querySelector(".fl27-v84-close").addEventListener("click",close);
-
-    document.body.appendChild(shade);document.body.appendChild(menu);document.body.appendChild(drawer);
-    sync();
-  }
-
-  function boot(){
-    removeLegacy();
-    build();
-    /* A single cleanup after render is enough; no MutationObserver. */
-    setTimeout(removeLegacy,250);
-  }
-
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
-  else boot();
-
-  /* Also expose a safe reset of the interaction layer for testing. */
-  window.FL27_V84_REPAIR=boot;
-})();
-</script>
-
-
-<style id="fl27-v85-final-visual">
+<style id="fl27-v86-clean-shell">
 :root{
- --fl-black:#070707;--fl-black2:#0d0e10;--fl-card:#111214;
- --fl-gold:#d8aa4f;--fl-gold2:#f0c96e;--fl-white:#f4f4f1;
- --fl-muted:#96979d;--fl-line:rgba(255,255,255,.09);
+ --fl-bg:#070707;--fl-panel:#111214;--fl-panel2:#17181b;
+ --fl-gold:#d8aa4f;--fl-gold2:#f1cc72;--fl-white:#f4f4f1;--fl-muted:#9799a0;
 }
-html,body{
- background:#070707!important;color:var(--fl-white)!important;
-}
+html,body{background:#070707!important;color:var(--fl-white)!important}
 body{
- background:
-  radial-gradient(800px 500px at 65% -90px,rgba(216,170,79,.075),transparent 70%),
-  linear-gradient(180deg,#090909,#050505)!important;
+ background:radial-gradient(850px 520px at 65% -120px,rgba(216,170,79,.07),transparent 70%),
+ linear-gradient(180deg,#090909,#050505)!important;
 }
-/* Subtle football outline in the background. */
 body::before{
- content:"⚽";position:fixed;z-index:0;left:50%;top:53%;
- transform:translate(-50%,-50%);font-size:min(78vw,600px);line-height:1;
- color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.025);
- opacity:.8;pointer-events:none;
+ content:"⚽";position:fixed;z-index:0;left:50%;top:52%;transform:translate(-50%,-50%);
+ font-size:min(78vw,600px);line-height:1;color:transparent;
+ -webkit-text-stroke:1px rgba(255,255,255,.025);pointer-events:none;
 }
-body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
- background:radial-gradient(circle at 50% 45%,transparent 35%,rgba(0,0,0,.3) 100%);}
 body>*{position:relative;z-index:1}
-
-/* Existing top/header/cards get the new FL black/gold identity. */
 .card,.panel,.box,[class*="card"],[class*="panel"],[class*="summary"]{
  background:linear-gradient(145deg,#151619,#0e0f11)!important;
- border-color:var(--fl-line)!important;
- box-shadow:0 12px 35px rgba(0,0,0,.2);
+}
+.primary,button.primary,.btn-primary{
+ background:linear-gradient(135deg,#e1b554,#b9822e)!important;
+ color:#090909!important;border-color:#f1cc72!important;
 }
 input,select,textarea{
  background:#090b0e!important;color:#fff!important;
- border:1px solid rgba(216,170,79,.3)!important;
+ border-color:rgba(216,170,79,.32)!important;
 }
 input:focus,select:focus,textarea:focus{
- outline:none!important;border-color:var(--fl-gold)!important;
- box-shadow:0 0 0 3px rgba(216,170,79,.09)!important;
-}
-button{font-family:inherit}
-.primary,.btn-primary,button.primary{
- background:linear-gradient(135deg,#e2b653,#b9842f)!important;
- color:#0a0a0a!important;border:1px solid #f0c96e!important;
- box-shadow:0 8px 24px rgba(216,170,79,.18)!important;
-}
-.active,.selected,[aria-current="page"]{
- color:#fff!important;border-color:rgba(216,170,79,.55)!important;
+ outline:none!important;border-color:#d8aa4f!important;
+ box-shadow:0 0 0 3px rgba(216,170,79,.1)!important;
 }
 
-/* Make the V84 drawer match the reference design. */
-#fl27-v84-drawer{
- background:linear-gradient(180deg,#111214 0%,#08090a 100%)!important;
+/* Old bottom navigation is not part of the new UI. */
+#nav,.fl27-v35-bottom{display:none!important;pointer-events:none!important}
+
+/* Right-side menu only. */
+#fl86-menu{
+ position:fixed!important;right:0!important;top:50%!important;transform:translateY(-50%)!important;
+ z-index:9999998!important;width:50px!important;height:148px!important;
+ border:1px solid rgba(216,170,79,.22)!important;border-right:0!important;
+ border-radius:18px 0 0 18px!important;
+ background:linear-gradient(180deg,#181a1e,#08090a)!important;color:#fff!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:8px!important;cursor:pointer!important;
+ pointer-events:auto!important;touch-action:manipulation!important;
+}
+#fl86-menu .lines{display:grid;gap:4px}#fl86-menu i{width:21px;height:2px;background:#d8aa4f;border-radius:3px}
+#fl86-menu small{font:900 7px system-ui;letter-spacing:1.5px;writing-mode:vertical-rl;opacity:.65}
+#fl86-shade{
+ position:fixed!important;inset:0!important;z-index:9999999!important;
+ background:rgba(0,0,0,.55)!important;opacity:0!important;pointer-events:none!important;
+}
+#fl86-shade.open{opacity:1!important;pointer-events:auto!important}
+#fl86-drawer{
+ position:fixed!important;top:0!important;right:0!important;bottom:0!important;
+ width:min(330px,88vw)!important;z-index:10000000!important;
+ transform:translateX(105%)!important;transition:transform .2s ease!important;
+ background:linear-gradient(180deg,#121315,#070809)!important;
  border-left:1px solid rgba(216,170,79,.2)!important;
+ box-shadow:-25px 0 70px rgba(0,0,0,.65)!important;
+ padding:18px 14px!important;box-sizing:border-box!important;overflow:auto!important;
+ pointer-events:none!important;
 }
-#fl27-v84-drawer>div:first-child{
- padding:4px 4px 15px!important;
- border-bottom:1px solid rgba(255,255,255,.08)!important;
+#fl86-drawer.open{transform:translateX(0)!important;pointer-events:auto!important}
+.fl86-item{
+ width:100%!important;min-height:58px!important;margin:0 0 8px!important;
+ border:1px solid transparent!important;border-radius:15px!important;
+ background:transparent!important;color:#fff!important;
+ display:flex!important;align-items:center!important;gap:12px!important;
+ padding:9px 12px!important;text-align:left!important;cursor:pointer!important;
+ pointer-events:auto!important;touch-action:manipulation!important;
 }
-#fl27-v84-nav{}
-.fl27-v84-nav{
- min-height:58px!important;border-radius:16px!important;
- background:transparent!important;border-color:transparent!important;
- font-size:15px!important;transition:.16s ease!important;
+.fl86-item.active{
+ background:linear-gradient(90deg,rgba(216,170,79,.18),rgba(216,170,79,.03))!important;
+ border-color:rgba(216,170,79,.22)!important;box-shadow:inset 4px 0 #d8aa4f!important;
 }
-.fl27-v84-nav:hover{background:rgba(255,255,255,.045)!important}
-.fl27-v84-nav.active{
- background:linear-gradient(90deg,rgba(216,170,79,.18),rgba(216,170,79,.035))!important;
- border-color:rgba(216,170,79,.2)!important;
- box-shadow:inset 4px 0 var(--fl-gold)!important;
- color:#fff!important;
-}
-.fl27-v84-icon{
- background:rgba(255,255,255,.055)!important;
-}
-.fl27-v84-nav.active .fl27-v84-icon{
- background:rgba(216,170,79,.16)!important;
-}
-.fl27-v84-close{
- border-color:rgba(255,255,255,.12)!important;
+.fl86-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.055)}
+.fl86-close{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:20px;cursor:pointer}
+</style>
+
+<script id="fl27-v86-clean-shell-js">
+(function(){
+ "use strict";
+
+ function removeLegacy(){
+   document.querySelectorAll(
+     "#nav,.fl27-v35-bottom,.fl27-v35-top,.fl27-v31-extra,.fl27-v27-extra,.fl27-v26-extra,.fl27-v24-extra"
+   ).forEach(function(x){x.remove()});
+   /* Hidden/closed startup hubs must never be transparent click blockers. */
+   document.querySelectorAll(".v20-hub-overlay").forEach(function(x){
+     var visible=getComputedStyle(x).display!=="none" && getComputedStyle(x).visibility!=="hidden" &&
+       parseFloat(getComputedStyle(x).opacity||"1")>0.01;
+     if(!visible)x.remove();
+   });
+ }
+
+ function route(k){
+   try{
+     if(k==="settings" && typeof window.renderSettings==="function"){window.renderSettings();return}
+     if(typeof window.FL27_ROUTE==="function"){window.FL27_ROUTE(k);return}
+     if(typeof window.go==="function"){window.go(k);return}
+   }catch(e){console.error(e)}
+ }
+
+ function buildNav(){
+   if(document.getElementById("fl86-menu"))return;
+   var shade=document.createElement("div");shade.id="fl86-shade";
+   var menu=document.createElement("button");menu.id="fl86-menu";menu.type="button";
+   menu.innerHTML='<span style="font-size:20px">☰</span><span class="lines"><i></i><i></i><i></i></span><small>MENU</small>';
+   var drawer=document.createElement("aside");drawer.id="fl86-drawer";
+   drawer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 15px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08)"><b>⚽ FOOTBALL <span style="color:#d8aa4f">LIFE 27</span></b><button type="button" class="fl86-close">×</button></div>';
+   var items=[
+    ["home","🏠","Dziś"],["day","🕐","Dzień"],["career","⚽","Kariera"],["life","❤️","Życie"],
+    ["family","👨‍👩‍👧","Rodzina"],["history","📖","Historia"],["careerStats","📊","Statystyki"],
+    ["store","🛍️","Sklep"],["settings","⚙️","Ustawienia"]
+   ];
+   function close(){drawer.classList.remove("open");shade.classList.remove("open")}
+   items.forEach(function(it){
+     var b=document.createElement("button");b.type="button";b.className="fl86-item";b.dataset.tab=it[0];
+     b.innerHTML='<span class="fl86-icon">'+it[1]+'</span><b>'+it[2]+'</b><span style="margin-left:auto;opacity:.35;font-size:20px">›</span>';
+     b.addEventListener("click",function(){route(it[0]);close()});
+     drawer.appendChild(b);
+   });
+   menu.addEventListener("click",function(){drawer.classList.add("open");shade.classList.add("open")});
+   shade.addEventListener("click",close);
+   drawer.querySelector(".fl86-close").addEventListener("click",close);
+   document.body.append(shade,menu,drawer);
+ }
+ function boot(){removeLegacy();buildNav();setTimeout(removeLegacy,150)}
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+ window.FL27_V86_REPAIR=boot;
+})();
+</script>
+
+
+<style id="fl27-v87-visual-only">
+/* =========================================================
+   V87 — VISUAL ONLY
+   No gameplay, routing, storage or click logic is changed.
+   ========================================================= */
+:root{
+  --fl27-bg:#070707;
+  --fl27-bg2:#0b0b0c;
+  --fl27-card:#121315;
+  --fl27-card2:#18191c;
+  --fl27-gold:#d8aa4f;
+  --fl27-gold-hi:#f0c96e;
+  --fl27-white:#f5f5f2;
+  --fl27-muted:#96979d;
+  --fl27-red:#d94a59;
+  --fl27-blue:#6f9fe8;
 }
 
-/* Right-side handle: gold accent, never bottom navigation. */
-#fl27-v84-menu{
- background:linear-gradient(180deg,#17191d,#08090b)!important;
- border:1px solid rgba(216,170,79,.18)!important;
- border-right:0!important;
+html,body{
+  background:var(--fl27-bg)!important;
+  color:var(--fl27-white)!important;
 }
-#fl27-v84-menu .bars i{background:var(--fl-gold)!important}
 
-/* Creator card: closer to the reference mockup. */
+body{
+  background:
+    radial-gradient(900px 560px at 72% -110px,rgba(216,170,79,.075),transparent 68%),
+    radial-gradient(650px 520px at 0 55%,rgba(255,255,255,.018),transparent 70%),
+    linear-gradient(180deg,#090909 0%,#050505 100%)!important;
+}
+
+/* Very subtle football outline — decorative only, never clickable. */
+body::before{
+  content:"⚽";
+  position:fixed;
+  left:50%;
+  top:52%;
+  transform:translate(-50%,-50%);
+  z-index:0;
+  font-size:min(78vw,620px);
+  line-height:1;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.024);
+  opacity:.9;
+  pointer-events:none!important;
+  user-select:none;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none!important;
+  background:radial-gradient(circle at 50% 42%,transparent 32%,rgba(0,0,0,.28) 100%);
+}
+
+body>*{position:relative;z-index:1}
+
+/* Graphite cards instead of the old blue/red appearance. */
+.card,.panel,.box,
+[class*="card"],[class*="panel"],[class*="summary"]{
+  background:
+    linear-gradient(145deg,rgba(24,25,28,.98),rgba(13,14,16,.98))
+    !important;
+  border-color:rgba(255,255,255,.085)!important;
+  box-shadow:0 14px 36px rgba(0,0,0,.22);
+}
+
+/* Gold is the default FL27 brand accent. */
+.primary,button.primary,.btn-primary{
+  background:linear-gradient(135deg,var(--fl27-gold-hi),#b9832f)!important;
+  color:#080808!important;
+  border-color:var(--fl27-gold-hi)!important;
+  box-shadow:0 8px 24px rgba(216,170,79,.16)!important;
+}
+
+input,select,textarea{
+  background:#090b0d!important;
+  color:var(--fl27-white)!important;
+  border-color:rgba(216,170,79,.28)!important;
+}
+
+input:focus,select:focus,textarea:focus{
+  outline:none!important;
+  border-color:var(--fl27-gold)!important;
+  box-shadow:0 0 0 3px rgba(216,170,79,.09)!important;
+}
+
+/* The side drawer follows the logo: black + white + gold. */
+#fl86-menu{
+  background:linear-gradient(180deg,#18191c,#08090a)!important;
+  border-color:rgba(216,170,79,.22)!important;
+}
+
+#fl86-menu .lines i{
+  background:var(--fl27-gold)!important;
+}
+
+#fl86-drawer{
+  background:linear-gradient(180deg,#111214 0%,#070708 100%)!important;
+  border-left-color:rgba(216,170,79,.22)!important;
+}
+
+#fl86-drawer>div:first-child{
+  color:var(--fl27-white)!important;
+}
+
+.fl86-item{
+  background:transparent!important;
+  border-color:transparent!important;
+  color:var(--fl27-white)!important;
+}
+
+.fl86-item.active{
+  background:
+    linear-gradient(90deg,rgba(216,170,79,.17),rgba(216,170,79,.025))
+    !important;
+  border-color:rgba(216,170,79,.20)!important;
+  box-shadow:inset 4px 0 var(--fl27-gold)!important;
+}
+
+.fl86-icon{
+  background:rgba(255,255,255,.055)!important;
+}
+
+.fl86-item.active .fl86-icon{
+  background:rgba(216,170,79,.15)!important;
+}
+
+.fl86-close{
+  background:rgba(255,255,255,.045)!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+/* Creator card: same premium black/gold identity. */
 .v52-creator{
- background:
-  radial-gradient(400px 220px at 85% 0,rgba(216,170,79,.09),transparent 70%),
-  linear-gradient(145deg,#171719,#0d0e10)!important;
- border:1px solid rgba(216,170,79,.25)!important;
- box-shadow:0 18px 45px rgba(0,0,0,.32)!important;
+  background:
+    radial-gradient(430px 230px at 87% 0,rgba(216,170,79,.09),transparent 70%),
+    linear-gradient(145deg,#171719,#0d0e10)!important;
+  border-color:rgba(216,170,79,.24)!important;
 }
-.v52-creator button{
- border-radius:16px!important;
-}
+
+/* Keep the three selectable accent identities available in settings. */
+.fl27-accent-gold{--fl27-user-accent:var(--fl27-gold)}
+.fl27-accent-red{--fl27-user-accent:var(--fl27-red)}
+.fl27-accent-blue{--fl27-user-accent:var(--fl27-blue)}
 </style>
