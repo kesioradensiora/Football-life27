@@ -322,6 +322,25 @@ body.fl124-booting> :not(#fl124-boot){visibility:hidden!important}
  #fl124-boot .tip{bottom:16px}
 }
 </style>
+
+<style id="fl27-v153-start-loader">
+.fl27-start-loading{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  vertical-align:middle;margin-left:8px
+}
+.fl27-start-loading i{
+  width:7px;height:7px;border-radius:50%;
+  background:currentColor;opacity:.28;
+  animation:fl27Dot 1s infinite ease-in-out
+}
+.fl27-start-loading i:nth-child(2){animation-delay:.16s}
+.fl27-start-loading i:nth-child(3){animation-delay:.32s}
+@keyframes fl27Dot{
+  0%,60%,100%{opacity:.28;transform:scale(.8)}
+  30%{opacity:1;transform:scale(1.12)}
+}
+#fl27-start-final.is-loading{pointer-events:none;filter:saturate(.85)}
+</style>
 </head>
 <body><div id="fl124-boot"><div class="box"><div class="mark"></div><div class="title">FOOTBALL LIFE 27</div><div class="sub">Uruchamianie kariery <span class="dot"></span><span class="dot"></span><span class="dot"></span></div><div class="progress"><i></i></div></div><div class="tip"><b>💡 PODPOWIEDŹ</b><div class="tip-text">Każda decyzja może zmienić dalszą historię Twojego zawodnika.</div></div></div><script>document.body.classList.add("fl124-booting");</script>
 <div id="fl110-app" class="app">
@@ -15539,13 +15558,17 @@ if(starting)return false;
 const x=W.FL27_NEW_GAME||{},first=String(x.firstName||"").trim(),last=String(x.lastName||"").trim();
 if(!first||!last){W.toast?.("Brakuje imienia i nazwiska.");return false}
 if(typeof selectedAnswers==="undefined"||selectedAnswers.length!==7){W.toast?.("Odpowiedz na wszystkie 7 decyzji.");return false}
-starting=true;const btn=document.getElementById("fl27-start-final");if(btn){btn.disabled=true;btn.textContent="⚽ PRZYGOTOWYWANIE ŚWIATA…"}
+starting=true;const btn=document.getElementById("fl27-start-final");if(btn){
+  btn.disabled=true;
+  btn.classList.add("is-loading");
+  btn.innerHTML='⚽ URUCHAMIAM KARIERĘ<span class="fl27-start-loading" aria-label="ładowanie"><i></i><i></i><i></i></span>';
+}
 loader();const t0=Date.now(),timer=setInterval(()=>{const e=document.getElementById("fl27-life-elapsed");if(e)e.textContent="Generowanie trwa "+Math.floor((Date.now()-t0)/1000)+" s"},250);
 stage(1,7,"Analizujemy pozycję, charakter, cele i wszystkie Twoje decyzje…");
-setTimeout(()=>stage(2,22,"Tworzymy rodziców, ich pochodzenie, pracę, relacje i sytuację finansową…"),650);
-setTimeout(()=>stage(3,39,"Łączymy pochodzenie rodziców z Twoimi możliwymi narodowościami…"),1250);
-setTimeout(()=>stage(4,55,"Budujemy miejsce urodzenia, dom, szkołę i środowisko dorastania…"),1850);
-setTimeout(()=>stage(5,69,"Ustalamy pierwsze kontakty z futbolem, trening i klub startowy…"),2450);
+setTimeout(()=>stage(2,24,"Tworzymy rodziców, ich pochodzenie, pracę, relacje i sytuację finansową…"),650);
+setTimeout(()=>stage(3,43,"Łączymy pochodzenie rodziców z Twoimi możliwymi narodowościami…"),1250);
+setTimeout(()=>stage(4,61,"Budujemy miejsce urodzenia, dom, szkołę i środowisko dorastania…"),1850);
+setTimeout(()=>stage(5,76,"Ustalamy pierwsze kontakty z futbolem, trening i klub startowy…"),2450);
 setTimeout(()=>{
 try{
 stage(6,78,"Uruchamiamy właściwy silnik świata — jeszcze chwila…");
@@ -15557,8 +15580,12 @@ W.S.firstName=first;W.S.lastName=last;W.S.name=full;W.S.gender=gender;W.S.orient
 x.playerName=full;x.ready=true;W.FL27_NEW_GAME=x;try{localStorage.setItem("FL27_V20_NEW_GAME",JSON.stringify(x))}catch(e){}
 stage(6,91,"Świat gotowy. Zapisujemy pierwsze dane Twojego życia…");
 setTimeout(()=>{stage(6,100,"Gotowe! Witaj w swoim nowym życiu.");setTimeout(()=>{clearInterval(timer);W.__FL27_PLUS_CREATOR_ACTIVE=false;W.__FL27_CANONICAL_STARTED=false;document.querySelectorAll(".v20-hub-overlay").forEach(el=>el.remove());closeLoader();try{W.saveSoon?.();W.save?.();W.render?.()}catch(e){}W.toast?.("⚽ Kariera rozpoczęta!");starting=false},700)},650);
-}catch(err){clearInterval(timer);console.error("V151 start",err);closeLoader();starting=false;if(btn){btn.disabled=false;btn.textContent="⚽ ROZPOCZNIJ KARIERĘ"}W.toast?.("Nie udało się utworzyć kariery. Spróbuj ponownie.")}
-},3300);
+}catch(err){clearInterval(timer);console.error("V151 start",err);closeLoader();starting=false;if(btn){
+  btn.disabled=false;
+  btn.classList.remove("is-loading");
+  btn.innerHTML="⚽ ROZPOCZNIJ KARIERĘ";
+}W.toast?.("Nie udało się utworzyć kariery. Spróbuj ponownie.")}
+},1700);
 return true;
 };
 })();
