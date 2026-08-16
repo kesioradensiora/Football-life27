@@ -14654,38 +14654,33 @@ const toast5=t=>{try{window.toast?.(t)}catch(e){}};
    for a later render/reload to become live.
    ========================================================= */
 function runActivity(k){
- const s=state(), a=window.ACTIVITY_CATALOG?.[k];
- if(!s)return;
- if(k==="sleep"){ if(typeof window.sleep==="function")return window.sleep(); return; }
- if(k==="match"){ if(typeof window.playMatch==="function")return window.playMatch(); toast5("Brak meczu do rozegrania.");return; }
+ const s=state(), a=window.ACTIVITY_CATALOG?.[k]; if(!s)return;
+ if(k==="sleep"){
+   try{const ok=typeof sleepAndAdvance==="function"?sleepAndAdvance():window.sleep?.(); if(ok!==false)window.scrollTo({top:0,left:0,behavior:"auto"});}catch(e){console.error(e)}
+   return;
+ }
+ if(k==="match"){ if(typeof window.playMatch==="function")return window.playMatch(); toast5("Brak meczu do rozegrania."); return; }
  if(!a)return;
- const h=Math.round(Number(s.hour??8));
- if(h+Number(a.time||0)>22){toast5(`Za mało czasu. Ta aktywność zajmuje ${Math.max(1,Math.round(Number(a.time||1)))} h.`);return;}
+ const h=Math.round(Number(s.hour??8)), time=Number(a.time||1);
+ if(h+time>22){toast5(`Za mało czasu. Ta aktywność zajmuje ${Math.max(1,Math.round(time))} h.`);return;}
  if(Number(s.money||0)<Number(a.cost||0)){toast5(`Potrzebujesz €${Math.round(Number(a.cost||0))}.`);return;}
-
  s.money=Number(s.money||0)-Number(a.cost||0);
- ["energy","health","mental","happiness","form","skill"].forEach(k=>{
-   s[k]=Math.max(0,Math.min(100,Number(s[k]||0)+Number(a[k]||0)));
+ ["energy","health","mental","happiness","form","skill"].forEach(key=>{
+   s[key]=Math.max(0,Math.min(100,Number(s[key]||0)+Number(a[key]||0)));
  });
  s.pr=Math.max(0,Number(s.pr||0)+Number(a.pr||0));
  if(a.money)s.money+=Number(a.money);
  s.totalEarned=Number(s.totalEarned||0)+Number(a.money||0);
  s.totalSpent=Number(s.totalSpent||0)+Number(a.cost||0);
-
- /* Mark the tutorial immediately, before advancing time. */
  try{window.FL27_panelTask?.("activity_any")}catch(e){}
  if(["training","run","gym","stretch"].includes(k))try{window.FL27_panelTask?.("football")}catch(e){}
-
- if(typeof window.advance==="function")window.advance(Number(a.time||1));
- try{
-   if(typeof window.log==="function")window.log(`${a.icon||"•"} ${a.name||k}`);
-   else{s.logs??=[];s.logs.unshift({day:s.day,date:s.gameDate,text:`${a.icon||"•"} ${a.name||k}`,type:"activity"})}
- }catch(e){}
- save();
- redraw();
+ // Advance through the same engine used by the rest of the game.
+ if(typeof window.advance==="function")window.advance(time);
+ else { s.hour=h+time; if(s.hour>=22)s.hour=22; }
+ try{ if(typeof window.log==="function")window.log(`${a.icon||"•"} ${a.name||k}`); else{s.logs??=[];s.logs.unshift({day:s.day,date:s.gameDate,text:`${a.icon||"•"} ${a.name||k}`,type:"activity"})} }catch(e){}
+ save(); redraw(); window.scrollTo({top:0,left:0,behavior:"auto"});
 }
 window.FL27_ACTIVITY_NOW=runActivity;
-
 document.addEventListener("click",function(ev){
  const btn=ev.target?.closest?.("[data-act]");
  if(!btn)return;
@@ -15152,18 +15147,14 @@ const oldRenderV6=window.render;
 window.render=function(){
  const r=oldRenderV6?.apply(this,arguments);
  try{
-   const s=S5(),main=document.getElementById("flc-main");
-   if(!main)return r;
-   if(window.__FL27_ACTIVE_V6_TAB__===tab) return r;
-   if(tab==="social"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=flgramView();return r;}
-   if(tab==="store"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=shopView();return r;}
-   if(tab==="wealth"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=financeView();return r;}
-   if(tab==="settings"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=settingsView();return r;}
-   window.__FL27_ACTIVE_V6_TAB__=tab;
+  const main=document.getElementById("flc-main"); if(!main)return r;
+  if(tab==="social"){main.innerHTML=flgramView();return r;}
+  if(tab==="store"){main.innerHTML=shopView();return r;}
+  if(tab==="wealth"){main.innerHTML=financeView();return r;}
+  if(tab==="settings"){main.innerHTML=settingsView();return r;}
  }catch(e){console.error("FL27 V6 catalog",e)}
  return r;
 };
-
 /* Correct tutorial IDs: the original pool calls the tasks 'stats' and 'shop',
    not 'careerStats' and 'store'. Also expose its state to the visible strip. */
 const oldPanelTask=window.FL27_panelTask;
@@ -15207,6 +15198,219 @@ document.head.appendChild(css);
 
 /* Ensure first render after this module gets the correct custom tab. */
 setTimeout(()=>{window.__FL27_ACTIVE_V6_TAB__=null;render5()},0);
+})();
+</script>
+
+
+<script id="fl27-final-stability-v7">
+(function(){
+"use strict";
+if(window.__FL27_FINAL_STABILITY_V7__)return;
+window.__FL27_FINAL_STABILITY_V7__=true;
+const ST=()=>window.S||{};
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const save=()=>{try{window.save?.();window.saveSoon?.()}catch(e){}};
+const redraw=()=>{try{window.render?.()}catch(e){}};
+function close(){document.getElementById("fl27-v7-modal")?.remove()}
+function modal(title,kicker,body){
+ close();
+ const x=document.createElement("div");x.id="fl27-v7-modal";x.className="fl27-world-modal";
+ x.innerHTML=`<div class="fl27-world-modal-backdrop" data-v7-close></div><div class="fl27-world-modal-card"><div class="kicker">${kicker}</div><h2>${title}</h2>${body}</div>`;
+ document.body.appendChild(x);
+ x.querySelector("[data-v7-close]")?.addEventListener("click",close);
+ return x;
+}
+
+/* Household influence: strong under 18, advisory after 18, spouse/children later. */
+function householdAdvice(){
+ const s=ST(),age=Number(s.age||15);
+ const f=s.familyProfile||s.familyWorld||s.family||{};
+ const spouse=s.spouse||s.partner||s.relationship?.partner||null;
+ const children=Array.isArray(s.children)?s.children:[];
+ if(age<18){
+   return {label:"👨‍👩‍👧 Rodzice",required:true,detail:"Przed 18 r.ż. rodzice mogą realnie zgodzić się, postawić warunki albo odmówić wyjazdu, obozu, testów lub przeprowadzki."};
+ }
+ if(spouse || children.length){
+   return {label:"❤️ Rodzina własna",required:false,detail:"Jesteś dorosły/a. Decyzja należy do Ciebie, ale partner/partnerka i dzieci mogą mieć własne potrzeby: odległość, szkoła, praca, mieszkanie i bezpieczeństwo."};
+ }
+ return {label:"🏠 Rodzina",required:false,detail:"Jesteś dorosły/a. Rodzice nie decydują za Ciebie, ale ich opinia może nadal mieć znaczenie emocjonalne lub praktyczne."};
+}
+window.FL27_V7_HOUSEHOLD_DECISION=function(context){
+ const s=ST(), age=Number(s.age||15), h=householdAdvice();
+ const offer=context?.offer||null;
+ const name=offer?.club||context?.name||"ta możliwość";
+ let options=[];
+ if(age<18){
+   options=[
+    ["❤️ Chcę to zrobić — porozmawiam z rodzicami","parents"],
+    ["📋 Sprawdzam, czy da się ustawić warunki (bliżej domu, szkoła, opieka)","conditions"],
+    ["🛑 Rezygnuję na razie","decline"]
+   ];
+ }else if(s.spouse||s.partner||s.relationship?.partner||((s.children||[]).length)){
+   options=[
+    ["❤️ Decyduję się, ale najpierw rozmawiam z rodziną","family"],
+    ["📋 Szukam rozwiązania, które nie rozwali życia rodzinnego","conditions"],
+    ["⚽ Jadę — to moja decyzja","accept"],
+    ["🛑 Odrzucam","decline"]
+   ];
+ }else{
+   options=[
+    ["⚽ Zgadzam się — to moja decyzja","accept"],
+    ["📋 Dopytuję o warunki i odległość","conditions"],
+    ["❤️ Konsultuję to z rodzicami","parents_advice"],
+    ["🛑 Odrzucam","decline"]
+   ];
+ }
+ const x=modal(`Co robisz z możliwością: ${esc(name)}?`,"🌍 WAŻNA DECYZJA",`
+  <p>${esc(h.detail)}</p>
+  <div class="fl27-modal-actions">${options.map((o,i)=>`<button class="action ${i===0?"primary":""}" data-v7-choice="${o[1]}"><b>${o[0]}</b><small>${i===0?"Ta decyzja może otworzyć kolejny etap kariery.":"Sprawdzisz konsekwencje przed ostatecznym krokiem."}</small></button>`).join("")}</div>`);
+ x.querySelectorAll("[data-v7-choice]").forEach(b=>b.onclick=()=>{
+   const c=b.dataset.v7Choice;
+   if(c==="parents" && typeof window.FL27_openFamilyConversation==="function"){close();window.FL27_openFamilyConversation(offer?.id);return}
+   if(c==="parents_advice"){close();window.FL27_openFamilyConversation?.();return}
+   if(c==="family"){close();window.FL27_openFamilyConversation?.(offer?.id);return}
+   if(c==="decline"){ if(offer)offer.status="declined"; save();close();redraw();return}
+   if(c==="conditions"){
+     const y=modal("Ustalamy warunki","📋 WARUNKI",`
+      <p>Możesz próbować ograniczyć koszt decyzji. Im jesteś młodszy/a, tym większą rolę mają rodzice. Później dochodzą partner/partnerka, dzieci, szkoła i praca rodziny.</p>
+      <div class="fl27-modal-actions">
+       <button class="action primary" data-v7-final="near">🏠 Szukam opcji bliżej domu</button>
+       <button class="action" data-v7-final="support">👨‍👩‍👧 Ustalamy opiekę / wsparcie rodziny</button>
+       <button class="action" data-v7-final="accept">⚽ Akceptuję mimo kosztów</button>
+      </div>`);
+     y.querySelectorAll("[data-v7-final]").forEach(q=>q.onclick=()=>{
+       const f=q.dataset.v7Final;
+       if(offer){offer.status="trial_pending";offer.familyCondition=f;offer.familyConditionDay=s.day}
+       save();close();redraw();
+       if(f==="accept"||f==="near"||f==="support") window.FL27_startTrial?.(offer);
+     });
+     return;
+   }
+   if(c==="accept"){
+     if(offer){offer.status="trial_pending";offer.decision="accept"}
+     save();close();redraw();if(offer)window.FL27_startTrial?.(offer);return;
+   }
+ });
+};
+
+/* Replace the immediate adult/underage scout choice with the richer household dialog. */
+if(typeof window.FL27_openScoutOffer==="function" && !window.__FL27_V7_SCOUT_WRAPPED__){
+ const oldScout=window.FL27_openScoutOffer;
+ window.FL27_openScoutOffer=function(id){
+   const s=ST(), offers=(s.careerState?.offers||[]);
+   const o=offers.find(x=>String(x.id)===String(id));
+   if(o){ window.FL27_V7_HOUSEHOLD_DECISION({offer:o}); return; }
+   return oldScout.apply(this,arguments);
+ };
+ window.__FL27_V7_SCOUT_WRAPPED__=true;
+}
+
+/* Camps: make any camp/trial-type world opportunity explicitly decidable. */
+window.FL27_openCampDecision=function(data){
+ const s=ST(), camp=data||{};
+ const age=Number(s.age||15), h=householdAdvice();
+ const x=modal(`🏕️ ${esc(camp.name||"Obóz piłkarski")}`,"🏕️ NOWA MOŻLIWOŚĆ",`
+  <p>${esc(camp.description||"Pojawiła się możliwość wyjazdu na obóz. To może dać trening, kontakty i obserwację skautów, ale kosztuje czas i pieniądze.")}</p>
+  <div class="notice">${esc(h.detail)}</div>
+  <div class="fl27-modal-actions">
+   <button class="action primary" data-camp="accept">⚽ Jadę</button>
+   <button class="action" data-camp="conditions">📋 Sprawdzam koszty, odległość i warunki</button>
+   <button class="action" data-camp="family">❤️ Rozmawiam z rodziną</button>
+   <button class="action" data-camp="decline">🛑 Nie jadę</button>
+  </div>`);
+ x.querySelectorAll("[data-camp]").forEach(b=>b.onclick=()=>{
+   const c=b.dataset.camp;
+   if(c==="family"){close();window.FL27_openFamilyConversation?.();return}
+   if(c==="decline"){camp.status="declined";save();close();redraw();return}
+   if(c==="conditions"){
+     const y=modal("Warunki obozu","📋 DECYZJA",`
+      <p>Możesz negocjować sposób udziału: bliżej domu, krótszy wyjazd, pomoc finansowa albo pełny wyjazd.</p>
+      <div class="fl27-modal-actions">
+       <button class="action" data-camp2="near">🏠 Szukam bliżej domu</button>
+       <button class="action" data-camp2="short">📅 Krótszy pobyt</button>
+       <button class="action primary" data-camp2="full">🏕️ Pełny obóz</button>
+      </div>`);
+     y.querySelectorAll("[data-camp2]").forEach(q=>q.onclick=()=>{camp.status="accepted";camp.condition=q.dataset.camp2;save();close();redraw()});
+     return;
+   }
+   camp.status="accepted";camp.acceptedDay=s.day;save();close();redraw();
+ });
+};
+
+/* Existing trial buttons become proper events, not dead rows. */
+if(typeof window.FL27_openTrial==="function" && !window.__FL27_V7_TRIAL_WRAP__){
+ const oldTrial=window.FL27_openTrial;
+ window.FL27_openTrial=function(id){
+   const s=ST(),t=(s.careerState?.trials||[]).find(x=>String(x.id)===String(id));
+   if(t && Number(s.age||15)<18){window.FL27_V7_HOUSEHOLD_DECISION({offer:{id:t.id,club:t.club,country:t.country,status:"trial_pending"}});return}
+   return oldTrial.apply(this,arguments);
+ };
+ window.__FL27_V7_TRIAL_WRAP__=true;
+}
+
+/* Settings that were lost in previous visual replacements: expose all core controls. */
+window.FL27_V7_SETTINGS=function(){
+ const s=ST();
+ const x=modal("Ustawienia i systemy","⚙️ USTAWIENIA",`
+  <div class="fl27-modal-actions">
+   <button class="action" onclick="close();window.FL27_ROUTE('family')">👨‍👩‍👧 Rodzina</button>
+   <button class="action" onclick="close();window.FL27_ROUTE('relations')">🤝 Relacje</button>
+   <button class="action" onclick="close();window.FL27_ROUTE('social')">📱 FLgram</button>
+   <button class="action" onclick="close();window.FL27_ROUTE('store')">🛍️ Sklep</button>
+   <button class="action" onclick="close();window.FL27_ROUTE('wealth')">💰 Finanse</button>
+   <button class="action" onclick="close();window.FL27_V6_REPAIR?.()">🔧 Napraw stan gry</button>
+  </div>`);
+ return x;
+};
+
+/* Always return to top after route changes and after modals close. */
+const oldRoute=window.FL27_ROUTE;
+if(oldRoute && !window.__FL27_V7_ROUTE_WRAP__){
+ window.FL27_ROUTE=function(k){const r=oldRoute.apply(this,arguments);setTimeout(()=>window.scrollTo({top:0,left:0,behavior:"auto"}),0);return r};
+ window.__FL27_V7_ROUTE_WRAP__=true;
+}
+window.addEventListener("load",()=>window.scrollTo({top:0,left:0,behavior:"auto"}));
+
+/* Fix box overlap in the new shop on narrow screens and in old catalog cards. */
+const css=document.createElement("style");css.id="fl27-v7-stability-css";css.textContent=`
+*,*::before,*::after{box-sizing:border-box}
+#fl27-v6-complete-style,.fl27-v6-master,.fl27-v6-master *{min-width:0}
+.fl27-v6-master{width:100%;max-width:980px;overflow:visible}
+.fl27-v6-card{width:100%;overflow:hidden}
+.fl27-v6-products{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.fl27-v6-product{width:100%;min-height:180px;overflow:hidden;word-break:break-word}
+.fl27-v6-product button{width:100%;margin-top:auto;white-space:normal}
+.fl27-v6-category-list button{max-width:100%;white-space:normal}
+.fl27-world-modal-card{box-sizing:border-box;width:min(720px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden}
+.fl27-modal-actions{grid-template-columns:1fr}
+.fl27-modal-actions .action{min-height:48px;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:620px){
+ .fl27-v6-products{grid-template-columns:1fr}
+ .fl27-v6-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .fl27-v6-card{padding:14px;border-radius:18px}
+ .fl27-v6-product{min-height:160px}
+ .fl27-event-info{grid-template-columns:1fr 1fr}
+}
+`;
+document.head.appendChild(css);
+})();
+</script>
+
+
+<script id="fl27-final-sleep-v8">
+(function(){
+"use strict";
+if(window.__FL27_FINAL_SLEEP_V8__)return;
+window.__FL27_FINAL_SLEEP_V8__=true;
+const goTop=()=>setTimeout(()=>window.scrollTo({top:0,left:0,behavior:"auto"}),0);
+window.FL27_SLEEP_NOW=function(){
+ try{
+   const ok=typeof sleepAndAdvance==="function"?sleepAndAdvance():window.sleep?.();
+   if(ok!==false)goTop();
+   return ok;
+ }catch(e){console.error("sleep",e);window.toast?.("Nie udało się zakończyć dnia.");return false}
+};
+window.sleep=window.FL27_SLEEP_NOW;
 })();
 </script>
 
