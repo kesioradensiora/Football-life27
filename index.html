@@ -14634,5 +14634,279 @@ try{rerender4()}catch(e){}
 })();
 </script>
 
+
+<script id="fl27-runtime-stability-v5">
+(function(){
+"use strict";
+if(window.__FL27_RUNTIME_STABILITY_V5__)return;
+window.__FL27_RUNTIME_STABILITY_V5__=true;
+
+const state=()=>typeof S==="function"?S():(window.S||{});
+const save=()=>{try{window.saveSoon?.()}catch(e){}};
+const redraw=()=>{try{window.render?.()}catch(e){}};
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const toast5=t=>{try{window.toast?.(t)}catch(e){}};
+
+/* =========================================================
+   1. ONE CLICK PIPELINE
+   The old file had several generations of activity handlers.
+   Use one capture-phase handler so a button is never waiting
+   for a later render/reload to become live.
+   ========================================================= */
+function runActivity(k){
+ const s=state(), a=window.ACTIVITY_CATALOG?.[k];
+ if(!s)return;
+ if(k==="sleep"){ if(typeof window.sleep==="function")return window.sleep(); return; }
+ if(k==="match"){ if(typeof window.playMatch==="function")return window.playMatch(); toast5("Brak meczu do rozegrania.");return; }
+ if(!a)return;
+ const h=Math.round(Number(s.hour??8));
+ if(h+Number(a.time||0)>22){toast5(`Za mało czasu. Ta aktywność zajmuje ${Math.max(1,Math.round(Number(a.time||1)))} h.`);return;}
+ if(Number(s.money||0)<Number(a.cost||0)){toast5(`Potrzebujesz €${Math.round(Number(a.cost||0))}.`);return;}
+
+ s.money=Number(s.money||0)-Number(a.cost||0);
+ ["energy","health","mental","happiness","form","skill"].forEach(k=>{
+   s[k]=Math.max(0,Math.min(100,Number(s[k]||0)+Number(a[k]||0)));
+ });
+ s.pr=Math.max(0,Number(s.pr||0)+Number(a.pr||0));
+ if(a.money)s.money+=Number(a.money);
+ s.totalEarned=Number(s.totalEarned||0)+Number(a.money||0);
+ s.totalSpent=Number(s.totalSpent||0)+Number(a.cost||0);
+
+ /* Mark the tutorial immediately, before advancing time. */
+ try{window.FL27_panelTask?.("activity_any")}catch(e){}
+ if(["training","run","gym","stretch"].includes(k))try{window.FL27_panelTask?.("football")}catch(e){}
+
+ if(typeof window.advance==="function")window.advance(Number(a.time||1));
+ try{
+   if(typeof window.log==="function")window.log(`${a.icon||"•"} ${a.name||k}`);
+   else{s.logs??=[];s.logs.unshift({day:s.day,date:s.gameDate,text:`${a.icon||"•"} ${a.name||k}`,type:"activity"})}
+ }catch(e){}
+ save();
+ redraw();
+}
+window.FL27_ACTIVITY_NOW=runActivity;
+
+document.addEventListener("click",function(ev){
+ const btn=ev.target?.closest?.("[data-act]");
+ if(!btn)return;
+ if(btn.disabled || btn.getAttribute("aria-disabled")==="true")return;
+ ev.preventDefault();ev.stopImmediatePropagation();
+ runActivity(btn.getAttribute("data-act"));
+},true);
+
+/* =========================================================
+   2. REAL-TIME TOP WORLD ALERT
+   It is rendered ABOVE the current catalogue, not hidden
+   inside Career. Every important incoming event tells the
+   player exactly where to go.
+   ========================================================= */
+function normalizeScoutOffers(){
+ const s=state();if(!s)return[];
+ s.careerState??={offers:[],scouts:[],trials:[]};
+ s.careerState.offers??=[];
+ const legacy=(window.FL27_CAREER?.scouting?.offers)||[];
+ legacy.forEach(o=>{
+   if(!o?.id)return;
+   if(!s.careerState.offers.some(x=>String(x.id)===String(o.id))){
+     s.careerState.offers.push({
+       id:o.id,club:o.club,country:o.country,type:o.type||"zaproszenie",
+       level:o.level||"akademia",source:o.source||"skaut",
+       status:["declined"].includes(o.status)?"declined":"new",
+       expiresInDays:o.deadline?Math.max(1,Number(o.deadline)-Number(s.day||1)):7,
+       trigger:o.trigger,createdAt:o.createdAt||s.gameDate
+     });
+   }
+ });
+ return s.careerState.offers.filter(o=>!["declined","parents_refused"].includes(o.status));
+}
+function topAlerts(){
+ const s=state();if(!s?.started)return "";
+ const offers=normalizeScoutOffers().filter(o=>["new","pending","discussion","family_discussion","blocked_by_family","trial_pending"].includes(o.status));
+ const news=Array.isArray(s.worldNews)?s.worldNews.slice(0,4):[];
+ const unreadNews=news.filter(x=>!x.read);
+ const material=(s.familyMaterialState?.events||[]).slice(0,2);
+ const items=[];
+ offers.slice(0,3).forEach(o=>items.push({
+   icon:"🔎",title:`Skaut zauważył Cię — ${o.club}`,
+   text:`${o.country||""} • ${o.type||"zaproszenie"} • odpowiedz na wydarzenie`,
+   action:`FL27_openScoutOffer('${esc(o.id)}')`,
+   where:"KARIERA"
+ }));
+ unreadNews.filter(x=>x.kind==="family_update").slice(0,2).forEach(x=>items.push({
+   icon:"🏠",title:x.title,text:x.text,action:"FL27_openFamilyNews()",where:"RODZINA"
+ }));
+ material.slice(0,1).forEach(x=>{
+   if(!items.some(i=>i.title===x.title))items.push({
+     icon:"📢",title:x.title,text:x.text,action:"FL27_openFamilyNews()",where:"RODZINA"
+   });
+ });
+ if(!items.length)return "";
+ return `<section id="fl27-top-world-alerts" class="fl27-top-world-alerts">
+   <div class="fl27-top-world-head"><div><span>🌍 ŚWIAT GRY</span><b>NOWE INFORMACJE</b></div><small>ważne rzeczy nie znikają w katalogach</small></div>
+   <div class="fl27-top-world-list">
+    ${items.map(i=>`<button type="button" class="fl27-top-world-item" onclick="${i.action}">
+      <i>${i.icon}</i><div><b>${esc(i.title)}</b><small>${esc(i.text)}</small><em>→ Wejdź w ${i.where} i zareaguj</em></div>
+    </button>`).join("")}
+   </div>
+ </section>`;
+}
+window.FL27_TOP_ALERTS=topAlerts;
+
+/* Make the existing scout modal accept both old and new offer stores. */
+const oldScoutModal=window.FL27_openScoutOffer;
+window.FL27_openScoutOffer=function(id){
+ const s=state();
+ const all=normalizeScoutOffers();
+ const o=all.find(x=>String(x.id)===String(id));
+ if(o){
+   /* If an older offer was migrated, use a compact native event. */
+   if(!o.club){toast5("To zaproszenie jest niekompletne.");return}
+   const existing=document.getElementById("fl27-world-modal");
+   if(existing)existing.remove();
+   const modal=document.createElement("div");
+   modal.className="fl27-world-modal";modal.id="fl27-world-modal";
+   const minor=Number(s.age||15)<18;
+   modal.innerHTML=`<div class="fl27-world-modal-backdrop" onclick="FL27_closeWorldModal()"></div>
+    <div class="fl27-world-modal-card">
+      <div class="kicker">🔎 NOWE ZAPROSZENIE</div>
+      <h2>${esc(o.club)}</h2>
+      <p><b>${esc(o.country||"")}</b> • ${esc(o.type||"zaproszenie")}</p>
+      <div class="fl27-event-info"><div><span>ŹRÓDŁO</span><b>${esc(o.source||"skaut")}</b></div><div><span>OVR</span><b>${Math.round(Number(o.ovr||s.ovr||s.skill||0))}</b></div><div><span>WAŻNE</span><b>${Math.max(1,Number(o.expiresInDays||7))} dni</b></div></div>
+      <div class="notice">Skaut zauważył Cię podczas ${esc(o.trigger==="match"?"meczu":o.trigger==="camp"?"obozu":"obserwacji")}. To nie jest jeszcze kontrakt — możesz wejść w rozmowę, poprosić o próbę albo odmówić.</div>
+      ${minor?`<div class="notice">👨‍👩‍👧 Masz mniej niż 18 lat. Wyjazd, testy lub przeprowadzka mogą wymagać zgody rodziców.</div>`:""}
+      <div class="fl27-modal-actions">
+       ${minor?`<button class="action primary" onclick="FL27_openFamilyConversation('${esc(o.id)}')"><b>👨‍👩‍👧 Najpierw porozmawiam z rodzicami</b><small>Ich decyzja może zmienić dalszy przebieg wydarzenia.</small></button>`:""}
+       <button class="action" onclick="FL27_runtimeScoutChoice('${esc(o.id)}','talk')"><b>💬 Zapytaj o szczegóły</b></button>
+       <button class="action" onclick="FL27_runtimeScoutChoice('${esc(o.id)}','accept')"><b>⚽ Zgadzam się na rozmowę / test</b></button>
+       <button class="action" onclick="FL27_runtimeScoutChoice('${esc(o.id)}','decline')"><b>✋ Odmawiam</b></button>
+       <button class="action" onclick="FL27_closeWorldModal()"><b>Zamknij</b></button>
+      </div>
+    </div>`;
+   document.body.appendChild(modal);return;
+ }
+ if(typeof oldScoutModal==="function")return oldScoutModal(id);
+ toast5("Nie znaleziono tego zaproszenia.");
+};
+window.FL27_runtimeScoutChoice=function(id,type){
+ const s=state(),o=normalizeScoutOffers().find(x=>String(x.id)===String(id));if(!o)return;
+ if(type==="decline"){
+   o.status="declined";
+   window.FL27_pushWorldNews?.("❌ Odrzucone zaproszenie",`Nie podejmujesz teraz rozmów z ${o.club}.`,"scout",id);
+ }else if(type==="talk"){
+   o.status="discussion";
+   window.FL27_pushWorldNews?.("💬 Odpowiedź do skauta",`Pytasz ${o.club} o szczegóły. Odpowiedź pojawi się w kolejnych dniach.`,"scout",id);
+ }else{
+   o.status="trial_pending";
+   try{window.FL27_startTrial?.(o)}catch(e){}
+   window.FL27_pushWorldNews?.("⚽ Zgoda na próbę",`${o.club} przygotowuje kolejny etap obserwacji.`,"scout",id);
+ }
+ window.FL27_closeWorldModal?.();save();redraw();
+};
+
+/* =========================================================
+   3. FAMILY MATERIAL NEWS IS PERSISTENT + CLICKABLE
+   ========================================================= */
+window.FL27_openFamilyNews=function(){
+ const s=state(), events=(s.familyMaterialState?.events||[]).slice(0,6);
+ const f=s.familyProfile||s.family||{};
+ const latest=events[0];
+ const modal=document.createElement("div");modal.className="fl27-world-modal";modal.id="fl27-world-modal";
+ modal.innerHTML=`<div class="fl27-world-modal-backdrop" onclick="FL27_closeWorldModal()"></div>
+ <div class="fl27-world-modal-card">
+  <div class="kicker">🏠 ŻYCIE RODZINY</div>
+  <h2>${esc(latest?.title||"Aktualności rodziny")}</h2>
+  <p>${esc(latest?.text||"Rodzina może zmieniać pracę, zarobki, mieszkanie, samochody i relacje.")}</p>
+  <div class="fl27-event-list">
+   ${events.map(x=>`<span>• Dzień ${x.day||"—"} — <b>${esc(x.title)}</b> — ${esc(x.text)}</span>`).join("")||"<span>Brak zmian materialnych zapisanych w historii.</span>"}
+  </div>
+  <button class="action primary" onclick="FL27_closeWorldModal();FL27_ROUTE('family')"><b>👨‍👩‍👧 Otwórz kartę rodziny</b><small>Tam zobaczysz zarobki, wydatki, mieszkanie, samochody i sytuację rodziców.</small></button>
+  <button class="action" onclick="FL27_openFamilyConversation()"><b>💬 Porozmawiaj z rodzicami</b></button>
+  <button class="action" onclick="FL27_closeWorldModal()"><b>Zamknij</b></button>
+ </div>`;
+ document.body.appendChild(modal);
+};
+
+/* =========================================================
+   4. TUTORIAL — make it visible and actually completable.
+   Route actions mark tasks immediately. Existing forced
+   tutorial decisions still work.
+   ========================================================= */
+function markTutorialRoute(key){
+ const map={day:"day",career:"career",life:"life",family:"family",history:"history",stats:"careerStats",shop:"store",settings:"settings",relations:"relations",social:"social",home:"day"};
+ try{
+   const id=map[key]||key;
+   if(window.FL27_panelTask)window.FL27_panelTask(id);
+ }catch(e){}
+}
+const oldRoute=window.FL27_ROUTE;
+window.FL27_ROUTE=function(key){
+ markTutorialRoute(key);
+ const r=oldRoute?oldRoute(key):false;
+ setTimeout(()=>{try{window.FL27_panelTask?.(key)}catch(e){}},0);
+ return r;
+};
+
+/* A compact, always-visible tutorial strip on Home.
+   It does not replace the existing detailed tutorial. */
+function tutorialStrip(){
+ const s=state();if(!s?.started)return "";
+ let P=window.FL27_PANEL_STATE||window.FL27_V37||{};
+ const done=P.panelTasks?Object.keys(P.panelTasks).filter(k=>P.panelTasks[k]?.done).length:0;
+ return `<section id="fl27-tutorial-strip" class="fl27-tutorial-strip">
+  <div><span>🎓 SAMOUCZEK</span><b>${done?`${done} elementów poznanych`:"Pierwsze kroki"}</b></div>
+  <div class="fl27-tutorial-links">
+   <button onclick="FL27_ROUTE('day')">① Dziś</button>
+   <button onclick="FL27_ROUTE('career')">② Kariera</button>
+   <button onclick="FL27_ROUTE('life')">③ Życie</button>
+   <button onclick="FL27_ROUTE('family')">④ Rodzina</button>
+   <button onclick="FL27_ROUTE('relations')">⑤ Relacje</button>
+  </div>
+ </section>`;
+}
+
+/* =========================================================
+   5. FINAL RENDER WRAPPER
+   The canonical V165 renderer is called once. We then put
+   the top alerts before its catalogue content. No delayed
+   second render, no MutationObserver, no reload dependency.
+   ========================================================= */
+const canonicalRender=window.render;
+if(typeof canonicalRender==="function"){
+ window.render=function(){
+   const result=canonicalRender.apply(this,arguments);
+   try{
+     const main=document.getElementById("flc-main");
+     if(main){
+       document.getElementById("fl27-top-world-alerts")?.remove();
+       document.getElementById("fl27-tutorial-strip")?.remove();
+       const alertHost=document.createElement("div");
+       alertHost.innerHTML=topAlerts();
+       const alert=alertHost.firstElementChild;
+       if(alert)main.prepend(alert);
+       if((state()?.age||15)<=15 && (state()?.tab==="home"||!state()?.tab)){
+         const tutHost=document.createElement("div");tutHost.innerHTML=tutorialStrip();
+         const tut=tutHost.firstElementChild;if(tut)main.insertBefore(tut,main.children[1]||null);
+       }
+     }
+   }catch(e){console.error("FL27 runtime render",e)}
+   return result;
+ };
+}
+
+/* Make offer scanning happen after every meaningful render without causing
+   a render loop. It only adds the top banner if the offer already exists. */
+setTimeout(()=>{try{normalizeScoutOffers();redraw()}catch(e){}},0);
+
+/* Visual integration — same typography, same cards, no floating foreign tiles. */
+const css=document.createElement("style");css.id="fl27-runtime-stability-v5-css";css.textContent=`
+#fl27-top-world-alerts{margin:0 0 12px;padding:13px 14px;border:1px solid rgba(214,173,75,.34);border-radius:18px;background:linear-gradient(145deg,rgba(214,173,75,.10),rgba(255,255,255,.025));box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.fl27-top-world-head{display:flex;justify-content:space-between;gap:10px;align-items:end}.fl27-top-world-head span{display:block;font-size:9px;letter-spacing:1.5px;opacity:.55}.fl27-top-world-head b{display:block;font-size:14px;margin-top:3px}.fl27-top-world-head small{opacity:.5;font-size:9px}
+.fl27-top-world-list{display:grid;gap:5px;margin-top:9px}.fl27-top-world-item{display:flex;gap:10px;width:100%;text-align:left;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.035);color:inherit;font:inherit;cursor:pointer}.fl27-top-world-item:hover{border-color:rgba(214,173,75,.4)}.fl27-top-world-item i{font-style:normal;font-size:19px}.fl27-top-world-item div{min-width:0}.fl27-top-world-item b,.fl27-top-world-item small,.fl27-top-world-item em{display:block}.fl27-top-world-item b{font-size:11px}.fl27-top-world-item small{font-size:9px;opacity:.62;margin-top:2px}.fl27-top-world-item em{font-style:normal;font-size:9px;opacity:.82;margin-top:4px}
+#fl27-tutorial-strip{margin:0 0 12px;padding:11px 13px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(255,255,255,.025)}#fl27-tutorial-strip>div:first-child{display:flex;justify-content:space-between;gap:8px}#fl27-tutorial-strip span{font-size:9px;letter-spacing:1.3px;opacity:.5}#fl27-tutorial-strip b{font-size:10px}.fl27-tutorial-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.fl27-tutorial-links button{border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:inherit;padding:7px 9px;font:inherit;font-size:9px;cursor:pointer}
+`;
+document.head.appendChild(css);
+})();
+</script>
+
 </body>
 </html>
