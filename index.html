@@ -32,6 +32,18 @@ main{min-width:0}.hero{background:var(--panel);border:1px solid var(--line);bord
 .mobile-nav{display:none}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#111317;border-top:1px solid var(--line);z-index:30;justify-content:space-around;padding:7px}.mobile-nav button{background:none;border:0;font-size:9px;color:var(--muted)}.mobile-nav b{display:block;color:var(--gold);font-size:17px}.grid{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.top{height:70px;padding:7px 10px}.logo{width:100px}.identity strong{font-size:14px}.identity span{font-size:9px}.date{display:none}.layout{padding:9px}.hero{padding:15px}.hero h1{font-size:21px}.statgrid{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.two,.three{grid-template-columns:1fr}.day{min-height:60px}}
+
+.setup-wrap{max-width:1120px;margin:0 auto;padding:20px 0}
+.setup-head{text-align:center;padding:18px 0 22px}.setup-head .logo2{font-size:12px;color:var(--gold);letter-spacing:.18em;font-weight:900}.setup-head h1{font-size:32px;margin:7px 0}.setup-head p{max-width:720px;margin:auto;color:var(--muted);font-size:12px;line-height:1.65}
+.setup-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:13px}
+.setup-card h2{font-size:13px;margin:0 0 12px}.field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.field label{display:block;color:var(--muted);font-size:9px;font-weight:800;margin-bottom:5px;text-transform:uppercase}.field input,.field select{width:100%;background:#0f1114;border:1px solid var(--line);border-radius:9px;padding:10px;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--gold)}
+.choice-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.select-choice{background:#191c21;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:left}.select-choice.selected{border-color:var(--gold);background:#29241b;box-shadow:inset 0 0 0 1px #5c4a2e}.select-choice b{display:block;font-size:11px}.select-choice small{display:block;color:var(--muted);font-size:9px;margin-top:4px}
+.qgrid{display:grid;gap:12px}.question{background:#191c20;border:1px solid var(--line);border-radius:12px;padding:13px}.question .qno{color:var(--gold);font-size:9px;font-weight:900;letter-spacing:.1em}.question h3{font-size:12px;margin:5px 0 10px}.answer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.answer{background:#111317;border:1px solid #30343b;border-radius:8px;padding:8px;text-align:left;font-size:9px;min-height:43px}.answer:hover{border-color:#665536}.answer.selected{border-color:var(--gold);background:#2b251a;color:#fff}.setup-actions{display:flex;justify-content:center;gap:10px;padding:5px 0 30px}.big-start{padding:13px 25px;border-radius:11px;border:1px solid #80683c;background:#302619;color:#f5d58f;font-weight:900;font-size:12px}.big-start:hover{background:#42331f}
+.intro-screen{position:fixed;inset:0;background:radial-gradient(circle at 50% 35%,#28231a 0,#08090b 55%);z-index:300;display:none;align-items:center;justify-content:center;padding:25px}.intro-screen.show{display:flex}.intro-inner{width:min(760px,94vw);text-align:center;padding:42px 35px;border:1px solid #80683c;border-radius:20px;background:#111317eF;box-shadow:0 25px 100px #000}.intro-mark{font-size:11px;color:var(--gold);font-weight:900;letter-spacing:.2em}.intro-inner h1{font-size:38px;margin:13px 0 8px}.intro-inner .line{width:70px;height:1px;background:var(--gold);margin:18px auto}.intro-inner p{font-size:14px;line-height:1.8;color:#d0d1d4}.intro-inner .welcome{font-size:11px;color:var(--muted);margin-top:20px}.intro-inner button{margin-top:22px}
+@media(max-width:800px){.field-grid{grid-template-columns:1fr 1fr}.answer-grid{grid-template-columns:repeat(2,1fr)}.choice-row{grid-template-columns:1fr}.intro-inner h1{font-size:28px}}
+
+.catalog{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.product{background:#191c21;border:1px solid var(--line);border-radius:12px;padding:12px}.product:hover{border-color:#685637}.product .product-icon{font-size:30px}.product h3{font-size:11px;margin:7px 0 3px}.product .brand{color:var(--gold);font-size:9px;font-weight:900}.product .spec{color:var(--muted);font-size:9px;line-height:1.45;min-height:42px}.product .price{font-size:12px;font-weight:900;margin:8px 0}.brandgrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.brandpill{border:1px solid var(--line);border-radius:999px;background:#111317;padding:5px 8px;font-size:9px;color:#d8d9dc}.random-box{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#211e18;border:1px solid #6e5936;border-radius:11px;padding:11px;margin-bottom:12px}.random-box p{margin:0;font-size:10px;color:var(--muted)}
+@media(max-width:900px){.catalog{grid-template-columns:1fr 1fr}}@media(max-width:600px){.catalog{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -83,6 +95,8 @@ let S=JSON.parse(localStorage.getItem("fl27save")||"null")||{
   finances:{income:120,expenses:0,savings:120,debt:0,assets:0},
   relations:{friends:48,family:70,coach:52,team:55},
   media:{creator:false,tiktok:0,youtube:0,sponsorOffers:0},
+  equipment:{boots:null,bootsBonus:0,clothesBonus:0,style:0,brandsOwned:[],sponsorDeals:[]},
+  purchases:[],
   history:[],
   calendarEvents:[{day:3,type:"Mecz",title:"Mecz akademii U12",icon:"⚽"},{day:7,type:"Wydarzenie",title:"Spotkanie z trenerem",icon:"🧑‍🏫"}],
   flags:{firstEvent:false,clubOffer:false},
@@ -96,7 +110,7 @@ function toast(t){const e=document.getElementById("toast");e.textContent=t;e.cla
 function fmtDate(){let d=new Date("2026-07-30T00:00:00");d.setDate(d.getDate()+S.day);return d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric"})}
 function weekday(){let d=new Date("2026-07-30T00:00:00");d.setDate(d.getDate()+S.day);return d.toLocaleDateString("pl-PL",{weekday:"long"})}
 function timeStr(){return String(S.hour).padStart(2,"0")+":00"}
-function updateClock(){S.date=fmtDate();S.weekday=weekday();document.getElementById("playerNameTop").textContent=S.player.name;document.getElementById("playerMetaTop").textContent=`${S.player.age} lat · ${S.player.pos} · ${S.career.club} · ${S.country}`;document.getElementById("dateTop").textContent=S.date;document.getElementById("timeTop").textContent=`${S.weekday} · ${timeStr()}`;save()}
+function updateClock(){S.date=fmtDate();S.weekday=weekday();document.getElementById("playerNameTop").textContent=S.player.name;document.getElementById("playerMetaTop").textContent=`${S.player.age} lat · ${S.player.pos} · ${S.career.club} · ${S.player?.residenceCity||""}, ${S.player?.residenceCountry||S.country}`;document.getElementById("dateTop").textContent=S.date;document.getElementById("timeTop").textContent=`${S.weekday} · ${timeStr()}`;save()}
 function advance(hours){for(let i=0;i<hours;i++){S.hour++;if(S.hour>=24){S.hour=0;S.day++;if(S.day%365===0)S.player.age++;randomDaily();}}updateClock();render()}
 function randomDaily(){S.player.energy=clamp(S.player.energy+8);S.player.mental=clamp(S.player.mental+(Math.random()>.5?1:-1));if(Math.random()<.07)generateRandomEvent()}
 function action(name,h,effect,fn){if(S.hour+h>22 && S.hour<22){toast("Nie zmieścisz tej akcji przed 22:00.");return}if(S.hour>=22){toast("O tej porze możesz już tylko spać.");return}fn&&fn();addHistory(name,`Wykonano akcję: ${name}.`,`Czas −${h} h`);advance(h)}
@@ -184,7 +198,7 @@ function openMatch(){openEvent({type:"MECZ",icon:"⚽",title:"Mecz akademii",tex
 ]})}
 function calendar(){let start=S.day-3;let cells="";for(let i=0;i<28;i++){let dd=start+i;let ev=S.calendarEvents.find(e=>e.day===dd);cells+=`<div class="day ${dd===S.day?'today':''} ${ev?.type==='Mecz'?'match':''} ${ev?'event':''}"><b>${String(((dd%30)+1)).padStart(2,'0')}</b><small>${dd===S.day?'DZISIAJ':dd<0?'przeszłość':' '}</small>${ev?`<div class="eventdot">${ev.icon} ${ev.title}</div>`:""}</div>`}return hero("2. KALENDARZ","Przeszłość i przyszłość","Mecze, szkoła, święta, ferie, wydarzenia i ważne momenty życia. Kalendarz zależy od kraju zawodnika.")+`<div class="grid"><div class="card"><h2>KALENDARZ</h2><div class="calendar">${cells}</div></div><div class="card"><h2>NAJBLIŻSZE</h2>${S.calendarEvents.filter(e=>e.day>=S.day).slice(0,8).map(e=>`<div class="listitem"><strong>${e.icon} ${e.title}</strong><p>${e.type} · ${e.day===S.day?'dzisiaj':e.day-S.day+' dni'}</p></div>`).join("")}</div></div>`}
 function historyPage(){return hero("2.1 HISTORIA WYDARZEŃ","Historia całego życia","Każda decyzja i jej skutek są zapisywane. Późniejsze wydarzenia mogą korzystać z tej historii.")+`<div class="card">${S.history.length?S.history.map((h,i)=>`<div class="listitem"><div class="row"><strong>${i+1}. ${h.title}</strong><span class="tiny muted">${h.date}</span></div><p>${h.desc}<br><span class="goldtext">${h.effect}</span></p></div>`).join(""):'<p class="muted">Historia zacznie się w momencie podjęcia pierwszej decyzji.</p>'}</div>`}
-function familyPage(){let f=S.family;return hero("3. RODZINA","Rodzina pochodzenia","Rodzice i rodzeństwo mają własne życie, pracę, pieniądze, majątek, konflikty i decyzje. Ich sytuacja może się zmieniać.")+`<div class="grid"><div class="card"><h2>RODZICE</h2><div class="two"><div class="listitem"><strong>👨 Tata</strong><p>Zawód: ${f.fatherJob}<br>Dochód rodziny: ${money(f.income)}<br>Samochody: ${f.cars>0?'1+':'brak'}</p></div><div class="listitem"><strong>👩 Mama</strong><p>Zawód: ${f.motherJob}<br>Stan majątkowy: ${f.wealth}/100<br>Mieszkanie: ${f.housing}</p></div></div><div style="height:10px"></div><button class="btn" onclick="familyChange()">Sprawdź sytuację rodziny</button></div><div class="card gold"><h2>RELACJA Z RODZINĄ</h2><b>${S.relations.family}/100</b><div class="progress"><i style="width:${S.relations.family}%"></i></div><p class="small muted">Rodzice mogą wspierać, stawiać warunki, odmawiać, rozwieść się, mieć nowe dzieci, zmienić pracę lub potrzebować Twojej pomocy w przyszłości.</p></div></div>`}
+function familyPage(){let f=S.family;return hero("3. RODZINA","Rodzina pochodzenia","Rodzice i rodzeństwo mają własne życie, pracę, pieniądze, majątek, konflikty i decyzje. Ich sytuacja może się zmieniać.")+`<div class="grid"><div class="card"><h2>RODZICE</h2><div class="two"><div class="listitem"><strong>👨 Tata</strong><p>Zawód: ${f.fatherJob}<br>Dochód rodziny: ${money(f.income)}<br>Samochody: ${f.cars>0?'1+':'brak'}</p></div><div class="listitem"><strong>👩 Mama</strong><p>Zawód: ${f.motherJob}<br>Stan majątkowy: ${f.wealth}/100<br>Mieszkanie: ${f.housing}</p></div></div><div style="height:10px"></div><button class="btn" onclick="familyChange()">Sprawdź sytuację rodziny</button></div><div class="card gold"><h2>RELACJA Z RODZINĄ</h2><b>${S.relations.family}/100</b><div class="progress"><i style="width:${S.relations.family}%"></i></div><p class="small muted">Rodzice mogą wspierać, stawiać warunki, odmawiać, rozwieść się, mieć nowe dzieci, zmienić pracę lub potrzebować Twojej pomocy w przyszłości.</p><div class="tag">👨 ${f.fatherNationality||"—"}</div><div class="tag">👩 ${f.motherNationality||"—"}</div></div></div>`}
 function familyChange(){openEvent({type:"RODZINA",icon:"🏠",title:"Zmiana w sytuacji rodziny",text:"Tata dostał propozycję zmiany pracy. Może zarabiać więcej, ale będzie miał mniej czasu dla Ciebie.",choices:[
 ["Popieram zmianę","+ finanse rodziny · mniej czasu razem",()=>{S.family.income+=1200;S.family.wealth+=5;S.relations.family-=2}],
 ["Proszę, żeby został","+ czas razem · finanse bez zmian",()=>{S.relations.family+=3;S.player.happiness+=2}],
@@ -207,7 +221,67 @@ function financePage(){return hero("6. FINANSE","Finanse","Dochody, wydatki, osz
 function feesPage(){return hero("6.x OPŁATY","Stałe zobowiązania","Ubezpieczenia, szkoły, treningi, alimenty, raty i inne koszty pojawiają się wraz z życiem zawodnika.")+`<div class="three">${[['🛡️','Ubezpieczenia','0 zł'],['🏫','Szkoła / studia','0 zł'],['⚽','Trening','zależny od klubu'],['👶','Dzieci / alimenty','brak'],['🏠','Kredyt','0 zł'],['❤️','Cele charytatywne','opcjonalne']].map(x=>`<div class="card"><h3>${x[0]} ${x[1]}</h3><p class="muted small">${x[2]}</p></div>`).join("")}</div>`}
 function cityPage(){return hero("7. MIASTO","Miasto","Miejsca, w których możesz kupować usługi i rzeczy. Dostępność i ceny zależą od miasta, kraju, wieku i statusu.")+`<div class="three">${[['🏥','Klinika','zdrowie i regeneracja'],['🛍️','Sklep','ubrania, AGD/RTV, auta, biżuteria, tatuaże i dom'],['📜','Licencje','prawa jazdy i uprawnienia'],['🏋️','Centrum sportowe','treningi i regeneracja'],['🎬','Studio','media i nagrania'],['☕','Miejsca spotkań','relacje i życie prywatne']].map(x=>`<div class="card"><div style="font-size:28px">${x[0]}</div><h3>${x[1]}</h3><p class="muted small">${x[2]}</p></div>`).join("")}</div>`}
 function clinicPage(){return hero("7.1 KLINIKA","Zdrowie i regeneracja","Specjaliści i usługi sportowe. Kosztują czas i pieniądze, ale mogą poprawiać zdrowie, regenerację i gotowość do treningu.")+`<div class="three">${[['🩺','Lekarz','choroby / badania'],['🦵','Fizjoterapeuta','kontuzje'],['🧠','Psycholog sportowy','mental'],['🥗','Dietetyk','żywienie'],['🧊','Krioterapia','regeneracja'],['💆','Masaż','regeneracja'],['🫁','Tlenoterapia','regeneracja'],['🧪','Badania predyspozycji','profil zawodnika'],['🧘','Regeneracja premium','czas + koszt']].map(x=>`<div class="card"><div style="font-size:25px">${x[0]}</div><h3>${x[1]}</h3><p class="muted small">${x[2]}</p><button class="btn secondary" onclick="toast('Usługa będzie dostępna zależnie od wieku, miasta, pieniędzy i sytuacji zdrowotnej.')">Sprawdź</button></div>`).join("")}</div>`}
-function shopPage(){return hero("7.2 SKLEP","Sklep","Ubrania, buty, biżuteria, elektronika, AGD/RTV, samochody, sprzęt, tatuaże, wyposażenie domu i wiele więcej. Nie wszystko jest dostępne zawsze.")+`<div class="tabs"><button class="tab active">Wszystko</button><button class="tab">👕 Ubrania</button><button class="tab">💎 Biżuteria</button><button class="tab">📱 Elektronika</button><button class="tab">🏠 Dom</button><button class="tab">🚗 Auta</button><button class="tab">🎨 Tatuaże</button></div><div class="three">${[['👕','Strój sportowy','180 zł'],['👟','Buty piłkarskie','450 zł'],['📱','Telefon','2 400 zł'],['🎮','Konsola','1 900 zł'],['🚗','Samochód używany','18 000 zł'],['💎','Zegarek','3 500 zł'],['🏠','Wyposażenie domu','od 300 zł'],['🎨','Tatuaż','od 500 zł'],['🎧','Sprzęt DJ','od 1 200 zł']].map(x=>`<div class="card"><div style="font-size:26px">${x[0]}</div><h3>${x[1]}</h3><p class="muted small">${x[2]}</p><button class="btn" onclick="buy('${x[1]}',${parseInt(x[2].replace(/\\D/g,''))||300})">Kup / sprawdź</button></div>`).join("")}</div>`}
+function shopPage(){return hero("7.2 SKLEP","Sklep","Zakupy nie są kosmetyką. Sprzęt, buty, ubrania, elektronika, auta, biżuteria i wyposażenie domu mogą zmieniać atrybuty, popularność, komfort, relacje i generować nowe wydarzenia.")+
+ `<div class="card gold"><div class="row"><div><h2>⚽ BUTY PIŁKARSKIE</h2><p class="small muted">Różne marki, modele i właściwości. Sponsor może później dać zniżkę, darmową parę albo kontrakt.</p></div><span class="pill">👟 ${S.equipment?.boots||"brak wybranych"}</span></div>
+ <div class="catalog" style="margin-top:12px">${bootCatalog.map((x,i)=>`<div class="product"><div class="product-icon">👟</div><div class="brand">${x.brand}</div><h3>${x.name}</h3><div class="spec">+${x.bonus} ${x.attr} · ${x.effect}</div><div class="price">${money(x.price)}</div><button class="btn" onclick="buyBoot(${i})">${S.equipment?.boots===x.name?"Założone":"Kup / wybierz"}</button></div>`).join("")}</div>
+ <div class="brandgrid">${["Nike","adidas","PUMA","New Balance","Mizuno","Under Armour"].map(x=>`<span class="brandpill">${x}</span>`).join("")}</div></div>
+ <div style="height:12px"></div>
+ <div class="tabs"><button class="tab active">Wszystko</button><button class="tab">👕 Ubrania</button><button class="tab">💎 Biżuteria</button><button class="tab">📱 Elektronika</button><button class="tab">🏠 Dom</button><button class="tab">🚗 Auta</button><button class="tab">🎨 Tatuaże</button></div>
+ <div class="catalog">${[
+ ["👕","Ubrania szkolne","180 zł","styl +1 · możliwe wydarzenia w szkole"],
+ ["👟","Buty lifestyle","350 zł","styl +2 · popularność +1"],
+ ["📱","Telefon","2 400 zł","media +2 · popularność +1"],
+ ["🎮","Konsola","1 900 zł","szczęście +3 · relacje +1"],
+ ["🚗","Samochód używany","18 000 zł","komfort +4 · koszty utrzymania"],
+ ["💎","Zegarek","3 500 zł","styl +4 · popularność +2"],
+ ["🏠","Wyposażenie domu","od 300 zł","komfort +2 · wydarzenia domowe"],
+ ["🎨","Tatuaż","od 500 zł","styl +3 · możliwe reakcje innych"],
+ ["🎧","Sprzęt DJ","1 200 zł","kariera poboczna +2"]
+ ].map((x,i)=>`<div class="product"><div class="product-icon">${x[0]}</div><div class="brand">SKLEP</div><h3>${x[1]}</h3><div class="spec">${x[3]}</div><div class="price">${x[2]}</div><button class="btn" onclick="buyLifestyle(${i})">Kup / sprawdź</button></div>`).join("")}</div>`}
+const bootCatalog=[
+ {brand:"Nike",name:"Mercurial Vapor",price:520,bonus:3,attr:"szybkość",effect:"lekkość"},
+ {brand:"Nike",name:"Phantom",price:560,bonus:3,attr:"strzał",effect:"kontakt z piłką"},
+ {brand:"adidas",name:"Predator",price:590,bonus:3,attr:"strzał",effect:"kontrola"},
+ {brand:"adidas",name:"F50",price:540,bonus:4,attr:"szybkość",effect:"lekkość"},
+ {brand:"PUMA",name:"Future",price:510,bonus:3,attr:"drybling",effect:"zwinność"},
+ {brand:"PUMA",name:"Ultra",price:500,bonus:4,attr:"szybkość",effect:"niska waga"},
+ {brand:"New Balance",name:"Furon",price:480,bonus:3,attr:"strzał",effect:"lekkość"},
+ {brand:"New Balance",name:"Tekela",price:470,bonus:3,attr:"podania",effect:"czucie piłki"},
+ {brand:"Mizuno",name:"Morelia",price:620,bonus:3,attr:"technika",effect:"komfort"},
+ {brand:"Mizuno",name:"Alpha",price:600,bonus:4,attr:"szybkość",effect:"lekkość"},
+ {brand:"Under Armour",name:"Shadow",price:450,bonus:2,attr:"drybling",effect:"kontrola"},
+ {brand:"Under Armour",name:"Clone",price:430,bonus:2,attr:"podania",effect:"komfort"}
+];
+function buyBoot(i){
+ const x=bootCatalog[i];
+ let price=x.price, sponsor=null;
+ const deal=S.equipment?.sponsorDeals?.find(d=>d.brand===x.brand);
+ if(deal){price=Math.round(price*(1-deal.discount));sponsor=deal}
+ if(S.finances.savings<price){toast(`Brakuje ${money(price-S.finances.savings)}.`);return}
+ S.finances.savings-=price;S.finances.expenses+=price;S.equipment.boots=x.name;S.equipment.bootsBonus=x.bonus;S.equipment.brandsOwned.push(x.brand);
+ const attrMap={szybkość:"pace",strzał:"shoot",drybling:"dribble",podania:"pass",technika:"dribble"};
+ const key=attrMap[x.attr]||"dribble";S.skills[key]+=x.bonus;
+ S.player.popularity+=x.price>550?1:0;
+ S.purchases.push({type:"boots",brand:x.brand,name:x.name,price,date:S.date});
+ addHistory("Zakup butów",`Wybrano ${x.brand} ${x.name}.`,`+${x.bonus} ${x.attr} · −${money(price)}${sponsor?" · cena sponsorska":""}`);
+ if(Math.random()<.18) S.calendarEvents.push({day:S.day+Math.floor(Math.random()*12)+2,type:"Wydarzenie",title:`Nowe wydarzenie związane z ${x.brand}`,icon:"👟"});
+ toast(`${x.brand} ${x.name}: ${money(price)}.`);
+ render("Sklep");
+}
+function buyLifestyle(i){
+ const items=[["Ubrania szkolne",180,1,2],["Buty lifestyle",350,1,2],["Telefon",2400,2,1],["Konsola",1900,0,1],["Samochód używany",18000,0,2],["Zegarek",3500,0,2],["Wyposażenie domu",300,0,1],["Tatuaż",500,0,2],["Sprzęt DJ",1200,0,1]];
+ const [name,cost,pop,style]=items[i];
+ if(S.finances.savings<cost){toast("Nie stać Cię na ten zakup.");return}
+ S.finances.savings-=cost;S.finances.expenses+=cost;S.equipment.style+=style;S.player.popularity+=pop;S.equipment.clothesBonus+=name.includes("Ubrania")?1:0;
+ S.purchases.push({type:"lifestyle",name,price:cost,date:S.date});
+ addHistory("Zakup",`Kupiono: ${name}.`,`−${money(cost)} · popularność +${pop} · styl +${style}`);
+ // School/life purchases can create contextual follow-up events.
+ if(name==="Ubrania szkolne")S.calendarEvents.push({day:S.day+1,type:"Wydarzenie",title:"Reakcja w szkole na nowy styl",icon:"👕"});
+ if(name==="Zegarek"||name==="Telefon")S.calendarEvents.push({day:S.day+2,type:"Wydarzenie",title:"Ktoś zwrócił uwagę na Twój nowy zakup",icon:"✨"});
+ if(name==="Tatuaż")S.calendarEvents.push({day:S.day+3,type:"Wydarzenie",title:"Rozmowa o tatuażu",icon:"🎨"});
+ toast(`Kupiono: ${name}.`);
+ render("Sklep");
+}
 function buy(n,c){if(S.finances.savings<c){toast("Nie stać Cię na ten zakup.");return}S.finances.savings-=c;S.finances.expenses+=c;addHistory("Zakup",`Kupiono: ${n}.`,`−${money(c)}`);toast(`Kupiono: ${n} za ${money(c)}.`);render("Sklep")}
 function licensesPage(){return hero("7.3 LICENCJE","Licencje i uprawnienia","Każda licencja kosztuje czas, pieniądze i może wymagać egzaminu. Nie zawsze zdajesz za pierwszym razem.")+`<div class="three">${[['🚗','Prawo jazdy B','odpowiedni wiek · egzamin'],['🏍️','A / A2 / A1','wiek + wymagania'],['🛥️','Jacht / motorowodne','kurs + egzamin'],['✈️','Pilot','bardzo wysoki koszt + godziny'],['🚛','C+E','dodatkowe szkolenie'],['🧑‍🏫','Licencje trenerskie','edukacja + doświadczenie']].map(x=>`<div class="card"><div style="font-size:26px">${x[0]}</div><h3>${x[1]}</h3><p class="muted small">${x[2]}</p><button class="btn secondary" onclick="toast('Wymagania zostaną sprawdzone względem wieku i kraju zawodnika.')">Sprawdź</button></div>`).join("")}</div>`}
 function mediaPage(){return hero("8. MEDIA","Media i kariera poza boiskiem","Nie możesz wybierać każdej aktywności z góry. Oferty, wywiady, reklamy i występy pojawiają się jako zaproszenia. Jeśli budujesz własny kanał, możesz publikować własne materiały.")+`<div class="grid"><div class="card"><h2>AKTUALNA SYTUACJA</h2><div class="statgrid">${[['POPULARNOŚĆ',S.player.popularity],['OBSERWUJĄCY',S.player.followers],['TIKTOK',S.media.tiktok],['YOUTUBE',S.media.youtube],['SPONSORZY',S.media.sponsorOffers],['TWÓRCA',S.media.creator?'TAK':'NIE']].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div><div style="height:12px"></div><button class="btn" onclick="creatorStart()">🎥 Zacznij tworzyć własne materiały</button></div><div class="card gold"><h2>ZAPROSZENIA</h2><p class="small muted">Gdy pojawi się oferta, dostaniesz pełnoekranowe wydarzenie z decyzją. Sponsorzy mogą stawiać warunki dotyczące publikacji, konkurencyjnych marek i zachowania.</p><button class="btn secondary" onclick="mediaInvite()">📩 Sprawdź, czy masz zaproszenie</button></div></div>`}
@@ -250,7 +324,180 @@ const codex={
 "Dzieci":["Dziecko nie jest kopią rodzica. Na jego rozwój wpływają predyspozycje obojga rodziców, środowisko, wychowanie, zdrowie, edukacja i trening.","Po osiągnięciu odpowiedniego wieku możesz przejąć jego karierę i kontynuować historię przez kolejne pokolenie."]
 };
 function showCodex(k,btn){document.querySelectorAll("#codexTabs .tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("codexBody").innerHTML=`<h2>${k}</h2>${codex[k].map(x=>`<div class="listitem"><p>${x}</p></div>`).join("")}`}
-function boot(){render("DOM");maybeEvent()}
+
+const questionBank=[
+["Kiedy masz wolny dzień, co najchętniej robisz?",["gram w piłkę","jeżdżę na rowerze","gram na konsoli","spotykam się ze znajomymi","czytam","oglądam sport","tworzę muzykę","uczę się czegoś nowego","odpoczywam w domu","zwiedzam nowe miejsca"]],
+["Co robisz, gdy coś od razu Ci nie wychodzi?",["próbuję jeszcze raz","szukam innego sposobu","proszę o pomoc","robię przerwę","analizuję błąd","ryzykuję ponownie","zmieniam cel","trenuję więcej","odpuszczam na chwilę","szukam kogoś lepszego od siebie"]],
+["Który trening najbardziej Cię ciągnie?",["sprinty","technika","siła","drybling","strzały","taktyka","wydolność","gra zespołowa","koordynacja","mecze"]],
+["Jak reagujesz na pochwałę?",["motywuje mnie","cieszę się, ale lecę dalej","dzielę się nią z rodziną","chcę być jeszcze lepszy","nie przywiązuję wagi","zaczynam wierzyć w siebie","żartuję","traktuję ją jako obowiązek","analizuję za co mnie pochwalono","szukam kolejnego wyzwania"]],
+["Jak reagujesz na krytykę trenera?",["słucham","pytam o konkrety","pracuję nad błędem","bronię swojego zdania","milczę i pokazuję na boisku","proszę o drugą szansę","motywuje mnie","potrzebuję czasu","rozmawiam po treningu","ignoruję ją"]],
+["Co jest dla Ciebie ważniejsze?",["sukces","rodzina","pieniądze","wolność","przyjaźń","rozwój","popularność","spokój","przygoda","rywalizacja"]],
+["Jak podchodzisz do pieniędzy?",["oszczędzam","wydaję na doświadczenia","inwestuję","pomagam rodzinie","kupuję sprzęt","nie myślę o nich","lubię luksus","dzielę budżet","szukam okazji","ryzykuję dla większego zysku"]],
+["Jak łatwo nawiązujesz znajomości?",["bardzo łatwo","raczej łatwo","powoli, ale mocno","tylko z podobnymi ludźmi","zależy od miejsca","uwielbiam poznawać ludzi","wolę kilku bliskich","najpierw obserwuję","sport szybko mnie łączy","internetowo łatwiej"]],
+["Co robisz przed ważnym meczem?",["muzyka","cisza","rozmowa z trenerem","rozgrzewka","wizualizacja","żartuję z kolegami","koncentracja","telefon odkładam","modlę się","robię swoją rutynę"]],
+["Jak reagujesz na presję?",["rośnie mi motywacja","potrzebuję spokoju","działam automatycznie","szukam wsparcia","analizuję sytuację","czasem mnie blokuje","ryzykuję","pracuję jeszcze więcej","unikam jej","zamieniam ją w energię"]],
+["Jakie środowisko najbardziej Ci odpowiada?",["duże miasto","małe miasto","spokojna wieś","nad morzem","w górach","blisko rodziny","międzynarodowe","sportowe","artystyczne","nie ma znaczenia"]],
+["Jak ważna jest dla Ciebie szkoła?",["bardzo","ważna","ważna obok sportu","tylko potrzebne minimum","lubię konkretne przedmioty","zależy od nauczyciela","sport najważniejszy","chcę studiować","uczę się praktycznie","nie wiem jeszcze"]],
+["Co najbardziej Cię motywuje?",["wynik","pochwała","rywalizacja","rodzina","pieniądze","marzenie","drużyna","rozwój","kibice","strach przed porażką"]],
+["Jak zachowujesz się w grupie?",["lideruję","wspieram innych","słucham","żartuję","organizuję","motywuję","wolę działać sam","dostosowuję się","bronię słabszych","rywalizuję"]],
+["Co robisz, gdy kolega ma problem?",["pomagam","dzwonię do niego","zapraszam go do siebie","daję mu przestrzeń","pytam trenera","pomagam finansowo, jeśli mogę","rozśmieszam","szukam rozwiązania","słucham","nie wtrącam się"]],
+["Jak wygląda Twoja idealna sobota?",["mecz","trening","wyjazd","rodzina","znajomi","konsola","plaża","zwiedzanie","zakupy","spokojny dom"]],
+["Jak podchodzisz do ryzyka?",["uwielbiam","czasem ryzykuję","najpierw liczę","ryzykuję dla celu","wolę bezpieczeństwo","zależy od nagrody","słucham rodziny","sprawdzam informacje","działam spontanicznie","unikam"]],
+["Co najbardziej chciałbyś/chciałabyś osiągnąć?",["grać zawodowo","zostać najlepszym","zdobyć trofea","pomóc rodzinie","być niezależnym","zostać trenerem","podróżować","mieć własny biznes","być rozpoznawalnym","żyć spokojnie"]],
+["Jak reagujesz, gdy ktoś jest od Ciebie lepszy?",["uczę się","rywalizuję","podziwiam","pracuję ciężej","pytam jak to robi","nie porównuję się","motywuje mnie","czasem zazdroszczę","szukam innej specjalizacji","cieszę się z jego sukcesu"]],
+["Co wybierasz po ciężkim tygodniu?",["sen","masaże","spotkanie","gry","kino","trening","wyjazd","rodzina","muzyka","nicnierobienie"]],
+["Jak łatwo zmieniasz plan?",["bardzo łatwo","gdy trzeba","nie lubię zmian","lubię spontaniczność","po rozmowie z rodziną","po analizie","dla kariery zawsze","tylko w weekend","gdy pojawia się okazja","zależy od kosztu"]],
+["Jak podchodzisz do sławy?",["chcę jej","nie przeszkadza mi","wolę prywatność","tylko jeśli pomaga karierze","lubię kontakt z kibicami","boję się presji","zobaczymy","chcę być rozpoznawalny","najważniejsi są bliscy","nie ma znaczenia"]],
+["Co jest Twoją mocniejszą stroną?",["szybkość","technika","siła","głowa","pracowitość","odwaga","spokój","komunikacja","kreatywność","wytrwałość"]],
+["Co jest Twoją słabszą stroną?",["cierpliwość","koncentracja","emocje","lenistwo","presja","pewność siebie","regularność","nauka","konflikty","odpoczynek"]],
+["Jak traktujesz autorytety?",["szanuję","zadaję pytania","słucham, ale myślę sam","trener ma zawsze rację","zależy od osoby","potrzebuję przykładu","lubię mentorów","nie lubię rozkazów","szanuję doświadczenie","sprawdzam fakty"]],
+["Co robisz z pierwszym większym zarobkiem?",["oszczędzam","kupuję sprzęt","pomagam rodzicom","podróżuję","inwestuję","kupuję samochód","odkładam na dom","dzielę na kilka celów","spełniam marzenie","uczę się finansów"]],
+["Jak ważny jest dom rodzinny?",["bardzo","ważna baza","chcę się szybko usamodzielnić","lubię wracać","ważniejsze są ludzie","zależy od relacji","chcę duży dom","wolę mieszkanie","chcę podróżować","nie wiem"]],
+["Jak reagujesz na niespodziewaną szansę?",["łapię ją","najpierw pytam rodziców","sprawdzam szczegóły","ryzykuję","proszę o czas","rozmawiam z trenerem","zaczynam od razu","boję się, ale próbuję","liczę koszty","jeśli to sport — zawsze próbuję"]],
+["Jak ważne są podróże?",["bardzo","lubię odkrywać","tylko z rodziną","dla sportu","dla odpoczynku","nie przepadam","uwielbiam ciepłe kraje","wolę góry","chcę mieszkać za granicą","zależy od pieniędzy"]],
+["Jak chcesz być postrzegany/postrzegana?",["pracowity/a","utalentowany/a","skromny/a","odważny/a","profesjonalny/a","rodzinny/a","popularny/a","lojalny/a","ambitny/a","nie obchodzi mnie opinia"]]
+];
+
+const answerEffects=[
+{potential:3,discipline:2,mental:1,wealth:0,social:0,health:0},
+{potential:2,discipline:1,mental:2,wealth:0,social:1,health:0},
+{potential:1,discipline:2,mental:3,wealth:0,social:2,health:0},
+{potential:0,discipline:0,mental:2,wealth:0,social:4,health:2},
+{potential:1,discipline:2,mental:2,wealth:1,social:0,health:0},
+{potential:2,discipline:1,mental:3,wealth:0,social:1,health:0},
+{potential:0,discipline:0,mental:1,wealth:2,social:3,health:0},
+{potential:1,discipline:3,mental:1,wealth:1,social:0,health:1},
+{potential:2,discipline:2,mental:2,wealth:0,social:1,health:1},
+{potential:3,discipline:3,mental:1,wealth:1,social:1,health:0}
+];
+let setupState=null;
+
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function openCreator(mode){
+ setupState={mode,questions:shuffle(questionBank).slice(0,5).map((q,qi)=>({q,answers:shuffle(q[1]),chosen:null}),), world:null};
+ randomizeWorld();
+ document.getElementById("modalContent").innerHTML=creatorHTML();
+ document.getElementById("modal").classList.add("show");fillRandomWorld();
+}
+
+const worldPools={
+ Polska:{cities:["Poznań","Warszawa","Kraków","Wrocław","Gdańsk","Łódź","Szczecin","Katowice","Lublin","Białystok"],names:["Antoni","Jan","Jakub","Aleksander","Franciszek","Szymon","Leon","Mikołaj","Zofia","Zuzanna","Julia","Hanna","Laura","Maria","Oliwia"],surnames:["Nowak","Kowalski","Wiśniewski","Wójcik","Kamiński","Lewandowski","Zieliński","Szymański","Woźniak","Dąbrowski"]},
+ Hiszpania:{cities:["Madryt","Barcelona","Walencja","Sewilla","Malaga","Palma","Bilbao","Alicante","Saragossa","Murcja"],names:["Hugo","Mateo","Martín","Leo","Lucas","Alejandro","Daniel","Sofía","Lucía","Martina","María","Valeria","Paula","Carmen","Alba"],surnames:["García","Rodríguez","González","Fernández","López","Martínez","Sánchez","Pérez","Gómez","Martín"]},
+ Anglia:{cities:["London","Manchester","Liverpool","Birmingham","Leeds","Bristol","Newcastle","Sheffield","Nottingham","Brighton"],names:["Oliver","George","Arthur","Noah","Muhammad","Leo","Oscar","Henry","Amelia","Olivia","Isla","Emily","Ava","Isabella","Mia"],surnames:["Smith","Jones","Taylor","Brown","Williams","Wilson","Johnson","Davies","Patel","Robinson"]},
+ Niemcy:{cities:["Berlin","Monachium","Hamburg","Kolonia","Frankfurt","Dortmund","Drezno","Leipzig","Stuttgart","Bremen"],names:["Noah","Matteo","Leon","Paul","Emil","Liam","Ben","Elias","Emma","Mia","Sophia","Hannah","Emilia","Lina","Anna"],surnames:["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann"]},
+ Francja:{cities:["Paryż","Marsylia","Lyon","Tuluza","Nicea","Nantes","Lille","Bordeaux","Montpellier","Strasburg"],names:["Gabriel","Raphaël","Louis","Léo","Arthur","Jules","Adam","Hugo","Emma","Louise","Jade","Ambre","Alice","Rose","Chloé"],surnames:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau"]},
+ Włochy:{cities:["Rzym","Mediolan","Neapol","Turyn","Palermo","Genua","Bolonia","Florencja","Bari","Werona"],names:["Leonardo","Francesco","Lorenzo","Alessandro","Mattia","Tommaso","Andrea","Marco","Sofia","Giulia","Aurora","Ginevra","Alice","Beatrice","Vittoria"],surnames:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco"]},
+ Portugalia:{cities:["Lizbona","Porto","Braga","Coimbra","Faro","Setúbal","Aveiro","Funchal","Guimarães","Leiria"],names:["João","Martim","Francisco","Afonso","Tomás","Duarte","Miguel","Tiago","Maria","Leonor","Matilde","Beatriz","Carolina","Inês","Margarida"],surnames:["Silva","Santos","Ferreira","Pereira","Oliveira","Costa","Rodrigues","Martins","Jesus","Sousa"]},
+ Brazylia:{cities:["São Paulo","Rio de Janeiro","Brasília","Salvador","Fortaleza","Belo Horizonte","Curitiba","Recife","Porto Alegre","Manaus"],names:["Miguel","Arthur","Heitor","Gael","Davi","Bernardo","Ravi","Theo","Helena","Alice","Laura","Maria","Valentina","Heloísa","Sophia"],surnames:["Silva","Santos","Oliveira","Souza","Rodrigues","Ferreira","Alves","Pereira","Lima","Gomes"]},
+ USA:{cities:["New York","Los Angeles","Miami","Chicago","Houston","Boston","Seattle","Dallas","Atlanta","San Diego"],names:["Liam","Noah","Oliver","James","Elijah","Mateo","Theodore","Henry","Olivia","Emma","Charlotte","Amelia","Sophia","Mia","Evelyn"],surnames:["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"]},
+ Holandia:{cities:["Amsterdam","Rotterdam","Haga","Utrecht","Eindhoven","Groningen","Tilburg","Almere","Breda","Nijmegen"],names:["Daan","Sem","Lucas","Milan","Levi","Finn","Noah","Liam","Emma","Sophie","Julia","Mila","Tess","Sara","Nora"],surnames:["De Jong","Jansen","De Vries","Van den Berg","Van Dijk","Bakker","Janssen","Visser","Smit","Meijer"]}
+};
+const countries=Object.keys(worldPools);
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function randomizeWorld(){
+ let birth=pick(countries), residence=pick(countries), father=pick(countries), mother=pick(countries);
+ // Mixed families intentionally create more naming combinations.
+ let nameCountry=Math.random()<.55?pick([father,mother,birth]):birth;
+ let pool=worldPools[nameCountry];
+ let first=pick(pool.names), last=pick(pool.surnames);
+ if(Math.random()<.18 && father!==mother){
+   const other=worldPools[father===nameCountry?mother:father];
+   first=pick([...pool.names.slice(0,8),...other.names.slice(0,8)]);
+ }
+ let pos=pick(["GK","RB","CB","LB","CDM","CM","CAM","RW","LW","ST"]);
+ let foot=pick(["Prawa","Lewa","Obie"]);
+ let rank=pick(["Ranking sportowy","Popularność","Ranking kraju","Ranking ligi","Ranking pozycji"]);
+ setupState.world={birth,residence,father,mother,birthCity:pick(worldPools[birth].cities),resCity:pick(worldPools[residence].cities),first,last,pos,foot,rank};
+ ["c-name","c-surname","c-birthcountry","c-birthcity","c-rescountry","c-rescity","c-fathernat","c-mothernat"].forEach(id=>{let e=document.getElementById(id);if(e)e.value=""});
+}
+function fillRandomWorld(){
+ const w=setupState.world;
+ const vals={"c-name":w.first,"c-surname":w.last,"c-birthcountry":w.birth,"c-birthcity":w.birthCity,"c-rescountry":w.residence,"c-rescity":w.resCity,"c-fathernat":w.father,"c-mothernat":w.mother,"c-pos":w.pos,"c-foot":w.foot,"c-rank":w.rank};
+ for(const [id,v] of Object.entries(vals)){const e=document.getElementById(id);if(e)e.value=v}
+ const brands=["Nike","adidas","PUMA","New Balance","Mizuno","Under Armour"];
+ const holder=document.getElementById("creatorBrands"); if(holder) holder.innerHTML=brands.map(x=>`<span class="brandpill">${x}</span>`).join("");
+}
+function randomizeCreator(){randomizeWorld();fillRandomWorld();setupState.questions=shuffle(questionBank).slice(0,5).map(q=>({q,answers:shuffle(q[1]),chosen:null}));document.getElementById("modalContent").innerHTML=creatorHTML();fillRandomWorld()}
+function creatorHTML(){
+ const qhtml=setupState.questions.map((x,qi)=>`<div class="question"><div class="qno">PYTANIE ${qi+1} / 5</div><h3>${x.q[0]}</h3><div class="answer-grid">${x.answers.map((ans,ai)=>`<button class="answer" id="ans-${qi}-${ai}" onclick="pickAnswer(${qi},${ai})">${ans}</button>`).join("")}</div></div>`).join("");
+ return `<div class="setup-wrap">
+ <div class="setup-head"><div class="logo2">FOOTBALL LIFE 27 · NOWA KARTA ZAWODNIKA</div><h1>Stwórz swoją historię</h1><p>Każda kariera zaczyna się inaczej. Twoje odpowiedzi wpłyną na potencjał, temperament, rodzinę, sytuację materialną i pierwsze możliwości. Nie ma „dobrych” odpowiedzi.</p></div>
+ <div class="setup-card"><div class="random-box"><div><strong>🎲 LOSOWANIE ŚWIATA STARTOWEGO</strong><p>Imię, nazwisko, pozycja, noga, rodzina, narodowości, miasto urodzenia i kraj zamieszkania mogą zostać wygenerowane od nowa.</p></div><button class="btn" onclick="randomizeCreator()">🎲 Losuj wszystko</button></div>
+ <h2>👤 PODSTAWOWE INFORMACJE</h2><div class="field-grid">
+ <div class="field"><label>Imię</label><input id="c-name" placeholder="wylosowane"></div>
+ <div class="field"><label>Nazwisko</label><input id="c-surname" placeholder="wylosowane"></div>
+ <div class="field"><label>Płeć</label><select id="c-gender"><option value="M">Mężczyzna</option><option value="F">Kobieta</option></select></div>
+ <div class="field"><label>Pozycja</label><select id="c-pos"><option>GK</option><option>RB</option><option>CB</option><option>LB</option><option>CDM</option><option>CM</option><option>CAM</option><option>RW</option><option selected>LW</option><option>ST</option></select></div>
+ <div class="field"><label>Dominująca noga</label><select id="c-foot"><option>Prawa</option><option>Lewa</option><option>Obie</option></select></div>
+ <div class="field"><label>Kraj urodzenia</label><input id="c-birthcountry" placeholder="wylosowany"></div>
+ <div class="field"><label>Miasto urodzenia</label><input id="c-birthcity" placeholder="wylosowane"></div>
+ <div class="field"><label>Kraj zamieszkania</label><input id="c-rescountry" placeholder="wylosowany"></div>
+ <div class="field"><label>Miasto zamieszkania</label><input id="c-rescity" placeholder="wylosowane"></div>
+ <div class="field"><label>🇺🇳 Narodowość ojca</label><input id="c-fathernat" placeholder="wylosowana"></div>
+ <div class="field"><label>🇺🇳 Narodowość matki</label><input id="c-mothernat" placeholder="wylosowana"></div>
+ <div class="field"><label>Preferowany ranking</label><select id="c-rank"><option>Ranking sportowy</option><option>Popularność</option><option>Ranking kraju</option><option>Ranking ligi</option><option>Ranking pozycji</option></select></div>
+ <div class="field"><label>Tryb</label><input value="${setupState.mode==='plus'?'NOWA GRA+':'NOWA GRA'}" disabled></div>
+ </div>
+ <div class="brandgrid" id="creatorBrands"></div></div></div>
+ <div class="setup-card"><h2>🧬 5 LOSOWYCH PYTAŃ</h2><p class="small muted">Pytania są losowane z puli 30. Każde ma 10 odpowiedzi, a kolejność odpowiedzi również jest losowa.</p><div class="qgrid">${qhtml}</div></div>
+ <div class="setup-actions"><button class="btn secondary" onclick="closeCreator()">Anuluj</button><button class="big-start" onclick="finishCreator()">⚽ Rozpocznij karierę</button></div>
+ </div>`;
+}
+function pickAnswer(qi,ai){
+ setupState.questions[qi].chosen=ai;
+ document.querySelectorAll(`[id^="ans-${qi}-"]`).forEach(x=>x.classList.remove("selected"));
+ document.getElementById(`ans-${qi}-${ai}`).classList.add("selected");
+}
+function closeCreator(){document.getElementById("modal").classList.remove("show")}
+function finishCreator(){
+ const name=document.getElementById("c-name").value.trim(),surname=document.getElementById("c-surname").value.trim();
+ if(!name||!surname){toast("Wylosuj lub uzupełnij imię i nazwisko.");return}
+ if(setupState.questions.some(q=>q.chosen===null)){toast("Odpowiedz na wszystkie 5 pytań.");return}
+ const gender=document.getElementById("c-gender").value,country=document.getElementById("c-rescountry").value,pos=document.getElementById("c-pos").value,foot=document.getElementById("c-foot").value,rank=document.getElementById("c-rank").value;
+ const birthCountry=document.getElementById("c-birthcountry").value,birthCity=document.getElementById("c-birthcity").value,resCity=document.getElementById("c-rescity").value,fatherNat=document.getElementById("c-fathernat").value,motherNat=document.getElementById("c-mothernat").value;
+ let score={potential:0,discipline:0,mental:0,wealth:0,social:0,health:0};
+ setupState.questions.forEach(q=>{const effect=answerEffects[q.chosen%10];for(const k in effect)score[k]+=effect[k]});
+ const parentPool=[
+  {father:"trener młodzieży",mother:"nauczycielka",wealth:62,cars:2,housing:"dom rodzinny",income:9200},
+  {father:"mechanik",mother:"księgowa",wealth:48,cars:2,housing:"mieszkanie własnościowe",income:7600},
+  {father:"przedsiębiorca",mother:"farmaceutka",wealth:86,cars:3,housing:"duży dom",income:18500},
+  {father:"kierowca",mother:"pracownica sklepu",wealth:32,cars:1,housing:"wynajmowane mieszkanie",income:5400},
+  {father:"fizjoterapeuta",mother:"nauczycielka",wealth:68,cars:2,housing:"mieszkanie własnościowe",income:10800},
+  {father:"policjant",mother:"pielęgniarka",wealth:51,cars:2,housing:"dom rodzinny",income:8500},
+  {father:"były piłkarz",mother:"pracownica biurowa",wealth:60,cars:2,housing:"dom rodzinny",income:9700},
+  {father:"bezrobotny / dorywczo",mother:"opiekunka",wealth:22,cars:0,housing:"wynajmowane mieszkanie",income:3900}
+ ];
+ let idx=(score.wealth+score.social+Math.floor(Math.random()*8))%parentPool.length;
+ let fam=parentPool[idx];
+ let base=47+(score.potential*2)+Math.floor(Math.random()*7);
+ if(setupState.mode==="plus")base+=4;
+ base=Math.max(35,Math.min(82,base));
+ S={day:0,hour:8,minute:0,date:"30.07.2026",weekday:"Czwartek",country,
+  player:{name:`${name} ${surname}`,age:12,pos,gender,foot,ovr:base,form:68,health:Math.max(70,Math.min(99,82+score.health*2)),mental:Math.max(55,Math.min(95,65+score.mental*2)),happiness:Math.max(55,Math.min(95,68+score.social)),popularity:4,followers:84,money:120,energy:88,rankingPreference:rank,birthCountry,birthCity,residenceCountry:country,residenceCity:resCity},
+  skills:{pace:Math.max(35,base-1),shoot:Math.max(30,base-8),pass:Math.max(32,base-5),dribble:Math.max(35,base+4),physical:Math.max(30,base-6),mental:Math.max(35,base-3)},
+  family:{parentsTogether:Math.random()>.12,fatherJob:fam.father,motherJob:fam.mother,fatherNationality:fatherNat,motherNationality:motherNat,wealth:Math.max(10,Math.min(100,fam.wealth+score.wealth-3)),income:Math.max(2800,fam.income+score.wealth*180),housing:fam.housing,cars:Math.max(0,fam.cars+(Math.random()>.75?1:0)),siblings:Math.floor(Math.random()*3)},
+  career:{club:"Akademia lokalna",level:"U12",starter:false,contract:"brak",coachTrust:50+Math.min(12,score.discipline),agent:null,nationalTeam:country,interest:[]},
+  finances:{income:120,expenses:0,savings:120,debt:0,assets:0},
+  relations:{friends:45+score.social,family:60+score.social,coach:50,team:52},
+  media:{creator:false,tiktok:0,youtube:0,sponsorOffers:0},
+  equipment:{boots:null,bootsBonus:0,clothesBonus:0,style:0,brandsOwned:[],sponsorDeals:[]},
+  purchases:[],
+  history:[],calendarEvents:[{day:3,type:"Mecz",title:"Mecz akademii U12",icon:"⚽"},{day:7,type:"Wydarzenie",title:"Spotkanie z trenerem",icon:"🧑‍🏫"}],
+  flags:{firstEvent:false,clubOffer:false},gamePlus:setupState.mode==="plus"
+ };
+ addHistory("Narodziny kariery",`Utworzono ${S.player.name}. Pozycja ${pos}, noga ${foot}, kraj ${country}.`,`Potencjał początkowy: ${S.player.ovr} OVR · rodzina: ${fam.father} / ${fam.mother}`);
+ save();closeCreator();showIntro();
+}
+function showIntro(){
+ document.getElementById("modal").classList.remove("show");
+ const intro=document.createElement("div");intro.className="intro-screen show";intro.id="introScreen";
+ intro.innerHTML=`<div class="intro-inner"><div class="intro-mark">FOOTBALL LIFE 27</div><h1>Witaj w swojej historii.</h1><div class="line"></div><p>Od dziś każda godzina ma znaczenie. Szkoła, trening, rodzina, przyjaźnie, pieniądze, zdrowie i piłka będą splatać się w jedną historię.</p><p>Nie wszystko da się zaplanować. Czasem wydarzy się coś wielkiego, czasem coś zupełnie zwyczajnego. Twoje decyzje zostaną zapamiętane — a świat będzie na nie reagował.</p><div class="welcome">Twoja kariera zaczyna się 30 lipca · masz 12 lat · przed Tobą całe życie.</div><button class="big-start" onclick="document.getElementById('introScreen').remove();render('DOM');maybeEvent()">Zaczynamy ⚽</button></div>`;
+ document.body.appendChild(intro);
+}
+function newGame(){openCreator("normal")}
+function newGamePlus(){openCreator("plus")}
+
+function boot(){render("DOM")}
 boot();
 </script>
 </body>
