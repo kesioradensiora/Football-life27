@@ -14908,5 +14908,307 @@ document.head.appendChild(css);
 })();
 </script>
 
+
+<script id="fl27-complete-catalog-v6">
+(function(){
+"use strict";
+if(window.__FL27_COMPLETE_CATALOG_V6__)return;
+window.__FL27_COMPLETE_CATALOG_V6__=true;
+
+const S5=()=>typeof S==="function"?S():(window.S||{});
+const esc5=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const save5=()=>{try{window.saveSoon?.()}catch(e){}};
+const render5=()=>{try{window.render?.()}catch(e){}};
+const money5=()=>Number(S5().money||0);
+const euro5=n=>`€${Math.round(Number(n||0)).toLocaleString("pl-PL")}`;
+
+function card5(title,kicker,body){
+ return `<section class="fl27-v6-card"><div class="fl27-v6-card-head"><span>${kicker||""}</span><b>${title}</b></div>${body}</section>`;
+}
+function row5(a,b,c=""){return `<div class="fl27-v6-row"><span>${a}</span><b>${b}</b>${c?`<small>${c}</small>`:""}</div>`}
+
+/* ---------- one generic, persistent purchase engine ---------- */
+window.FL27_V6_BUY=function(item){
+ const s=S5(); if(!s.started)return;
+ const price=Number(item.price||0);
+ if(money5()<price){try{window.toast?.(`Brakuje ${euro5(price-money5())}.`)}catch(e){}return false}
+ s.money=money5()-price;
+ s.shop??={owned:[],rentals:[],history:[]};
+ s.shop.owned??=[];s.shop.rentals??=[];s.shop.history??=[];
+ const owned={id:"v6_"+Date.now()+"_"+Math.random().toString(36).slice(2,6),...item,boughtAt:s.gameDate,day:s.day};
+ s.shop.owned.push(owned);s.shop.history.unshift({type:"purchase",...owned});
+ s.totalSpent=Number(s.totalSpent||0)+price;
+ /* persistent effects: shopping can influence more than money */
+ if(item.pr)s.pr=Math.max(0,Number(s.pr||0)+Number(item.pr));
+ if(item.popularity)s.popularity=Math.max(0,Math.min(100,Number(s.popularity||0)+Number(item.popularity)));
+ if(item.mental)s.mental=Math.max(0,Math.min(100,Number(s.mental||0)+Number(item.mental)));
+ if(item.happiness)s.happiness=Math.max(0,Math.min(100,Number(s.happiness||0)+Number(item.happiness)));
+ if(item.health)s.health=Math.max(0,Math.min(100,Number(s.health||0)+Number(item.health)));
+ if(["house","apartment","villa","island"].includes(item.type)){
+   s.properties??={owned:[],rentals:[]};s.properties.owned??=[];
+   s.properties.owned.push(owned);
+ }
+ if(["car","motorcycle","bike","yacht","helicopter","plane"].includes(item.type)){
+   s.vehicles??=[];s.vehicles.push(owned);
+ }
+ save5();render5();return true;
+};
+window.FL27_V6_RENT=function(item){
+ const s=S5(), monthly=Number(item.monthly||0);
+ if(money5()<monthly){window.toast?.(`Brakuje ${euro5(monthly)} na pierwszy miesiąc.`);return false}
+ s.money=money5()-monthly;s.shop??={owned:[],rentals:[],history:[]};s.shop.rentals??=[];
+ s.shop.rentals.push({...item,start:s.gameDate,day:s.day});
+ s.shop.history??=[];s.shop.history.unshift({type:"rent",...item,date:s.gameDate});
+ s.totalSpent=Number(s.totalSpent||0)+monthly;save5();render5();return true;
+};
+window.FL27_V6_SELL=function(index){
+ const s=S5(), arr=s.shop?.owned||[], item=arr[Number(index)];
+ if(!item)return;
+ const value=Math.round(Number(item.price||0)*Number(item.resale||.65));
+ s.money=money5()+value;arr.splice(Number(index),1);
+ s.shop.history??=[];s.shop.history.unshift({type:"sale",name:item.name,value,date:s.gameDate});
+ save5();render5();
+};
+
+/* ---------- FLGRAM: complete standalone social screen ---------- */
+window.FL27_V6_POST=function(type="life"){
+ const s=S5();s.flgram??={posts:[],followers:Number(s.followers||0),following:0,followingPeople:[],messages:[]};
+ s.flgram.posts??=[];
+ const captions={
+  sport:["🔥 Trening zrobiony. Pracujemy dalej.","⚽ Dzisiaj było konkretnie. Kolejny krok.","🏟️ Dzień treningowy."],
+  match:["Mecz za nami. Czas wyciągnąć wnioski.","⚽ Dzień meczowy.","🏆 Walczymy dalej."],
+  life:["📸 Dzień poza boiskiem.","🌍 Trochę życia poza futbolem.","☀️ Dobry dzień."],
+  school:["📚 Szkoła + futbol = trzeba to pogodzić.","🏫 Kolejny dzień szkoły.","📖 Nauka też jest częścią kariery."]
+ };
+ const arr=captions[type]||captions.life;
+ const followersGain=Math.max(1,Math.round(1+Number(s.popularity||0)*.12+Number(s.pr||0)*.02+Math.random()*8));
+ const post={id:"post_"+Date.now(),type,text:arr[Math.floor(Math.random()*arr.length)],day:s.day,date:s.gameDate,
+  likes:Math.round(followersGain*(1+Math.random()*5)),followersGain};
+ s.flgram.posts.unshift(post);
+ s.flgram.followers=Number(s.flgram.followers||s.followers||0)+followersGain;
+ s.followers=s.flgram.followers;
+ s.pr=Math.max(0,Number(s.pr||0)+Math.min(3,Math.round(followersGain/5)));
+ save5();render5();
+};
+function flgramView(){
+ const s=S5();s.flgram??={posts:[],followers:Number(s.followers||0),following:0,followingPeople:[],messages:[]};
+ s.flgram.posts??=[];s.flgram.messages??=[];
+ const followers=Number(s.flgram.followers||s.followers||0);
+ const pop=Math.max(0,Math.min(100,Number(s.popularity||0)));
+ const known=Math.max(0,Math.min(100,Number(s.pr||0)));
+ const posts=s.flgram.posts.slice(0,10);
+ const sponsorTier=pop>=80?"globalne marki":pop>=55?"duże marki":pop>=30?"lokalne marki":"małe współprace";
+ return `<section class="fl27-v6-master fl27-v6-social">
+  ${card5("FLgram","📱 TWOJA SIEĆ",`
+   <div class="fl27-v6-profile">
+    <div class="fl27-v6-avatar">${esc5((s.name||"Z").charAt(0).toUpperCase())}</div>
+    <div><h1>${esc5(s.name||"Zawodnik")}</h1><span>@${esc5((s.name||"zawodnik").toLowerCase().replace(/\\s+/g,"_"))}</span><small>${esc5(s.club||"Bez klubu")} • ${esc5(s.pos||"zawodnik")}</small></div>
+   </div>
+   <div class="fl27-v6-metrics"><div><b>${posts.length}</b><span>postów</span></div><div><b>${followers.toLocaleString("pl-PL")}</b><span>obserwujących</span></div><div><b>${Number(s.flgram.following||0)}</b><span>obserwowanych</span></div><div><b>${Math.round(known)}</b><span>PR</span></div><div><b>${Math.round(pop)}%</b><span>popularność</span></div></div>
+   <p class="fl27-v6-note"><b>Popularność ≠ obserwujący.</b> Popularność oznacza, jaki odsetek świata kojarzy Twoją osobę; nawet bardzo popularna osoba nie musi być obserwowana przez każdego.</p>
+   <div class="fl27-v6-actions"><button onclick="FL27_V6_POST('sport')">⚽ Post z treningu</button><button onclick="FL27_V6_POST('match')">🏟️ Post po meczu</button><button onclick="FL27_V6_POST('life')">📸 Życie</button><button onclick="FL27_V6_POST('school')">📚 Szkoła</button></div>
+  `)}
+  ${card5("Sponsorzy i wizerunek","💼 WSPÓŁPRACE",`
+   ${row5("Aktualny poziom marki",sponsorTier,"oferty zależą od popularności, OVR, wizerunku i historii decyzji")}
+   ${row5("Popularność",Math.round(pop)+"%","może rosnąć i spadać")}
+   ${row5("PR / wizerunek",Math.round(known),"wpływa na media, sponsorów i wydarzenia")}
+   <button class="fl27-v6-wide" onclick="FL27_ROUTE('career')">🔎 Sprawdź oferty sponsorów i skautów</button>
+  `)}
+  ${card5("Wiadomości","✉️ KONTAKTY",s.flgram.messages.length?s.flgram.messages.slice(0,8).map(m=>`<div class="fl27-v6-message"><b>${esc5(m.from)}</b><span>${esc5(m.text)}</span></div>`).join(""):"<div class='fl27-v6-empty'>Brak wiadomości. Mogą pojawić się po meczach, postach, wywiadach i wydarzeniach.</div>")}
+  ${card5("Twój feed","📰 POSTY",posts.length?posts.map(p=>`<article class="fl27-v6-post"><div class="fl27-v6-post-head"><b>${esc5(s.name||"Zawodnik")}</b><span>${esc5(p.date||"")}</span></div><div class="fl27-v6-post-media">${p.type==="sport"?"⚽":p.type==="match"?"🏟️":p.type==="school"?"📚":"📸"}</div><p>${esc5(p.text)}</p><small>♥ ${Number(p.likes||0)} • +${Number(p.followersGain||0)} obserwujących</small></article>`).join(""):"<div class='fl27-v6-empty'>Nie masz jeszcze żadnego posta.</div>")}
+ </section>`;
+}
+
+/* ---------- SHOP: actual city with categories ---------- */
+const SHOP=[
+ ["☕ Kawiarnia","experience",8,"relacje i szczęście",3,0,0],
+ ["🍽️ Restauracja","experience",25,"relacje / doświadczenie",5,0,1],
+ ["🎬 Kino","experience",18,"odpoczynek",6,0,1],
+ ["👕 Ubrania podstawowe","clothing",80,"styl / wizerunek",2,0,1],
+ ["👟 Markowe buty","clothing",220,"wizerunek / sport",3,0,2],
+ ["📱 Smartfon","gadget",700,"komfort / kontakt",3,0,1],
+ ["💻 Laptop","gadget",1200,"edukacja / praca / twórczość",2,1,0],
+ ["🎥 Zestaw twórcy","gadget",2200,"rozwój FLgram / twórczości",4,1,1],
+ ["🎨 Tatuaż","body",450,"wizerunek",2,0,1],
+ ["💆 Zabieg regeneracyjny","care",180,"zdrowie / regeneracja",4,4,0],
+ ["🩺 Prywatna konsultacja","care",250,"zdrowie / diagnoza",1,6,0],
+ ["⌚ Zegarek","luxury",1500,"prezent / prestiż",3,0,4],
+ ["💎 Biżuteria","luxury",2200,"prezent / relacje",4,0,4],
+ ["🚲 Rower","bike",700,"transport",2,2,0],
+ ["🚗 Samochód miejski","car",18000,"transport",2,0,3],
+ ["🚙 SUV","car",45000,"transport / komfort",3,0,5],
+ ["🏎️ Samochód sportowy","car",120000,"transport / prestiż",4,0,10],
+ ["⛵ Jacht","yacht",350000,"transport / wakacje / prestiż",5,0,12],
+ ["🚁 Helikopter","helicopter",1200000,"transport / czas / prestiż",5,0,15],
+ ["✈️ Prywatny samolot","plane",4500000,"transport / czas / prestiż",5,0,20],
+ ["🏝️ Prywatna wyspa","island",8000000,"wypoczynek / status",8,0,25],
+ ["🏢 Mieszkanie","apartment",180000,"własność / życie",3,0,3],
+ ["🏡 Dom rodzinny","house",420000,"pokoje / komfort rodziny",6,2,5],
+ ["🏰 Rezydencja","villa",1800000,"luksus / pokoje / garaż / ogród",10,4,15],
+ ["🎁 Prezent dla bliskiej osoby","gift",1000,"relacja",4,0,0],
+ ["❤️ Duży gest / prezent luksusowy","gift",15000,"relacja / wizerunek",8,0,8]
+];
+const cats=[
+ ["🌆 Miasto","experience"],["👗 Zakupy","clothing"],["📱 Gadżety","gadget"],["🧑‍⚕️ Zdrowie i zabiegi","care"],["🎨 Wizerunek","body"],["🚲 Transport","bike"],["🚗 Samochody","car"],["⛵ Luksusowy transport","yacht"],["🏠 Nieruchomości","apartment"],["🎁 Prezenty","gift"]
+];
+function shopView(){
+ const s=S5(), owned=s.shop?.owned||[], rentals=s.shop?.rentals||[];
+ return `<section class="fl27-v6-master">${card5("Sklep i wydatki","🏙️ MIASTO",`
+  <p class="fl27-v6-note">To jest pełne miasto wydatków. Nie kupujesz tylko „kafelków” — zakupy zapisują się w życiu, majątek wpływa na komfort, relacje, PR, transport i przyszłe wydarzenia.</p>
+  <div class="fl27-v6-balance">💰 Dostępne: <b>${euro5(money5())}</b></div>
+  <div class="fl27-v6-category-list">${cats.map(([n,c])=>`<button onclick="document.getElementById('v6cat-${c}').scrollIntoView({behavior:'smooth',block:'start'})">${n}</button>`).join("")}</div>
+ `)}
+ ${cats.map(([cat,c])=>{
+   const data=SHOP.filter(x=>x[1]===c || (c==="yacht"&&["yacht","helicopter","plane","island"].includes(x[1])) || (c==="apartment"&&["apartment","house","villa"].includes(x[1])) || (c==="bike"&&x[1]==="bike") || (c==="car"&&x[1]==="car"));
+   if(!data.length)return "";
+   return `<div id="v6cat-${c}" class="fl27-v6-shop-section">${card5(cat,"KATALOG",`<div class="fl27-v6-products">${data.map(x=>`<article class="fl27-v6-product"><div class="fl27-v6-product-icon">${x[0].split(" ")[0]}</div><b>${esc5(x[0].slice(x[0].indexOf(" ")+1))}</b><span>${euro5(x[2])}</span><small>${esc5(x[3])}</small><button onclick="FL27_V6_BUY({name:'${esc5(x[0])}',type:'${x[1]}',price:${x[2]},happiness:${x[4]},health:${x[5]},popularity:${x[6]}})">Kup</button></article>`).join("")}</div>`)}</div>`;
+ })}
+ ${card5("Wynajem","🔑 NIE MUSISZ KUPOWAĆ",`
+   <div class="fl27-v6-products">
+    <article class="fl27-v6-product"><div class="fl27-v6-product-icon">🏢</div><b>Mieszkanie na wynajem</b><span>€900 / mies.</span><small>miejsce zamieszkania • brak własności</small><button onclick="FL27_V6_RENT({name:'Mieszkanie na wynajem',type:'apartment',monthly:900})">Wynajmij</button></article>
+    <article class="fl27-v6-product"><div class="fl27-v6-product-icon">🏡</div><b>Dom na wynajem</b><span>€1800 / mies.</span><small>więcej pokoi • komfort rodziny</small><button onclick="FL27_V6_RENT({name:'Dom na wynajem',type:'house',monthly:1800})">Wynajmij</button></article>
+   </div>`)}
+ ${card5("Twoje rzeczy","📦 POSIADANE",owned.length?owned.slice().reverse().map((x,i)=>row5(x.name,euro5(x.price),`kupiono ${x.boughtAt||""} • <button class="v6-inline" onclick="FL27_V6_SELL(${owned.length-1-i})">sprzedaj</button>`)).join(""):"<div class='fl27-v6-empty'>Nie masz jeszcze zakupionych rzeczy.</div>")}
+ ${card5("Wynajmowane","🏠 ŻYCIE",rentals.length?rentals.slice().reverse().map(x=>row5(x.name,euro5(x.monthly)+"/mies.",`od ${x.start||""}`)).join(""):"<div class='fl27-v6-empty'>Nic nie wynajmujesz.</div>")}
+ </section>`;
+}
+
+/* ---------- FINANCE: businesses, assets, charity ---------- */
+function financeView(){
+ const s=S5();s.businesses??=[];s.finance??={income:[],expenses:[]};
+ const income=s.finance.income||[], expenses=s.finance.expenses||[];
+ return `<section class="fl27-v6-master">
+ ${card5("Finanse","💰 PIENIĄDZE I MAJĄTEK",`
+  ${row5("Gotówka",euro5(s.money),"płynne środki")}
+  ${row5("Wartość majątku",euro5(s.netWorth||s.money),"domy, samochody, rzeczy i inwestycje")}
+  ${row5("Zarobki z kariery",euro5(s.salary||0)+"/mies.","mogą zmieniać się wraz z klubem")}
+  ${row5("Popularność",Math.round(Number(s.popularity||0))+"%","wpływa na sponsorów i możliwości")}
+  <div class="fl27-v6-actions"><button onclick="FL27_V6_BUY({name:'Inwestycja',type:'investment',price:500})">📈 Zainwestuj €500</button><button onclick="FL27_V6_BUY({name:'Darowizna / akcja społeczna',type:'charity',price:500,popularity:1})">❤️ Wpłać €500</button></div>
+ `)}
+ ${card5("Biznes","🏢 WŁASNA FIRMA",`
+  <p class="fl27-v6-note">Możesz otworzyć biznes. Kapitał to dopiero początek — później biznes ma przychody, koszty, ryzyko i wymaga czasu.</p>
+  <button class="fl27-v6-wide" onclick="FL27_createBusiness?.('Moja firma','usługi',5000)">🏢 Otwórz biznes za €5 000</button>
+  ${(s.careerState?.businesses||s.businesses||[]).map(b=>row5(b.name||"Biznes",euro5(b.capital||0),b.type||"działalność")).join("")||"<div class='fl27-v6-empty'>Nie prowadzisz jeszcze firmy.</div>"}
+ `)}
+ ${card5("Dobroczynność i rozwój","❤️ WPŁYW SPOŁECZNY",`
+  <div class="fl27-v6-actions"><button onclick="FL27_V6_BUY({name:'Wsparcie szkółki piłkarskiej',type:'charity',price:100,popularity:1,mental:1})">⚽ Szkółka €100</button><button onclick="FL27_V6_BUY({name:'Rozwój szkoły',type:'charity',price:1000,popularity:2,mental:2})">🏫 Szkoła €1 000</button><button onclick="FL27_V6_BUY({name:'Duża fundacja',type:'charity',price:10000,popularity:5,mental:4})">❤️ Fundacja €10 000</button></div>
+ `)}
+ ${card5("Przepływy","🧾 HISTORIA",income.slice(-8).reverse().map(x=>row5("＋ "+(x.source||"dochód"),euro5(x.amount),x.date||"")).join("")+expenses.slice(-8).reverse().map(x=>row5("− "+(x.source||"wydatek"),euro5(x.amount),x.date||"")).join("")||"<div class='fl27-v6-empty'>Brak zapisanych przepływów.</div>")}
+ </section>`;
+}
+
+/* ---------- SETTINGS: complete, safe actions ---------- */
+window.FL27_V6_REPAIR=function(){
+ try{
+  const s=S5();
+  s.logs=Array.isArray(s.logs)?s.logs:[];
+  s.relations=Array.isArray(s.relations)?s.relations:[];
+  s.shop??={owned:[],rentals:[],history:[]};
+  s.finance??={income:[],expenses:[]};
+  s.flgram??={posts:[],followers:Number(s.followers||0),following:0,messages:[]};
+  s.gameDate=s.gameDate||"2026-08-30";
+  s.hour=Number.isFinite(Number(s.hour))?Number(s.hour):8;
+  window.FL27_PANEL_STATE&&(window.FL27_PANEL_STATE.panelTasks??={});
+  save5();render5();window.toast?.("Gra została naprawiona. Kariera nie została zrestartowana.");
+ }catch(e){console.error(e);window.toast?.("Nie udało się naprawić gry.");}
+};
+window.FL27_V6_RESTART=function(){
+ if(!confirm("Restart kariery? Zostaną zachowane dane rodziców, kraju i podstawowego świata, ale postęp zawodnika zostanie rozpoczęty od początku."))return;
+ const s=S5();
+ const keep={started:true,name:s.name,gender:s.gender,age:15,birthCountry:s.birthCountry,family:s.family,familyProfile:s.familyProfile,nationalities:s.nationalities};
+ Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,keep);
+ s.day=1;s.gameDate="2026-08-30";s.hour=8;s.money=Number(s.money||0);s.energy=100;s.health=90;s.form=50;s.mental=70;s.happiness=70;s.skill=35;s.pr=0;
+ save5();render5();
+};
+function settingsView(){
+ const s=S5();
+ return `<section class="fl27-v6-master">
+ ${card5("Ustawienia gry","⚙️ SYSTEM",`
+  <div class="fl27-v6-setting-group">
+   <button class="fl27-v6-setting danger" onclick="FL27_V6_RESTART()"><b>↻ Restart kariery</b><small>Ta sama baza postaci i rodziny, ale kariera od zera.</small></button>
+   <button class="fl27-v6-setting" onclick="window.FL27_newGamePlus?.()"><b>＋ Nowa gra</b><small>Nowa postać, nowe imiona, rodzice i świat.</small></button>
+   <button class="fl27-v6-setting" onclick="window.FL27_NEW_GAME_PLUS?.()"><b>✦ Nowa gra +</b><small>Sam ustalasz postać, pozycję i start — rodzice pozostają losowi.</small></button>
+   <button class="fl27-v6-setting" onclick="FL27_V6_REPAIR()"><b>🔧 Napraw grę</b><small>Odświeża uszkodzone moduły bez kasowania kariery.</small></button>
+  </div>
+ `)}
+ ${card5("Preferencje randkowania","❤️ ZAWSZE MOŻESZ ZMIENIĆ",`
+  <p class="fl27-v6-note">Nie chcesz randkować? Możesz wyłączyć ten system. Możesz też zmienić preferencje w dowolnym momencie — nie kasuje to istniejących relacji.</p>
+  <div class="fl27-v6-actions">
+   <button onclick="S5().dating??={};S5().dating.preferences={mode:'kobiety'};save5();render5()">Kobiety</button>
+   <button onclick="S5().dating??={};S5().dating.preferences={mode:'mężczyźni'};save5();render5()">Mężczyźni</button>
+   <button onclick="S5().dating??={};S5().dating.preferences={mode:'wszyscy'};save5();render5()">Wszyscy</button>
+   <button onclick="S5().dating??={};S5().dating.preferences={mode:'brak randkowania'};save5();render5()">Nie randkuję</button>
+  </div>
+ `)}
+ ${card5("Kodeks / instrukcja","📖 WSZYSTKO WYJAŚNIONE",`
+  <p class="fl27-v6-note">Kodeks opisuje czas, aktywności, mecze, wydarzenia, relacje, rodzinę, edukację, kariery poboczne, popularność, PR, finanse, sklep, transport, licencje, zdrowie, mieszkania, dzieci i przełączanie kariery na dziecko.</p>
+  <button class="fl27-v6-wide" onclick="FL27_ROUTE('history')">📖 Otwórz historię i zobacz, jak decyzje wpływają na świat</button>
+ `)}
+ </section>`;
+}
+
+/* ---------- route override: the canonical shell remains, only content is replaced ---------- */
+const oldRenderV6=window.render;
+window.render=function(){
+ const r=oldRenderV6?.apply(this,arguments);
+ try{
+   const s=S5(),main=document.getElementById("flc-main");
+   if(!main)return r;
+   if(window.__FL27_ACTIVE_V6_TAB__===tab) return r;
+   if(tab==="social"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=flgramView();return r;}
+   if(tab==="store"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=shopView();return r;}
+   if(tab==="wealth"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=financeView();return r;}
+   if(tab==="settings"){window.__FL27_ACTIVE_V6_TAB__=tab;main.innerHTML=settingsView();return r;}
+   window.__FL27_ACTIVE_V6_TAB__=tab;
+ }catch(e){console.error("FL27 V6 catalog",e)}
+ return r;
+};
+
+/* Correct tutorial IDs: the original pool calls the tasks 'stats' and 'shop',
+   not 'careerStats' and 'store'. Also expose its state to the visible strip. */
+const oldPanelTask=window.FL27_panelTask;
+window.FL27_panelTask=function(id){
+ try{
+   if(id==="careerStats")id="stats";
+   if(id==="store")id="shop";
+   if(id==="social")id="social";
+ }catch(e){}
+ const result=oldPanelTask?.(id);
+ try{
+   const s=S5();s.tutorialProgress??={};s.tutorialProgress[id]=true;
+   window.FL27_PANEL_STATE=window.FL27_PANEL_STATE||{};
+   window.FL27_PANEL_STATE.panelTasks=window.FL27_PANEL_STATE.panelTasks||{};
+   window.FL27_PANEL_STATE.panelTasks[id]={done:true};
+ }catch(e){}
+ return result;
+};
+/* Route click mapping must match the real task IDs. */
+const oldRouteV6=window.FL27_ROUTE;
+window.FL27_ROUTE=function(k){
+ const map={careerStats:"stats",store:"shop"};
+ try{window.FL27_panelTask(map[k]||k)}catch(e){}
+ window.__FL27_ACTIVE_V6_TAB__=null;
+ return oldRouteV6?oldRouteV6(k):false;
+};
+
+/* Make direct drawer clicks also mark correctly. */
+document.addEventListener("click",function(ev){
+ const b=ev.target?.closest?.("[data-tab]");if(!b)return;
+ const k=b.dataset.tab;
+ try{window.FL27_panelTask(k==="careerStats"?"stats":k==="store"?"shop":k)}catch(e){}
+ window.__FL27_ACTIVE_V6_TAB__=null;
+},true);
+
+/* Style */
+const css=document.createElement("style");css.id="fl27-v6-complete-style";css.textContent=`
+.fl27-v6-master{max-width:980px;margin:0 auto;display:grid;gap:12px}.fl27-v6-card{border:1px solid rgba(217,170,77,.18);border-radius:22px;background:linear-gradient(145deg,rgba(24,25,30,.98),rgba(13,14,18,.98));padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.16)}.fl27-v6-card-head{display:flex;flex-direction:column;margin-bottom:13px}.fl27-v6-card-head span{font-size:9px;letter-spacing:1.8px;color:#d9aa4d;font-weight:900}.fl27-v6-card-head b{font-size:21px;margin-top:4px}.fl27-v6-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:center}.fl27-v6-row:last-child{border-bottom:0}.fl27-v6-row span{color:#aeb2ba;font-size:12px}.fl27-v6-row b{color:#f4f4f5;text-align:right;font-size:12px}.fl27-v6-row small{grid-column:1/-1;color:#6f747e;font-size:9px}.fl27-v6-note{color:#9da1aa;font-size:11px;line-height:1.5}.fl27-v6-note b{color:#eee}.fl27-v6-balance{padding:13px;border-radius:14px;background:rgba(217,170,77,.08);color:#d9aa4d;margin:10px 0}.fl27-v6-balance b{color:#fff;font-size:18px}.fl27-v6-category-list{display:flex;flex-wrap:wrap;gap:7px}.fl27-v6-category-list button,.fl27-v6-actions button,.fl27-v6-wide,.fl27-v6-product button,.fl27-v6-setting{font:inherit;color:#eee;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:11px;padding:9px 11px;cursor:pointer}.fl27-v6-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.fl27-v6-wide{width:100%;margin-top:10px;text-align:left}.fl27-v6-shop-section{scroll-margin-top:10px}.fl27-v6-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.fl27-v6-product{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(255,255,255,.025);display:flex;flex-direction:column;gap:5px}.fl27-v6-product-icon{font-size:27px}.fl27-v6-product>b{font-size:12px}.fl27-v6-product>span{font-weight:800;color:#d9aa4d}.fl27-v6-product>small{color:#7e838d;font-size:9px;min-height:25px}.fl27-v6-product button{margin-top:auto;padding:7px}.v6-inline{background:none;border:0;color:#d9aa4d;font:inherit;cursor:pointer}.fl27-v6-profile{display:flex;align-items:center;gap:13px}.fl27-v6-avatar{width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:#20232b;border:1px solid rgba(217,170,77,.35);font-size:25px;font-weight:900}.fl27-v6-profile h1{margin:0;font-size:22px}.fl27-v6-profile span,.fl27-v6-profile small{display:block;color:#858a94;font-size:10px;margin-top:3px}.fl27-v6-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:15px 0}.fl27-v6-metrics div{padding:10px 6px;text-align:center;background:rgba(255,255,255,.035);border-radius:12px}.fl27-v6-metrics b,.fl27-v6-metrics span{display:block}.fl27-v6-metrics b{font-size:14px}.fl27-v6-metrics span{font-size:8px;color:#7d828b;margin-top:3px}.fl27-v6-post{border-top:1px solid rgba(255,255,255,.07);padding:13px 0}.fl27-v6-post-head{display:flex;justify-content:space-between}.fl27-v6-post-head span,.fl27-v6-post small{color:#777c86;font-size:9px}.fl27-v6-post-media{margin:9px 0;height:110px;border-radius:15px;background:linear-gradient(145deg,#1c1e25,#101116);display:grid;place-items:center;font-size:42px}.fl27-v6-post p{font-size:12px}.fl27-v6-message{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.fl27-v6-message span{display:block;color:#8c919a;font-size:10px;margin-top:3px}.fl27-v6-empty{padding:15px;border-radius:12px;background:rgba(255,255,255,.025);color:#7f848d;font-size:10px}.fl27-v6-setting-group{display:grid;gap:8px}.fl27-v6-setting{width:100%;text-align:left;padding:14px}.fl27-v6-setting b,.fl27-v6-setting small{display:block}.fl27-v6-setting small{color:#7e838d;margin-top:4px;font-size:9px}.fl27-v6-setting.danger{border-color:rgba(190,80,80,.35)}@media(max-width:560px){.fl27-v6-products{grid-template-columns:1fr}.fl27-v6-metrics{grid-template-columns:repeat(3,1fr)}.fl27-v6-card{padding:14px}.fl27-v6-profile{align-items:flex-start}}
+`;
+document.head.appendChild(css);
+
+/* Ensure first render after this module gets the correct custom tab. */
+setTimeout(()=>{window.__FL27_ACTIVE_V6_TAB__=null;render5()},0);
+})();
+</script>
+
 </body>
 </html>
