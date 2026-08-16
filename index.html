@@ -3,327 +3,725 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Football Life 27 — Clean</title>
+<meta name="theme-color" content="#080a0f">
+<title>FL Life 27 — Football Life</title>
 <style>
-:root{--bg:#090b10;--panel:#11151d;--panel2:#161b24;--line:#29313d;--text:#f3f5f7;--muted:#9ca5b1;--gold:#d9ae55;--green:#65c98b;--red:#ef7777;--blue:#70a9ff}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button{font:inherit}.app{min-height:100vh}.top{position:sticky;top:0;z-index:30;background:rgba(9,11,16,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.topin{max-width:1100px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:900;letter-spacing:.5px}.brand span{color:var(--gold)}.date{font-size:12px;color:var(--muted);text-align:right}
-.alerts{max-width:1100px;margin:12px auto 0;padding:0 16px}.alert{background:linear-gradient(135deg,#211d14,#151820);border:1px solid #5a4725;border-radius:16px;padding:12px;margin-bottom:8px;cursor:pointer}.alert b{display:block}.alert small{color:var(--muted)}
-.wrap{max-width:1100px;margin:auto;padding:14px 16px 110px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{background:linear-gradient(145deg,var(--panel),#0e1218);border:1px solid var(--line);border-radius:18px;padding:16px;min-width:0;overflow:hidden}.hero{grid-column:1/-1}.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:1/-1}
-.kicker{font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:900;text-transform:uppercase}.title{font-size:25px;font-weight:900;margin:4px 0 7px}.sub{color:var(--muted);font-size:12px;line-height:1.55}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.metric{background:rgba(255,255,255,.035);border:1px solid var(--line);padding:10px;border-radius:12px}.metric span{display:block;color:var(--muted);font-size:9px}.metric b{font-size:18px}
-.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);min-width:0}.row:last-child{border-bottom:0}.row span{color:var(--muted);font-size:12px;min-width:0}.row b{text-align:right;min-width:0;overflow-wrap:anywhere}.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.chip{border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:10px;color:var(--muted)}
-.actions{display:grid;gap:8px;margin-top:12px}.btn{width:100%;border:1px solid var(--line);border-radius:11px;background:#171c24;color:var(--text);padding:11px;text-align:left;cursor:pointer}.btn:hover{border-color:#687483}.btn.primary{background:linear-gradient(135deg,#3a2f1b,#171a20);border-color:#71582b}.btn.danger{border-color:#633535}.btn small{display:block;color:var(--muted);margin-top:3px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:13px;padding:11px;background:rgba(255,255,255,.025)}.item b{display:block}.item small{color:var(--muted);line-height:1.4}.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:13px}
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(10,12,17,.98);border-top:1px solid var(--line);overflow:auto}.navin{max-width:1100px;margin:auto;display:flex;gap:2px;padding:7px 8px}.nav button{flex:1;min-width:72px;border:0;background:none;color:var(--muted);padding:8px 5px;border-radius:10px;font-size:10px;cursor:pointer}.nav button.active{background:#1b2028;color:var(--text)}.nav i{display:block;font-style:normal;font-size:17px;margin-bottom:2px}
-.modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:14px}.modalbox{width:min(720px,100%);max-height:90vh;overflow:auto;background:#11151d;border:1px solid #3a424e;border-radius:20px;padding:19px;box-shadow:0 30px 80px #000}.modalbox h2{margin:5px 0 8px}.close{float:right;border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer}
-.event{border:1px solid #6b552b;background:linear-gradient(145deg,#1d1912,#12161d)}.choice{font-weight:800}
-.progress{height:7px;background:#222832;border-radius:9px;overflow:hidden;margin-top:6px}.progress i{display:block;height:100%;background:var(--gold)}
-.shopgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.product{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#141922}.product .emoji{font-size:25px}.product b{margin-top:6px}.product small{color:var(--muted);min-height:34px}.product .price{margin:8px 0;color:var(--gold);font-weight:800}.product .btn{margin-top:auto}
-.fl{background:#0d1117;border:1px solid #26303b;border-radius:22px;overflow:hidden}.flhead{padding:15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.post{padding:15px;border-bottom:1px solid var(--line)}.posthead{display:flex;gap:9px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;background:#252c37;display:grid;place-items:center}.post img{width:100%;border-radius:14px;margin-top:10px}.postactions{display:flex;gap:14px;margin-top:10px;color:var(--muted)}.postactions button{background:none;border:0;color:inherit;cursor:pointer}
-table{width:100%;border-collapse:collapse;font-size:11px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}th{color:var(--muted)}
-@media(max-width:760px){.span4,.span6,.span8{grid-column:1/-1}.metrics{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}.shopgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.title{font-size:22px}}
-@media(max-width:430px){.shopgrid{grid-template-columns:1fr}.wrap{padding-left:11px;padding-right:11px}.alerts{padding:0 11px}.topin{padding:10px 11px}}
+:root{
+  --bg:#07090d;--panel:#11141b;--panel2:#171b23;--panel3:#1d222c;
+  --gold:#d6ad45;--gold2:#f0cf68;--line:#2a3443;--text:#f5f6f8;--muted:#9da5b3;
+  --green:#52d38a;--red:#ff6570;--blue:#78a9ff;--purple:#b995ff;
+  --shadow:0 14px 40px rgba(0,0,0,.28);--radius:24px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+body{min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{border:0;color:inherit}
+.app{max-width:760px;margin:0 auto;padding-bottom:96px}
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  min-height:92px;padding:12px 14px;background:rgba(7,9,13,.94);backdrop-filter:blur(18px);
+  border-bottom:1px solid #202733
+}
+.logo{width:88px;height:54px;object-fit:contain;flex:0 0 auto}
+.player-mini{min-width:0;flex:1}
+.player-name{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-sub{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats-mini{display:flex;gap:6px}
+.mini-stat{width:54px;height:54px;border:1px solid var(--line);border-radius:15px;background:#11141a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px}
+.mini-stat b{font-size:15px;line-height:16px}.gold{color:var(--gold2)}.heart{color:#ff5964}.money{color:#f0ca61}.energy{color:#ffd85e}
+main{padding:18px 14px}
+.section{margin-bottom:18px}
+.card{background:linear-gradient(180deg,#12161d,#101319);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.gold-card{border-color:#735b24}
+.eyebrow{color:var(--gold2);font-size:13px;letter-spacing:3px;font-weight:900;text-transform:uppercase}
+h1{font-size:32px;line-height:1.05;margin:8px 0 8px}h2{font-size:24px;margin:0 0 10px}h3{margin:0;font-size:17px}
+.muted{color:var(--muted)}.small{font-size:12px}.tiny{font-size:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:#171b22;border:1px solid #293240;border-radius:18px;padding:13px}
+.metric span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}.metric b{display:block;font-size:22px;margin-top:3px}
+.btn{width:100%;padding:13px 15px;border-radius:16px;background:#1a1f28;border:1px solid #303a49;text-align:left;cursor:pointer}
+.btn:hover{border-color:#58667b}.btn.goldbtn{background:linear-gradient(180deg,#332b1b,#211c13);border-color:#816625}.btn:disabled{opacity:.4;cursor:not-allowed}
+.action{display:flex;align-items:center;gap:13px;width:100%;padding:14px 14px;margin:9px 0;background:#171b22;border:1px solid #293240;border-radius:18px;text-align:left;cursor:pointer}
+.action:active,.btn:active{transform:scale(.99)}
+.action .ico{font-size:27px;width:38px;text-align:center}.action .body{flex:1;min-width:0}.action .title{font-size:17px;font-weight:750}.action .desc{font-size:12px;color:var(--muted);margin-top:4px}.action .right{text-align:right;white-space:nowrap}.action .time{font-size:13px;color:var(--gold2);font-weight:800}.action .cost{font-size:11px;color:var(--muted);margin-top:3px}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.badge{padding:6px 9px;border-radius:999px;background:#1a1f28;border:1px solid #303a49;font-size:11px;color:#cbd1dc}.badge.gold{border-color:#705923;background:#2a2417}
+.notice{display:flex;gap:12px;align-items:center;background:linear-gradient(100deg,#2c2619,#17191e);border:1px solid #755d26;border-radius:19px;padding:15px;margin-top:10px;cursor:pointer}
+.notice .ico{font-size:25px}.notice b{font-size:15px}.notice span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(760px,100%);z-index:40;padding:8px 9px max(8px,env(safe-area-inset-bottom));background:rgba(12,15,20,.96);border-top:1px solid #28313e;backdrop-filter:blur(18px)}
+.tab{background:transparent;border-radius:15px;padding:8px 3px;color:#8f98a8;cursor:pointer;font-size:11px}.tab .ico{display:block;font-size:22px;margin-bottom:3px}.tab.active{background:#1b2029;color:#fff}.tab.active .ico{filter:saturate(1.2)}
+.fab{position:fixed;right:max(14px,calc((100vw - 760px)/2 + 14px));bottom:92px;z-index:35;width:58px;height:58px;border-radius:18px;background:#28251c;border:1px solid #8b6b28;color:var(--gold2);font-size:26px;cursor:pointer;box-shadow:var(--shadow)}
+.drawer{position:fixed;inset:0;z-index:80;pointer-events:none}
+.drawer.open{pointer-events:auto}.drawer-bg{position:absolute;inset:0;background:rgba(0,0,0,.65);opacity:0;transition:.2s}.drawer.open .drawer-bg{opacity:1}
+.drawer-panel{position:absolute;top:0;bottom:0;right:0;width:min(90%,380px);background:#0f1218;border-left:1px solid #3b4554;transform:translateX(100%);transition:.25s;padding:22px 16px;overflow:auto}.drawer.open .drawer-panel{transform:translateX(0)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.close{width:42px;height:42px;border-radius:13px;background:#1c212a;cursor:pointer}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.menu-item{padding:15px;border-radius:17px;background:#171b22;border:1px solid #2b3441;cursor:pointer;text-align:left}.menu-item .ico{font-size:23px}.menu-item b{display:block;margin-top:6px}.menu-item span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.modal{position:fixed;inset:0;z-index:100;background:rgba(3,4,7,.78);display:none;align-items:flex-end}.modal.show{display:flex}.modal-sheet{width:min(760px,100%);max-height:92vh;overflow:auto;margin:auto auto 0;background:#11141b;border:1px solid #3a4554;border-radius:28px 28px 0 0;padding:20px 16px 28px;box-shadow:0 -20px 80px rgba(0,0,0,.5)}
+.modal.full .modal-sheet{height:100%;max-height:none;border-radius:0;margin:0}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.modal-actions{display:grid;gap:10px;margin-top:16px}.choice{padding:16px;border-radius:18px;background:#191e27;border:1px solid #303a49;text-align:left;cursor:pointer}.choice b{display:block}.choice span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.list{display:grid;gap:10px}.person,.property,.post,.history-item,.job{background:#171b22;border:1px solid #293240;border-radius:18px;padding:15px}.person h3,.property h3,.job h3{margin-bottom:5px}.divider{height:1px;background:#293240;margin:16px 0}
+.progress{height:8px;background:#242a34;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0}
+.toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,20px);opacity:0;z-index:120;background:#1a2029;border:1px solid #3a4554;border-radius:14px;padding:12px 15px;box-shadow:var(--shadow);transition:.25s;max-width:90%;font-size:13px}.toast.show{opacity:1;transform:translate(-50%,0)}
+.form{display:grid;gap:9px}.input,.select,.textarea{width:100%;background:#171b22;color:#fff;border:1px solid #303a49;border-radius:14px;padding:12px}.textarea{min-height:90px;resize:vertical}
+.kpi{font-size:13px;color:var(--muted)}.kpi b{color:#fff}
+@media(min-width:761px){.app{border-left:1px solid #161c25;border-right:1px solid #161c25;min-height:100vh}.topbar{padding-left:24px;padding-right:24px}}
 </style>
-
-<style id="fl27-v11-visual">
-
-.fl27-v6-master{max-width:980px;margin:0 auto;display:grid;gap:12px}.fl27-v6-card{border:1px solid rgba(217,170,77,.18);border-radius:22px;background:linear-gradient(145deg,rgba(24,25,30,.98),rgba(13,14,18,.98));padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.16)}.fl27-v6-card-head{display:flex;flex-direction:column;margin-bottom:13px}.fl27-v6-card-head span{font-size:9px;letter-spacing:1.8px;color:#d9aa4d;font-weight:900}.fl27-v6-card-head b{font-size:21px;margin-top:4px}.fl27-v6-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:center}.fl27-v6-row:last-child{border-bottom:0}.fl27-v6-row span{color:#aeb2ba;font-size:12px}.fl27-v6-row b{color:#f4f4f5;text-align:right;font-size:12px}.fl27-v6-row small{grid-column:1/-1;color:#6f747e;font-size:9px}.fl27-v6-note{color:#9da1aa;font-size:11px;line-height:1.5}.fl27-v6-note b{color:#eee}.fl27-v6-balance{padding:13px;border-radius:14px;background:rgba(217,170,77,.08);color:#d9aa4d;margin:10px 0}.fl27-v6-balance b{color:#fff;font-size:18px}.fl27-v6-category-list{display:flex;flex-wrap:wrap;gap:7px}.fl27-v6-category-list button,.fl27-v6-actions button,.fl27-v6-wide,.fl27-v6-product button,.fl27-v6-setting{font:inherit;color:#eee;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:11px;padding:9px 11px;cursor:pointer}.fl27-v6-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.fl27-v6-wide{width:100%;margin-top:10px;text-align:left}.fl27-v6-shop-section{scroll-margin-top:10px}.fl27-v6-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.fl27-v6-product{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(255,255,255,.025);display:flex;flex-direction:column;gap:5px}.fl27-v6-product-icon{font-size:27px}.fl27-v6-product>b{font-size:12px}.fl27-v6-product>span{font-weight:800;color:#d9aa4d}.fl27-v6-product>small{color:#7e838d;font-size:9px;min-height:25px}.fl27-v6-product button{margin-top:auto;padding:7px}.v6-inline{background:none;border:0;color:#d9aa4d;font:inherit;cursor:pointer}.fl27-v6-profile{display:flex;align-items:center;gap:13px}.fl27-v6-avatar{width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:#20232b;border:1px solid rgba(217,170,77,.35);font-size:25px;font-weight:900}.fl27-v6-profile h1{margin:0;font-size:22px}.fl27-v6-profile span,.fl27-v6-profile small{display:block;color:#858a94;font-size:10px;margin-top:3px}.fl27-v6-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:15px 0}.fl27-v6-metrics div{padding:10px 6px;text-align:center;background:rgba(255,255,255,.035);border-radius:12px}.fl27-v6-metrics b,.fl27-v6-metrics span{display:block}.fl27-v6-metrics b{font-size:14px}.fl27-v6-metrics span{font-size:8px;color:#7d828b;margin-top:3px}.fl27-v6-post{border-top:1px solid rgba(255,255,255,.07);padding:13px 0}.fl27-v6-post-head{display:flex;justify-content:space-between}.fl27-v6-post-head span,.fl27-v6-post small{color:#777c86;font-size:9px}.fl27-v6-post-media{margin:9px 0;height:110px;border-radius:15px;background:linear-gradient(145deg,#1c1e25,#101116);display:grid;place-items:center;font-size:42px}.fl27-v6-post p{font-size:12px}.fl27-v6-message{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.fl27-v6-message span{display:block;color:#8c919a;font-size:10px;margin-top:3px}.fl27-v6-empty{padding:15px;border-radius:12px;background:rgba(255,255,255,.025);color:#7f848d;font-size:10px}.fl27-v6-setting-group{display:grid;gap:8px}.fl27-v6-setting{width:100%;text-align:left;padding:14px}.fl27-v6-setting b,.fl27-v6-setting small{display:block}.fl27-v6-setting small{color:#7e838d;margin-top:4px;font-size:9px}.fl27-v6-setting.danger{border-color:rgba(190,80,80,.35)}@media(max-width:560px){.fl27-v6-products{grid-template-columns:1fr}.fl27-v6-metrics{grid-template-columns:repeat(3,1fr)}.fl27-v6-card{padding:14px}.fl27-v6-profile{align-items:flex-start}}
-
-/* V11 shell: same clean engine, but back to the compact Football Life visual language. */
-.card{border-color:rgba(217,170,77,.18);border-radius:22px;background:linear-gradient(145deg,rgba(24,25,30,.98),rgba(13,14,18,.98));box-shadow:0 12px 35px rgba(0,0,0,.16)}
-.title{font-size:21px;margin-top:4px}
-.sub{font-size:11px;color:#9da1aa}
-.btn{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.10);border-radius:11px;padding:10px 11px}
-.btn.primary{background:rgba(217,170,77,.08);border-color:rgba(217,170,77,.35)}
-.metrics{gap:7px}.metric{background:rgba(255,255,255,.035);border:0;border-radius:12px;padding:10px 6px;text-align:center}
-.metric span{font-size:8px}.metric b{font-size:14px}
-.topin{max-width:980px}.wrap{max-width:980px}
-.navin{max-width:980px}
-</style>
-
 </head>
 <body>
-<div id="app"></div>
+<div class="app">
+<header class="topbar">
+  <img class="logo" src="data:image/png;base64,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">
+  <div class="player-mini">
+    <div class="player-name" id="topName"></div>
+    <div class="player-sub" id="topSub"></div>
+  </div>
+  <div class="stats-mini">
+    <div class="mini-stat gold">⭐<b id="topPop"></b></div>
+    <div class="mini-stat heart">❤️<b id="topHealth"></b></div>
+    <div class="mini-stat money">💰<b id="topMoney"></b></div>
+    <div class="mini-stat energy">⚡<b id="topEnergy"></b></div>
+  </div>
+</header>
+<main id="main"></main>
+<button class="fab" onclick="openDrawer()">☰</button>
+<nav class="tabs">
+  <button class="tab active" data-tab="day" onclick="go('day')"><span class="ico">🏠</span>Dzień</button>
+  <button class="tab" data-tab="career" onclick="go('career')"><span class="ico">⚽</span>Kariera</button>
+  <button class="tab" data-tab="stats" onclick="go('stats')"><span class="ico">📊</span>Statystyki</button>
+  <button class="tab" data-tab="life" onclick="go('life')"><span class="ico">🧬</span>Życie</button>
+  <button class="tab" data-tab="family" onclick="go('family')"><span class="ico">👥</span>Rodzina</button>
+</nav>
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="drawer-bg" onclick="closeDrawer()"></div>
+  <aside class="drawer-panel">
+    <div class="drawer-head"><div><div class="eyebrow">FL LIFE 27</div><h2 style="margin-top:5px">Menu gry</h2></div><button class="close" onclick="closeDrawer()">✕</button></div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </aside>
+</div>
+
+<div class="modal" id="modal"><div class="modal-sheet" id="modalSheet"></div></div>
+<div class="toast" id="toast"></div>
+
 <script>
-"use strict";
-/* CLEAN ENGINE V10: one state, one renderer, one click pipeline, no previous mechanisms. */
-const KEY="FL27_CLEAN_V10";
-const countries=["Polska","Hiszpania","Anglia","Niemcy","Włochy","Francja","Portugalia","Holandia","Belgia","USA","Brazylia","Argentyna","Chorwacja","Dania","Norwegia","Szwecja"];
-const cities={Polska:["Poznań","Warszawa","Kraków","Wrocław","Gdańsk"],Hiszpania:["Barcelona","Madryt","Palma","Walencja"],Anglia:["Londyn","Manchester","Liverpool"],Niemcy:["Berlin","Monachium","Dortmund"],Włochy:["Mediolan","Rzym","Turyn"],Francja:["Paryż","Marsylia","Lyon"],Portugalia:["Lizbona","Porto"],Holandia:["Amsterdam","Rotterdam"],Belgia:["Bruksela","Brugia"],USA:["Los Angeles","Miami","New York"],Brazylia:["São Paulo","Rio de Janeiro"],Argentyna:["Buenos Aires"],Chorwacja:["Zagrzeb","Split"],Dania:["Kopenhaga"],Norwegia:["Oslo"],Szwecja:["Sztokholm"]};
-const sideNames=["Muzyk","Twórca krótkich form","Twórca wideo","Streamer","Influencer"];
-const products=[
-["Kawa ☕","Mały wydatek, +1 szczęście",4,"happiness",1],["Restauracja 🍽️","Wyjście z jedzeniem",35,"happiness",3],["Koszulka 👕","Ubranie, +wizerunek",45,"image",1],
-["Buty piłkarskie 👟","Lepszy sprzęt, +1 technika",180,"skill",1],["Korki premium ⚽","Sprzęt sponsora/zakup, +2 forma",350,"form",2],
-["Telefon 📱","+wizerunek, odblokowuje część social",700,"image",3],["Laptop 💻","Potrzebny do części karier pobocznych",1100,"side",0],
-["Konsola 🎮","+szczęście",450,"happiness",3],["Rower 🚲","Tańszy transport",500,"transport",1],["Samochód 🚗","Szybszy dojazd, koszty utrzymania",12000,"car",1],
-["Zegarek ⌚","+wizerunek",2500,"image",3],["Biżuteria 💎","+wizerunek/prezent",5000,"image",5],["Tatuaż 🖋️","+wizerunek, ale może zmienić reakcje",900,"image",1],
-["Mieszkanie 🏢","Możesz kupić, wynająć lub później sprzedać",90000,"home",0],["Dom 🏠","Więcej miejsca i możliwości rozbudowy",220000,"home",0],
-["Rezydencja 🏰","Dużo pokoi, garaż, luksus",1200000,"home",0],["Jacht 🛥️","Mobilność i luksus",800000,"luxury",2],["Helikopter 🚁","Szybki transport",2500000,"luxury",2],
-["Samolot ✈️","Dalekie podróże i własne loty",9000000,"luxury",3],["Wyspa 🏝️","Najwyższy poziom luksusu",25000000,"luxury",5]
-];
-let state=load();
-function fresh(){return {started:true,day:1,year:2026,month:9,dayOfMonth:1,hour:8,age:15,name:"Alex Nowak",position:"Skrzydłowy",ovr:54,skill:54,form:72,energy:90,health:95,mental:70,happiness:70,popularity:1,image:50,money:120,marketValue:15000,totalEarned:0,totalSpent:0,
-country:"Polska",city:"Poznań",club:"Akademia Poznań",injury:null,injuryDays:0,school:"Szkoła podstawowa",educationLevel:"uczeń",parentsTogether:true,
-parents:[{name:"Piotr Nowak",job:"kucharz",income:1900,expenses:1450,housing:"wynajem",city:"Poznań",car:"stary hatchback",support:75,interest:80},{name:"Anna Nowak",job:"księgowa",income:2200,expenses:1550,housing:"wynajem",city:"Poznań",car:"brak",support:80,interest:85}],
-relations:[],children:[],partner:null,exPartners:[],owned:[],rentals:[],investments:[],businesses:[],charity:0,sideCareers:[],courses:[],licenses:[],stats:{},trophies:[],history:[],news:[],offers:[],trials:[],events:[],messages:[],posts:[],calendar:[],tutorial:{started:false,done:[]},dating:"wszyscy",settings:{sound:true},pendingEvent:null,tab:"home",matchNext:7,matchCount:0};}
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY));return x&&x.started?x:fresh()}catch(e){return fresh()}}
-function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function money(x){return "€"+Math.round(Number(x||0)).toLocaleString("pl-PL")}
-function clamp(x,a=0,b=100){return Math.max(a,Math.min(b,x))}
-function addHistory(title,text,impact=""){state.history.unshift({day:state.day,date:dateText(),title,text,impact});state.history=state.history.slice(0,200)}
-function news(title,text,action=null){state.news.unshift({id:Date.now()+Math.random(),title,text,action,read:false});state.news=state.news.slice(0,30)}
-function dateText(){return `${String(state.dayOfMonth).padStart(2,"0")}.${String(state.month).padStart(2,"0")}.${state.year}`}
-function addRelation(name,type="znajomy",extra=""){if(!name)return;let r=state.relations.find(x=>x.name===name);if(!r){r={id:Date.now()+Math.random(),name,type,level:5,firstMet:dateText(),lastMet:dateText(),status:"aktywna",extra};state.relations.push(r)}else{r.lastMet=dateText();r.level=clamp(r.level+2)}return r}
-function award(title,reason,club=state.club){state.trophies.push({title,reason,club,date:dateText()})}
-function addEvent(title,text,choices){state.pendingEvent={title,text,choices};render()}
-function decision(label,fn){return {label,fn}}
-function advance(hours=1){
- state.hour+=hours;
- while(state.hour>=24){state.hour-=24;newDay()}
- save();render();
-}
-function newDay(){
- state.day++;state.dayOfMonth++;
- const max=[31,30,31,30,31,30,31,31,30,31,30,31][state.month-1]||30;
- if(state.dayOfMonth>max){state.dayOfMonth=1;state.month++;if(state.month>12){state.month=1;state.year++;}}
- state.hour=8;state.energy=clamp(state.energy+35);state.health=clamp(state.health+8);state.mental=clamp(state.mental+2);state.form=clamp(state.form+4);
- if(state.injuryDays>0){state.injuryDays--;if(state.injuryDays===0)state.injury=null}
- if(state.matchNext>0)state.matchNext--;
- familySimulation();calendarNews();
- if(state.matchNext===0){state.matchNext=7;news("⚽ Mecz dzisiaj","Masz mecz. Wejdź w „Przebieg dnia” i rozegraj go.");}
- randomEvent();
- save();
-}
-function sleep(){newDay();save();window.scrollTo(0,0);render();setTimeout(()=>window.scrollTo(0,0),0)}
-function familySimulation(){
- state.parents.forEach(p=>{if(Math.random()<.10){let delta=Math.round((Math.random()*300)-100);p.income=Math.max(900,p.income+delta);news("🏠 Zmiana w rodzinie",`${p.name}: zarobki wynoszą teraz ${money(p.income)} miesięcznie.`)}});
- if(Math.random()<.06){state.parentsTogether=!state.parentsTogether;news("👨‍👩‍👧 Zmiana sytuacji rodziny",state.parentsTogether?"Rodzice znów próbują być razem.":"Rodzice rozstali się. Ich mieszkania, wydatki i relacje będą teraz liczone osobno.");}
-}
-function calendarNews(){
- if(state.month===9&&state.dayOfMonth===1)news("📚 Rozpoczęcie roku szkolnego","Pierwszy dzień szkoły. Wpływa na plan dnia, treningi i wydarzenia szkolne.");
- if(state.month===12&&state.dayOfMonth===24)news("🎄 Wigilia","Święto rodzinne — szkoła i większość pracy są wolne.");
- if(state.month===1&&state.dayOfMonth===1)news("🎆 Nowy Rok","Dzień wolny.");
-}
-function randomEvent(){
- if(Math.random()>.42)return;
- const pool=[];
- pool.push(()=>addEvent("Trener zatrzymuje Cię po treningu","Trener mówi, że widzi poprawę, ale chce żebyś popracował nad mentalem.",[
- decision("🔥 Zostaję dłużej i pracuję",()=>{state.skill=clamp(state.skill+2);state.energy=clamp(state.energy-8);addHistory("Dodatkowa praca","Zostałaś/eś po treningu.");}),
- decision("⚖️ Odpoczywam zgodnie z planem",()=>{state.health=clamp(state.health+2);addHistory("Regeneracja","Nie przeciążasz organizmu.");}),
- decision("💬 Pytam o dokładny feedback",()=>{state.mental=clamp(state.mental+2);news("🧠 Feedback trenera","Trener polecił pracę nad decyzjami boiskowymi.");})
- ]));
- pool.push(()=>addEvent("Nowa osoba na boisku","Po treningu podchodzi do Ciebie zawodnik z innego klubu.",[
- decision("🤝 Przedstawiam się",()=>{addRelation("Młody zawodnik z treningu","piłkarz","Poznany na boisku");state.popularity+=.2}),
- decision("👋 Tylko się witam",()=>addRelation("Młody zawodnik z treningu","piłkarz")),
- decision("🚶 Idę dalej",()=>{})
- ]));
- pool[Math.floor(Math.random()*pool.length)]();
-}
-function playMatch(){
- if(state.matchNext>0){alert("Najbliższy mecz za "+state.matchNext+" dni.");return}
- if(state.energy<25){alert("Masz za mało energii.");return}
- state.matchCount++;state.energy-=20;state.form=clamp(state.form+Math.round(Math.random()*8-1));let perf=clamp(Math.round(state.ovr+Math.random()*25-12),1,99);
- state.stats.matches=(state.stats.matches||0)+1;state.stats.ratingTotal=(state.stats.ratingTotal||0)+perf;
- addHistory("Mecz",`Występ oceniony na ${perf}/100.`,"forma, OVR i relacje mogą się zmienić");
- addRelation("Rywal z meczu","piłkarz","Kontakt poznany podczas meczu");
- state.matchNext=7;
- addEvent("⚽ Decyzja po meczu",`Twój występ: ${perf}/100. Co robisz po spotkaniu?`,[
- decision("🎙️ Rozmawiam z trenerem o występie",()=>{state.mental=clamp(state.mental+2);news("🧠 Feedback trenera","Trener omówił z Tobą występ.");}),
- decision("📱 Wrzucam post na FLgram",()=>{state.popularity+=.4;state.image=clamp(state.image+1);publish(`Mecz za mną. Ocena ${perf}/100 ⚽`);}),
- decision("🛌 Idę regenerować się",()=>{state.health=clamp(state.health+5);})
- ]);
-}
-function openScout(o){
- addEvent(`🔎 Skaut: ${o.club}`,`${o.country} • ${o.type}. Zauważono Cię podczas ${o.trigger||"obserwacji"}. Nie jest to jeszcze kontrakt.`,[
- decision("💬 Chcę poznać szczegóły",()=>{o.status="discussion";addHistory("Rozmowa ze skautem",`Pytasz ${o.club} o warunki.`);}),
- decision("⚽ Zgadzam się na test",()=>{if(state.age<18){parentDecision(o)}else{startTrial(o)}}),
- decision("🛑 Odrzucam",()=>{o.status="declined";addHistory("Odrzucona propozycja",o.club)})
- ]);
-}
-function parentDecision(o){
- addEvent("👨‍👩‍👧 Rozmowa z rodzicami",`Masz ${state.age} lat. Rodzice mogą realnie wpłynąć na wyjazd. ${state.parents[0].name}: ${state.parents[0].support}/100 wsparcia. ${state.parents[1].name}: ${state.parents[1].support}/100.`,[
- decision("❤️ Zgadzamy się",()=>{o.status="parent_ok";startTrial(o)}),
- decision("📋 Zgadzamy się, ale tylko z warunkami",()=>{o.status="conditions";addEvent("📋 Warunki rodziny","Rodzice chcą, żeby klub zapewnił szkołę, opiekę i rozsądną odległość.",[
- decision("🏠 Szukamy opcji bliżej",()=>{o.status="negotiating";news("📍 Negocjacje ze skautem","Poproszono o opcję bliżej domu.");}),
- decision("📚 Najważniejsza szkoła",()=>{o.status="school_condition";state.mental+=1;}),
- decision("⚽ Mimo wszystko próbuję",()=>{o.status="parent_ok";startTrial(o)})
- ])}),
- decision("🛑 Rodzice odmawiają",()=>{o.status="parents_refused";news("🛑 Rodzice odmówili",`Na razie nie zgadzają się na ${o.club}. Możesz wrócić do tematu.`)})
- ]);
-}
-function startTrial(o){state.trials.push({id:Date.now(),club:o.club,country:o.country,status:"oczekuje",day:state.day});news("⚽ Test skautingowy",`${o.club} przygotowuje dla Ciebie test. Wejdź w Karierę, żeby podjąć decyzję.`);addHistory("Test skautingowy",`Zaakceptowano etap testowy ${o.club}.`)}
-function trialDecision(t){
- addEvent(`⚽ Test w ${t.club}`,"Trener oceni technikę, formę, mental i zachowanie. Wybierz sposób podejścia.",[
- decision("🔥 Daję z siebie wszystko",()=>{t.status="completed";state.ovr=clamp(state.ovr+2);state.skill=clamp(state.skill+2);news("🌟 Test udany",`${t.club} jest pod wrażeniem.`)}),
- decision("⚖️ Gram rozsądnie",()=>{t.status="completed";state.form=clamp(state.form+2);news("📝 Test zakończony",`${t.club} będzie dalej obserwować zawodnika.`)}),
- decision("✋ Rezygnuję",()=>{t.status="declined"})
- ]);
-}
-function activity(name,cost,hrs,delta){
- if(state.hour+hrs>22){alert("Nie ma już tyle czasu.");return}
- if(state.money<cost){alert("Brakuje pieniędzy.");return}
- state.money-=cost;state.totalSpent+=cost;Object.entries(delta||{}).forEach(([k,v])=>state[k]=clamp(Number(state[k]||0)+v));addHistory(name,`Wydano ${money(cost)}.`,`czas: ${hrs} h`);advance(hrs)
-}
-function publish(text){
- state.posts.unshift({text,likes:Math.floor(state.popularity*20+Math.random()*10),date:dateText()});state.popularity=clamp(state.popularity+.2);save()
-}
-function route(tab){state.tab=tab;save();render();window.scrollTo(0,0)}
-function buy(p){
- if(state.money<p[2]){alert("Brakuje "+money(p[2]-state.money));return}
- state.money-=p[2];state.totalSpent+=p[2];state.owned.push({name:p[0],price:p[2],date:dateText()});
- if(p[3]&&p[4])state[p[3]]=clamp(Number(state[p[3]]||0)+p[4]);
- if(p[3]==="home")news("🏠 Nowa nieruchomość","Posiadłość pojawiła się w zakładce Życie. Możesz ją rozbudowywać.");
- addHistory("Zakup",p[0],`-${money(p[2])}`);save();render()
-}
-function resetCareer(){if(confirm("Restart kariery? Wszystkie dane tej kariery zostaną usunięte.")){state=fresh();save();render()}}
-function newGame(){if(confirm("Nowa gra z losowymi danymi?")){state=fresh();state.name=["Kacper","Maja","Oskar","Lena","Adam","Julia"][Math.floor(Math.random()*6)]+" "+["Nowak","Kowalski","Wójcik","Mazur"][Math.floor(Math.random()*4)];save();render()}}
-function repair(){save();render();alert("Stan gry zapisany i ekran odświeżony. Kariera nie została zresetowana.")}
-function tutorDone(x){if(!state.tutorial.done.includes(x))state.tutorial.done.push(x);save()}
-function ensureScout(){
- if(state.day%5===0 && !state.offers.some(o=>o.day===state.day)){let c=countries[Math.floor(Math.random()*countries.length)],club=({"Polska":"Lech Poznań","Hiszpania":"RCD Mallorca","Anglia":"Manchester City","Niemcy":"Borussia Dortmund","Włochy":"Juventus","Francja":"Olympique Lyon"}[c]||"Klub "+c);let o={id:Date.now(),club,country:c,type:state.age<18?"zaproszenie na obserwację":"rozmowa transferowa",trigger:state.matchCount?"meczu":"obserwacji",status:"new",day:state.day};state.offers.push(o);news("🔎 Skaut Cię zauważył",`${club} chce się Tobą zainteresować. Kliknij tutaj, żeby podjąć decyzję.`,()=>openScout(o))}
-}
-function calendarView(){
- let rows=[];for(let i=0;i<14;i++){let d=new Date(state.year,state.month-1,state.dayOfMonth+i);let dd=String(d.getDate()).padStart(2,"0"),mm=String(d.getMonth()+1).padStart(2,"0");let holiday=(dd+"."+mm)==="01.01"?"Nowy Rok":(dd+"."+mm)==="24.12"?"Wigilia":(dd+"."+mm)==="01.09"?"Rozpoczęcie szkoły":"";rows.push(`<div class="row"><span>${dd}.${mm}.${d.getFullYear()} ${["nd","pn","wt","śr","cz","pt","sb"][d.getDay()]}</span><b>${i===state.matchNext?"⚽ MECZ":holiday||"—"}</b></div>`)}return `<div class="card span12"><div class="kicker">📅 KALENDARZ</div><div class="title">Najbliższe dni</div>${rows.join("")}</div>`
-}
-function home(){
- ensureScout();
- let alerts=state.news.filter(n=>!n.read).slice(0,3);
- return `<div class="grid"><section class="card hero"><div class="kicker">PRZEBIEG DNIA</div><div class="title">${esc(state.name)}</div><div class="sub">${esc(state.club)} • ${esc(state.position)} • ${state.age} lat • ${esc(state.city)}, ${esc(state.country)}</div>
- <div class="metrics"><div class="metric"><span>DZIEŃ</span><b>${state.day}</b><small>${dateText()}</small></div><div class="metric"><span>GODZINA</span><b>${String(state.hour).padStart(2,"0")}:00</b></div><div class="metric"><span>ENERGIA</span><b>${state.energy}</b></div><div class="metric"><span>POPULARNOŚĆ</span><b>${state.popularity.toFixed(1)}%</b></div></div>
- <div class="actions"><button class="btn primary" onclick="sleep()"><b>🌙 ŚPIJ — rozpocznij nowy dzień</b><small>Natychmiast kończy dzień i przewija ekran na górę.</small></button>${state.matchNext===0?`<button class="btn primary" onclick="playMatch()"><b>⚽ MECZ — ROZEGRAJ TERAZ</b><small>Po meczu pojawi się obowiązkowa decyzja.</small></button>`:`<button class="btn" onclick="route('calendar')"><b>📅 Mecz za ${state.matchNext} dni</b><small>Otwórz kalendarz.</small></button>`}</div></section>
- ${alerts.map(n=>`<div class="alert span12" onclick="${n.action?`window._alert(${state.news.indexOf(n)})`:"void(0)"}"><b>${esc(n.title)}</b><small>${esc(n.text)}</small></div>`).join("")}
- <section class="card span8"><div class="kicker">AKTYWNOŚCI</div><div class="title">Co robisz teraz?</div><div class="actions">
- <button class="btn" onclick="activity('Trening piłkarski',0,2,{energy:-15,form:5,skill:2})">⚽ Trening — 2h</button>
- <button class="btn" onclick="activity('Nauka',0,2,{energy:-8,mental:2})">📚 Nauka — 2h</button>
- <button class="btn" onclick="activity('Regeneracja',0,1,{health:5,energy:10})">🧘 Regeneracja — 1h</button>
- <button class="btn" onclick="activity('Spacer',0,1,{happiness:3,mental:2})">🚶 Spacer — 1h</button>
- <button class="btn" onclick="activity('Kawa',4,1,{happiness:1})">☕ Kawa — 1h</button></div></section>
- <section class="card span4"><div class="kicker">SZYBKI STATUS</div>${["OVR","Forma","Zdrowie","Mental","Szczęście"].map((x,i)=>{let k=["ovr","form","health","mental","happiness"][i];return `<div class="row"><span>${x}</span><b>${Math.round(state[k])}/100</b></div>`}).join("")}</section>
- ${calendarView()}</div>`
-}
-function career(){
- let offers=state.offers.filter(o=>!["declined","parents_refused"].includes(o.status)), trials=state.trials.filter(t=>t.status!=="declined");
- return `<div class="grid"><div class="card hero"><div class="kicker">⚽ KARIERA</div><div class="title">Aktualna kariera</div><div class="sub">Bez tabel statystyk sezonowych — tutaj klub, agent, kontrakt, zdrowie, trener, skauci, obozy i rozwój kariery.</div></div>
- <div class="card span6"><div class="kicker">KLUB / ZDROWIE</div>${["Klub|"+state.club,"Pozycja|"+state.position,"OVR|"+state.ovr,"Kontuzja|"+(state.injury?state.injury+" • "+state.injuryDays+" dni":"brak"),"Forma|"+state.form].map(x=>{let a=x.split("|");return `<div class="row"><span>${a[0]}</span><b>${esc(a[1])}</b></div>`}).join("")}</div>
- <div class="card span6"><div class="kicker">🤝 AGENT / NEGOCJACJE</div><div class="row"><span>Agent</span><b>Brak agenta</b></div><div class="actions"><button class="btn" onclick="addRelation('Marek Zieliński','agent');news('🤝 Agent','Agent chce porozmawiać o współpracy.')">🤝 Porozmawiaj z agentem</button><button class="btn" onclick="addEvent('📄 Negocjacje z klubem','Klub proponuje przedłużenie. Wybierz podejście.',[decision('💰 Walczę o pensję',()=>state.money+=500),decision('⚽ Chcę przede wszystkim grać',()=>state.form+=2),decision('🛑 Odrzucam',()=>{})])">📄 Negocjuj z klubem</button></div></div>
- <div class="card span12"><div class="kicker">🔎 SKAUCI / OBOZY</div>${offers.length?`<div class="list">${offers.map(o=>`<div class="item"><b>${esc(o.club)} — ${esc(o.country)}</b><small>${esc(o.type)} • ${esc(o.trigger)} • dzień ${o.day}</small><div class="actions"><button class="btn primary" onclick="openScout(state.offers.find(x=>x.id===${o.id}))">Otwórz wydarzenie i zdecyduj →</button></div></div>`).join("")}</div>`:"<div class='empty'>Brak nowych zaproszeń. Skauci pojawiają się po meczach, obserwacji i w kolejnych dniach.</div>"}${trials.length?`<div class="actions">${trials.map(t=>`<button class="btn" onclick="trialDecision(state.trials.find(x=>x.id===${t.id}))">⚽ Test: ${esc(t.club)} — podejmij decyzję</button>`).join("")}</div>`:""}</div>
- ${sideCareerPanel()}</div>`
-}
-function sideStart(name){let exists=state.sideCareers.find(x=>x.name===name);if(exists){exists.level++;state.mental=clamp(state.mental-3);state.popularity=clamp(state.popularity+.5);addHistory("Rozwój kariery pobocznej",`${name}: poziom ${exists.level}.`)}else{if(state.money<200){alert("Potrzebujesz €200 na start/kurs.");return}state.money-=200;state.sideCareers.push({name,level:1,started:dateText(),status:"początkujący"});addHistory("Nowa kariera poboczna",`Rozpoczęto: ${name}.`)}save();render()}
+const KEY='fl-life-27-new';
+const clone=o=>JSON.parse(JSON.stringify(o));
+const initial={
+  version:1,
+  player:{
+    name:'Noah Pereira', first:'Noah', last:'Pereira', country:'Brazylia', city:'Curitiba',
+    birthCountry:'Brazylia', age:15, position:'Skrzydłowy', club:'Akademia Curitiba',
+    money:214, popularity:1.0, health:100, energy:90, mental:72, happiness:82,
+    form:70, ovr:54, potential:86, marketValue:0, reputation:10, character:65,
+    school:'Liceum / szkoła sportowa', education:22, driving:false, homeId:'parents'
+  },
+  day:{date:'2026-09-01',time:8*60,dayNo:1},
+  family:{
+    parentsTogether:true, homeType:'Dom rodzinny', familyWealth:'normalna', stability:'stabilna',
+    father:{name:'Rodrigo Pereira',age:38,job:'inżynier',country:'Brazylia',city:'Curitiba',income:3200,expenses:2500,home:'własny dom',car:'Toyota Corolla',partner:null,children:['Noah'],interest:78,available:70},
+    mother:{name:'Mariana Pereira',age:36,job:'księgowa',country:'Brazylia',city:'Curitiba',income:2600,expenses:2100,home:'własny dom',car:'Honda Fit',partner:null,children:['Noah'],interest:84,available:78},
+    siblings:[{id:'sib1',name:'Lucas Pereira',age:10,relation:55,school:'szkoła podstawowa'}],
+    roots:[{label:'Ojciec',country:'Brazylia',city:'Curitiba'},{label:'Matka',country:'Portugalia',city:'Porto'}]
+  },
+  relations:[
+    {id:'r1',name:'Lucas Pereira',type:'rodzeństwo',age:10,relation:55,status:'aktywny'},
+    {id:'r2',name:'Mateus Silva',type:'znajomy',age:15,relation:62,status:'aktywny'},
+    {id:'r3',name:'Trener Rafael',type:'trener',age:41,relation:48,status:'aktywny'},
+    {id:'r4',name:'Julia Costa',type:'koleżanka',age:15,relation:35,status:'aktywny'}
+  ],
+  history:[],
+  calendar:{matches:[{id:'m1',date:'2026-09-08',opponent:'Academia Porto',competition:'Liga U15',home:true,status:'scheduled'}],events:[]},
+  tutorial:{steps:[false,false,false,false,false]},
+  scouting:[{id:'s1',club:'Academia Porto',country:'Portugalia',type:'zaproszenie na testy',status:'new',deadline:'2026-09-10',message:'Skaut zobaczył Cię podczas turnieju i chce zaprosić na testy.'}],
+  education:{
+    courses:[], skills:{language:18,music:0,media:0,business:0,coaching:0,agent:0}
+  },
+  licenses:{car:{name:'Prawo jazdy B',requiredAge:18,progress:0,passed:false},boat:{name:'Licencja żeglarska',requiredAge:18,progress:0,passed:false},plane:{name:'Licencja pilota',requiredAge:18,progress:0,passed:false}},
+  specialists:[
+    {id:'sportpsych',name:'Psycholog sportowy',price:90,effect:'mental +8',available:true},
+    {id:'physio',name:'Fizjoterapeuta',price:70,effect:'zdrowie +6 / regeneracja',available:true},
+    {id:'genetics',name:'Badanie predyspozycji sportowych',price:180,effect:'ujawnia zakres potencjału i ryzyka kontuzji',available:true},
+    {id:'doctor',name:'Lekarz specjalista',price:120,effect:'leczenie chorób i urazów',available:true}
+  ],
+  secondary:[
+    {id:'music',icon:'🎤',name:'Muzyk',level:0,unlocked:true,progress:0,money:0,needs:'sprzęt + nauka + czas'},
+    {id:'film',icon:'🎬',name:'Twórca filmowy',level:0,unlocked:false,progress:0,money:0,needs:'kamera + kurs + czas'},
+    {id:'creator',icon:'📹',name:'Twórca internetowy',level:0,unlocked:false,progress:0,money:0,needs:'telefon/sprzęt + kurs + czas'},
+    {id:'influencer',icon:'✨',name:'Influencer',level:0,unlocked:false,progress:0,money:0,needs:'popularność + regularna publikacja'},
+    {id:'dj',icon:'🎧',name:'DJ / producent',level:0,unlocked:false,progress:0,money:0,needs:'kontroler + nauka + czas'}
+  ],
+  properties:[
+    {id:'parents',name:'Dom rodzinny',type:'dom',city:'Curitiba',status:'mieszkam z rodzicami',value:0,rooms:5,comfort:70},
+    {id:'rental1',name:'Mieszkanie Centro',type:'mieszkanie',city:'Curitiba',status:'dostępne na wynajem',value:80000,rent:700,rooms:2,comfort:52},
+    {id:'house1',name:'Dom z ogrodem',type:'dom',city:'Porto',status:'oferta',value:310000,rooms:4,comfort:78}
+  ],
+  vehicles:[
+    {id:'bus',name:'Autobus',type:'transport',owned:false,price:0},
+    {id:'bike',name:'Rower',type:'rower',owned:false,price:250},
+    {id:'car1',name:'Volkswagen Golf',type:'auto',owned:false,price:14000}
+  ],
+  inventory:[],
+  investments:[],
+  businesses:[],
+  charity:[],
+  sponsors:[],
+  dating:{preference:'kobiety',enabled:true},
+  flgram:{
+    handle:'@noahpereira',followers:18,following:26,likes:74,posts:[
+      {id:'p1',author:'Noah Pereira',text:'Pierwszy tydzień sezonu. Pracujemy dalej. ⚽',likes:9,comments:2,following:true},
+      {id:'p2',author:'Rafael Silva',text:'Dobry trening dzisiaj.',likes:1240,comments:38,following:false,star:true},
+      {id:'p3',author:'Camila Rocha',text:'Nowy projekt już wkrótce ✨',likes:8420,comments:219,following:false}
+    ],
+    messages:[{from:'Rafael Silva',text:'Dobra robota na treningu.',read:false}],
+    stars:[{name:'Rafael Silva',following:false},{name:'Camila Rocha',following:false},{name:'Lia Martins',following:false}],
+    notifications:[]
+  },
+  settings:{sound:true,confirmEvents:true},
+  eventCounter:0
+};
 
-const SIDE_CAREERS=[
- {name:"Muzyk",icon:"🎤",desc:"Wokalista / raper / pop / artysta",need:"mikrofon + nauka śpiewu/rapu + czas",cost:350,time:2,skill:"mental",paths:["rap","pop","wokal","songwriting"],effect:"FLgram + popularność + kontakty medialne"},
- {name:"Twórca krótkich form",icon:"📱",desc:"Twórca krótkich filmów / shortów",need:"telefon + montaż + regularne publikowanie",cost:250,time:2,skill:"image",paths:["shorty","komedia","sport","lifestyle"],effect:"obserwujący + FLgram + sponsorzy"},
- {name:"Twórca wideo",icon:"🎥",desc:"Kanał filmowy / dokumenty / vlogi",need:"kamera lub dobry telefon + montaż + kurs",cost:900,time:3,skill:"mental",paths:["vlog","sport","gaming","dokument"],effect:"popularność + sponsorzy + przychód"},
- {name:"Streamer",icon:"🎮",desc:"Transmisje na żywo",need:"komputer + kamera + internet + regularność",cost:1200,time:3,skill:"happiness",paths:["gaming","sport","just chatting"],effect:"społeczność + relacje + sponsorzy"},
- {name:"Influencer",icon:"✨",desc:"Marka osobista poza boiskiem",need:"wizerunek + konsekwencja + współprace",cost:500,time:2,skill:"image",paths:["moda","sport","lifestyle","podróże"],effect:"PR + popularność + oferty marek"}
-];
-function sideCareerPanel(){
- const s=state;
- return `<div class="card span12"><div class="kicker">🚀 KARIERA POBOCZNA</div><div class="title">Rozwijaj ją równolegle z piłką</div>
- <div class="sub">Nie odblokowuje się automatycznie. Każda ścieżka wymaga czasu, nauki, sprzętu i pieniędzy. Rodzice mogą pomóc albo odmówić, gdy jesteś niepełnoletni/a. Rozwój może zwiększać popularność i wizerunek, ale może też zabierać energię i czas na futbol.</div>
- <div class="list" style="margin-top:12px">${SIDE_CAREERS.map((x,i)=>{
-   const active=s.sideCareers.find(y=>y.name===x.name);
-   const lvl=active?.level||0;
-   return `<div class="item" style="padding:14px">
-    <div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:30px">${x.icon}</div><div style="min-width:0;flex:1"><b style="font-size:14px">${x.name}</b><small>${x.desc}</small>
-    <div class="chips"><span class="chip">💶 start ${money(x.cost)}</span><span class="chip">⏱️ ${x.time}h</span><span class="chip">🎓 nauka</span>${lvl?`<span class="chip">poziom ${lvl}</span>`:""}</div>
-    <small style="display:block;margin-top:8px">Potrzebujesz: ${x.need}. Możliwe kierunki: ${x.paths.join(" • ")}. Wpływ: ${x.effect}.</small>
-    <div class="actions"><button class="btn ${lvl?"primary":""}" onclick="startSidePath(${i})">${lvl?"🚀 Rozwijaj dalej":"🔓 Rozpocznij ścieżkę"}<small>${lvl?"Kolejny poziom wymaga czasu i regularności.":"Najpierw decyzja i koszt startu."}</small></button></div>
-    </div></div>
-   </div>`}).join("")}</div>
- </div>`;
+let S=load();
+let current='day';
+
+function load(){
+  try{const x=JSON.parse(localStorage.getItem(KEY)); if(x){return deepMerge(clone(initial),x)}}catch(e){}
+  return clone(initial);
 }
-function startSidePath(i){
- const x=SIDE_CAREERS[i], active=state.sideCareers.find(y=>y.name===x.name);
- if(!active && state.money<x.cost){alert("Na start potrzebujesz "+money(x.cost)+".");return}
- if(!active && state.age<18){
-   addEvent("👨‍👩‍👧 Rodzice i kariera poboczna",`Chcesz rozpocząć: ${x.name}. Koszt startu ${money(x.cost)} i około ${x.time}h tygodniowo/dziennie na rozwój. Rodzice mogą pomóc, postawić warunki albo odmówić.`,[
-    decision("❤️ Pomagają mi",()=>{state.money-=x.cost;state.sideCareers.push({name:x.name,level:1,started:dateText(),path:null});addHistory("Kariera poboczna",`Rozpoczęto ${x.name}. Rodzice wsparli start.`)}),
-    decision("📋 Zgadzają się, ale z warunkami",()=>{state.money-=x.cost;state.sideCareers.push({name:x.name,level:1,started:dateText(),path:null,condition:"szkoła i futbol mają pierwszeństwo"});addHistory("Kariera poboczna",`Rozpoczęto ${x.name} z warunkami rodziny.`)}),
-    decision("🛑 Nie teraz",()=>{})
-   ]);return
- }
- if(!active){state.money-=x.cost;state.sideCareers.push({name:x.name,level:1,started:dateText(),path:null});addHistory("Kariera poboczna",`Rozpoczęto ${x.name}.`);save();render();return}
- addEvent(`🚀 ${x.name} — poziom ${active.level+1}`,"Najpierw wybierz kierunek rozwoju. Potem poświęcisz czas na naukę i pracę.",x.paths.slice(0,3).map(path=>decision(path,()=>{active.level++;active.path=path;state.mental=clamp(state.mental-4);state.popularity=clamp(state.popularity+0.5);state.image=clamp(state.image+1);addHistory("Rozwój kariery pobocznej",`${x.name}: ${path}, poziom ${active.level}.`);news("🚀 Rozwój kariery pobocznej",`${x.name} rozwija się w kierunku: ${path}.`)})));
+function deepMerge(a,b){
+  for(const k in b){
+    if(b[k] && typeof b[k]==='object' && !Array.isArray(b[k]) && a[k]) a[k]=deepMerge(a[k],b[k]);
+    else a[k]=b[k];
+  }
+  return a;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(S))}
+function money(v){return '€'+Math.round(v).toLocaleString('pl-PL')}
+function datePL(d){return new Date(d+'T12:00:00').toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'})}
+function timePL(m){let h=Math.floor(m/60)%24, mi=m%60;return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>el.classList.remove('show'),2200)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+
+const menu=[
+ ['day','🏠','Dzień','przebieg, aktywności, kalendarz'],
+ ['career','⚽','Kariera','klub, mecze, skauci, kontrakty'],
+ ['stats','📊','Statystyki','OVR, atrybuty, trofea, nagrody'],
+ ['life','🧬','Życie','zdrowie, edukacja, dom, poboczne kariery'],
+ ['family','👥','Rodzina','rodzice, rodzeństwo, korzenie'],
+ ['relations','❤️','Relacje','każda poznana osoba'],
+ ['history','📜','Historia decyzji','wydarzenia i skutki'],
+ ['flgram','📱','FLgram','feed, gwiazdy, wiadomości'],
+ ['finance','💰','Finanse','pieniądze, inwestycje, biznes'],
+ ['shop','🏙️','Miasto / Sklep','zakupy, domy, auta, lekarze'],
+ ['education','🎓','Edukacja','szkoła, kursy, nauka'],
+ ['licenses','🪪','Licencje','auto, łódź, samolot'],
+ ['specialists','🩺','Specjaliści','lekarze, psycholog, badania'],
+ ['secondary','🚀','Kariera poboczna','muzyk, twórca, influencer'],
+ ['calendar','📅','Kalendarz','święta, mecze, terminy'],
+ ['settings','⚙️','Ustawienia','nowa gra, restart, napraw, randkowanie'],
+ ['code','📖','Kodeks / instrukcja','wszystko wyjaśnione']
+];
+
+function renderTop(){
+  const p=S.player;
+  document.getElementById('topName').textContent=p.name;
+  document.getElementById('topSub').textContent=`${p.country==='Brazylia'?'BR':p.country} • ${p.age} lat • ${p.club}`;
+  document.getElementById('topPop').textContent=Math.round(p.popularity);
+  document.getElementById('topHealth').textContent=Math.round(p.health);
+  document.getElementById('topMoney').textContent=money(p.money);
+  document.getElementById('topEnergy').textContent=Math.round(p.energy);
+}
+function setTabs(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===current));
+}
+function renderMenu(){
+  document.getElementById('menuGrid').innerHTML=menu.map(([id,ic,n,d])=>`<button class="menu-item" onclick="go('${id}');closeDrawer()"><div class="ico">${ic}</div><b>${n}</b><span>${d}</span></button>`).join('');
+}
+function go(tab){current=tab;render();window.scrollTo({top:0,behavior:'smooth'})}
+function openDrawer(){document.getElementById('drawer').classList.add('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+
+const activities=[
+ {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2,mental:2}},
+ {id:'tech',ic:'🎯',name:'Trening techniczny',time:60,cost:10,desc:'Indywidualna technika z piłką',effects:{energy:-8,form:4,ovr:.25}},
+ {id:'speed',ic:'🏃',name:'Szybkość i dynamika',time:60,cost:10,desc:'Przyspieszenie, koordynacja, zwrotność',effects:{energy:-10,health:-1,ovr:.2}},
+ {id:'strength',ic:'🏋️',name:'Siła',time:60,cost:12,desc:'Przygotowanie motoryczne',effects:{energy:-10,health:-1,ovr:.2}},
+ {id:'analysis',ic:'📹',name:'Analiza meczu',time:60,cost:0,desc:'Oglądanie i analiza decyzji boiskowych',effects:{energy:-4,mental:3,ovr:.15}},
+ {id:'school',ic:'🎓',name:'Szkoła / nauka',time:120,cost:0,desc:'Nauka i obowiązki szkolne',effects:{energy:-7,education:3,mental:-1}},
+ {id:'study',ic:'📚',name:'Nauka do sprawdzianu',time:60,cost:0,desc:'Przygotowanie do egzaminu lub sprawdzianu',effects:{energy:-5,education:4}},
+ {id:'games',ic:'🎮',name:'Wieczór z grami',time:120,cost:0,desc:'Rozrywka i relaks',effects:{energy:-2,happiness:7,mental:5}},
+ {id:'flgram',ic:'📱',name:'FLgram / social media',time:60,cost:0,desc:'Publikacje, feed, obserwowanie i wiadomości',effects:{energy:-2,happiness:3,mental:2,popularity:.15}},
+ {id:'help',ic:'🤝',name:'Pomoc innym',time:120,cost:0,desc:'Relacje, charakter i reputacja',effects:{energy:-8,happiness:7,mental:6,popularity:.1,reputation:2}},
+ {id:'family',ic:'👨‍👩‍👦',name:'Czas z rodziną',time:120,cost:0,desc:'Rozmowa, wspólny czas i relacje',effects:{energy:-4,happiness:6,mental:4}},
+ {id:'friend',ic:'🧑‍🤝‍🧑',name:'Spotkanie ze znajomym',time:120,cost:10,desc:'Relacje społeczne',effects:{energy:-5,happiness:8,mental:5}},
+ {id:'walk',ic:'🚶',name:'Spacer',time:60,cost:0,desc:'Lekka aktywność i reset głowy',effects:{energy:-3,happiness:3,mental:5,health:1}},
+ {id:'pool',ic:'🏊',name:'Basen',time:90,cost:8,desc:'Regeneracja i ogólna sprawność',effects:{energy:-7,health:3,mental:3}},
+ {id:'regen',ic:'💆',name:'Regeneracja',time:60,cost:20,desc:'Lekka regeneracja zamiast treningu',effects:{energy:8,health:4,mental:2}},
+ {id:'music',ic:'🎤',name:'Nauka muzyki',time:120,cost:20,desc:'Rozwijanie pobocznej kariery',effects:{energy:-8,mental:2}},
+ {id:'film',ic:'🎬',name:'Tworzenie filmu',time:120,cost:25,desc:'Praca nad materiałem',effects:{energy:-10,mental:1,popularity:.25}},
+ {id:'date',ic:'❤️',name:'Spotkanie / randka',time:120,cost:30,desc:'Czas z osobą ważną dla Ciebie',effects:{energy:-5,happiness:10,mental:5}},
+ {id:'psych',ic:'🧠',name:'Psycholog sportowy',time:60,cost:90,desc:'Praca nad mentalem',effects:{energy:-3,mental:8}},
+ {id:'chores',ic:'🧹',name:'Pomoc w domu',time:60,cost:0,desc:'Obowiązki domowe',effects:{energy:-4,happiness:-1,reputation:1}},
+ {id:'sleep',ic:'🌙',name:'Sen',time:600,cost:0,desc:'Zakończ dzień i rozpocznij następny o 08:00',effects:{}}
+];
+
+function availability(a){
+  const p=S.player, h=Math.floor(S.day.time/60);
+  if(a.id==='sleep') return true;
+  if(a.id==='date' && p.age<13) return false;
+  if(['music','film'].includes(a.id) && p.money<a.cost) return false;
+  if(a.id==='psych' && p.money<a.cost) return false;
+  if(p.energy<Math.max(3,-(a.effects.energy||0))) return false;
+  if(h>=22) return false;
+  if(h+a.time/60>23) return false;
+  if(a.id==='school' && (h<7 || h>17)) return false;
+  return true;
+}
+function activityCard(a){
+  const ok=availability(a);
+  const ef=Object.entries(a.effects).map(([k,v])=>`${v>0?'+':''}${v} ${labelStat(k)}`).join(' • ');
+  return `<button class="action" ${ok?'':'disabled'} onclick="doActivity('${a.id}')">
+    <div class="ico">${a.ic}</div><div class="body"><div class="title">${a.name}</div><div class="desc">${a.desc}</div><div class="desc">${ef||'regeneracja / przejście czasu'}</div></div>
+    <div class="right"><div class="time">${a.time>=60?Math.floor(a.time/60)+'h':a.time+' min'}</div><div class="cost">${a.cost?money(a.cost):'bez kosztu'}</div></div>
+  </button>`;
+}
+function labelStat(k){return ({energy:'⚡',health:'❤️',mental:'🧠',happiness:'⭐',popularity:'POP',form:'forma',ovr:'OVR',education:'edu.',reputation:'REP'})[k]||k}
+
+function renderDay(){
+  const p=S.player,d=S.day;
+  const upcoming=S.calendar.matches.find(m=>m.status==='scheduled');
+  const invite=S.scouting.find(x=>x.status==='new');
+  let cards=activities.filter(a=>{
+    if(a.id==='school' || a.id==='study') return p.age<19;
+    if(a.id==='music') return true;
+    if(a.id==='film') return p.age>=16;
+    return true;
+  });
+  return `<section class="section card gold-card">
+    <div class="eyebrow">PRZEBIEG DNIA</div><h1>${esc(p.name)}</h1>
+    <div class="muted">${esc(p.club)} • ${esc(p.position)} • ${p.age} lat • ${esc(p.city)}, ${esc(p.country)}</div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="metric"><span>Dzień / data</span><b>${datePL(d.date)}</b></div>
+      <div class="metric"><span>Godzina</span><b>${timePL(d.time)}</b></div>
+      <div class="metric"><span>Energia</span><b>${Math.round(p.energy)}</b></div>
+      <div class="metric"><span>Popularność</span><b>${p.popularity.toFixed(1)}%</b></div>
+    </div>
+    ${invite?`<div class="notice" onclick="openScout('${invite.id}')"><div class="ico">🔎</div><div><b>NOWE ZAPROSZENIE OD SKAUTA</b><span>${esc(invite.club)} • ${esc(invite.type)} • Otwórz i zdecyduj</span></div></div>`:''}
+    <div class="notice" onclick="go('calendar')"><div class="ico">📅</div><div><b>${upcoming?'Mecz za '+daysUntil(upcoming.date)+' dni':'Kalendarz'}</b><span>${upcoming?esc(upcoming.competition+' • '+upcoming.opponent):'Święta, mecze i ważne terminy'}</span></div></div>
+  </section>
+  <section class="section card"><div class="eyebrow">AKTYWNOŚCI</div><h2>Co robisz teraz?</h2>
+    <div class="muted small">Każda aktywność naprawdę przesuwa czas i zmienia stan zawodnika. Nowe możliwości odblokowują się wraz z życiem.</div>
+    ${cards.map(activityCard).join('')}
+  </section>
+  <section class="section card gold-card">
+    <div class="row"><div><div class="eyebrow">DZIEŃ</div><h2>🌙 Sen</h2></div><span class="badge gold">22:00 → 08:00</span></div>
+    <div class="muted">Sen kończy dzień natychmiast. Następny dzień zostanie zapisany, energia i zdrowie się zregenerują, a ekran wróci na górę.</div>
+    <button class="btn goldbtn" style="margin-top:12px" onclick="doActivity('sleep')">🌙 Zakończ dzień i śpij</button>
+  </section>
+  <section class="section card"><div class="eyebrow">SAMOUCZEK • PIERWSZE KROKI</div><h2>Poznaj grę przez prawdziwą rozgrywkę</h2>
+    <div class="muted">Zadania odhaczają się dopiero po wykonaniu czynności — nie po samym otwarciu ekranu.</div>
+    <div class="progress" style="margin:14px 0"><i style="width:${S.tutorial.steps.filter(Boolean).length/5*100}%"></i></div>
+    ${tutorialRows()}
+  </section>`;
+}
+function tutorialRows(){
+  const t=S.tutorial.steps;
+  const rows=[
+    ['Sprawdź przebieg dnia','Otwórz „Dzień” i zobacz datę, godzinę oraz kalendarz.'],
+    ['Wykonaj aktywność','Wybierz aktywność i poświęć na nią realny czas.'],
+    ['Zakończ dzień','Użyj „Sen”, aby przejść do kolejnego dnia.'],
+    ['Podejmij decyzję','Gdy pojawi się wydarzenie, wybierz jedną z trzech odpowiedzi.'],
+    ['Sprawdź karierę','Zajrzyj do aktualnej kariery i zobacz, co dzieje się z zawodnikiem.']
+  ];
+  return rows.map((r,i)=>`<div class="history-item" style="margin-top:9px;opacity:${t[i]?'0.65':'1'}"><div class="row"><b>${t[i]?'✓':'○'} ${r[0]}</b><span class="badge">${t[i]?'ZALICZONE':'0/1'}</span></div><div class="muted small" style="margin-top:5px">${r[1]}</div></div>`).join('');
+}
+function daysUntil(ds){return Math.max(0,Math.ceil((new Date(ds)-new Date(S.day.date))/86400000))}
+
+function doActivity(id){
+  const a=activities.find(x=>x.id===id); if(!a)return;
+  if(!availability(a)){toast('Ta aktywność jest teraz niedostępna.');return}
+  if(id==='sleep'){sleep();return}
+  if(S.day.time<8*60) S.day.time=8*60;
+  const old={...S.player};
+  S.player.money-=a.cost;
+  S.day.time+=a.time;
+  if(S.day.time>=23*60){toast('Jest już późno — pora na sen.');S.day.time=23*60}
+  for(const [k,v] of Object.entries(a.effects)){
+    if(k==='popularity') S.player.popularity=clamp(S.player.popularity+v,0,100);
+    else S.player[k]=clamp((S.player[k]||0)+v,0,100);
+  }
+  if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis'){S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99)}
+  if(id==='music') secondaryWork('music',false);
+  if(id==='film') secondaryWork('film',false);
+  if(id==='flgram') flgramAction();
+  addHistory(`Aktywność: ${a.name}`,`Wykonano ${a.name} o ${timePL(S.day.time-a.time)}.`,effectsDiff(old,S.player));
+  maybeEvent(id);
+  S.tutorial.steps[0]=true; S.tutorial.steps[1]=true;
+  save();render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function effectsDiff(o,n){
+  const keys=['energy','health','mental','happiness','popularity','form','ovr','education','reputation'];
+  return keys.filter(k=>o[k]!==n[k]).map(k=>`${labelStat(k)} ${n[k]>o[k]?'+':''}${Math.round((n[k]-o[k])*10)/10}`).join(' • ');
+}
+function sleep(){
+  const d=new Date(S.day.date+'T12:00:00');d.setDate(d.getDate()+1);
+  S.day.date=d.toISOString().slice(0,10);S.day.dayNo++;
+  S.day.time=8*60;
+  S.player.energy=clamp(S.player.energy+45,0,100);
+  S.player.health=clamp(S.player.health+10,0,100);
+  S.player.mental=clamp(S.player.mental+8,0,100);
+  S.player.happiness=clamp(S.player.happiness+4,0,100);
+  S.tutorial.steps[2]=true;
+  dailyUpdate();
+  addHistory('Nowy dzień',`Rozpoczęto dzień ${S.day.dayNo}.`, '⚡ +energia • ❤️ regeneracja');
+  maybeDailyEvent();
+  save();render();window.scrollTo({top:0,behavior:'smooth'});toast('🌅 Nowy dzień rozpoczęty!');
+}
+function dailyUpdate(){
+  S.family.father.age += Math.random()<.03?1:0;
+  S.family.mother.age += Math.random()<.03?1:0;
+  // Dynamic family finances
+  S.family.father.income=Math.max(0,S.family.father.income+Math.round((Math.random()-.48)*160));
+  S.family.mother.income=Math.max(0,S.family.mother.income+Math.round((Math.random()-.48)*120));
+}
+function maybeEvent(source){
+  const base={club:.36,tech:.22,speed:.18,strength:.18,analysis:.24,school:.28,study:.2,games:.12,flgram:.35,help:.18,family:.25,friend:.3,walk:.12,pool:.12,regen:.08,music:.28,film:.28,date:.32,psych:.12,chores:.12}[source]||.12;
+  const p=S.player;
+  const chance=Math.min(.72,base + (p.popularity>10?.08:0));
+  if(Math.random()<chance) triggerEvent(makeEvent(source));
+}
+function maybeDailyEvent(){if(Math.random()<.58) triggerEvent(makeEvent('daily'))}
+function makeEvent(source){
+  const pool=[
+    {when:['school'],title:'Nauczyciel prosi Cię o rozmowę',text:'Masz coraz więcej treningów. Nauczyciel pyta, czy potrzebujesz pomocy z nauką.',choices:[
+      ['Poproś o wsparcie','Relacja z nauczycielem +8 • edukacja +2',{mental:2,education:2,reputation:1}],
+      ['Powiedz, że dasz radę','Niezależność +2 • mental +1',{mental:1}],
+      ['Odpuść temat','Mniej stresu teraz, ale edukacja -2',{education:-2,mental:2}]
+    ]},
+    {when:['club','tech','speed','strength'],title:'Trener zatrzymuje Cię po treningu',text:'„Widzę potencjał. Mogę pomóc Ci rozwinąć jedną rzecz, ale będziesz musiał poświęcić dodatkowy czas.”',choices:[
+      ['Poproś o plan rozwoju','Relacja z trenerem +10 • OVR +0.4',{ovr:.4,reputation:1}],
+      ['Zapytaj o pozycję','Poznajesz jego opinię o swojej przyszłości',{mental:3}],
+      ['Powiedz, że sam wiesz najlepiej','Więcej niezależności, ale relacja z trenerem -6',{reputation:-1,mental:1}]
+    ]},
+    {when:['flgram'],title:'Nowa osoba pojawia się w wiadomościach',text:'Ktoś z Twojego otoczenia sportowego napisał do Ciebie po zobaczeniu posta.',choices:[
+      ['Odpowiedz normalnie','Relacja +7',{happiness:3,popularity:.1}],
+      ['Zaproponuj wspólny trening','Relacja +10 • nowa aktywność w przyszłości',{happiness:5,reputation:1}],
+      ['Zostaw bez odpowiedzi','Nic się nie dzieje',{mental:1}]
+    ]},
+    {when:['family'],title:'Rodzice rozmawiają o przyszłości',text:'Rodzice zastanawiają się, czy akademia nie zaczyna zbyt mocno wpływać na szkołę.',choices:[
+      ['Zapewnij, że dasz radę pogodzić wszystko','Rodzice bardziej Ci ufają',{mental:3,reputation:1}],
+      ['Poproś ich o pomoc w organizacji','Wsparcie rodziny +10',{mental:6,happiness:4}],
+      ['Powiedz, że piłka jest najważniejsza','Rodzice martwią się o szkołę',{mental:-2,reputation:1}]
+    ]},
+    {when:['friend','date'],title:'Ktoś proponuje spontaniczne wyjście',text:'Masz jeszcze trochę czasu. Możesz zostać w domu albo wyjść.',choices:[
+      ['Idź','Relacja i szczęście rosną',{happiness:8,mental:4}],
+      ['Zaproponuj krótsze spotkanie','Mniej kosztuje i mniej czasu',{happiness:4,mental:2}],
+      ['Odmów z powodu treningu','Forma +1, relacja -3',{form:1}]
+    ]},
+    {when:['music','film'],title:'Pojawia się pierwszy mały kontakt',text:'Ktoś usłyszał/zobaczył Twoją twórczość. Nie jest to jeszcze kariera, ale możesz odpowiedzieć.',choices:[
+      ['Odpowiedz i rozwijaj kontakt','Poboczna kariera +8 • popularność +0.3',{popularity:.3,mental:2}],
+      ['Poproś o wskazówki','Nauka +5',{education:2,mental:3}],
+      ['Zignoruj','Nic się nie dzieje',{mental:1}]
+    ]},
+    {when:['daily'],title:'Niespodziewana wiadomość',text:'W zwykłym dniu pojawia się sytuacja, której nie planowałeś.',choices:[
+      ['Sprawdź, o co chodzi','Odkrywasz nową możliwość',{happiness:4,reputation:1}],
+      ['Odłóż to na później','Zyskujesz spokój',{mental:2}],
+      ['Poproś rodzica o zdanie','Wsparcie rodziny',{mental:4,happiness:2}]
+    ]}
+  ];
+  const valid=pool.filter(e=>e.when.includes(source)||e.when.includes('daily'));
+  return valid[Math.floor(Math.random()*valid.length)];
+}
+function triggerEvent(e){
+  if(!e)return;
+  const id='ev'+(++S.eventCounter);
+  openModal(`<div class="modal-head"><div><div class="eyebrow">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="card" style="margin-top:12px;background:#171b22">${esc(e.text)}</div>
+    <div class="modal-actions">${e.choices.map((c,i)=>`<button class="choice" onclick="chooseEvent(${JSON.stringify(id)},${i})"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
+  window.pendingEvent={id,e};
+}
+function chooseEvent(id,i){
+  const p=window.pendingEvent;if(!p||p.id!==id)return;
+  const c=p.e.choices[i];
+  for(const [k,v] of Object.entries(c[2])){if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);else if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);else S.player[k]=clamp((S.player[k]||0)+v,0,100)}
+  S.tutorial.steps[3]=true;
+  addHistory('Decyzja: '+p.e.title,c[0],c[1]);
+  closeModal();save();render();toast('Decyzja zapisana w historii.');
+}
+function addHistory(title,desc,effect){S.history.unshift({date:S.day.date,time:timePL(S.day.time),title,desc,effect});S.history=S.history.slice(0,120)}
+
+function renderCareer(){
+  const next=S.calendar.matches.find(m=>m.status==='scheduled');
+  return `<section class="section card gold-card"><div class="eyebrow">KARIERA PIŁKARSKA</div><h1>${esc(S.player.club)}</h1><div class="muted">${S.player.position} • ${S.player.age} lat • OVR ${S.player.ovr.toFixed(1)} • potencjał ${S.player.potential}</div>
+    <div class="grid2" style="margin-top:15px"><div class="metric"><span>Wartość rynkowa</span><b>${money(S.player.marketValue)}</b></div><div class="metric"><span>Forma</span><b>${Math.round(S.player.form)}</b></div><div class="metric"><span>Pozycja</span><b>${esc(S.player.position)}</b></div><div class="metric"><span>Reputacja</span><b>${Math.round(S.player.reputation)}</b></div></div></section>
+    ${next?`<section class="section card"><div class="eyebrow">⚽ MECZ</div><h2>${esc(next.competition)}</h2><div class="muted">${datePL(next.date)} • ${esc(next.opponent)} • ${next.home?'u siebie':'wyjazd'}</div><button class="btn goldbtn" style="margin-top:12px" onclick="openMatch('${next.id}')">⚽ Otwórz przygotowania do meczu</button></section>`:''}
+    <section class="section card"><div class="eyebrow">🔎 SKAUCI I OBOZY</div>
+      ${S.scouting.length?S.scouting.map(s=>`<div class="job"><div class="row"><h3>${esc(s.club)}</h3><span class="badge ${s.status==='new'?'gold':''}">${s.status==='new'?'NOWE':s.status}</span></div><div class="muted small">${esc(s.country)} • ${esc(s.type)} • termin ${datePL(s.deadline)}</div><button class="btn" style="margin-top:10px" onclick="openScout('${s.id}')">Otwórz zaproszenie i podejmij decyzję</button></div>`).join(''):'<div class="muted">Brak aktywnych zaproszeń. Skauci pojawiają się zależnie od rozwoju i występów.</div>'}
+    </section>
+    <section class="section card"><div class="eyebrow">🏆 ŚCIEŻKA KARIERY</div><div class="list">
+      ${['Trening i rozwój','Kontrakty i transfery','Reprezentacja','Trofea i nagrody','Specjalne wydarzenia kariery','Kariera po piłce'].map((x,i)=>`<button class="btn" onclick="careerDetail(${i})">${['📈','📄','🌎','🏆','✨','🎓'][i]} <b>${x}</b><span class="muted small"> → otwórz szczegóły</span></button>`).join('')}
+    </div></section>`;
+}
+function openScout(id){
+  const s=S.scouting.find(x=>x.id===id);if(!s)return;
+  openModal(`<div class="modal-head"><div><div class="eyebrow">🔎 ZAPROSZENIE OD SKAUTA</div><h2>${esc(s.club)}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+  <div class="card" style="margin-top:12px"><b>${esc(s.type)}</b><div class="muted" style="margin-top:6px">${esc(s.message)}</div><div class="badges"><span class="badge">🌎 ${esc(s.country)}</span><span class="badge">📅 do ${datePL(s.deadline)}</span><span class="badge gold">👨‍👩‍👦 rodzice mogą mieć głos</span></div></div>
+  <div class="modal-actions">
+    <button class="choice" onclick="scoutDecision('${id}','accept')"><b>1. Chcę jechać na testy</b><span>Rozpocznie się rozmowa z rodzicami i sprawdzenie kosztów/warunków.</span></button>
+    <button class="choice" onclick="scoutDecision('${id}','talk')"><b>2. Najpierw porozmawiam z rodzicami</b><span>Bezpieczna opcja — decyzja nie jest jeszcze ostateczna.</span></button>
+    <button class="choice" onclick="scoutDecision('${id}','reject')"><b>3. Odrzuć zaproszenie</b><span>Szansa może nie wrócić w tej samej formie.</span></button>
+  </div>`,true)
+}
+function scoutDecision(id,what){
+  const s=S.scouting.find(x=>x.id===id);if(!s)return;
+  if(what==='accept'){
+    if(S.player.age<18 && S.player.money<300){closeModal();triggerEvent({title:'Rodzice muszą zdecydować',text:'Masz mniej niż 18 lat. Wyjazd na testy wymaga pieniędzy, zgody i organizacji. Rodzice mają prawo powiedzieć „tak”, „nie” albo postawić warunki.',choices:[
+      ['Poproś rodziców o zgodę','Rodzina +5. Wyjazd zostaje w toku.',{happiness:4,mental:3}],
+      ['Poproś tylko mamę','Mama bardziej angażuje się w karierę.',{happiness:3,mental:4}],
+      ['Poproś tylko tatę','Tata przejmuje organizację.',{happiness:2,mental:3}]
+    ]});return}
+    S.player.reputation+=3;s.status='accepted';s.status='zaakceptowane';
+  }else if(what==='talk'){
+    closeModal();triggerEvent({title:'Rozmowa z rodzicami o skautingu',text:'„To może być duża szansa, ale musimy wiedzieć, gdzie będziesz mieszkać, kto za to zapłaci i co ze szkołą.”',choices:[
+      ['Zgadzam się na analizę wszystkich warunków','Rodzice +10 • mental +3',{mental:3,happiness:3}],
+      ['Najważniejsza jest kariera','Rodzice martwią się o szkołę',{mental:-2,reputation:1}],
+      ['Nie chcę wyjeżdżać tak daleko','Relacja rodzinna rośnie, ale szansa słabnie',{happiness:3}]
+    ]});s.status='rozmowa';save();render();return;
+  }else s.status='odrzucone';
+  save();closeModal();render();toast(what==='accept'?'Zaproszenie przyjęte.':'Zaproszenie odrzucone.');
+}
+function openMatch(id){
+  const m=S.calendar.matches.find(x=>x.id===id);if(!m)return;
+  if(S.day.date<m.date){openModal(`<div class="modal-head"><div><div class="eyebrow">⚽ MECZ</div><h2>${esc(m.competition)}</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><b>${datePL(m.date)} • ${esc(m.opponent)}</b><div class="muted">Mecz można rozegrać dopiero w dniu spotkania. Możesz jednak przygotować się już teraz.</div></div><div class="modal-actions"><button class="choice" onclick="closeModal();go('day')"><b>Wróć do dnia</b><span>Wybierz trening lub regenerację.</span></button><button class="choice" onclick="closeModal();go('calendar')"><b>Otwórz kalendarz</b><span>Zobacz terminy.</span></button></div>`,true);return}
+  openModal(`<div class="modal-head"><div><div class="eyebrow">⚽ MECZ DZISIAJ</div><h2>${esc(m.competition)}</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><h2>Ty vs ${esc(m.opponent)}</h2><div class="muted">Decyzje boiskowe wpływają na ocenę, statystyki, skautów i przyszłe wydarzenia.</div></div><div class="modal-actions">
+    <button class="choice" onclick="matchChoice('${id}','attack')"><b>⚡ 1. Idź odważnie do przodu</b><span>Ryzyko większe, ale możesz zrobić akcję meczu.</span></button>
+    <button class="choice" onclick="matchChoice('${id}','safe')"><b>🧠 2. Zagraj bezpiecznie</b><span>Stabilniejsza ocena i mniejsze ryzyko.</span></button>
+    <button class="choice" onclick="matchChoice('${id}','team')"><b>🤝 3. Zagraj pod zespół</b><span>Pomagasz drużynie i budujesz opinię trenera.</span></button>
+  </div>`,true)
+}
+function matchChoice(id,what){
+  const m=S.calendar.matches.find(x=>x.id===id);if(!m)return;
+  const r={attack:{form:7,ovr:.5,popularity:.3,mental:-2},safe:{form:4,ovr:.2,mental:3},team:{form:6,ovr:.35,reputation:3,mental:2}}[what];
+  for(const[k,v]of Object.entries(r)){if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);else if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);else S.player[k]=clamp((S.player[k]||0)+v,0,100)}
+  m.status='played';m.rating=what==='attack'?8.2:what==='safe'?7.3:8.0;m.result=Math.random()>.45?'W':'R';
+  addHistory('Mecz: '+m.competition,`Przeciwko ${m.opponent}. Wynik: ${m.result==='W'?'wygrana':'remis / niekorzystny wynik'}.`,`⭐ ocena ${m.rating} • ${what}`);
+  S.tutorial.steps[3]=true;save();closeModal();render();toast('⚽ Mecz rozegrany — wynik i decyzja zapisane.');
+}
+function careerDetail(i){
+ const titles=['Rozwój','Kontrakty','Reprezentacja','Gablota trofeów','Wydarzenia specjalne','Kariera po piłce'];
+ const text=[
+ 'Atrybuty rozwijają się przez trening, mecze, specjalistów, sprzęt, mental i decyzje.',
+ 'Oferty klubów pojawiają się zależnie od wieku, OVR, potencjału, popularności i występów. Klub może stawiać warunki.',
+ 'Powołania do reprezentacji zależą od kraju, poziomu i występów. Możesz dostać propozycje związane z kadrą i wybierać ścieżkę.',
+ 'Gablota zapisuje World Cup, Złoty But, Ligę Mistrzów, ligi krajowe i inne trofea: kiedy, za co i w jakim klubie.',
+ 'Rzadkie wydarzenia mogą całkowicie zmienić karierę, finanse, relacje lub popularność.',
+ 'Po zakończeniu piłki możesz rozwijać się jako trener, agent, skaut, działacz, ekspert, biznesmen itd.'
+ ][i];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">⚽ KARIERA</div><h2>${titles[i]}</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px">${text}</div>`);
 }
 
-function stats(){
- let total=Object.values(state.stats).reduce((a,b)=>a+(Number(b)||0),0);
- return `<div class="grid"><div class="card hero"><div class="kicker">📊 STATYSTYKI KARIERY</div><div class="title">Cała kariera</div><div class="sub">Każdy klub ma własną historię, a niżej znajduje się wspólna gablota trofeów.</div></div><div class="card span6"><div class="kicker">OGÓLNE</div>${Object.entries({...state.stats,"Występy łącznie":total}).map(([k,v])=>`<div class="row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}</div><div class="card span6"><div class="kicker">🏆 GABLOTA TROFEÓW</div>${state.trophies.length?state.trophies.map(t=>`<div class="item"><b>🏆 ${esc(t.title)}</b><small>${esc(t.reason)} • ${esc(t.club)} • ${t.date}</small></div>`).join(""):"<div class='empty'>Jeszcze nie ma trofeów. World Cup, Złoty But, Liga Mistrzów itd. będą zapisywane tutaj.</div>"}</div></div>`
+function renderStats(){
+ return `<section class="section card gold-card"><div class="eyebrow">STATYSTYKI ZAWODNIKA</div><h1>${esc(S.player.name)}</h1><div class="grid2" style="margin-top:15px">${[
+ ['OVR',S.player.ovr.toFixed(1)],['Potencjał',S.player.potential],['Forma',Math.round(S.player.form)],['Zdrowie',Math.round(S.player.health)],['Mental',Math.round(S.player.mental)],['Szczęście',Math.round(S.player.happiness)],['Popularność',S.player.popularity.toFixed(1)+'%'],['Wizerunek',Math.round(S.player.reputation)]
+ ].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div></section>
+ <section class="section card"><div class="eyebrow">🏆 GABLOTA TROFEÓW I NAGRODY</div><div class="list">${['🌎 World Cup — jeszcze nie zdobyty','🥇 Złoty But — jeszcze nie zdobyty','🏆 Liga Mistrzów — jeszcze nie zdobyta','🥇 Liga krajowa — jeszcze nie zdobyta','⭐ MVP / nagrody indywidualne — brak'].map(x=>`<div class="history-item">${x}</div>`).join('')}</div><div class="muted small" style="margin-top:10px">Po zdobyciu trofeum zapisujemy datę, klub, sezon i powód/nazwę nagrody.</div></section>
+ <section class="section card"><div class="eyebrow">📈 ATRYBUTY</div>${[['Technika',68],['Szybkość',74],['Drybling',72],['Strzał',55],['Podania',61],['Mental',S.player.mental],['Kondycja',64]].map(x=>`<div style="margin:12px 0"><div class="row"><b>${x[0]}</b><span>${Math.round(x[1])}</span></div><div class="progress"><i style="width:${x[1]}%"></i></div></div>`).join('')}</section>`;
 }
-function life(){
- return `<div class="grid"><div class="card hero"><div class="kicker">🧬 ŻYCIE</div><div class="title">${esc(state.name)}</div><div class="sub">${state.age} lat • ${esc(state.position)} • ${esc(state.city)}, ${esc(state.country)}</div><div class="metrics"><div class="metric"><span>ZDROWIE</span><b>${state.health}</b></div><div class="metric"><span>MENTAL</span><b>${state.mental}</b></div><div class="metric"><span>POPULARNOŚĆ</span><b>${state.popularity.toFixed(1)}%</b></div><div class="metric"><span>WIZERUNEK</span><b>${state.image}</b></div></div></div>
- <div class="card span6"><div class="kicker">🎓 EDUKACJA / KURSY</div><div class="row"><span>Status</span><b>${esc(state.educationLevel)}</b></div>${state.courses.length?state.courses.map(c=>`<div class="row"><span>${esc(c.name)}</span><b>poziom ${c.level}</b></div>`).join(""):"<div class='empty'>Brak ukończonych kursów.</div>"}<div class="actions"><button class="btn" onclick="course()">📚 Zapisz się na kurs — wymaga pieniędzy + czasu + nauki</button></div></div>
- <div class="card span6"><div class="kicker">🚗 LICENCJE</div>${["Prawo jazdy B","Licencja na jacht","Licencja pilota"].map(x=>`<div class="row"><span>${x}</span><b>${state.licenses.includes(x)?"POSIADASZ":"brak"}</b></div>`).join("")}<div class="actions"><button class="btn" onclick="license()">🪪 Wyrób licencję</button></div></div>
- <div class="card span12"><div class="kicker">🏠 POSIADANE RZECZY / DOM</div>${state.owned.length?`<div class="list">${state.owned.map((x,i)=>`<div class="item"><b>${esc(x.name)}</b><small>Kupione ${x.date} za ${money(x.price)}. Możesz później sprzedać lub rozbudować nieruchomość.</small></div>`).join("")}</div>`:"<div class='empty'>Nic jeszcze nie posiadasz.</div>"}</div>
- <div class="card span12"><div class="kicker">🚀 KARIERY POBOCZNE</div>${state.sideCareers.length?state.sideCareers.map(x=>`<div class="row"><span>${esc(x.name)}</span><b>poziom ${x.level} • ${x.status}</b></div>`).join(""):"<div class='empty'>Nie rozwijasz jeszcze kariery pobocznej.</div>"}</div></div>`
+
+function renderLife(){
+ return `<section class="section card gold-card"><div class="eyebrow">ŻYCIE</div><h1>${esc(S.player.name)}</h1><div class="muted">${S.player.age} lat • ${S.player.position} • ${esc(S.player.city)}, ${esc(S.player.country)}</div>
+ <div class="grid2" style="margin-top:15px">${[['❤️ Zdrowie',S.player.health],['🧠 Mental',S.player.mental],['⭐ Szczęście',S.player.happiness],['⚽ Forma',S.player.form]].map(x=>`<div class="metric"><span>${x[0]}</span><b>${Math.round(x[1])}</b></div>`).join('')}</div></section>
+ <section class="section card"><div class="eyebrow">🎓 EDUKACJA</div><h2>${esc(S.player.school)}</h2><div class="muted">Edukacja wymaga czasu i nauki. Samo zapłacenie za kurs nigdy nie daje automatycznie kwalifikacji.</div><button class="btn" style="margin-top:12px" onclick="go('education')">🎓 Otwórz szkołę, kursy i ścieżki po piłce</button></section>
+ <section class="section card"><div class="eyebrow">🚀 KARIERA POBOCZNA</div><h2>Rozwijaj równolegle</h2>${S.secondary.map(j=>`<div class="job"><div class="row"><h3>${j.icon} ${j.name}</h3><span class="badge">${j.level}%</span></div><div class="muted small">${j.needs}</div><div class="progress" style="margin:9px 0"><i style="width:${j.level}%"></i></div><button class="btn" onclick="secondaryWork('${j.id}',true)" ${!j.unlocked?'disabled':''}>${j.unlocked?'Rozwijaj — czas + nauka + zasoby':'🔒 jeszcze zablokowane'}</button></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">🏠 MIESZKANIE I MAJĄTEK</div><div class="list">${S.properties.map(p=>`<div class="property"><h3>🏠 ${esc(p.name)}</h3><div class="muted">${esc(p.city)} • ${p.rooms} pok. • komfort ${p.comfort}/100</div><div class="badges"><span class="badge">${esc(p.status)}</span><span class="badge">${money(p.value)}</span></div></div>`).join('')}</div></section>`;
 }
-function course(){if(state.money<150){alert("Kurs kosztuje €150.");return}state.money-=150;state.totalSpent+=150;state.courses.push({name:["podstawy marketingu","język obcy","psychologia sportu","media społecznościowe"][Math.floor(Math.random()*4)],level:1});addHistory("Kurs","Rozpoczęto naukę. Pieniądze nie wystarczyłyby bez czasu i nauki.");advance(3)}
-function license(){addEvent("🪪 Licencja","Licencja wymaga opłaty, nauki i zdania egzaminu.",[decision("📚 Uczę się i podchodzę do egzaminu",()=>{let x=["Prawo jazdy B","Licencja na jacht","Licencja pilota"][Math.floor(Math.random()*3)];if(!state.licenses.includes(x)){state.licenses.push(x);state.money=Math.max(0,state.money-300);news("🪪 Licencja zdobyta",`Masz: ${x}.`)}else state.mental+=1}),decision("💶 Pytam rodziców o pomoc",()=>{state.money+=100;state.mental+=1}),decision("🛑 Odkładam",()=>{})])}
-function family(){
- let p=state.parents;
- return `<div class="grid"><div class="card hero"><div class="kicker">👨‍👩‍👧 RODZINA</div><div class="title">Korzenie i aktualna sytuacja</div><div class="sub">Mieszkasz: ${esc(state.city)}, ${esc(state.country)}. Rodzina ma własne dochody, wydatki, mieszkania, samochody, relacje i wydarzenia.</div><div class="chips"><span class="chip">${state.parentsTogether?"❤️ rodzice razem":"💔 rodzice osobno"}</span><span class="chip">mieszkasz z: ${state.age<18?"rodzicami":state.city}</span></div></div>
- ${p.map((x,i)=>`<div class="card span6"><div class="kicker">${i?"👩 MAMA":"👨 TATA"}</div><div class="title">${esc(x.name)}</div>${[["Zawód",x.job],["Zarobki/mies.",money(x.income)],["Wydatki/mies.",money(x.expenses)],["Mieszkanie",x.housing],["Miasto",x.city],["Auto",x.car],["Wsparcie",x.support+"/100"],["Zainteresowanie Tobą",x.interest+"/100"]].map(a=>`<div class="row"><span>${a[0]}</span><b>${esc(a[1])}</b></div>`).join("")}<button class="btn" onclick="talkParent(${i})">💬 Porozmawiaj</button></div>`).join("")}
- <div class="card span12"><div class="kicker">🏠 ZMIANY MATERIALNE</div><div class="sub">Rozstanie nie kasuje życia rodziców. Dom może zostać sprzedany, wynajęty lub przypadną do niego inne koszty; każdy rodzic ma własny budżet.</div><div class="actions"><button class="btn" onclick="familySimulation();save();render()">🔄 Sprawdź aktualizację rodziny</button></div></div></div>`
+function secondaryWork(id,fromButton){
+ const j=S.secondary.find(x=>x.id===id);if(!j)return;
+ if(!j.unlocked){toast('Ta ścieżka jest jeszcze zablokowana — potrzebujesz warunków, nauki lub sprzętu.');return}
+ const cost= id==='music'?20:id==='film'?25:15;
+ if(S.player.money<cost){toast('Brakuje pieniędzy na sprzęt / pracę.');return}
+ if(S.player.energy<8){toast('Za mało energii.');return}
+ S.player.money-=cost;S.player.energy-=8;S.day.time+=120;j.level=clamp(j.level+5,0,100);
+ if(j.level>=10 && id==='music') S.secondary.find(x=>x.id==='dj').unlocked=true;
+ if(j.level>=15 && id==='music') S.secondary.find(x=>x.id==='influencer').unlocked=true;
+ S.player.popularity=clamp(S.player.popularity+(j.level>=30?.2:.05),0,100);
+ addHistory('Kariera poboczna: '+j.name,'Poświęcono 2h na rozwój.',`poziom +5 • popularność +`);
+ save();render();toast(`${j.name}: rozwój zapisany.`);
 }
-function talkParent(i){let p=state.parents[i];addEvent(`💬 Rozmowa z ${p.name}`,`Co chcesz zrobić? Rodzic zarabia ${money(p.income)}, wydaje około ${money(p.expenses)}.`,[decision("❤️ Pytam o wsparcie",()=>{state.mental+=2;p.interest=clamp(p.interest+3)}),decision("💶 Pytam o pomoc finansową",()=>{let free=Math.max(0,p.income-p.expenses);let help=Math.min(150,Math.round(free*.15));state.money+=help;news("💶 Pomoc rodzica",`${p.name} może przekazać Ci ${money(help)}.`)}),decision("🗣️ Opowiadam o karierze",()=>{p.interest=clamp(p.interest+5);addRelation(p.name,"rodzic")})])}
-function relations(){
- return `<div class="grid"><div class="card hero"><div class="kicker">🤝 KATALOG RELACJI</div><div class="title">Każda poznana osoba</div><div class="sub">Relacja może powstać po meczu, treningu, szkole, FLgramie, wydarzeniu, rodzinie czy zwykłej rozmowie. Jeśli wygasa, znika z aktywnego katalogu, ale historia pozostaje.</div><button class="btn" onclick="newRelation()">➕ Dodaj kontakt</button></div><div class="card span12">${state.relations.length?`<div class="list">${state.relations.map(r=>`<div class="item"><b>${esc(r.name)} <span class="chip">${esc(r.type)}</span></b><small>Poziom relacji: ${r.level}/100 • pierwsze spotkanie: ${r.firstMet} • ostatnio: ${r.lastMet}</small><div class="actions"><button class="btn" onclick="relationAction(${r.id})">💬 Akcja z tą osobą</button></div></div>`).join("")}`:"<div class='empty'>Jeszcze nikogo nie poznano.</div>"}</div></div>`
+
+function renderFamily(){
+ const f=S.family;
+ return `<section class="section card gold-card"><div class="eyebrow">RODZINA</div><h1>Twoja rodzina</h1><div class="muted">Korzenie, miejsce zamieszkania, sytuacja materialna i relacje rodziny są dynamiczne i wpływają na mental oraz możliwości kariery.</div>
+ <div class="grid2" style="margin-top:15px"><div class="metric"><span>Wspólne gospodarstwo</span><b>${f.parentsTogether?'razem':'osobno'}</b></div><div class="metric"><span>Moje miejsce</span><b>${f.parentsTogether?'z rodzicami':S.player.homeId==='parents'?'u rodzica':'samodzielnie'}</b></div><div class="metric"><span>Zamożność</span><b>${f.familyWealth}</b></div><div class="metric"><span>Stabilność domu</span><b>${f.stability}</b></div></div></section>
+ <section class="section card"><div class="eyebrow">🏠 GDZIE MIESZKAM</div><h2>${f.parentsTogether?f.homeType:'dom rodzinny po rozstaniu — ustalane osobno'}</h2><div class="muted">📍 ${S.player.city}, ${S.player.country} • mieszkam: ${S.player.homeId==='parents'?'z rodzicami / u rodzica':'samodzielnie'}</div><div class="badges"><span class="badge">🚗 transport zależy od posiadanych rzeczy</span><span class="badge">🧠 wpływa na mental</span></div></section>
+ <section class="section card"><div class="eyebrow">💰 AKTUALNA SYTUACJA RODZINY</div><div class="grid2">${[['Zamożność',f.familyWealth],['Stabilność domu',f.stability],['Wsparcie ojca',f.father.interest+'/100'],['Wsparcie matki',f.mother.interest+'/100'],['Dostępność ojca',f.father.available+'/100'],['Dostępność matki',f.mother.available+'/100']].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div><div class="muted small" style="margin-top:12px">Dochody i wydatki rodziców mogą się zmieniać. Po rozstaniu majątek, dom, auta i koszty nie znikają — są rozdzielane i dalej wpływają na życie.</div></section>
+ <section class="section card"><div class="eyebrow">👨‍👩‍👦 RODZICE — AKTUALNY STAN</div>${parentCard('father','👨','OJCIEC',f.father)}${parentCard('mother','👩','MATKA',f.mother)}
+ ${f.siblings.map(s=>`<div class="person"><h3>👦 ${esc(s.name)}</h3><div class="muted">${s.age} lat • rodzeństwo • relacja ${s.relation}/100</div></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">🌳 KORZENIE</div>${f.roots.map(r=>`<div class="person"><h3>🌎 ${r.label}</h3><div class="muted">${r.country} • ${r.city}</div></div>`).join('')}</section>`;
 }
-function newRelation(){let n=prompt("Imię i nazwisko nowej osoby:");if(!n)return;addRelation(n,"znajomy");save();render()}
-function relationAction(id){let r=state.relations.find(x=>x.id===id);if(!r)return;addEvent(`🤝 ${r.name}`,"Wybierz akcję.",[decision("☕ Kawa",()=>{r.level=clamp(r.level+3);state.money=Math.max(0,state.money-5)}),decision("🎁 Prezent",()=>{r.level=clamp(r.level+7);state.money=Math.max(0,state.money-50)}),decision("🚶 Spacer",()=>{r.level=clamp(r.level+4);state.happiness=clamp(state.happiness+2)})])}
-function history(){
- return `<div class="grid"><div class="card hero"><div class="kicker">📜 HISTORIA DECYZJI</div><div class="title">Wszystko po kolei</div><div class="sub">Każde ważne wydarzenie i decyzja jest zapisywana razem ze skutkiem.</div></div><div class="card span12">${state.history.length?state.history.map(x=>`<div class="item"><b>Dzień ${x.day} • ${esc(x.title)}</b><small>${esc(x.text)} ${x.impact?"• "+esc(x.impact):""}</small></div>`).join(""):"<div class='empty'>Historia zacznie się wraz z rozgrywką.</div>"}</div></div>`
+function parentCard(key,ico,label,p){
+ return `<div class="person" style="margin-top:10px"><div class="row"><div><div class="eyebrow">${ico} ${label}</div><h3>${esc(p.name)}</h3></div><span class="badge">${p.age} lat</span></div>
+ <div class="muted">${esc(p.job)} • 🌎 ${esc(p.country)} • 📍 ${esc(p.city)}</div>
+ <div class="grid2" style="margin-top:10px"><div class="metric"><span>Zarobki / mies.</span><b>${money(p.income)}</b></div><div class="metric"><span>Wydatki / mies.</span><b>${money(p.expenses)}</b></div><div class="metric"><span>Mieszkanie</span><b style="font-size:15px">${esc(p.home)}</b></div><div class="metric"><span>Auto</span><b style="font-size:15px">${esc(p.car)}</b></div></div>
+ <div class="badges"><span class="badge">❤️ zainteresowanie ${p.interest}/100</span><span class="badge">🕐 dostępność ${p.available}/100</span><span class="badge">${p.partner?'❤️ partner: '+p.partner:'💔 brak partnera'}</span></div></div>`;
 }
-function flgram(){
- let posts=state.posts.length?state.posts:[{text:"Witaj na FLgramie! Tutaj popularność i wizerunek rosną niezależnie od samej liczby obserwujących.",likes:2,date:dateText()}];
- return `<div class="grid"><div class="card span12"><div class="fl"><div class="flhead"><b>FLgram</b><span>@${esc(state.name.replace(/\\s/g,"").toLowerCase())}</span></div><div style="padding:15px;border-bottom:1px solid var(--line)"><div class="metrics"><div class="metric"><span>OBSERWUJĄCY</span><b>${Math.floor(state.popularity*120)}</b></div><div class="metric"><span>OBSERWOWANI</span><b>${Math.floor(state.popularity*35)+8}</b></div><div class="metric"><span>POPULARNOŚĆ</span><b>${state.popularity.toFixed(1)}%</b></div><div class="metric"><span>WIZERUNEK</span><b>${state.image}</b></div></div><div class="actions"><button class="btn primary" onclick="flPost()">➕ Dodaj wpis</button><button class="btn" onclick="flMessage()">💬 Wiadomości</button></div></div>${posts.map((p,i)=>`<article class="post"><div class="posthead"><div class="avatar">⚽</div><div><b>${esc(state.name)}</b><small>${esc(p.date)}</small></div></div><p>${esc(p.text)}</p><div class="postactions"><button onclick="likePost(${i})">❤️ ${p.likes}</button><button onclick="commentPost(${i})">💬 Komentuj</button><button onclick="tagStar()">✨ Oznacz gwiazdę</button></div></article>`).join("")}</div></div></div>`
+
+function renderRelations(){
+ return `<section class="section card gold-card"><div class="eyebrow">KATALOG RELACJE</div><h1>Każda poznana osoba</h1><div class="muted">Osoba trafia tutaj, gdy pojawi się z Tobą realna styczność. Relacja może rosnąć, słabnąć albo wygasnąć.</div></section>
+ <section class="section card"><div class="list">${S.relations.map(r=>`<div class="person"><div class="row"><h3>${esc(r.name)}</h3><span class="badge">${r.age} lat</span></div><div class="muted">${esc(r.type)} • status: ${r.status}</div><div style="margin-top:9px"><div class="row"><span class="small muted">Relacja</span><b>${r.relation}/100</b></div><div class="progress"><i style="width:${r.relation}%"></i></div></div><button class="btn" style="margin-top:10px" onclick="relationActions('${r.id}')">💬 Akcje z tą osobą</button></div>`).join('')}</div></section>`;
 }
-function flPost(){let t=prompt("Co publikujesz?");if(!t)return;publish(t);news("📱 Nowy wpis","Twój post trafił na FLgram.");render()}
-function likePost(i){if(state.posts[i]){state.posts[i].likes++;state.popularity=clamp(state.popularity+.03);save();render()}}
-function commentPost(i){let t=prompt("Komentarz:");if(t){state.popularity=clamp(state.popularity+.02);addRelation("Komentujący z FLgrama","kontakt");save();render()}}
-function tagStar(){let star=["popularny piłkarz","muzyk","aktorka","gwiazda sportu"][Math.floor(Math.random()*4)];news("✨ Gwiazda na FLgramie",`Oznaczasz ${star}. Szansa na reakcję zależy od Twojej popularności.`);if(Math.random()<Math.min(.5,state.popularity/100)){state.popularity+=.3;news("❤️ Niespodziewany like",`${star} polubił/a Twój wpis!`)}render()}
-function flMessage(){let who=state.popularity>10?"ktoś z branży":"nowy kontakt";addEvent("💬 Wiadomość na FLgramie",`${who} napisał/a do Ciebie.`,[decision("💬 Odpowiadam",()=>{state.popularity+=.2;addRelation("Kontakt z FLgrama","kontakt")}),decision("❤️ Odpowiadam pozytywnie",()=>{state.popularity+=.4;addRelation("Kontakt z FLgrama","możliwa relacja")}),decision("🚫 Ignoruję",()=>{})])}
-function finance(){
- return `<div class="grid"><div class="card hero"><div class="kicker">💰 FINANSE</div><div class="title">Twoje pieniądze</div><div class="metrics"><div class="metric"><span>GOTÓWKA</span><b>${money(state.money)}</b></div><div class="metric"><span>WARTOŚĆ RYNKOWA</span><b>${money(state.marketValue)}</b></div><div class="metric"><span>ZAROBIONE</span><b>${money(state.totalEarned)}</b></div><div class="metric"><span>WYDATKI</span><b>${money(state.totalSpent)}</b></div></div></div><div class="card span6"><div class="kicker">📈 INWESTYCJE</div>${state.investments.length?state.investments.map(x=>`<div class="row"><span>${esc(x.name)}</span><b>${money(x.value)}</b></div>`).join(""):"<div class='empty'>Brak inwestycji.</div>"}<div class="actions"><button class="btn" onclick="invest()">📈 Inwestuj</button><button class="btn" onclick="business()">🏢 Otwórz biznes</button></div></div><div class="card span6"><div class="kicker">❤️ WPŁYW SPOŁECZNY</div><div class="row"><span>Darowizny</span><b>${money(state.charity)}</b></div><div class="actions"><button class="btn" onclick="charity()">❤️ Wpłać na cel charytatywny</button><button class="btn" onclick="academy()">⚽ Wesprzyj szkółkę</button></div></div></div>`
+function relationActions(id){
+ const r=S.relations.find(x=>x.id===id);if(!r)return;
+ const actions=r.type==='koleżanka'||r.type==='partner'?['💬 Rozmowa','🚶 Spacer','🍦 Lody','🎬 Kino','🎁 Prezent','❤️ Randka']:['💬 Rozmowa','🚶 Spacer','☕ Kawa','🎁 Prezent','🤝 Pomoc','📞 Telefon'];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">RELACJA</div><h2>${esc(r.name)}</h2><div class="muted">${esc(r.type)} • ${r.relation}/100</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${actions.map(a=>`<button class="choice" onclick="relationDo('${id}',${JSON.stringify(a)})"><b>${a}</b><span>Wpływa na relację, czas, pieniądze i może generować nowe wydarzenia.</span></button>`).join('')}</div>`,true)
 }
-function invest(){let a=Number(prompt("Kwota inwestycji (€):","100"));if(!a||a<50||a>state.money){alert("Nieprawidłowa kwota.");return}state.money-=a;state.investments.push({name:"Giełda — portfel automatyczny",value:a});addHistory("Inwestycja",`Wpłacono ${money(a)} do portfela.`);save();render()}
-function business(){addEvent("🏢 Biznes","Wybierz kierunek biznesu. Wymaga kapitału i czasu.",[decision("☕ Kawiarnia",()=>{if(state.money>=5000){state.money-=5000;state.businesses.push({name:"Kawiarnia",value:5000});news("🏢 Biznes","Otworzyłaś/eś kawiarnię.")}}),decision("👕 Marka sportowa",()=>{if(state.money>=10000){state.money-=10000;state.businesses.push({name:"Marka sportowa",value:10000});}}),decision("📱 Agencja medialna",()=>{if(state.money>=15000){state.money-=15000;state.businesses.push({name:"Agencja medialna",value:15000});}})])}
-function charity(){let a=Number(prompt("Kwota (€):","100"));if(a>0&&a<=state.money){state.money-=a;state.charity+=a;addHistory("Darowizna",`Przekazano ${money(a)}.`);save();render()}}
-function academy(){let a=Number(prompt("Kwota (€):","250"));if(a>0&&a<=state.money){state.money-=a;state.charity+=a;news("⚽ Wsparcie szkółki","Twoja pomoc trafiła do młodych zawodników.");save();render()}}
-function shop(){
- return `<div class="grid"><div class="card span12"><div class="kicker">🏙️ MIASTO / SKLEP I WYDATKI</div><div class="title">Wydawaj, mieszkaj, podróżuj, rozwijaj życie</div><div class="sub">Nie każdy przedmiot jest dostępny w każdym mieście. Część rzeczy wymaga odpowiedniego majątku, miejsca lub warunków domu. Zakupy mogą wpływać na zdrowie, relacje, popularność, transport i karierę.</div><div class="chips"><span class="chip">gotówka ${money(state.money)}</span><span class="chip">${esc(state.city)}</span><span class="chip">posiadane ${state.owned.length}</span></div></div>
- <div class="card span12"><div class="shopgrid">${products.map((p,i)=>`<div class="product"><div class="emoji">${p[0].split(" ").pop()}</div><b>${esc(p[0])}</b><small>${esc(p[1])}</small><div class="price">${money(p[2])}</div><button class="btn" onclick="buy(products[${i}])">Kup</button>${p[3]==="home"?`<button class="btn" onclick="rentHome(${i})">Wynajmij</button>`:""}</div>`).join("")}</div></div></div>`
+function relationDo(id,a){
+ const r=S.relations.find(x=>x.id===id);if(!r)return;r.relation=clamp(r.relation+(a.includes('Prezent')?8:a.includes('Randka')?12:6),0,100);
+ S.player.money-=a.includes('Kawa')?6:a.includes('Lody')?5:a.includes('Kino')?15:a.includes('Prezent')?25:0;
+ S.day.time+=a.includes('Telefon')?30:60;
+ addHistory('Relacja: '+r.name,a,`❤️ +${a.includes('Randka')?12:a.includes('Prezent')?8:6}`);
+ closeModal();save();render();toast('Relacja zaktualizowana.');
 }
-function rentHome(i){let p=products[i];state.rentals.push({name:p[0],monthly:Math.round(p[2]*.006),city:state.city});news("🏠 Wynajem",`Wynajmujesz ${p[0]} w ${state.city}.`);save();render()}
-function settings(){
- return `<div class="grid"><div class="card hero"><div class="kicker">⚙️ USTAWIENIA</div><div class="title">Gra</div><div class="sub">Tutaj zmieniasz preferencje i zarządzanie karierą. „Napraw grę” nie kasuje kariery.</div></div>
- <div class="card span6"><div class="kicker">❤️ PREFERENCJE RANDKOWANIA</div>${["kobiety","mężczyźni","wszyscy","brak randkowania"].map(x=>`<button class="btn ${state.dating===x?"primary":""}" onclick="state.dating='${x}';save();render()">${x}</button>`).join("")}</div>
- <div class="card span6"><div class="kicker">💾 ROZGRYWKA</div><div class="actions"><button class="btn" onclick="resetCareer()">🔄 Restart kariery<small>Te same podstawowe dane rodziny, nowa ścieżka.</small></button><button class="btn" onclick="newGame()">🆕 Nowa gra<small>Nowe imię, nazwisko i rodzina.</small></button><button class="btn" onclick="newGamePlus()">✨ Nowa gra+<small>Ty ustalasz zawodnika, rodzina pozostaje automatyczna.</small></button><button class="btn" onclick="repair()">🔧 Napraw grę<small>Odświeża i zapisuje stan bez resetu.</small></button></div></div>
- <div class="card span12"><div class="kicker">📖 KODEKS / INSTRUKCJA</div><div class="sub">Każdy system ma znaczenie: czas → aktywności → energia → trening → mecze → wydarzenia → decyzje → relacje → rodzina → popularność/wizerunek → sponsorzy → finanse → zakupy → edukacja i kariery poboczne. Wydarzenia mogą generować nowe opcje, a te kolejne wydarzenia. Nie każda ścieżka pojawi się w każdej karierze.</div></div></div>`
+
+function renderHistory(){
+ return `<section class="section card gold-card"><div class="eyebrow">HISTORIA DECYZJI</div><h1>Twoje życie krok po kroku</h1><div class="muted">Każda decyzja i ważne wydarzenie zostają zapisane wraz ze skutkiem.</div></section>
+ <section class="section card"><div class="list">${S.history.length?S.history.map(h=>`<div class="history-item"><div class="row"><b>${esc(h.title)}</b><span class="badge">${datePL(h.date)} ${h.time}</span></div><div class="muted small" style="margin-top:6px">${esc(h.desc)}</div><div class="badges"><span class="badge gold">${esc(h.effect||'')}</span></div></div>`).join(''):'<div class="muted">Historia zacznie się zapełniać od pierwszych aktywności i wydarzeń.</div>'}</div></section>`;
 }
-function newGamePlus(){let old=fresh();let name=prompt("Imię i nazwisko:",state.name);if(!name)return;let pos=prompt("Pozycja:",state.position)||state.position;state=old;state.name=name;state.position=pos;save();render()}
-function settingsRoute(){route("settings")}
+
+function renderFlgram(){
+ const f=S.flgram;
+ return `<section class="section card gold-card"><div class="eyebrow">📱 FLGRAM</div><div class="row"><div><h1 style="font-size:26px;margin-bottom:4px">${esc(f.handle)}</h1><div class="muted">${f.followers} obserwujących • ${f.following} obserwowanych • ❤️ ${f.likes}</div></div><button class="btn" style="width:auto" onclick="flgramProfile()">Profil</button></div>
+ <div class="badges"><span class="badge">⭐ popularność ${S.player.popularity.toFixed(1)}%</span><span class="badge">💬 ${f.messages.length} wiadomości</span></div></section>
+ <section class="section card"><div class="row"><h2>Feed</h2><button class="btn" style="width:auto" onclick="newPost()">➕ Wpis</button></div>${f.posts.map(p=>`<div class="post" style="margin-top:10px"><div class="row"><b>${esc(p.author)} ${p.star?'⭐':''}</b><span class="muted small">${p.following?'Obserwujesz':''}</span></div><div style="margin:10px 0">${esc(p.text)}</div><div class="row"><span>❤️ ${p.likes}</span><span>💬 ${p.comments}</span><button class="btn" style="width:auto;padding:8px 10px" onclick="likePost('${p.id}')">❤️ Lubię</button></div></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">⭐ ODKRYWAJ GWIAZDY</div>${f.stars.map((s,i)=>`<div class="person"><div class="row"><div><h3>${esc(s.name)}</h3><div class="muted">konto publiczne • możesz obserwować</div></div><button class="btn" style="width:auto" onclick="followStar(${i})">${s.following?'✓ Obserwujesz':'Obserwuj'}</button></div></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">💬 WIADOMOŚCI</div>${f.messages.map(m=>`<div class="post"><b>${esc(m.from)}</b><div class="muted" style="margin-top:6px">${esc(m.text)}</div></div>`).join('')}</section>`;
+}
+function flgramAction(){
+ if(Math.random()<.18){const stars=S.flgram.stars.filter(x=>x.following);if(stars.length)S.flgram.messages.push({from:stars[Math.floor(Math.random()*stars.length)].name,text:'Hej! Widziałem Twój ostatni wpis. 👋',read:false})}
+}
+function likePost(id){const p=S.flgram.posts.find(x=>x.id===id);if(!p)return;p.likes++;S.flgram.likes++;S.player.popularity=clamp(S.player.popularity+.03,0,100);save();render();toast('❤️ Polubiono wpis.')}
+function followStar(i){const s=S.flgram.stars[i];s.following=!s.following;S.flgram.following+=s.following?1:-1;save();render();toast(s.following?'⭐ Obserwujesz teraz to konto.':'Przestałeś obserwować.')}
+function newPost(){
+ openModal(`<div class="modal-head"><div><div class="eyebrow">📱 FLGRAM</div><h2>Nowy wpis</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form" style="margin-top:14px"><textarea class="textarea" id="postText" placeholder="Co chcesz opublikować?"></textarea><button class="btn goldbtn" onclick="publishPost()">Opublikuj</button></div>`,true)
+}
+function publishPost(){const t=document.getElementById('postText').value.trim();if(!t)return;S.flgram.posts.unshift({id:'p'+Date.now(),author:'Noah Pereira',text:t,likes:0,comments:0,following:true});S.flgram.followers+=Math.random()<.2?1:0;S.player.popularity=clamp(S.player.popularity+.1,0,100);addHistory('FLgram — nowy wpis','Opublikowano post.', 'popularność +0.1');closeModal();save();render()}
+function flgramProfile(){openModal(`<div class="modal-head"><div><div class="eyebrow">📱 PROFIL</div><h2>${esc(S.flgram.handle)}</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="grid2" style="margin-top:14px"><div class="metric"><span>Obserwujący</span><b>${S.flgram.followers}</b></div><div class="metric"><span>Obserwowani</span><b>${S.flgram.following}</b></div><div class="metric"><span>Polubienia</span><b>${S.flgram.likes}</b></div><div class="metric"><span>Popularność</span><b>${S.player.popularity.toFixed(1)}%</b></div></div>`,true)}
+
+function renderFinance(){
+ return `<section class="section card gold-card"><div class="eyebrow">FINANSE</div><h1>${money(S.player.money)}</h1><div class="grid2" style="margin-top:14px"><div class="metric"><span>Gotówka</span><b>${money(S.player.money)}</b></div><div class="metric"><span>Wartość jako piłkarz</span><b>${money(S.player.marketValue)}</b></div><div class="metric"><span>Zainwestowane</span><b>${money(S.investments.reduce((a,x)=>a+x.amount,0))}</b></div><div class="metric"><span>Biznesy</span><b>${S.businesses.length}</b></div></div></section>
+ <section class="section card"><div class="eyebrow">📈 INWESTYCJE</div><button class="btn goldbtn" onclick="invest()">➕ Zainwestuj</button><div class="list" style="margin-top:10px">${S.investments.length?S.investments.map(x=>`<div class="job"><b>${esc(x.name)}</b><div class="muted">${money(x.amount)} • ${x.risk} ryzyko</div></div>`).join(''):'<div class="muted">Brak inwestycji.</div>'}</div></section>
+ <section class="section card"><div class="eyebrow">💼 BIZNES</div><button class="btn goldbtn" onclick="openBusiness()">➕ Otwórz biznes</button><div class="list" style="margin-top:10px">${S.businesses.length?S.businesses.map(x=>`<div class="job"><h3>${esc(x.name)}</h3><div class="muted">${esc(x.type)} • kapitał ${money(x.amount)}</div></div>`).join(''):'<div class="muted">Możesz założyć firmę, szkółkę, markę, restaurację lub inne przedsięwzięcie.</div>'}</div></section>
+ <section class="section card"><div class="eyebrow">❤️ POMOC / CELE</div><button class="btn" onclick="charity()">Wpłać na cel charytatywny / rozwój szkółki</button></section>`;
+}
+function invest(){openModal(`<div class="modal-head"><div><div class="eyebrow">📈 GIEŁDA</div><h2>Inwestycja</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions"><button class="choice" onclick="doInvest('ETF',100)"><b>🌍 ETF — €100</b><span>niższe ryzyko</span></button><button class="choice" onclick="doInvest('Akcje spółki',250)"><b>📊 Akcje — €250</b><span>średnie ryzyko</span></button><button class="choice" onclick="doInvest('Startup',500)"><b>🚀 Startup — €500</b><span>wysokie ryzyko</span></button></div>`,true)}
+function doInvest(name,amount){if(S.player.money<amount){toast('Za mało pieniędzy.');return}S.player.money-=amount;S.investments.push({name,amount,risk:name==='Startup'?'wysokie':name==='Akcje spółki'?'średnie':'niskie'});addHistory('Inwestycja',name,money(amount)+' zainwestowane');closeModal();save();render()}
+function openBusiness(){openModal(`<div class="modal-head"><div><div class="eyebrow">💼 BIZNES</div><h2>Wybierz przedsięwzięcie</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${[['Szkółka piłkarska',1000],['Marka odzieżowa',2500],['Studio medialne',1800],['Restauracja',5000]].map(x=>`<button class="choice" onclick="doBusiness(${JSON.stringify(x[0])},${x[1]})"><b>${x[0]} — ${money(x[1])}</b><span>Kapitał początkowy i późniejsze koszty.</span></button>`).join('')}</div>`,true)}
+function doBusiness(n,a){if(S.player.money<a){toast('Za mało kapitału.');return}S.player.money-=a;S.businesses.push({name:n,type:'własny biznes',amount:a});addHistory('Nowy biznes',n,'kapitał '+money(a));closeModal();save();render()}
+function charity(){openModal(`<div class="modal-head"><div><div class="eyebrow">❤️ DOBRO</div><h2>Wybierz cel</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions"><button class="choice" onclick="doCharity('szkoła',50)"><b>🏫 Rozwój szkoły — €50</b></button><button class="choice" onclick="doCharity('szkółka',100)"><b>⚽ Szkółka dla dzieci — €100</b></button><button class="choice" onclick="doCharity('fundacja',250)"><b>❤️ Fundacja — €250</b></button></div>`,true)}
+function doCharity(n,a){if(S.player.money<a){toast('Za mało pieniędzy.');return}S.player.money-=a;S.player.reputation=clamp(S.player.reputation+2,0,100);S.charity.push({name:n,amount:a,date:S.day.date});addHistory('Wpłata charytatywna',n,'REP +2 • '+money(a));closeModal();save();render()}
+
+function renderShop(){
+ return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>Miasto życia</h1><div class="muted">Zakupy, usługi, nieruchomości, transport, lekarze, prezenty i luksus. Każdy zakup może wpływać na statystyki, relacje, popularność, czas i finanse.</div></section>
+ ${[['🍽️','Jedzenie i wyjścia','Restauracje, kawa, kino, lody'],['👕','Ubrania i sprzęt','ubrania, buty, korki, gadżety'],['🏠','Domy i mieszkania','kupno, sprzedaż, wynajem, rozbudowa'],['🚗','Transport','rowery, auta, pociągi, samoloty'],['🏝️','Luksus','wyspy, jachty, helikoptery'],['🎁','Prezenty','zegarki, biżuteria, auta, nieruchomości'],['🩺','Zdrowie','lekarze, specjaliści, zabiegi'],['✈️','Wakacje','wyjazdy zależne od budżetu i możliwości']].map((x,i)=>`<button class="action" onclick="shopCategory(${i})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">${x[2]}</div></div><div>›</div></button>`).join('')}`;
+}
+function shopCategory(i){
+ const cats=[
+  [['☕ Kawa','€4'],['🍦 Lody','€5'],['🍽️ Restauracja','€25'],['🎬 Kino','€15']],
+  [['👟 Korki podstawowe','€60'],['👟 Korki premium','€180'],['👕 Ubrania klubowe','€80'],['📱 Telefon','€400']],
+  [['🏠 Mieszkanie — Curitiba','€80000'],['🏡 Dom — Porto','€310000'],['🏠 Wynajem mieszkania','€700/mies.']],
+  [['🚲 Rower','€250'],['🚗 Volkswagen Golf','€14000'],['🚆 Pociąg','€20'],['✈️ Lot','€120']],
+  [['🛥️ Jacht','€250000'],['🚁 Helikopter','€1500000'],['🏝️ Wyspa','€5000000']],
+  [['⌚ Zegarek','€500'],['💎 Biżuteria','€800'],['🚗 Auto na prezent','€14000'],['🏠 Mieszkanie na prezent','€80000']],
+  [['🩺 Lekarz','€120'],['🧠 Psycholog sportowy','€90'],['💆 Fizjoterapia','€70'],['🧬 Badanie predyspozycji','€180']],
+  [['🏖️ Tydzień na wakacjach','€500'],['✈️ Luksusowy wyjazd','€2500']]
+ ];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🏙️ SKLEP</div><h2>Oferta</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${cats[i].map((x,j)=>`<button class="choice" onclick="buyItem(${i},${j})"><b>${x[0]}</b><span>${x[1]} • zakup może zmienić Twoje życie, relacje lub popularność.</span></button>`).join('')}</div>`,true)
+}
+function buyItem(cat,j){
+ const prices=[[4,5,25,15],[60,180,80,400],[80000,310000,700],[250,14000,20,120],[250000,1500000,5000000],[500,800,14000,80000],[120,90,70,180],[500,2500]];
+ const names=[['Kawa','Lody','Restauracja','Kino'],['Korki podstawowe','Korki premium','Ubrania klubowe','Telefon'],['Mieszkanie — Curitiba','Dom — Porto','Wynajem mieszkania'],['Rower','Volkswagen Golf','Pociąg','Lot'],['Jacht','Helikopter','Wyspa'],['Zegarek','Biżuteria','Auto na prezent','Mieszkanie na prezent'],['Lekarz','Psycholog sportowy','Fizjoterapia','Badanie predyspozycji'],['Wakacje','Luksusowy wyjazd']];
+ const a=prices[cat][j],n=names[cat][j]; if(S.player.money<a){toast('Za mało pieniędzy.');return}
+ S.player.money-=a;S.inventory.push({name:n,price:a,date:S.day.date});
+ if(n.includes('Korki'))S.player.ovr=clamp(S.player.ovr+(n.includes('premium')?.8:.3),1,99);
+ if(n==='Telefon')S.player.popularity=clamp(S.player.popularity+.3,0,100);
+ if(n==='Ubrania klubowe')S.player.reputation=clamp(S.player.reputation+1,0,100);
+ addHistory('Zakup',n,money(a));closeModal();save();render();toast('Zakup zapisany.');
+}
+
+function renderEducation(){
+ return `<section class="section card gold-card"><div class="eyebrow">🎓 EDUKACJA</div><h1>Szkoła i kwalifikacje</h1><div class="muted">Nie wystarczy zapłacić. Kurs wymaga czasu, nauki i zaliczenia.</div><div class="metric" style="margin-top:14px"><span>Postęp edukacyjny</span><b>${Math.round(S.player.education)}/100</b></div></section>
+ <section class="section card"><div class="eyebrow">📚 KURSY</div>${[['Język obcy',30,50],['Podstawy biznesu',40,80],['DJ / produkcja',45,120],['Montaż filmu',45,100],['Psychologia sportu',55,150],['Przygotowanie trenerskie',70,250],['Kurs agenta sportowego',80,300]].map(x=>`<div class="job"><h3>📚 ${x[0]}</h3><div class="muted">wymagany poziom edukacji: ${x[1]} • koszt ${money(x[2])}</div><button class="btn" style="margin-top:9px" onclick="startCourse('${x[0]}',${x[1]},${x[2]})">Rozpocznij naukę</button></div>`).join('')}</section>`;
+}
+function startCourse(n,req,cost){if(S.player.education<req){toast('Brakuje wymaganego poziomu edukacji.');return}if(S.player.money<cost){toast('Za mało pieniędzy.');return}S.player.money-=cost;S.player.education=clamp(S.player.education+5,0,100);S.education.courses.push({name:n,progress:5,passed:false});S.day.time+=60;addHistory('Kurs',n,'nauka +5 • czas 1h');save();render();toast('Kurs rozpoczęty — trzeba go kontynuować i zaliczyć.')}
+function renderLicenses(){
+ const rows=Object.entries(S.licenses).map(([id,l])=>`<div class="job"><div class="row"><h3>🪪 ${esc(l.name)}</h3><span class="badge">${l.passed?'ZALICZONA':l.progress+'%'}</span></div><div class="muted">${l.requiredAge}+ lat • nauka, czas i egzamin</div><div class="progress" style="margin:10px 0"><i style="width:${l.progress}%"></i></div><button class="btn" onclick="licenseStudy('${id}')">${l.passed?'Powtórz / rozwijaj':'Ucz się / przygotuj do egzaminu'}</button></div>`).join('');
+ return `<section class="section card gold-card"><div class="eyebrow">🪪 LICENCJE</div><h1>Uprawnienia</h1><div class="muted">Nie wszystko da się kupić. Musisz mieć odpowiedni wiek, czas na naukę i zdać egzamin. Rodzice mogą pomóc finansowo, ale nie zdają za Ciebie.</div></section><section class="section card">${rows}</section>`;
+}
+function licenseStudy(id){const l=S.licenses[id];if(S.player.age<l.requiredAge){toast(`Wymagany wiek: ${l.requiredAge} lat.`);return}if(S.player.energy<5){toast('Za mało energii.');return}S.day.time+=60;S.player.energy-=5;l.progress=clamp(l.progress+Math.floor(10+Math.random()*18),0,100);if(l.progress>=100){const pass=Math.random()<.78;l.passed=pass;l.progress=pass?100:Math.floor(55+Math.random()*25);addHistory('Egzamin — '+l.name,pass?'Zdałeś egzamin!':'Nie zdałeś — potrzebujesz kolejnych przygotowań.',pass?'licencja zdobyta':'spróbuj ponownie')}save();render();toast(l.passed?'🪪 Licencja zdobyta!':'Postęp nauki zapisany.')}
+function renderSpecialists(){
+ return `<section class="section card gold-card"><div class="eyebrow">🩺 SPECJALIŚCI</div><h1>Zdrowie i predyspozycje</h1><div class="muted">Specjaliści kosztują, mają różne efekty i nie każdy problem znika od razu.</div></section><section class="section card">${S.specialists.map(x=>`<div class="job"><div class="row"><h3>${esc(x.name)}</h3><span class="badge">${money(x.price)}</span></div><div class="muted">${esc(x.effect)}</div><button class="btn" style="margin-top:10px" onclick="specialist('${x.id}')">Umów wizytę</button></div>`).join('')}</section>`;
+}
+function specialist(id){const x=S.specialists.find(z=>z.id===id);if(S.player.money<x.price){toast('Za mało pieniędzy.');return}S.player.money-=x.price;S.day.time+=60;if(id==='sportpsych')S.player.mental=clamp(S.player.mental+8,0,100);if(id==='physio'){S.player.health=clamp(S.player.health+6,0,100);S.player.energy=clamp(S.player.energy+5,0,100)}if(id==='genetics'){openModal(`<div class="modal-head"><div><div class="eyebrow">🧬 WYNIK BADANIA</div><h2>Predyspozycje</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="grid2" style="margin-top:14px"><div class="metric"><span>Szacowany potencjał</span><b>${S.player.potential}</b></div><div class="metric"><span>Ryzyko kontuzji</span><b>${S.player.health<60?'podwyższone':'umiarkowane'}</b></div><div class="metric"><span>Motoryka</span><b>wysoka</b></div><div class="metric"><span>Technika</span><b>rozwijalna</b></div></div>`,true);save();render();return}if(id==='doctor')S.player.health=clamp(S.player.health+12,0,100);addHistory('Wizyta u specjalisty',x.name,x.effect);save();render();toast('Wizyta zakończona.')}
+function renderCalendar(){
+ const holidays=[['2026-09-01','📚 Rozpoczęcie roku szkolnego'],['2026-12-24','🎄 Wigilia'],['2026-12-25','🎄 Boże Narodzenie'],['2026-12-26','🎄 Drugi dzień świąt'],['2027-01-01','🎆 Nowy Rok']];
+ return `<section class="section card gold-card"><div class="eyebrow">📅 KALENDARZ</div><h1>${datePL(S.day.date)}</h1><div class="muted">Święta i dni wolne zależą od kraju zamieszkania. Mecze, szkoła, kursy i wydarzenia trafiają tutaj automatycznie.</div></section>
+ <section class="section card"><div class="eyebrow">⚽ MECZE</div>${S.calendar.matches.map(m=>`<div class="job"><div class="row"><h3>⚽ ${esc(m.competition)}</h3><span class="badge">${m.status==='played'?'ROZEGRANY':'ZA '+daysUntil(m.date)+' DNI'}</span></div><div class="muted">${datePL(m.date)} • ${esc(m.opponent)}</div><button class="btn" style="margin-top:9px" onclick="openMatch('${m.id}')">Otwórz mecz</button></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">🎉 ŚWIĘTA / WAŻNE DATY</div>${holidays.map(h=>`<div class="history-item"><div class="row"><b>${h[1]}</b><span class="badge">${datePL(h[0])}</span></div></div>`).join('')}</section>`;
+}
+
+function renderSecondary(){
+ return `<section class="section card gold-card"><div class="eyebrow">🚀 KARIERA POBOCZNA</div><h1>Równoległe życie zawodowe</h1><div class="muted">Możesz rozwijać kilka ścieżek jednocześnie, ale każda wymaga czasu, nauki, sprzętu, pieniędzy i odpowiednich warunków.</div></section>${S.secondary.map(j=>`<section class="section card"><div class="row"><div><h2>${j.icon} ${j.name}</h2><div class="muted">${j.needs}</div></div><span class="badge">${j.level}%</span></div><div class="progress" style="margin:14px 0"><i style="width:${j.level}%"></i></div><button class="btn goldbtn" onclick="secondaryWork('${j.id}',true)" ${!j.unlocked?'disabled':''}>${j.unlocked?'Rozwijaj 2h':'🔒 najpierw odblokuj warunki'}</button></section>`).join('')}`;
+}
+
+function renderSettings(){
+ return `<section class="section card gold-card"><div class="eyebrow">⚙️ USTAWIENIA</div><h1>Gra</h1><div class="muted">Ustawienia dotyczą zapisu gry, nowej kariery, preferencji randkowania, naprawy i kodeksu.</div></section>
+ <section class="section card"><div class="eyebrow">❤️ PREFERENCJE RANDKOWANIA</div><select class="select" onchange="setDating(this.value)"><option value="kobiety" ${S.dating.preference==='kobiety'?'selected':''}>Kobiety</option><option value="mężczyźni" ${S.dating.preference==='mężczyźni'?'selected':''}>Mężczyźni</option><option value="wszyscy" ${S.dating.preference==='wszyscy'?'selected':''}>Wszyscy</option><option value="brak" ${S.dating.preference==='brak'?'selected':''}>Nie chcę randkować</option></select><div class="muted small" style="margin-top:8px">Możesz zmienić to w każdej chwili.</div></section>
+ <section class="section card"><div class="eyebrow">🎮 ROZPOCZĘCIE GRY</div><div class="list"><button class="btn" onclick="restartCareer()">🔄 Restart kariery — te same dane rodziców, nowy przebieg</button><button class="btn" onclick="newGame()">🆕 Nowa gra — nowe imiona, rodzina i dane</button><button class="btn" onclick="newGamePlus()">✨ Nowa gra+ — Ty ustalasz zawodnika, rodzice zostają</button></div></section>
+ <section class="section card"><div class="eyebrow">🛠️ NAPRAW GRĘ</div><div class="muted">Odświeża mechanizmy i usuwa tymczasowe blokady bez kasowania kariery.</div><button class="btn goldbtn" style="margin-top:10px" onclick="repair()">🛠️ Napraw i zsynchronizuj grę</button></section>
+ <section class="section card"><div class="eyebrow">📖 KODEKS</div><button class="btn" onclick="go('code')">Otwórz pełną instrukcję</button></section>`;
+}
+function setDating(v){S.dating.preference=v;save();toast('Preferencje randkowania zapisane.')}
+function repair(){document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));closeDrawer();render();window.scrollTo({top:0});toast('🛠️ Gra zsynchronizowana — kariera nie została usunięta.')}
+function restartCareer(){if(confirm('Restart kariery zachowa dane rodziców, ale wyzeruje przebieg?')){const keep={...clone(initial),family:S.family,player:{...clone(initial).player, name:S.player.name,first:S.player.first,last:S.player.last, country:S.player.country,city:S.player.city}};S=keep;save();current='day';render();toast('Kariera uruchomiona od nowa.')}}
+function newGame(){if(confirm('Rozpocząć całkowicie nową grę?')){S=clone(initial);S.player.name=['Alex Nowak','Milan Costa','Liam Silva','Mateo Rossi'][Math.floor(Math.random()*4)];save();current='day';render()}}
+function newGamePlus(){openModal(`<div class="modal-head"><div><div class="eyebrow">✨ NOWA GRA+</div><h2>Ustal zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form" style="margin-top:12px"><input class="input" id="ngname" placeholder="Imię i nazwisko" value="${esc(S.player.name)}"><input class="input" id="ngcity" placeholder="Miasto"><input class="input" id="ngpos" placeholder="Pozycja" value="${esc(S.player.position)}"><button class="btn goldbtn" onclick="applyNG()">Rozpocznij</button></div>`,true)}
+function applyNG(){const n=document.getElementById('ngname').value.trim();if(!n)return;S.player.name=n;S.player.city=document.getElementById('ngcity').value.trim()||S.player.city;S.player.position=document.getElementById('ngpos').value.trim()||S.player.position;closeModal();save();render();toast('Nowa gra+ rozpoczęta.')}
+function renderCode(){
+ const sections=[
+ ['🧭 Jak działa dzień','Każda aktywność ma czas, koszt i efekty. Nie można wykonać rzeczy, na które nie pozwala godzina, energia, wiek lub zasoby. Sen natychmiast przechodzi do kolejnego dnia i zapisuje stan.'],
+ ['⚡ Energia, zdrowie i mental','Energia spada podczas aktywności. Sen i regeneracja ją odnawiają. Zdrowie wpływa na trening i ryzyko urazów. Mental zależy m.in. od rodziny, relacji, presji, wyników, snu i specjalistów.'],
+ ['⚽ Kariera','OVR i potencjał nie są tym samym. Rozwój zależy od treningu, meczów, zdrowia, mentalu, sprzętu, trenerów i decyzji. Skauci, obozy i kluby pojawiają się kontekstowo.'],
+ ['🔎 Skauci i decyzje','Zaproszenie jest widoczne na głównym ekranie. Otwierasz je, poznajesz warunki i podejmujesz decyzję. Do 18 r.ż. rodzice mogą mieć realny wpływ. Później mogą wpływać partner, żona, dzieci lub inne osoby.'],
+ ['⚽ Mecze','Mecz ma własne decyzje boiskowe. Wynik, ocena i decyzje wpływają na formę, OVR, popularność, relacje z trenerem, skautów i historię.'],
+ ['📱 FLgram','FLgram ma feed, obserwowanie, gwiazdy, wiadomości, komentarze, lajki, posty i współprace. Liczba obserwujących nie oznacza automatycznie popularności — popularność jest szerszym wskaźnikiem tego, ile osób zna zawodnika.'],
+ ['👥 Rodzina','Rodzice mają imię, wiek, kraj, miasto, zawód, dochody, wydatki, dom, auto, partnerów, dzieci, dostępność i relację z zawodnikiem. Rozstanie nie kasuje ich majątku — zmienia układ rodziny.'],
+ ['❤️ Relacje','Każda osoba, z którą zawodnik ma znaczącą styczność, może trafić do katalogu. Relacja może się rozwijać, wygasać i tworzyć nowe wydarzenia.'],
+ ['💰 Finanse i miasto','Pieniądze można wydawać, inwestować, przeznaczać na biznes lub cele charytatywne. Nieruchomości można kupować, wynajmować, sprzedawać i rozbudowywać.'],
+ ['🎓 Edukacja i licencje','Kursy wymagają czasu i nauki. Licencje wymagają wieku, przygotowania i egzaminu. Samo zapłacenie nie daje automatycznie uprawnienia.'],
+ ['🚀 Kariera poboczna','Muzyk, twórca filmowy, twórca internetowy, influencer i DJ mogą rozwijać się równolegle. Potrzebują czasu, sprzętu, nauki i często kursów.'],
+ ['🧬 Predyspozycje i specjaliści','Badania są płatne i ujawniają przybliżony potencjał oraz ryzyka. Psycholog sportowy, fizjoterapeuta i lekarze wpływają na stan zawodnika.'],
+ ['🔗 Najważniejsza zasada','Wszystkie systemy są połączone. Zakup, relacja, przeprowadzka, kurs, sponsor, popularność, pieniądze, rodzina i kariera mogą powodować kolejne wydarzenia. Gra zapisuje konsekwencje w historii.']
+ ];
+ return `<section class="section card gold-card"><div class="eyebrow">📖 KODEKS / INSTRUKCJA</div><h1>FL Life 27 od A do Z</h1><div class="muted">Pełny opis systemów. To jest instrukcja, a nie dekoracyjna zakładka.</div></section>${sections.map(x=>`<section class="section card"><h2>${x[0]}</h2><div class="muted" style="line-height:1.6">${x[1]}</div></section>`).join('')}`;
+}
+
 function render(){
- ensureScout();
- let body=({home,career,stats,life,family,relations,history,flgram,finance,shop,settings,calendar:()=>calendarView()}[state.tab]||home)();
- document.getElementById("app").innerHTML=`<header class="top"><div class="topin"><div class="brand">FOOTBALL <span>LIFE 27</span></div><div class="date">Dzień ${state.day}<br>${dateText()} • ${String(state.hour).padStart(2,"0")}:00</div></div></header><div class="alerts">${state.news.filter(x=>!x.read).slice(0,2).map((n,i)=>`<div class="alert" onclick="openNews(${i})"><b>${esc(n.title)}</b><small>${esc(n.text)}</small></div>`).join("")}</div><main class="wrap">${body}</main><nav class="nav"><div class="navin">${[
-["home","🏠","Dzień"],["career","⚽","Kariera"],["stats","📊","Statystyki"],["life","🧬","Życie"],["family","👨‍👩‍👧","Rodzina"],["relations","🤝","Relacje"],["history","📜","Historia"],["flgram","📱","FLgram"],["finance","💰","Finanse"],["shop","🛍️","Sklep"],["settings","⚙️","Ustawienia"]].map(x=>`<button class="${state.tab===x[0]?"active":""}" onclick="route('${x[0]}')"><i>${x[1]}</i>${x[2]}</button>`).join("")}</div></nav>${state.pendingEvent?eventModal():tutorialModal()}`;
+ renderTop();renderMenu();setTabs();
+ let out='';
+ switch(current){
+  case 'day':out=renderDay();break;case 'career':out=renderCareer();break;case 'stats':out=renderStats();break;
+  case 'life':out=renderLife();break;case 'family':out=renderFamily();break;case 'relations':out=renderRelations();break;
+  case 'history':out=renderHistory();break;case 'flgram':out=renderFlgram();break;case 'finance':out=renderFinance();break;
+  case 'shop':out=renderShop();break;case 'education':out=renderEducation();break;case 'licenses':out=renderLicenses();break;
+  case 'specialists':out=renderSpecialists();break;case 'calendar':out=renderCalendar();break;case 'secondary':out=renderSecondary();break;
+  case 'settings':out=renderSettings();break;case 'code':out=renderCode();break;
+  default:out=renderDay();
+ }
+ document.getElementById('main').innerHTML=out;
 }
-function eventModal(){
- let e=state.pendingEvent;
- return `<div class="modal"><div class="modalbox event"><button class="close" onclick="state.pendingEvent=null;save();render()">×</button><div class="kicker">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2><p class="sub">${esc(e.text)}</p><div class="actions">${e.choices.map((c,i)=>`<button class="btn ${i===0?"primary":""} choice" onclick="choose(${i})">${esc(c.label)}</button>`).join("")}</div></div></div>`
-}
-function choose(i){let c=state.pendingEvent?.choices[i];state.pendingEvent=null;if(c){try{c.fn()}catch(e){console.error(e)}}save();render()}
-function tutorialModal(){
- if(state.tutorial.done.length>=5)return "";
- return `<div class="modal"><div class="modalbox"><button class="close" onclick="state.tutorial.started=true;save();render()">×</button><div class="kicker">🎓 SAMOUCZEK</div><h2>Football Life 27</h2><p class="sub">Wykonuj zadania — każde odhacza się natychmiast. Gra działa offline, a zapis jest lokalny.</p>${[
-["day","Zobacz przebieg dnia"],["career","Otwórz Karierę"],["life","Otwórz Życie"],["family","Otwórz Rodzinę"],["flgram","Otwórz FLgram"],["shop","Otwórz Sklep"],["finance","Otwórz Finanse"],["settings","Otwórz Ustawienia"]].map(x=>`<button class="btn ${state.tutorial.done.includes(x[0])?"primary":""}" onclick="tutorDone('${x[0]}');route('${x[0]}')">${state.tutorial.done.includes(x[0])?"✓":"○"} ${x[1]}</button>`).join("")}</div></div>`
-}
-function openNews(i){let n=state.news.filter(x=>!x.read)[i];if(!n)return;n.read=true;if(n.action){n.action();return}save();render()}
-window._alert=openNews;
+function openModal(html,full=false){const m=document.getElementById('modal'),s=document.getElementById('modalSheet');s.innerHTML=html;m.classList.toggle('full',full);m.classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show');window.pendingEvent=null}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 render();
 </script>
 </body>
