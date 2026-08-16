@@ -117,7 +117,12 @@ function fmtDate(){let d=new Date("2026-07-30T00:00:00");d.setDate(d.getDate()+S
 function weekday(){let d=new Date("2026-07-30T00:00:00");d.setDate(d.getDate()+S.day);return d.toLocaleDateString("pl-PL",{weekday:"long"})}
 function timeStr(){return String(S.hour).padStart(2,"0")+":00"}
 function updateClock(){S.date=fmtDate();S.weekday=weekday();document.getElementById("playerNameTop").textContent=S.player.name;document.getElementById("playerMetaTop").textContent=`${S.player.age} lat · ${S.player.pos} · ${S.career.club} · ${S.player?.residenceCity||""}, ${S.player?.residenceCountry||S.country}`;document.getElementById("dateTop").textContent=S.date;document.getElementById("timeTop").textContent=`${S.weekday} · ${timeStr()}`;save()}
-function advance(hours){for(let i=0;i<hours;i++){S.hour++;if(S.hour>=24){S.hour=0;S.day++;if(S.day%365===0)S.player.age++;randomDaily();}}updateClock();render()}
+function isBirthdayToday(){
+ if(!S.birthday)return false;
+ const start=new Date("2026-07-30T00:00:00");const d=new Date(start.getTime()+S.day*86400000);
+ const bd=S.birthday.slice(5);return d.toISOString().slice(5,10)===bd;
+}
+function advance(hours){for(let i=0;i<hours;i++){S.hour++;if(S.hour>=24){S.hour=0;S.day++;S.school&&(S.school.attendedToday=false);if(isBirthdayToday())S.player.age++;randomDaily();}}updateClock();render()}
 function randomDaily(){S.player.energy=clamp(S.player.energy+8);S.player.mental=clamp(S.player.mental+(Math.random()>.5?1:-1));if(Math.random()<.07)generateRandomEvent()}
 function action(name,h,effect,fn){if(S.hour+h>22 && S.hour<22){toast("Nie zmieścisz tej akcji przed 22:00.");return}if(S.hour>=22){toast("O tej porze możesz już tylko spać.");return}fn&&fn();addHistory(name,`Wykonano akcję: ${name}.`,`Czas −${h} h`);advance(h)}
 function sleep(){if(S.hour<22){toast("Sen jest dostępny od 22:00.");return}S.player.energy=clamp(S.player.energy+42);S.player.health=clamp(S.player.health+3);S.player.mental=clamp(S.player.mental+4);S.player.happiness=clamp(S.player.happiness+2);addHistory("Sen","Pełna noc regeneracji.","Energia +42 · zdrowie +3 · mental +4");S.hour=8;S.day++;randomDaily();updateClock();render();maybeEvent()}
@@ -204,7 +209,33 @@ function generateRandomEvent(){
  ];
  openEvent(pool[Math.floor(Math.random()*pool.length)])
 }
+function varyEvent(ev){
+ let out={...ev,choices:ev.choices.map(x=>[x[0],x[1],x[2]])};
+ // Same situation can present a different third angle depending on the current state.
+ if(ev.type==="SZKOŁA" && S.school){
+   if(S.school.absences===0 && Math.random()<.5) out.choices[2]=["Pytam, czy mogę poprawić materiał","+ informacja · relacja z nauczycielem",()=>{S.school.materials=clamp(S.school.materials+5);S.relations.family+=1}];
+   if(S.school.absences>=3 && Math.random()<.5) out.choices[0]=["Proszę wychowawcę o plan nadrobienia","+ szansa na odbudowę ocen",()=>{S.school.grades+=2;S.school.warningLevel=Math.max(0,S.school.warningLevel-1)}];
+ }
+ if(ev.type==="MECZ" && Math.random()<.45){
+   const variants=[
+    ["Obserwuję ustawienie przeciwnika","+ wiedza meczowa · mental",()=>{S.player.mental+=2;S.career.coachTrust+=1}],
+    ["Proszę kolegę o wskazówkę","+ relacja · koncentracja",()=>{S.relations.team+=2;S.player.mental+=1}],
+    ["Skupiam się na swoim zadaniu","+ koncentracja",()=>{S.player.form+=2}]
+   ];
+   out.choices[2]=pick(variants);
+ }
+ return {...out,choices:shuffle(out.choices)};
+}
 function openEvent(ev){
+ if(!ev.choices||!ev.choices.length){
+   if(ev.type==="Mecz"){openMatch();return}
+   ev={...ev,choices:[
+    ["Sprawdzam sytuację dokładniej","+ informacja · czas",()=>{S.player.mental+=1}],
+    ["Reaguję od razu","ryzyko · możliwość szybkiego skutku",()=>{S.player.form+=1}],
+    ["Pytam kogoś o radę","+ relacja · mniej samodzielności",()=>{S.relations.friends+=1}]
+   ]};
+ }
+ ev=varyEvent(ev);
  document.getElementById("eventIcon").textContent=ev.icon||"⚡";document.getElementById("eventType").textContent=ev.type||"WYDARZENIE";document.getElementById("eventTitle").textContent=ev.title;document.getElementById("eventText").textContent=ev.text;
  const c=document.getElementById("eventChoices");c.innerHTML="";document.getElementById("eventResult").classList.remove("show");
  ev.choices.forEach((ch,i)=>{let b=document.createElement("button");b.className="choice";b.innerHTML=`<b>${i+1}. ${ch[0]}</b><span>${ch[1]}</span>`;b.onclick=()=>chooseEvent(ev,ch);c.appendChild(b)});
@@ -231,6 +262,9 @@ function chooseEvent(ev,ch){
  setTimeout(()=>{
    closeEvent();
    toast(`✓ ${ch[0]} · ${effectText}`);
+   if(ev.type==="MECZ" && ev.title==="Mecz akademii"){
+     setTimeout(()=>matchNextStage(),350);
+   }
    // Po zamknięciu wydarzenia gra wraca od razu do aktualnego ekranu.
    // Kolejne wydarzenie może pojawić się dopiero po następnej akcji/czasie.
  },1100);
@@ -245,16 +279,58 @@ function navRender(active){
 function go(page){render(page)}
 function render(page="DOM"){updateClock();recomputeOVR();navRender(page);let a=document.getElementById("app");const map={"DOM":home,"KALENDARZ":calendar,"Historia wydarzeń":historyPage,"RODZINA":familyPage,"Moja rodzina":myFamilyPage,"RELACJE":relationsPage,"KARIERA":careerPage,"Statystyki":statsPage,"Gablota":trophyPage,"Feedback trenera":feedbackPage,"Edukacja":educationPage,"Kariera poboczna":sideCareerPage,"FINANSE":financePage,"Opłaty":feesPage,"MIASTO":cityPage,"Klinika":clinicPage,"Sklep":shopPage,"Licencje":licensesPage,"MEDIA":mediaPage,"FLgram":flgramPage,"ŚWIAT":worldPage,"USTAWIENIA":settingsPage,"Kodeks":codexPage};a.innerHTML=(map[page]||home)();window.currentPage=page}
 function hero(num,title,desc){return `<section class="hero"><div class="eyebrow">${num}</div><h1>${title}</h1><p>${desc}</p></section>`}
+
+function isSchoolDay(){const d=S.day%7;return d>=0&&d<=4}
+function schoolAction(){
+ if(!isSchoolDay()){toast("Dzisiaj nie ma szkoły.");return}
+ if(S.school.attendedToday){toast("Szkoła na dziś jest już zaliczona.");return}
+ const before=S.school.absences;
+ action("Szkoła",6,0,()=>{S.school.attendance++;S.school.attendedToday=true;S.school.materials=clamp(S.school.materials+12);S.school.grades=clamp(S.school.grades+1);S.player.mental+=2;S.player.energy-=10});
+ if(before>0&&S.school.absences>=3&&Math.random()<.25)openSchoolConsequence("nauczyciel zauważa zaległości");
+}
+function missSchool(){
+ if(!isSchoolDay()){toast("Dzisiaj i tak nie ma lekcji.");return}
+ if(S.hour>=14){toast("Lekcje już się skończyły.");return}
+ const h=Math.max(1,6-S.hour);
+ S.school.absences++;S.school.materials=Math.max(0,S.school.materials-10);S.school.warningLevel++;
+ action("Opuszczenie szkoły",h,0,()=>{S.player.happiness+=2;S.player.mental-=1});
+ setTimeout(()=>openSchoolConsequence(),250);
+}
+function openSchoolConsequence(reason="opuszczona szkoła"){
+ const n=S.school.absences, material=S.school.materials;
+ let choices;
+ if(n===1)choices=[
+ ["Uzupełniam materiały od kolegi","+ mały koszt czasu",()=>{S.school.materials=clamp(S.school.materials+15);S.relations.friends+=1}],
+ ["Przyznaję się nauczycielowi","+ szczerość · ryzyko uwagi",()=>{S.school.grades-=1;S.relations.family+=1}],
+ ["Udaje mi się to ukryć","+ czas dla siebie · ryzyko późniejszych konsekwencji",()=>{if(Math.random()<.45)S.school.warningLevel+=2}]
+ ];
+ else if(n<=3)choices=[
+ ["Pożyczam notatki i uczę się wieczorem","+ materiały · − energia",()=>{S.school.materials=clamp(S.school.materials+20);S.player.energy-=5}],
+ ["Biorę uwagę na siebie i proszę o możliwość poprawy","− ocena teraz · możliwość poprawy",()=>{S.school.grades-=2;S.school.warningLevel+=1}],
+ ["Ignoruję zaległości","+ wolny czas teraz · dużo większe ryzyko później",()=>{S.school.materials=Math.max(0,material-15);S.school.warningLevel+=2}]
+ ];
+ else choices=[
+ ["Zaczynam regularnie chodzić do szkoły","+ stabilizacja · odbudowa ocen",()=>{S.school.warningLevel=Math.max(0,S.school.warningLevel-2);S.school.grades+=2}],
+ ["Proszę o pomoc nauczyciela/psychologa","+ wsparcie · mental",()=>{S.player.mental+=4;S.school.warningLevel=Math.max(0,S.school.warningLevel-1)}],
+ ["Dalej opuszczam lekcje","+ czas teraz · poważne konsekwencje",()=>{S.school.warningLevel+=3;S.school.grades-=4;S.player.mental-=4}]
+ ];
+ openEvent({type:"SZKOŁA",icon:"📚",title:`Konsekwencje: ${reason}`,text:`Masz ${n} nieobecności. Materiały: ${material}/100. Im częściej opuszczasz szkołę, tym większe ryzyko zaległości, uwag, rozmowy z rodzicami, problemów z ocenami i trudności podczas sprawdzianów.`,choices});
+}
 function home(){
  const p=S.player;let canSleep=S.hour>=22;let match=S.calendarEvents.find(e=>e.day===S.day&&e.type==="Mecz");
  return hero("1. DOM",`${S.weekday}, ${S.date} · ${timeStr()}`,"Twój dzień. Czas jest zasobem: szkoła, trening, mecz, relacje, regeneracja, pieniądze i przypadkowe wydarzenia konkurują ze sobą.")+
  `<div class="grid"><div class="card"><div class="row"><h2>DZISIAJ</h2><span class="pill">⏱ ${timeStr()} · do 22:00</span></div>
  <div class="statgrid">
  ${[['OVR',p.ovr],['FORMA',S.player.form],['ZDROWIE',S.player.health],['MENTAL',S.player.mental],['SZCZĘŚCIE',S.player.happiness],['ENERGIA',S.player.energy]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div>
- <div style="height:12px"></div><h2>AKCJE DNIA</h2><div class="actions">
+ <div style="height:12px"></div><h2>AKCJE DNIA</h2><p class="small muted">Akcje nie są stałą listą. Dostępność zależy od dnia tygodnia, wieku, szkoły, pieniędzy, relacji, zdrowia, miejsca, kariery i wydarzeń. Kliknij kartę, aby zobaczyć koszt czasu i możliwe skutki.</p><div class="actions">
  ${[
- ["📚","Szkoła","6 h · obowiązkowa w dzień szkolny",()=>action("Szkoła",6,0,()=>{S.player.mental+=2;S.player.energy-=10})],
- ["📖","Nauka / korepetycje","1 h · edukacja",()=>action("Nauka / korepetycje",1,0,()=>{S.player.mental+=3})],
+ ...(isSchoolDay()?[
+ ["📚","Idź do szkoły","6 h · obowiązek szkolny · nieobecność ma konsekwencje",()=>schoolAction()],
+ ["📖","Nauka / korepetycje","1 h · materiały + oceny",()=>action("Nauka / korepetycje",1,0,()=>{S.player.mental+=3;S.school.materials=clamp(S.school.materials+8);S.school.grades=clamp(S.school.grades+2)})]
+]:[
+ ["📚","Nauka własna","1 h · weekend/święto",()=>action("Nauka własna",1,0,()=>{S.school.materials=clamp(S.school.materials+5);S.school.grades=clamp(S.school.grades+1)})],
+ ["🌴","Wolny dzień","1 h · wykorzystaj czas",()=>action("Czas wolny",1,0,()=>{S.player.happiness+=2})]
+]),
  ["⚽","Dodatkowy trening","2 h · rozwój piłkarski",()=>action("Dodatkowy trening",2,0,()=>{S.skills.pace+=1;S.skills.dribble+=2;S.player.energy-=12;S.player.form+=2})],
  ["🏃","Bieganie","1 h · kondycja",()=>action("Bieganie",1,0,()=>{S.skills.physical+=2;S.player.energy-=7;S.player.health-=1})],
  ["🚲","Rower","1 h · aktywność",()=>action("Rower",1,0,()=>{S.skills.physical+=1;S.player.energy-=5;S.player.happiness+=2})],
@@ -264,20 +340,51 @@ function home(){
  ["🧊","Regeneracja","1 h · zdrowie",()=>action("Regeneracja",1,0,()=>{S.player.health+=5;S.player.energy+=8})],
  ...(match?[["⚽","ROZEGRAJ MECZ","Dzisiaj · decyzje meczowe",()=>openMatch()]]:[])
  ].map(([i,n,d,f])=>`<button class="action" onclick='(${f})()'><div class="ai">${i}</div><strong>${n}</strong><small>${d}</small></button>`).join("")}
+ ${isSchoolDay()&&S.hour<14?`<button class="action" onclick="missSchool()"><div class="ai">🚪</div><strong>Opuść szkołę</strong><small>${S.school.absences} nieobecności · konsekwencje rosną</small></button>`:""}
  ${canSleep?`<button class="action" onclick="sleep()"><div class="ai">🛏️</div><strong>Sen</strong><small>22:00 → 08:00 · następny dzień</small></button>`:""}
  </div></div>
- <div class="card gold"><h2>NA CO WPŁYWAJĄ DECYZJE?</h2>${[['😊','Szczęście',S.player.happiness],['🧠','Mental',S.player.mental],['❤️','Zdrowie',S.player.health],['⚽','Forma',S.player.form],['⚡','Energia',S.player.energy],['⭐','Popularność',p.popularity]].map(x=>`<div class="row small"><span>${x[0]} ${x[1]}</span><b>${x[2]}</b></div><div class="progress"><i style="width:${clamp(x[2])}%"></i></div>`).join("")}
+ <div class="card gold"><h2>📚 SZKOŁA</h2><div class="row small"><span>Frekwencja / nieobecności</span><b>${S.school?.absences||0}</b></div><div class="row small"><span>Materiały z lekcji</span><b>${S.school?.materials??100}/100</b></div><div class="row small"><span>Oceny</span><b>${S.school?.grades??55}/100</b></div><p class="small muted">Im więcej opuszczasz, tym większe ryzyko zaległości, kartkówek bez materiałów, uwag, rozmów z rodzicami i problemów z ocenami.</p>
+ <h2>NA CO WPŁYWAJĄ DECYZJE?</h2>${[['😊','Szczęście',S.player.happiness],['🧠','Mental',S.player.mental],['❤️','Zdrowie',S.player.health],['⚽','Forma',S.player.form],['⚡','Energia',S.player.energy],['⭐','Popularność',p.popularity]].map(x=>`<div class="row small"><span>${x[0]} ${x[1]}</span><b>${x[2]}</b></div><div class="progress"><i style="width:${clamp(x[2])}%"></i></div>`).join("")}
  <h3 style="margin-top:16px">📌 NAJBLIŻSZE</h3>${S.calendarEvents.filter(e=>e.day>=S.day).slice(0,4).map(e=>`<div class="listitem"><strong>${e.icon} ${e.title}</strong><p>${e.day===S.day?"DZISIAJ":"za "+(e.day-S.day)+" dni"} · ${e.type}</p></div>`).join("")||'<p class="muted small">Brak zaplanowanych wydarzeń.</p>'}
  </div></div>`;
 }
-function openMatch(){openEvent({type:"MECZ",icon:"⚽",title:"Mecz akademii",text:"Jest dzień meczu. Trener informuje Cię, że zaczynasz na ławce. W trakcie spotkania możesz dostać decyzję meczową.",choices:[
-["Czekam spokojnie na szansę","+ mental · trener widzi dojrzałość",()=>{S.player.mental+=2;S.career.coachTrust+=2}],
-["Rozgrzewam się intensywnie","+ forma · energia −",()=>{S.player.form+=4;S.player.energy-=10}],
-["Rozmawiam z trenerem o swojej roli","możesz dostać szansę albo zirytować trenera",()=>{if(Math.random()<.65){S.career.coachTrust+=3;S.player.form+=2}else{S.career.coachTrust-=4}}]
-]})}
-function calendar(){let start=S.day-3;let cells="";for(let i=0;i<28;i++){let dd=start+i;let ev=S.calendarEvents.find(e=>e.day===dd);cells+=`<div class="day ${dd===S.day?'today':''} ${ev?.type==='Mecz'?'match':''} ${ev?'event':''}"><b>${String(((dd%30)+1)).padStart(2,'0')}</b><small>${dd===S.day?'DZISIAJ':dd<0?'przeszłość':' '}</small>${ev?`<div class="eventdot">${ev.icon} ${ev.title}</div>`:""}</div>`}return hero("2. KALENDARZ","Przeszłość i przyszłość","Mecze, szkoła, święta, ferie, wydarzenia i ważne momenty życia. Kalendarz zależy od kraju zawodnika.")+`<div class="grid"><div class="card"><h2>KALENDARZ</h2><div class="calendar">${cells}</div></div><div class="card"><h2>NAJBLIŻSZE</h2>${S.calendarEvents.filter(e=>e.day>=S.day).slice(0,8).map(e=>`<div class="listitem"><strong>${e.icon} ${e.title}</strong><p>${e.type} · ${e.day===S.day?'dzisiaj':e.day-S.day+' dni'}</p></div>`).join("")}</div></div>`}
+function openMatch(){
+ const ev={type:"MECZ",icon:"⚽",title:"Mecz akademii",text:`Dzisiaj jest mecz. Status przed spotkaniem: ${S.career.starter?"pierwszy skład":"ławka / rezerwy"}. To nie jest jeden wybór — podczas meczu możesz dostać kilka decyzji zależnych od tego, co wydarzy się na boisku.`,choices:[
+ ["Czekam spokojnie na swoją szansę","+ mental · trener widzi dojrzałość",()=>{S.player.mental+=2;S.career.coachTrust+=2;S.matchState={stage:1,minutes:0,started:false}}],
+ ["Rozgrzewam się intensywnie","+ forma · energia −",()=>{S.player.form+=4;S.player.energy-=8;S.matchState={stage:1,minutes:0,started:false}}],
+ ["Rozmawiam z trenerem o swojej roli","możesz dostać szansę albo go zirytować",()=>{if(Math.random()<.65){S.career.coachTrust+=3}else{S.career.coachTrust-=4}S.matchState={stage:1,minutes:0,started:false}}]
+ ]};
+ openEvent(ev);
+}
+function matchNextStage(){
+ const onPitch=S.career.starter||Math.random()<(.25+S.career.coachTrust/250);
+ const situations=onPitch?[
+  {t:"⚽ Dostajesz piłkę pod presją",c:[["Gram bezpiecznie","+ podania · trener",()=>{S.skills.pass+=1;S.career.coachTrust+=1}],["Idę w drybling","+ drybling · ryzyko straty",()=>{S.skills.dribble+=2;if(Math.random()<.35)S.career.coachTrust-=2}],["Strzelam z dystansu","+ strzał · ryzyko",()=>{S.skills.shoot+=1;S.player.form+=2}]]},
+  {t:"🧑‍🏫 Trener krzyczy wskazówkę",c:[["Wykonuję polecenie","+ zaufanie",()=>S.career.coachTrust+=3],["Gram po swojemu","+ kreatywność · ryzyko",()=>{S.player.mental+=1;S.career.coachTrust-=2}],["Pytam o szczegóły","+ koncentracja",()=>{S.player.mental+=2;S.career.coachTrust+=1}]]}
+ ]:[
+  {t:"🪑 Siedzisz na ławce",c:[["Dopinguję drużynę","+ zespół",()=>S.relations.team+=2],["Analizuję grę","+ wiedza meczowa",()=>S.player.mental+=2],["Jestem sfrustrowany","+ motywacja później · mental −",()=>S.player.mental-=2]]}
+ ];
+ const q=pick(situations);
+ openEvent({type:"MECZ · DECYZJA",icon:"⚽",title:q.t,text:"Mecz trwa. Kolejna sytuacja wynika z Twojego statusu, formy, zaufania trenera i poprzednich decyzji.",choices:q.c});
+}
+function calendar(){let start=S.day-3;let cells="";for(let i=0;i<28;i++){let dd=start+i;let ev=S.calendarEvents.find(e=>e.day===dd);cells+=`<div class="day ${dd===S.day?'today':''} ${ev?.type==='Mecz'?'match':''} ${ev?'event':''}"><b>${String(((dd%30)+1)).padStart(2,'0')}</b><small>${dd===S.day?'DZISIAJ':dd<0?'przeszłość':' '}</small>${ev?`<div class="eventdot" onclick="${ev.type==="Mecz"?"openMatch()":`openEvent(${JSON.stringify(ev).replace(/"/g,"&quot;")})`}">${ev.icon} ${ev.title}</div>`:""}</div>`}return hero("2. KALENDARZ","Przeszłość i przyszłość","Mecze, szkoła, święta, ferie, wydarzenia i ważne momenty życia. Kalendarz zależy od kraju zawodnika.")+`<div class="grid"><div class="card"><h2>KALENDARZ</h2><div class="calendar">${cells}</div></div><div class="card"><h2>NAJBLIŻSZE</h2>${S.calendarEvents.filter(e=>e.day>=S.day).slice(0,8).map(e=>`<div class="listitem"><strong>${e.icon} ${e.title}</strong><p>${e.type} · ${e.day===S.day?'dzisiaj':e.day-S.day+' dni'}</p></div>`).join("")}</div></div>`}
 function historyPage(){return hero("2.1 HISTORIA WYDARZEŃ","Historia całego życia","Każda decyzja i jej skutek są zapisywane. Późniejsze wydarzenia mogą korzystać z tej historii.")+`<div class="card">${S.history.length?S.history.map((h,i)=>`<div class="listitem"><div class="row"><strong>${i+1}. ${h.title}</strong><span class="tiny muted">${h.date}</span></div><p>${h.desc}<br><span class="goldtext">${h.effect}</span></p></div>`).join(""):'<p class="muted">Historia zacznie się w momencie podjęcia pierwszej decyzji.</p>'}</div>`}
-function familyPage(){let f=S.family;return hero("3. RODZINA","Rodzina pochodzenia","Rodzice i rodzeństwo mają własne życie, pracę, pieniądze, majątek, konflikty i decyzje. Ich sytuacja może się zmieniać.")+`<div class="grid"><div class="card"><h2>RODZICE</h2><div class="two"><div class="listitem"><strong>👨 Tata</strong><p>Zawód: ${f.fatherJob}<br>Dochód rodziny: ${money(f.income)}<br>Samochody: ${f.cars>0?'1+':'brak'}</p></div><div class="listitem"><strong>👩 Mama</strong><p>Zawód: ${f.motherJob}<br>Stan majątkowy: ${f.wealth}/100<br>Mieszkanie: ${f.housing}</p></div></div><div style="height:10px"></div><button class="btn" onclick="familyChange()">Sprawdź sytuację rodziny</button></div><div class="card gold"><h2>RELACJA Z RODZINĄ</h2><b>${S.relations.family}/100</b><div class="progress"><i style="width:${S.relations.family}%"></i></div><p class="small muted">Rodzice mogą wspierać, stawiać warunki, odmawiać, rozwieść się, mieć nowe dzieci, zmienić pracę lub potrzebować Twojej pomocy w przyszłości.</p><div class="tag">👨 ${f.fatherNationality||"—"}</div><div class="tag">👩 ${f.motherNationality||"—"}</div></div></div>`}
+function familyPage(){let f=S.family;return hero("3. RODZINA","Rodzina pochodzenia","Rodzice i rodzeństwo mają własne życie. Ich dochody, wydatki, kredyty, majątek, praca i decyzje mogą zmieniać Twoje możliwości.")+
+`<div class="grid"><div class="card"><h2>🌳 RODZINA I DRZEWO GENEALOGICZNE</h2>
+ <div class="genea"><div class="listitem"><strong>👴👵 Dziadkowie</strong><p>Rodziny ojca i mamy · relacje i historia</p></div>
+ <div class="two"><div class="listitem"><strong>👨 Tata</strong><p>${f.fatherJob}<br>🇺🇳 ${f.fatherNationality||"—"}</p></div><div class="listitem"><strong>👩 Mama</strong><p>${f.motherJob}<br>🇺🇳 ${f.motherNationality||"—"}</p></div></div>
+ <div class="listitem"><strong>👤 TY</strong><p>${S.player.name} · ${S.player.age} lat · ${S.player.pos}</p></div>
+ <div class="listitem"><strong>👶 Rodzeństwo</strong><p>${f.siblings} ${f.siblings===1?"osoba":"osób"}</p></div></div>
+ <h2 style="margin-top:18px">💰 FINANSE RODZINY</h2><div class="statgrid">
+ ${[['💵','Dochód',money(f.income)],['💸','Wydatki',money(f.expenses||0)],['🏦','Kredyty',money(f.debt||0)],['💎','Majątek',money(f.assets||0)],['🏠','Wartość domu',money(f.houseValue||0)],['💰','Zamożność',`${f.wealth}/100`]].map(x=>`<div class="stat"><b>${x[2]}</b><span>${x[0]} ${x[1]}</span></div>`).join("")}</div>
+ </div>
+ <div class="card gold"><h2>🏠 CO POSIADAJĄ?</h2>
+ <div class="listitem"><strong>🏠 Nieruchomość</strong><p>${f.housing}<br>szacowana wartość: ${money(f.houseValue||0)}</p></div>
+ <div class="listitem"><strong>🚗 Samochody</strong><p>${f.cars} · każdy pojazd może być innej marki, wieku i wartości.</p></div>
+ <div class="listitem"><strong>🏍️ Motocykle</strong><p>${f.motorcycles||0}</p></div>
+ <div class="listitem"><strong>🏦 Kredyty</strong><p>${f.debt?money(f.debt):"Brak"} · raty wpływają na budżet rodziny.</p></div>
+ <div class="listitem"><strong>❤️ Relacja rodziców</strong><p>${f.parentsRelationship}/100 · mogą się zbliżać, kłócić, rozstać lub odbudować relację.</p></div>
+ <button class="btn" onclick="familyChange()">🔎 Sprawdź, co zmieniło się ostatnio</button></div></div>`}
 function familyChange(){openEvent({type:"RODZINA",icon:"🏠",title:"Zmiana w sytuacji rodziny",text:"Tata dostał propozycję zmiany pracy. Może zarabiać więcej, ale będzie miał mniej czasu dla Ciebie.",choices:[
 ["Popieram zmianę","+ finanse rodziny · mniej czasu razem",()=>{S.family.income+=1200;S.family.wealth+=5;S.relations.family-=2}],
 ["Proszę, żeby został","+ czas razem · finanse bez zmian",()=>{S.relations.family+=3;S.player.happiness+=2}],
@@ -382,6 +489,18 @@ function flPost(){openEvent({type:"FLgram",icon:"📱",title:"Nowy post",text:"C
 ]})}
 function worldPage(){return hero("9. ŚWIAT","Świat piłkarski","Rynek działa niezależnie od Ciebie. Transfery, płace, wartości, wyniki, zmiany trenerów, skauting i rankingi zmieniają się przez całą karierę.")+`<div class="grid"><div class="card"><h2>🏆 TWOJA POZYCJA</h2><div class="statgrid">${[['🌍 POPULARNOŚĆ ŚWIAT','brak rankingu'],['🇵🇱 KRAJ REPREZENTACJI','# —'],['🇵🇱 KRAJ KLUBU','# —'],['🏟️ LIGA','# —'],['⚽ POZYCJA','# —'],['⭐ SPORTOWY','# —']].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div><p class="small muted">Rankingi będą zależeć od popularności, wyników, trofeów, mediów, wieku, wartości, reprezentacji i innych zawodników.</p></div><div class="card gold"><h2>🌍 RYNEK</h2>${[['🔄','Transfer','Zawodnik przeszedł do nowego klubu'],['💰','Wartości','Rynek może rosnąć i spadać'],['📰','Wiadomości','wydarzenia w świecie futbolu'],['🔎','Scouting','kluby obserwują zawodników']].map(x=>`<div class="listitem"><strong>${x[0]} ${x[1]}</strong><p>${x[2]}</p></div>`).join("")}</div></div>`}
 function settingsPage(){return hero("10. USTAWIENIA","Ustawienia i zarządzanie karierą","Bezpieczne zarządzanie zapisami, preferencjami i zasadami świata Football Life.")+`<div class="grid"><div class="card"><h2>AKTUALNY ZAPIS</h2><div class="listitem"><strong>💾 Kariera #01</strong><p>${S.date} · ${timeStr()}<br>Automatyczny zapis aktywny.</p></div><div class="actions" style="margin-top:10px">${[['🆕','Nowa gra','Osobny zapis',()=>newGame()],['✨','Nowa Gra+','Osobny zapis',()=>newGamePlus()],['🔄','Odśwież / napraw','bez utraty historii',()=>{save();toast("Zapis odświeżony.");render("USTAWIENIA")}],['⚠️','Reset kariery','wymaga potwierdzenia',()=>resetGame()]].map(x=>`<button class="action" onclick='(${x[3]})()'><div class="ai">${x[0]}</div><strong>${x[1]}</strong><small>${x[2]}</small></button>`).join("")}</div></div><div class="card"><h2>PREFERENCJE</h2>${[['❤️','Randkowanie','preferencje relacji'],['🌍','Kraj / realizm','święta, ferie, szkoła i przepisy'],['🎲','Realizm wydarzeń','prawdopodobieństwo i konsekwencje'],['💾','Kopie','bezpieczne punkty zapisu']].map(x=>`<div class="listitem"><strong>${x[0]} ${x[1]}</strong><p>${x[2]}</p></div>`).join("")}</div></div>`}
+function showTutorial(){
+ if(!S.tutorial)return;
+ const x=document.createElement("div");x.className="intro-screen show";x.id="tutorialScreen";
+ x.innerHTML=`<div class="intro-inner"><div class="intro-mark">PIERWSZE KROKI</div><h1>Jak grać?</h1><div class="line"></div>
+ <p><b>⏱ Czas</b> — każda akcja kosztuje pełne godziny. O 22:00 pojawia się sen.</p>
+ <p><b>📚 Szkoła</b> — nieobecności nie są darmowe. Zaległości, oceny i rozmowy będą zależeć od historii.</p>
+ <p><b>⚽ Kariera</b> — sprawdzaj mecz, status w składzie, trening i feedback trenera.</p>
+ <p><b>❤️ Wszystko się łączy</b> — pieniądze, rodzina, relacje, zdrowie, popularność i decyzje mogą wrócić po wielu dniach.</p>
+ <div class="welcome">Przez pierwsze dni możesz dostawać kontekstowe podpowiedzi. Później gra coraz mniej Ci podpowiada, bo świat zaczyna reagować na Twoją historię.</div>
+ <button class="big-start" onclick="S.tutorial.active=false;save();this.closest('.intro-screen').remove();render('DOM')">Rozumiem — zaczynam ⚽</button></div>`;
+ document.body.appendChild(x);
+}
 function newGame(){if(!confirm("Utworzyć nową karierę? Obecny zapis pozostanie w przeglądarce jako FL27save-old."))return;localStorage.setItem("fl27save-old",localStorage.getItem("fl27save"));localStorage.removeItem("fl27save");location.reload()}
 function newGamePlus(){if(!confirm("Uruchomić Nową Grę+?"))return;localStorage.setItem("fl27save-old",localStorage.getItem("fl27save"));let n=JSON.parse(JSON.stringify(S));n.day=0;n.hour=8;n.player.age=12;n.player.ovr+=3;n.player.popularity+=5;n.gamePlus=true;n.history=[];S=n;save();render("DOM");toast("Nowa Gra+ rozpoczęta.")}
 function resetGame(){if(!confirm("NAPRAWDĘ zresetować karierę?"))return;localStorage.removeItem("fl27save");location.reload()}
@@ -473,6 +592,11 @@ const worldPools={
 };
 const countries=Object.keys(worldPools);
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function randomBirthday(){
+ const start=new Date("2011-07-30T00:00:00"); const end=new Date("2011-08-13T00:00:00");
+ const d=new Date(start.getTime()+Math.floor(Math.random()*(end-start+86400000)));
+ return d.toISOString().slice(0,10);
+}
 function randomizeWorld(){
  let birth=pick(countries), residence=pick(countries), father=pick(countries), mother=pick(countries);
  // Mixed families intentionally create more naming combinations.
@@ -486,18 +610,18 @@ function randomizeWorld(){
  let pos=pick(["GK","RB","CB","LB","CDM","CM","CAM","RW","LW","ST"]);
  let foot=pick(["Prawa","Lewa","Obie"]);
  let rank=pick(["Ranking sportowy","Popularność","Ranking kraju","Ranking ligi","Ranking pozycji"]);
- setupState.world={birth,residence,father,mother,birthCity:pick(worldPools[birth].cities),resCity:pick(worldPools[residence].cities),first,last,pos,foot,rank};
+ setupState.world={birth,residence,father,mother,birthCity:pick(worldPools[birth].cities),resCity:pick(worldPools[residence].cities),first,last,pos,foot,rank,birthday:randomBirthday()};
  ["c-name","c-surname","c-birthcountry","c-birthcity","c-rescountry","c-rescity","c-fathernat","c-mothernat"].forEach(id=>{let e=document.getElementById(id);if(e)e.value=""});
 }
 function fillRandomWorld(){
  const w=setupState.world;
- const vals={"c-name":w.first,"c-surname":w.last,"c-birthcountry":w.birth,"c-birthcity":w.birthCity,"c-rescountry":w.residence,"c-rescity":w.resCity,"c-fathernat":w.father,"c-mothernat":w.mother,"c-pos":w.pos,"c-foot":w.foot,"c-rank":w.rank};
+ const vals={"c-name":w.first,"c-surname":w.last,"c-birthday":w.birthday,"c-birthcountry":w.birth,"c-birthcity":w.birthCity,"c-rescountry":w.residence,"c-rescity":w.resCity,"c-fathernat":w.father,"c-mothernat":w.mother,"c-pos":w.pos,"c-foot":w.foot,"c-rank":w.rank};
  for(const [id,v] of Object.entries(vals)){let e=document.getElementById(id);if(e)e.value=v}
  const brands=["Nike","adidas","PUMA","New Balance","Mizuno","Under Armour"];const holder=document.getElementById("creatorBrands");if(holder)holder.innerHTML=brands.map(x=>`<span class="brandpill">${x}</span>`).join("");
  if(setupState.mode==="plus"){
    if(!setupState.familyRandom)setupState.familyRandom=randomFamily();
    const f=setupState.familyRandom;
-   const fm={"c-fatherjob":f.father,"c-motherjob":f.mother,"c-wealth":String(f.wealthBand),"c-housing":f.housing,"c-cars":String(f.cars),"c-siblings":String(f.siblings)};
+   const fm={"c-fatherjob":f.father,"c-motherjob":f.mother,"c-wealth":String(f.wealthBand),"c-housing":f.housing,"c-cars":String(f.cars),"c-motos":String(f.motos||0),"c-siblings":String(f.siblings),"c-debt":String(f.debtBand||0)};
    for(const [id,v] of Object.entries(fm)){let e=document.getElementById(id);if(e)e.value=v}
  }
 }
@@ -513,6 +637,7 @@ function creatorHTML(){
     <div class="field"><label>Imię</label><input id="c-name" placeholder="wylosowane / wpisz"></div>
     <div class="field"><label>Nazwisko</label><input id="c-surname" placeholder="wylosowane / wpisz"></div>
     <div class="field"><label>Płeć</label><select id="c-gender"><option value="M">Mężczyzna</option><option value="F">Kobieta</option></select></div>
+    <div class="field"><label>🎂 Data urodzenia</label><input id="c-birthday" type="date" min="2010-07-31" max="2011-07-30"></div>
     <div class="field"><label>Pozycja</label><select id="c-pos">${["GK","RB","CB","LB","CDM","CM","CAM","RW","LW","ST"].map(x=>`<option>${x}</option>`).join("")}</select></div>
     <div class="field"><label>Dominująca noga</label><select id="c-foot"><option>Prawa</option><option>Lewa</option><option>Obie</option></select></div>
     <div class="field"><label>Preferowany ranking</label><select id="c-rank"><option>Ranking sportowy</option><option>Popularność</option><option>Ranking kraju</option><option>Ranking ligi</option><option>Ranking pozycji</option></select></div>
@@ -549,7 +674,7 @@ function finishCreator(){
  const name=document.getElementById("c-name").value.trim(),surname=document.getElementById("c-surname").value.trim();
  if(!name||!surname){toast("Wylosuj lub uzupełnij imię i nazwisko.");return}
  if(setupState.questions.some(q=>q.chosen===null)){toast("Odpowiedz na wszystkie 5 pytań.");return}
- const gender=document.getElementById("c-gender").value,country=document.getElementById("c-rescountry").value,pos=document.getElementById("c-pos").value,foot=document.getElementById("c-foot").value,rank=document.getElementById("c-rank").value;
+ const gender=document.getElementById("c-gender").value,country=document.getElementById("c-rescountry").value,pos=document.getElementById("c-pos").value,foot=document.getElementById("c-foot").value,rank=document.getElementById("c-rank").value,birthday=document.getElementById("c-birthday").value||setupState.world.birthday;
  const birthCountry=document.getElementById("c-birthcountry").value,birthCity=document.getElementById("c-birthcity").value,resCity=document.getElementById("c-rescity").value,fatherNat=document.getElementById("c-fathernat").value,motherNat=document.getElementById("c-mothernat").value;
  let score={potential:0,discipline:0,mental:0,wealth:0,social:0,health:0};
  setupState.questions.forEach(q=>{const effect=answerEffects[q.chosen%10];for(const k in effect)score[k]+=effect[k]});
@@ -570,17 +695,19 @@ function finishCreator(){
    const wealthBand=Number(document.getElementById("c-wealth")?.value||fam.wealth);
    const housing=document.getElementById("c-housing")?.value||fam.housing;
    const cars=Number(document.getElementById("c-cars")?.value||fam.cars);
+   const motos=Number(document.getElementById("c-motos")?.value||0);
    const siblings=Number(document.getElementById("c-siblings")?.value||fam.siblings);
-   fam={father:fj,mother:mj,wealth:wealthBand,cars,housing,income:Math.round(3000+wealthBand*180),siblings};
+   const debtBand=Number(document.getElementById("c-debt")?.value||0);
+   fam={father:fj,mother:mj,wealth:wealthBand,cars,motos,housing,income:Math.round(3000+wealthBand*180),siblings,debtBand};
  }
  let base=47+(score.potential*2)+Math.floor(Math.random()*7);
  if(setupState.mode==="plus")base+=4;
  base=Math.max(35,Math.min(82,base));
- S={day:0,hour:8,minute:0,date:"30.07.2026",weekday:"Czwartek",country,
-  player:{name:`${name} ${surname}`,age:12,pos,gender,foot,ovr:base,form:68,health:Math.max(70,Math.min(99,82+score.health*2)),mental:Math.max(55,Math.min(95,65+score.mental*2)),happiness:Math.max(55,Math.min(95,68+score.social)),popularity:4,followers:84,money:120,energy:88,rankingPreference:rank,birthCountry,birthCity,residenceCountry:country,residenceCity:resCity},
+ S={day:0,hour:8,minute:0,date:"30.07.2026",weekday:"Czwartek",country,birthday,school:{attendance:0,absences:0,late:0,grades:55,materials:100,warningLevel:0,detentions:0,attendedToday:false},tutorial:{active:true,step:0},
+  player:{name:`${name} ${surname}`,age:15,pos,gender,foot,ovr:base,form:68,health:Math.max(70,Math.min(99,82+score.health*2)),mental:Math.max(55,Math.min(95,65+score.mental*2)),happiness:Math.max(55,Math.min(95,68+score.social)),popularity:4,followers:84,money:120,energy:88,rankingPreference:rank,birthCountry,birthCity,residenceCountry:country,residenceCity:resCity},
   skills:{pace:Math.max(35,base-1),shoot:Math.max(30,base-8),pass:Math.max(32,base-5),dribble:Math.max(35,base+4),physical:Math.max(30,base-6),mental:Math.max(35,base-3)},
   family:{parentsTogether:Math.random()>.12,fatherJob:fam.father,motherJob:fam.mother,fatherNationality:fatherNat,motherNationality:motherNat,
-  fatherLeave:false,motherLeave:false,familyMoved:false,movePending:false,moveProposal:null,parentsRelationship:Math.floor(45+Math.random()*45),wealth:Math.max(10,Math.min(100,fam.wealth+score.wealth-3)),income:Math.max(2800,fam.income+score.wealth*180),housing:fam.housing,cars:Math.max(0,fam.cars+(Math.random()>.75?1:0)),siblings:Math.floor(Math.random()*3)},
+  fatherLeave:false,motherLeave:false,familyMoved:false,movePending:false,moveProposal:null,parentsRelationship:Math.floor(45+Math.random()*45),wealth:Math.max(10,Math.min(100,fam.wealth+score.wealth-3)),income:Math.max(2800,fam.income+score.wealth*180),expenses:Math.round(Math.max(1200,(fam.income+score.wealth*180)*(.48+Math.random()*.28))),debt:Math.round((fam.debtBand||0)*25000),housing:fam.housing,cars:Math.max(0,fam.cars+(Math.random()>.75?1:0)),motorcycles:fam.motos||0,siblings:fam.siblings??Math.floor(Math.random()*3),houseValue:Math.round((fam.wealth||50)*4500),assets:Math.round((fam.wealth||50)*7000)},
   career:{club:"Akademia lokalna",level:"U12",starter:false,contract:"brak",coachTrust:50+Math.min(12,score.discipline),agent:null,nationalTeam:country,interest:[]},
   finances:{income:120,expenses:0,savings:120,debt:0,assets:0},
   relations:{friends:45+score.social,family:60+score.social,coach:50,team:52},
@@ -591,14 +718,26 @@ function finishCreator(){
   history:[],calendarEvents:[{day:3,type:"Mecz",title:"Mecz akademii U12",icon:"⚽"},{day:7,type:"Wydarzenie",title:"Spotkanie z trenerem",icon:"🧑‍🏫"}],
   flags:{firstEvent:false,clubOffer:false},gamePlus:setupState.mode==="plus"
  };
- addHistory("Narodziny kariery",`Utworzono ${S.player.name}. Pozycja ${pos}, noga ${foot}, kraj ${country}.`,`Potencjał początkowy: ${S.player.ovr} OVR · rodzina: ${fam.father} / ${fam.mother}`);
+ addHistory("Narodziny kariery",`Utworzono ${S.player.name}. Pozycja ${pos}, noga ${foot}, kraj ${country}.`,`Data urodzenia: ${S.birthday} · Potencjał początkowy: ${S.player.ovr} OVR · rodzina: ${fam.father} / ${fam.mother}`);
  save();closeCreator();showIntro();
 }
 function showIntro(){
  document.getElementById("modal").classList.remove("show");
  const intro=document.createElement("div");intro.className="intro-screen show";intro.id="introScreen";
- intro.innerHTML=`<div class="intro-inner"><div class="intro-mark">FOOTBALL LIFE 27</div><h1>Witaj w swojej historii.</h1><div class="line"></div><p>Od dziś każda godzina ma znaczenie. Szkoła, trening, rodzina, przyjaźnie, pieniądze, zdrowie i piłka będą splatać się w jedną historię.</p><p>Nie wszystko da się zaplanować. Czasem wydarzy się coś wielkiego, czasem coś zupełnie zwyczajnego. Twoje decyzje zostaną zapamiętane — a świat będzie na nie reagował.</p><div class="welcome">Twoja kariera zaczyna się 30 lipca · masz 12 lat · przed Tobą całe życie.</div><button class="big-start" onclick="document.getElementById('introScreen').remove();render('DOM');maybeEvent()">Zaczynamy ⚽</button></div>`;
+ intro.innerHTML=`<div class="intro-inner"><div class="intro-mark">FOOTBALL LIFE 27</div><h1>Witaj w swojej historii.</h1><div class="line"></div><p>Od dziś każda godzina ma znaczenie. Szkoła, trening, rodzina, przyjaźnie, pieniądze, zdrowie i piłka będą splatać się w jedną historię.</p><p>Nie wszystko da się zaplanować. Czasem wydarzy się coś wielkiego, czasem coś zupełnie zwyczajnego. Twoje decyzje zostaną zapamiętane — a świat będzie na nie reagował.</p><div class="welcome">Twoja kariera zaczyna się 30 lipca · masz 15 lat · przed Tobą całe życie.</div><button class="big-start" onclick="document.getElementById('introScreen').remove();showTutorial();render('DOM');maybeEvent()">Zaczynamy ⚽</button></div>`;
  document.body.appendChild(intro);
+}
+function showTutorial(){
+ if(!S.tutorial)return;
+ const x=document.createElement("div");x.className="intro-screen show";x.id="tutorialScreen";
+ x.innerHTML=`<div class="intro-inner"><div class="intro-mark">PIERWSZE KROKI</div><h1>Jak grać?</h1><div class="line"></div>
+ <p><b>⏱ Czas</b> — każda akcja kosztuje pełne godziny. O 22:00 pojawia się sen.</p>
+ <p><b>📚 Szkoła</b> — nieobecności nie są darmowe. Zaległości, oceny i rozmowy będą zależeć od historii.</p>
+ <p><b>⚽ Kariera</b> — sprawdzaj mecz, status w składzie, trening i feedback trenera.</p>
+ <p><b>❤️ Wszystko się łączy</b> — pieniądze, rodzina, relacje, zdrowie, popularność i decyzje mogą wrócić po wielu dniach.</p>
+ <div class="welcome">Przez pierwsze dni możesz dostawać kontekstowe podpowiedzi. Później gra coraz mniej Ci podpowiada, bo świat zaczyna reagować na Twoją historię.</div>
+ <button class="big-start" onclick="S.tutorial.active=false;save();this.closest('.intro-screen').remove();render('DOM')">Rozumiem — zaczynam ⚽</button></div>`;
+ document.body.appendChild(x);
 }
 function newGame(){openCreator("normal")}
 function newGamePlus(){openCreator("plus")}
@@ -610,15 +749,15 @@ function showStartScreen(){
  const el=document.createElement("div");el.id="startScreen";
  el.innerHTML=`<div class="start-card">
  <div class="start-logo">FOOTBALL LIFE 27</div><h1>Twoja kariera. Twoje życie.</h1>
- <p class="tagline">Nie zaczynasz od kariery. Zaczynasz od człowieka. Rodzina, miejsce urodzenia, szkoła, relacje, pieniądze, zdrowie i pierwsze decyzje będą budować historię, która może trwać przez całe życie.</p>
- ${hasSave?`<div class="save-status">💾 Znaleziono aktywną karierę.</div>`:`<div class="save-status">✨ To pierwsze uruchomienie — zacznij od Nowej Gry.</div>`}
+ <p class="tagline">Każda godzina, relacja i decyzja może zmienić Twoją historię. Zacznij nową karierę, kontynuuj zapis albo zbuduj własny świat.</p>
+ ${hasSave?`<div class="save-status">💾 Znaleziono zapis aktywnej kariery.</div>`:`<div class="save-status">✨ Brak aktywnej kariery — możesz rozpocząć dowolny tryb.</div>`}
  <div class="start-buttons">
  ${hasSave?`<button class="start-btn primary" onclick="continueGame()"><strong>▶ Kontynuuj karierę</strong><span>Wczytaj ostatni zapis.</span></button>`:""}
- <button class="start-btn ${!hasSave?"primary":""}" onclick="newGame()"><strong>⚽ Nowa Gra</strong><span>Nowy świat. Rodzina, pochodzenie i sytuacja startowa są losowane automatycznie.</span></button>
- ${hasSave?`<button class="start-btn" onclick="newGamePlus()"><strong>✨ Nowa Gra+</strong><span>Pełna kontrola albo losowanie każdego elementu świata.</span></button>`:`<button class="start-btn disabled" disabled><strong>✨ Nowa Gra+ 🔒</strong><span>Odblokuje się po ukończeniu kariery.</span></button>`}
- ${hasSave?`<button class="start-btn" onclick="openSettingsFromStart()"><strong>⚙️ Ustawienia</strong><span>Opcje gry, reset, naprawa zapisu i preferencje.</span></button>`:`<button class="start-btn disabled" disabled><strong>⚙️ Ustawienia 🔒</strong><span>Dostępne po rozpoczęciu kariery.</span></button>`}
+ <button class="start-btn ${!hasSave?"primary":""}" onclick="newGame()"><strong>⚽ Nowa Gra</strong><span>Świat startowy jest losowany: rodzina, pochodzenie, finanse, miejsce życia i pierwsze możliwości.</span></button>
+ <button class="start-btn" onclick="newGamePlus()"><strong>✨ Nowa Gra+</strong><span>Pełna kontrola nad każdym elementem albo losowanie pojedynczych rzeczy.</span></button>
+ <button class="start-btn" onclick="openSettingsFromStart()"><strong>⚙️ Ustawienia</strong><span>Opcje, reset i naprawa zapisu.</span></button>
  </div>
- <div class="start-footer">${old?"Zachowano zapis bezpieczeństwa.":""} · Nowa kariera zaczyna się 30.07.2026</div>
+ <div class="start-footer">${old?"Zachowano zapis bezpieczeństwa.":""} · Każda nowa kariera zaczyna się od 15. urodzin zawodnika.</div>
  </div>`;
  document.body.appendChild(el);
 }
