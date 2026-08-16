@@ -44,6 +44,10 @@ main{min-width:0}.hero{background:var(--panel);border:1px solid var(--line);bord
 
 .catalog{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.product{background:#191c21;border:1px solid var(--line);border-radius:12px;padding:12px}.product:hover{border-color:#685637}.product .product-icon{font-size:30px}.product h3{font-size:11px;margin:7px 0 3px}.product .brand{color:var(--gold);font-size:9px;font-weight:900}.product .spec{color:var(--muted);font-size:9px;line-height:1.45;min-height:42px}.product .price{font-size:12px;font-weight:900;margin:8px 0}.brandgrid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.brandpill{border:1px solid var(--line);border-radius:999px;background:#111317;padding:5px 8px;font-size:9px;color:#d8d9dc}.random-box{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#211e18;border:1px solid #6e5936;border-radius:11px;padding:11px;margin-bottom:12px}.random-box p{margin:0;font-size:10px;color:var(--muted)}
 @media(max-width:900px){.catalog{grid-template-columns:1fr 1fr}}@media(max-width:600px){.catalog{grid-template-columns:1fr}}
+
+#startScreen{position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 30%,#292319 0,#0a0b0d 48%,#050506 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+.start-card{width:min(760px,94vw);background:#111317f5;border:1px solid #715b36;border-radius:22px;box-shadow:0 30px 120px #000;padding:42px;text-align:center}.start-logo{font-size:11px;color:var(--gold);font-weight:900;letter-spacing:.24em}.start-card h1{font-size:42px;margin:12px 0 5px}.start-card .tagline{color:#b9bbc0;font-size:12px;line-height:1.7;max-width:590px;margin:0 auto 24px}.start-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}.start-btn{border:1px solid var(--line);background:#1b1e23;border-radius:12px;padding:15px 12px;text-align:left}.start-btn:hover{border-color:#8b713f;background:#24231f}.start-btn strong{display:block;font-size:12px}.start-btn span{display:block;color:var(--muted);font-size:9px;margin-top:5px;line-height:1.4}.start-btn.primary{border-color:#80683c;background:#2c251a}.start-footer{margin-top:22px;color:#777a80;font-size:9px}.save-status{margin:0 auto 18px;max-width:520px;border:1px solid var(--line);border-radius:10px;padding:9px;color:#aaa;font-size:9px}
+@media(max-width:600px){.start-card{padding:28px 18px}.start-card h1{font-size:30px}.start-buttons{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -115,9 +119,61 @@ function advance(hours){for(let i=0;i<hours;i++){S.hour++;if(S.hour>=24){S.hour=
 function randomDaily(){S.player.energy=clamp(S.player.energy+8);S.player.mental=clamp(S.player.mental+(Math.random()>.5?1:-1));if(Math.random()<.07)generateRandomEvent()}
 function action(name,h,effect,fn){if(S.hour+h>22 && S.hour<22){toast("Nie zmieścisz tej akcji przed 22:00.");return}if(S.hour>=22){toast("O tej porze możesz już tylko spać.");return}fn&&fn();addHistory(name,`Wykonano akcję: ${name}.`,`Czas −${h} h`);advance(h)}
 function sleep(){if(S.hour<22){toast("Sen jest dostępny od 22:00.");return}S.player.energy=clamp(S.player.energy+42);S.player.health=clamp(S.player.health+3);S.player.mental=clamp(S.player.mental+4);S.player.happiness=clamp(S.player.happiness+2);addHistory("Sen","Pełna noc regeneracji.","Energia +42 · zdrowie +3 · mental +4");S.hour=8;S.day++;randomDaily();updateClock();render();maybeEvent()}
-function maybeEvent(){let ev=S.calendarEvents.find(e=>e.day===S.day);if(ev){openEvent(ev)}else if(Math.random()<.18){generateRandomEvent()}}
+
+function generateFamilyLifeEvent(){
+ if(!S.ownFamily)return false;
+ const events=[];
+ if(S.player.age>=18 && Math.random()<.35) events.push({type:"RELACJE",icon:"❤️",title:"Rozmowa o wspólnym życiu",text:"Twoja partnerka/partner ma własne plany. Wspólne życie może oznaczać przeprowadzkę, zmianę pracy albo pozostanie w obecnym miejscu.",choices:[
+ ["Przeprowadzamy się razem","+ relacja · nowy dom · nowe możliwości",()=>{S.ownFamily.homeCountry=S.country;S.relations.family+=2}],
+ ["Zostajemy tutaj","+ stabilność · partner może zmienić plany",()=>{S.player.happiness+=2}],
+ ["Rozmawiamy i odkładamy decyzję","+ czas na kompromis",()=>{S.player.mental+=1}]
+ ]});
+ if(S.player.age>=18 && Math.random()<.18) events.push({type:"RODZINA",icon:"🍼",title:"Narodziny dziecka",text:"Pojawia się możliwość powiększenia rodziny. Urlop macierzyński lub ojcowski, opieka i praca zmienią codzienne życie oraz finanse.",choices:[
+ ["Biorę urlop rodzicielski","+ czas z dzieckiem · − dochód · + relacja",()=>{S.ownFamily.children.push({age:0});S.ownFamily.parentalLeave.push({type:"urlop rodzicielski",day:S.day});S.finances.income=Math.max(0,S.finances.income-20);S.player.happiness+=5}],
+ ["Partner/partnerka bierze urlop","+ opieka · możliwa zmiana dochodów",()=>{S.ownFamily.children.push({age:0});S.ownFamily.parentalLeave.push({type:"urlop partnera",day:S.day});S.relations.family+=3}],
+ ["Dzielimy opiekę","+ balans · czasowo mniej pracy",()=>{S.ownFamily.children.push({age:0});S.ownFamily.parentalLeave.push({type:"podział opieki",day:S.day});S.player.mental+=2}]
+ ]});
+ if(S.player.age>=18 && Math.random()<.16) events.push({type:"RODZINA",icon:"🚚",title:"Partner/partnerka nie chce się przeprowadzać",text:"Pojawia się oferta, która może być ważna dla Twojej kariery. Druga osoba nie chce jednak opuszczać swojego miasta. Możecie dojść do kompromisu, rozstać się albo jedna osoba może ustąpić.",choices:[
+ ["Zostaję tutaj","+ relacja · kariera może wymagać kompromisu",()=>{S.relations.family+=5;S.career.interest=[]}],
+ ["Próbujemy związku na odległość","+ kariera · koszt emocjonalny",()=>{S.relations.family-=1;S.player.mental-=2}],
+ ["Stawiamy warunek i negocjujemy","+ możliwość wspólnej decyzji",()=>{S.relations.family+=2;S.player.mental+=1}]
+ ]});
+ if(!events.length)return false;
+ openEvent(pick(events)); return true;
+}
+function maybeEvent(){let ev=S.calendarEvents.find(e=>e.day===S.day);if(ev){openEvent(ev)}else if((S.player.age>=18)&&Math.random()<.08){generateFamilyLifeEvent()}else if(Math.random()<.18){generateRandomEvent()}}
 function generateRandomEvent(){
  const pool=[
+ {type:"RODZINA",icon:"🍼",title:"Tata zostaje na urlopie ojcowskim",text:"W rodzinie pojawia się nowe dziecko. Tata może zostać w domu na urlopie ojcowskim, co zmienia budżet i codzienny rytm rodziny.",choices:[
+  ["Cieszę się i pomagam w domu","+ relacja · − trochę czasu na trening",()=>{S.relations.family+=4;S.family.fatherLeave=true;S.player.happiness+=2;S.player.energy-=3}],
+  ["Pytam, jak mogę pomóc","+ odpowiedzialność · + relacja",()=>{S.relations.family+=6;S.player.mental+=2;S.family.fatherLeave=true}],
+  ["Skupiam się na swoim treningu","+ rozwój · rodzina potrzebuje więcej wsparcia",()=>{S.skills.physical+=1;S.relations.family-=2;S.family.fatherLeave=true}]
+ ]},
+ {type:"RODZINA",icon:"🤱",title:"Mama planuje urlop macierzyński",text:"Narodziny dziecka oznaczają urlop macierzyński. Sytuacja finansowa rodziny może się na jakiś czas zmienić.",choices:[
+  ["Pomagam mamie","+ relacja · szczęście",()=>{S.relations.family+=5;S.player.happiness+=3;S.family.motherLeave=true}],
+  ["Pytam, czy potrzebuje czegoś konkretnego","+ dojrzałość · + relacja",()=>{S.relations.family+=4;S.player.mental+=1;S.family.motherLeave=true}],
+  ["Nie zmieniam swoich planów","+ własny czas · mniej wsparcia w domu",()=>{S.player.energy+=2;S.relations.family-=2;S.family.motherLeave=true}]
+ ]},
+ {type:"RODZINA",icon:"🚚",title:"Rodzic dostał pracę w innym mieście",text:"Rodzina może się przeprowadzić. Rodzic chce zmiany, ale drugi rodzic niekoniecznie chce opuszczać obecne życie.",choices:[
+  ["Przeprowadzamy się","+ nowa szkoła · nowy klub · − stabilność",()=>{S.family.familyMoved=true;S.family.movePending=false;S.player.happiness-=3;S.relations.family+=2;S.player.popularity=Math.max(0,S.player.popularity-1)}],
+  ["Zostajemy","+ stabilność · rodzic może zmienić pracę",()=>{S.family.familyMoved=false;S.family.movePending=false;S.player.mental+=2;S.relations.family-=1}],
+  ["Rodzice mieszkają osobno przez jakiś czas","+ możliwy kompromis · − relacje/mental",()=>{S.family.parentsTogether=false;S.family.movePending=false;S.player.mental-=4;S.relations.family-=3}]
+ ]},
+ {type:"RODZINA",icon:"🏠",title:"Rodzic nie chce się przeprowadzać",text:"Jedno z rodziców dostało świetną ofertę, ale partner/partnerka nie chce opuszczać miasta. Decyzja nie zawsze należy do Ciebie — rodzice mogą podjąć ją sami.",choices:[
+  ["Porozmawiam z obojgiem","+ możesz wpłynąć na decyzję",()=>{S.relations.family+=4;S.family.movePending=false}],
+  ["Popieram przeprowadzkę","+ kariera może zyskać · ryzyko konfliktu",()=>{S.relations.family-=1;S.family.movePending=false;S.family.familyMoved=Math.random()>.35}],
+  ["Nie wtrącam się","+ zachowujesz neutralność",()=>{S.player.mental+=1;S.family.movePending=false}]
+ ]},
+ {type:"RODZINA",icon:"👶",title:"Dziecko rodziców pojawia się w rodzinie",text:"Rodzeństwo może pojawić się w zupełnie innym momencie życia. To zmienia uwagę rodziców, finanse, obowiązki i relacje.",choices:[
+  ["Pomagam przy dziecku","+ relacja · odpowiedzialność",()=>{S.family.siblings=(S.family.siblings||0)+1;S.relations.family+=5;S.player.mental+=1}],
+  ["Cieszę się, ale proszę o swój czas","+ balans · relacja",()=>{S.family.siblings=(S.family.siblings||0)+1;S.relations.family+=2}],
+  ["Czuję, że rodzice mają teraz mniej czasu dla mnie","− mental · nowe wydarzenia rodzinne",()=>{S.family.siblings=(S.family.siblings||0)+1;S.player.mental-=3;S.player.happiness-=2}]
+ ]},
+ {type:"RODZINA",icon:"💔",title:"Rodzice rozważają rozstanie",text:"Konflikt między rodzicami narasta. Nie masz kontroli nad ich decyzją, ale możesz zdecydować, jak zareagujesz.",choices:[
+  ["Rozmawiam z nimi osobno","+ wsparcie · + mental odporność",()=>{S.player.mental+=2;S.relations.family+=2}],
+  ["Próbuję ich pogodzić","+ relacja · duże obciążenie",()=>{S.player.mental-=2;S.relations.family+=4; if(Math.random()<.35)S.family.parentsTogether=false}],
+  ["Nie biorę na siebie ich problemów","+ ochrona własnego mentalu",()=>{S.player.mental+=1;S.relations.family-=1}]
+ ]},
  {type:"ŻYCIE",icon:"👨‍👩‍👧",title:"Rodzice rozmawiają o Twoim treningu",text:"Tata uważa, że warto spróbować dodatkowego treningu. Mama martwi się, że zaniedbasz szkołę.",choices:[
   ["Idę na dodatkowy trening","+ rozwój sportowy · −1 h · możliwy konflikt ze szkołą",()=>{S.skills.physical+=2;S.player.energy-=6;S.relations.family-=1}],
   ["Najpierw kończę naukę","+ szkoła · + relacja z mamą · trening później",()=>{S.player.mental+=2;S.relations.family+=2}],
@@ -475,10 +531,12 @@ function finishCreator(){
  S={day:0,hour:8,minute:0,date:"30.07.2026",weekday:"Czwartek",country,
   player:{name:`${name} ${surname}`,age:12,pos,gender,foot,ovr:base,form:68,health:Math.max(70,Math.min(99,82+score.health*2)),mental:Math.max(55,Math.min(95,65+score.mental*2)),happiness:Math.max(55,Math.min(95,68+score.social)),popularity:4,followers:84,money:120,energy:88,rankingPreference:rank,birthCountry,birthCity,residenceCountry:country,residenceCity:resCity},
   skills:{pace:Math.max(35,base-1),shoot:Math.max(30,base-8),pass:Math.max(32,base-5),dribble:Math.max(35,base+4),physical:Math.max(30,base-6),mental:Math.max(35,base-3)},
-  family:{parentsTogether:Math.random()>.12,fatherJob:fam.father,motherJob:fam.mother,fatherNationality:fatherNat,motherNationality:motherNat,wealth:Math.max(10,Math.min(100,fam.wealth+score.wealth-3)),income:Math.max(2800,fam.income+score.wealth*180),housing:fam.housing,cars:Math.max(0,fam.cars+(Math.random()>.75?1:0)),siblings:Math.floor(Math.random()*3)},
+  family:{parentsTogether:Math.random()>.12,fatherJob:fam.father,motherJob:fam.mother,fatherNationality:fatherNat,motherNationality:motherNat,
+  fatherLeave:false,motherLeave:false,familyMoved:false,movePending:false,moveProposal:null,parentsRelationship:Math.floor(45+Math.random()*45),wealth:Math.max(10,Math.min(100,fam.wealth+score.wealth-3)),income:Math.max(2800,fam.income+score.wealth*180),housing:fam.housing,cars:Math.max(0,fam.cars+(Math.random()>.75?1:0)),siblings:Math.floor(Math.random()*3)},
   career:{club:"Akademia lokalna",level:"U12",starter:false,contract:"brak",coachTrust:50+Math.min(12,score.discipline),agent:null,nationalTeam:country,interest:[]},
   finances:{income:120,expenses:0,savings:120,debt:0,assets:0},
   relations:{friends:45+score.social,family:60+score.social,coach:50,team:52},
+  ownFamily:{partner:null,children:[],marriages:0,exPartners:[],parentalLeave:[],homeCountry:country},
   media:{creator:false,tiktok:0,youtube:0,sponsorOffers:0},
   equipment:{boots:null,bootsBonus:0,clothesBonus:0,style:0,brandsOwned:[],sponsorDeals:[]},
   purchases:[],
@@ -497,8 +555,30 @@ function showIntro(){
 function newGame(){openCreator("normal")}
 function newGamePlus(){openCreator("plus")}
 
-function boot(){render("DOM")}
+
+function showStartScreen(){
+ const hasSave=!!localStorage.getItem("fl27save");
+ const old=!!localStorage.getItem("fl27save-old");
+ const el=document.createElement("div");el.id="startScreen";
+ el.innerHTML=`<div class="start-card">
+ <div class="start-logo">FOOTBALL LIFE 27</div><h1>Twoja kariera. Twoje życie.</h1>
+ <p class="tagline">Nie zaczynasz od kariery. Zaczynasz od człowieka. Rodzina, miejsce urodzenia, szkoła, relacje, pieniądze, zdrowie i pierwsze decyzje będą budować historię, która może trwać przez całe życie.</p>
+ ${hasSave?`<div class="save-status">💾 Znaleziono zapis poprzedniej kariery.</div>`:`<div class="save-status">✨ Brak aktywnej kariery — zacznij nową historię.</div>`}
+ <div class="start-buttons">
+ ${hasSave?`<button class="start-btn primary" onclick="continueGame()"><strong>▶ Kontynuuj karierę</strong><span>Wczytaj ostatni zapis i wróć dokładnie do miejsca, w którym skończyłeś/aś.</span></button>`:""}
+ <button class="start-btn ${!hasSave?"primary":""}" onclick="newGame()"><strong>⚽ Nowa Gra</strong><span>Wylosuj zupełnie nowego zawodnika, rodzinę, pochodzenie i świat startowy.</span></button>
+ <button class="start-btn" onclick="newGamePlus()"><strong>✨ Nowa Gra+</strong><span>Nowy przebieg z mechaniką NG+ i nowym losowaniem postaci.</span></button>
+ <button class="start-btn" onclick="openSettingsFromStart()"><strong>⚙️ Ustawienia</strong><span>Opcje gry, reset, naprawa zapisu i preferencje.</span></button>
+ </div>
+ <div class="start-footer">${old?"Poprzedni zapis bezpieczeństwa jest zachowany.":""} · Data startowa nowej kariery: 30.07.2026</div>
+ </div>`;
+ document.body.appendChild(el);
+}
+function continueGame(){document.getElementById("startScreen")?.remove();render("DOM")}
+function openSettingsFromStart(){document.getElementById("startScreen")?.remove();render("USTAWIENIA")}
+function boot(){showStartScreen()}
 boot();
+
 </script>
 </body>
 </html>
