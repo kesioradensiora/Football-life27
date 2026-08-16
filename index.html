@@ -46,8 +46,10 @@ main{min-width:0}.hero{background:var(--panel);border:1px solid var(--line);bord
 @media(max-width:900px){.catalog{grid-template-columns:1fr 1fr}}@media(max-width:600px){.catalog{grid-template-columns:1fr}}
 
 #startScreen{position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 30%,#292319 0,#0a0b0d 48%,#050506 100%);display:flex;align-items:center;justify-content:center;padding:24px}
-.start-card{width:min(760px,94vw);background:#111317f5;border:1px solid #715b36;border-radius:22px;box-shadow:0 30px 120px #000;padding:42px;text-align:center}.start-logo{font-size:11px;color:var(--gold);font-weight:900;letter-spacing:.24em}.start-card h1{font-size:42px;margin:12px 0 5px}.start-card .tagline{color:#b9bbc0;font-size:12px;line-height:1.7;max-width:590px;margin:0 auto 24px}.start-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}.start-btn{border:1px solid var(--line);background:#1b1e23;border-radius:12px;padding:15px 12px;text-align:left}.start-btn:hover{border-color:#8b713f;background:#24231f}.start-btn strong{display:block;font-size:12px}.start-btn span{display:block;color:var(--muted);font-size:9px;margin-top:5px;line-height:1.4}.start-btn.primary{border-color:#80683c;background:#2c251a}.start-footer{margin-top:22px;color:#777a80;font-size:9px}.save-status{margin:0 auto 18px;max-width:520px;border:1px solid var(--line);border-radius:10px;padding:9px;color:#aaa;font-size:9px}
+.start-card{width:min(760px,94vw);background:#111317f5;border:1px solid #715b36;border-radius:22px;box-shadow:0 30px 120px #000;padding:42px;text-align:center}.start-logo{font-size:11px;color:var(--gold);font-weight:900;letter-spacing:.24em}.start-card h1{font-size:42px;margin:12px 0 5px}.start-card .tagline{color:#b9bbc0;font-size:12px;line-height:1.7;max-width:590px;margin:0 auto 24px}.start-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}.start-btn{border:1px solid var(--line);background:#1b1e23;border-radius:12px;padding:15px 12px;text-align:left}.start-btn:hover{border-color:#8b713f;background:#24231f}.start-btn.disabled{opacity:.42;cursor:not-allowed}.start-btn.disabled:hover{border-color:var(--line);background:#1b1e23}.start-btn strong{display:block;font-size:12px}.start-btn span{display:block;color:var(--muted);font-size:9px;margin-top:5px;line-height:1.4}.start-btn.primary{border-color:#80683c;background:#2c251a}.start-footer{margin-top:22px;color:#777a80;font-size:9px}.save-status{margin:0 auto 18px;max-width:520px;border:1px solid var(--line);border-radius:10px;padding:9px;color:#aaa;font-size:9px}
 @media(max-width:600px){.start-card{padding:28px 18px}.start-card h1{font-size:30px}.start-buttons{grid-template-columns:1fr}}
+
+.mode-note{display:flex;align-items:center;gap:9px;background:#17191d;border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:12px;font-size:9px;color:var(--muted)}.mode-note strong{color:#f0d18e}.field input[readonly]{opacity:.82}.lock{font-size:8px;color:#8e8f94;margin-left:4px}
 </style>
 </head>
 <body>
@@ -209,8 +211,29 @@ function openEvent(ev){
  document.getElementById("eventOverlay").classList.add("show")
 }
 function chooseEvent(ev,ch){
- ch[2]();clampAll();addHistory(ev.title,`Wybrano: ${ch[0]}.`,"Decyzja zapisana w historii.");
-const r=document.getElementById("eventResult");r.innerHTML=`<b>Konsekwencja decyzji</b><p>Twoja decyzja została zapisana. Zmiany mogą wpływać na kolejne wydarzenia, relacje, karierę, finanse, mental, zdrowie i przyszłość postaci.</p><button class="btn" onclick="closeEvent()">Kontynuuj</button>`;r.classList.add("show");document.querySelectorAll(".choice").forEach(x=>x.disabled=true);save()
+ const before={
+  ovr:S.player.ovr,form:S.player.form,health:S.player.health,mental:S.player.mental,
+  happiness:S.player.happiness,energy:S.player.energy,popularity:S.player.popularity,
+  money:S.finances?.savings||0,coach:S.career?.coachTrust||0,family:S.relations?.family||0
+ };
+ ch[2]();clampAll();recomputeOVR();
+ const changes=[];
+ const labels={ovr:"OVR",form:"forma",health:"zdrowie",mental:"mental",happiness:"szczęście",energy:"energia",popularity:"popularność",money:"finanse",coach:"zaufanie trenera",family:"relacja z rodziną"};
+ const after={ovr:S.player.ovr,form:S.player.form,health:S.player.health,mental:S.player.mental,happiness:S.player.happiness,energy:S.player.energy,popularity:S.player.popularity,money:S.finances?.savings||0,coach:S.career?.coachTrust||0,family:S.relations?.family||0};
+ for(const k of Object.keys(before)){const d=after[k]-before[k];if(d!==0)changes.push(`${d>0?"+":""}${d} ${labels[k]}`)}
+ const effectText=changes.length?changes.join(" · "):"brak bezpośredniej zmiany statystyk";
+ addHistory(ev.title,`Wybrano: ${ch[0]}.`,`Skutek: ${effectText}`);
+ save();
+ document.querySelectorAll(".choice").forEach(x=>x.disabled=true);
+ const r=document.getElementById("eventResult");
+ r.innerHTML=`<b>✓ Decyzja zapisana</b><p>${effectText}</p>`;
+ r.classList.add("show");
+ setTimeout(()=>{
+   closeEvent();
+   toast(`✓ ${ch[0]} · ${effectText}`);
+   // Po zamknięciu wydarzenia gra wraca od razu do aktualnego ekranu.
+   // Kolejne wydarzenie może pojawić się dopiero po następnej akcji/czasie.
+ },1100);
 }
 function closeEvent(){document.getElementById("eventOverlay").classList.remove("show");render()}
 function clampAll(){for(const k of ["form","health","mental","happiness","energy","popularity"])S.player[k]=clamp(S.player[k]);for(const k of Object.keys(S.skills))S.skills[k]=Math.max(1,Math.round(S.skills[k]));S.career.coachTrust=clamp(S.career.coachTrust);S.relations.family=clamp(S.relations.family);S.relations.team=clamp(S.relations.team)}
@@ -227,23 +250,23 @@ function home(){
  return hero("1. DOM",`${S.weekday}, ${S.date} · ${timeStr()}`,"Twój dzień. Czas jest zasobem: szkoła, trening, mecz, relacje, regeneracja, pieniądze i przypadkowe wydarzenia konkurują ze sobą.")+
  `<div class="grid"><div class="card"><div class="row"><h2>DZISIAJ</h2><span class="pill">⏱ ${timeStr()} · do 22:00</span></div>
  <div class="statgrid">
- ${[['OVR',p.ovr],['FORMA',p.form],['ZDROWIE',p.health],['MENTAL',p.mental],['SZCZĘŚCIE',p.happiness],['ENERGIA',p.energy]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div>
+ ${[['OVR',p.ovr],['FORMA',S.player.form],['ZDROWIE',S.player.health],['MENTAL',S.player.mental],['SZCZĘŚCIE',S.player.happiness],['ENERGIA',S.player.energy]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div>
  <div style="height:12px"></div><h2>AKCJE DNIA</h2><div class="actions">
  ${[
- ["📚","Szkoła","6 h · obowiązkowa w dzień szkolny",()=>action("Szkoła",6,0,()=>{p.mental+=2;p.energy-=10})],
- ["📖","Nauka / korepetycje","1 h · edukacja",()=>action("Nauka / korepetycje",1,0,()=>{p.mental+=3})],
- ["⚽","Dodatkowy trening","2 h · rozwój piłkarski",()=>action("Dodatkowy trening",2,0,()=>{S.skills.pace+=1;S.skills.dribble+=2;p.energy-=12;p.form+=2})],
- ["🏃","Bieganie","1 h · kondycja",()=>action("Bieganie",1,0,()=>{S.skills.physical+=2;p.energy-=7;p.health-=1})],
- ["🚲","Rower","1 h · aktywność",()=>action("Rower",1,0,()=>{S.skills.physical+=1;p.energy-=5;p.happiness+=2})],
- ["🎮","Konsola","1 h · odpoczynek",()=>action("Konsola",1,0,()=>{p.happiness+=3;p.mental+=1})],
- ["🧑‍🤝‍🧑","Znajomi","2 h · relacje",()=>action("Wyjście ze znajomymi",2,0,()=>{S.relations.friends+=4;p.happiness+=4})],
- ["🧠","Psycholog","1 h · mental",()=>action("Wizyta u psychologa",1,0,()=>{p.mental+=5;p.happiness+=1})],
- ["🧊","Regeneracja","1 h · zdrowie",()=>action("Regeneracja",1,0,()=>{p.health+=5;p.energy+=8})],
+ ["📚","Szkoła","6 h · obowiązkowa w dzień szkolny",()=>action("Szkoła",6,0,()=>{S.player.mental+=2;S.player.energy-=10})],
+ ["📖","Nauka / korepetycje","1 h · edukacja",()=>action("Nauka / korepetycje",1,0,()=>{S.player.mental+=3})],
+ ["⚽","Dodatkowy trening","2 h · rozwój piłkarski",()=>action("Dodatkowy trening",2,0,()=>{S.skills.pace+=1;S.skills.dribble+=2;S.player.energy-=12;S.player.form+=2})],
+ ["🏃","Bieganie","1 h · kondycja",()=>action("Bieganie",1,0,()=>{S.skills.physical+=2;S.player.energy-=7;S.player.health-=1})],
+ ["🚲","Rower","1 h · aktywność",()=>action("Rower",1,0,()=>{S.skills.physical+=1;S.player.energy-=5;S.player.happiness+=2})],
+ ["🎮","Konsola","1 h · odpoczynek",()=>action("Konsola",1,0,()=>{S.player.happiness+=3;S.player.mental+=1})],
+ ["🧑‍🤝‍🧑","Znajomi","2 h · relacje",()=>action("Wyjście ze znajomymi",2,0,()=>{S.relations.friends+=4;S.player.happiness+=4})],
+ ["🧠","Psycholog","1 h · mental",()=>action("Wizyta u psychologa",1,0,()=>{S.player.mental+=5;S.player.happiness+=1})],
+ ["🧊","Regeneracja","1 h · zdrowie",()=>action("Regeneracja",1,0,()=>{S.player.health+=5;S.player.energy+=8})],
  ...(match?[["⚽","ROZEGRAJ MECZ","Dzisiaj · decyzje meczowe",()=>openMatch()]]:[])
  ].map(([i,n,d,f])=>`<button class="action" onclick='(${f})()'><div class="ai">${i}</div><strong>${n}</strong><small>${d}</small></button>`).join("")}
  ${canSleep?`<button class="action" onclick="sleep()"><div class="ai">🛏️</div><strong>Sen</strong><small>22:00 → 08:00 · następny dzień</small></button>`:""}
  </div></div>
- <div class="card gold"><h2>NA CO WPŁYWAJĄ DECYZJE?</h2>${[['😊','Szczęście',p.happiness],['🧠','Mental',p.mental],['❤️','Zdrowie',p.health],['⚽','Forma',p.form],['⚡','Energia',p.energy],['⭐','Popularność',p.popularity]].map(x=>`<div class="row small"><span>${x[0]} ${x[1]}</span><b>${x[2]}</b></div><div class="progress"><i style="width:${clamp(x[2])}%"></i></div>`).join("")}
+ <div class="card gold"><h2>NA CO WPŁYWAJĄ DECYZJE?</h2>${[['😊','Szczęście',S.player.happiness],['🧠','Mental',S.player.mental],['❤️','Zdrowie',S.player.health],['⚽','Forma',S.player.form],['⚡','Energia',S.player.energy],['⭐','Popularność',p.popularity]].map(x=>`<div class="row small"><span>${x[0]} ${x[1]}</span><b>${x[2]}</b></div><div class="progress"><i style="width:${clamp(x[2])}%"></i></div>`).join("")}
  <h3 style="margin-top:16px">📌 NAJBLIŻSZE</h3>${S.calendarEvents.filter(e=>e.day>=S.day).slice(0,4).map(e=>`<div class="listitem"><strong>${e.icon} ${e.title}</strong><p>${e.day===S.day?"DZISIAJ":"za "+(e.day-S.day)+" dni"} · ${e.type}</p></div>`).join("")||'<p class="muted small">Brak zaplanowanych wydarzeń.</p>'}
  </div></div>`;
 }
@@ -469,33 +492,50 @@ function randomizeWorld(){
 function fillRandomWorld(){
  const w=setupState.world;
  const vals={"c-name":w.first,"c-surname":w.last,"c-birthcountry":w.birth,"c-birthcity":w.birthCity,"c-rescountry":w.residence,"c-rescity":w.resCity,"c-fathernat":w.father,"c-mothernat":w.mother,"c-pos":w.pos,"c-foot":w.foot,"c-rank":w.rank};
- for(const [id,v] of Object.entries(vals)){const e=document.getElementById(id);if(e)e.value=v}
- const brands=["Nike","adidas","PUMA","New Balance","Mizuno","Under Armour"];
- const holder=document.getElementById("creatorBrands"); if(holder) holder.innerHTML=brands.map(x=>`<span class="brandpill">${x}</span>`).join("");
+ for(const [id,v] of Object.entries(vals)){let e=document.getElementById(id);if(e)e.value=v}
+ const brands=["Nike","adidas","PUMA","New Balance","Mizuno","Under Armour"];const holder=document.getElementById("creatorBrands");if(holder)holder.innerHTML=brands.map(x=>`<span class="brandpill">${x}</span>`).join("");
+ if(setupState.mode==="plus"){
+   if(!setupState.familyRandom)setupState.familyRandom=randomFamily();
+   const f=setupState.familyRandom;
+   const fm={"c-fatherjob":f.father,"c-motherjob":f.mother,"c-wealth":String(f.wealthBand),"c-housing":f.housing,"c-cars":String(f.cars),"c-siblings":String(f.siblings)};
+   for(const [id,v] of Object.entries(fm)){let e=document.getElementById(id);if(e)e.value=v}
+ }
 }
-function randomizeCreator(){randomizeWorld();fillRandomWorld();setupState.questions=shuffle(questionBank).slice(0,5).map(q=>({q,answers:shuffle(q[1]),chosen:null}));document.getElementById("modalContent").innerHTML=creatorHTML();fillRandomWorld()}
 function creatorHTML(){
  const qhtml=setupState.questions.map((x,qi)=>`<div class="question"><div class="qno">PYTANIE ${qi+1} / 5</div><h3>${x.q[0]}</h3><div class="answer-grid">${x.answers.map((ans,ai)=>`<button class="answer" id="ans-${qi}-${ai}" onclick="pickAnswer(${qi},${ai})">${ans}</button>`).join("")}</div></div>`).join("");
+ const plus=setupState.mode==="plus";
  return `<div class="setup-wrap">
- <div class="setup-head"><div class="logo2">FOOTBALL LIFE 27 · NOWA KARTA ZAWODNIKA</div><h1>Stwórz swoją historię</h1><p>Każda kariera zaczyna się inaczej. Twoje odpowiedzi wpłyną na potencjał, temperament, rodzinę, sytuację materialną i pierwsze możliwości. Nie ma „dobrych” odpowiedzi.</p></div>
- <div class="setup-card"><div class="random-box"><div><strong>🎲 LOSOWANIE ŚWIATA STARTOWEGO</strong><p>Imię, nazwisko, pozycja, noga, rodzina, narodowości, miasto urodzenia i kraj zamieszkania mogą zostać wygenerowane od nowa.</p></div><button class="btn" onclick="randomizeCreator()">🎲 Losuj wszystko</button></div>
- <h2>👤 PODSTAWOWE INFORMACJE</h2><div class="field-grid">
- <div class="field"><label>Imię</label><input id="c-name" placeholder="wylosowane"></div>
- <div class="field"><label>Nazwisko</label><input id="c-surname" placeholder="wylosowane"></div>
- <div class="field"><label>Płeć</label><select id="c-gender"><option value="M">Mężczyzna</option><option value="F">Kobieta</option></select></div>
- <div class="field"><label>Pozycja</label><select id="c-pos"><option>GK</option><option>RB</option><option>CB</option><option>LB</option><option>CDM</option><option>CM</option><option>CAM</option><option>RW</option><option selected>LW</option><option>ST</option></select></div>
- <div class="field"><label>Dominująca noga</label><select id="c-foot"><option>Prawa</option><option>Lewa</option><option>Obie</option></select></div>
- <div class="field"><label>Kraj urodzenia</label><input id="c-birthcountry" placeholder="wylosowany"></div>
- <div class="field"><label>Miasto urodzenia</label><input id="c-birthcity" placeholder="wylosowane"></div>
- <div class="field"><label>Kraj zamieszkania</label><input id="c-rescountry" placeholder="wylosowany"></div>
- <div class="field"><label>Miasto zamieszkania</label><input id="c-rescity" placeholder="wylosowane"></div>
- <div class="field"><label>🇺🇳 Narodowość ojca</label><input id="c-fathernat" placeholder="wylosowana"></div>
- <div class="field"><label>🇺🇳 Narodowość matki</label><input id="c-mothernat" placeholder="wylosowana"></div>
- <div class="field"><label>Preferowany ranking</label><select id="c-rank"><option>Ranking sportowy</option><option>Popularność</option><option>Ranking kraju</option><option>Ranking ligi</option><option>Ranking pozycji</option></select></div>
- <div class="field"><label>Tryb</label><input value="${setupState.mode==='plus'?'NOWA GRA+':'NOWA GRA'}" disabled></div>
+ <div class="setup-head"><div class="logo2">FOOTBALL LIFE 27 · ${plus?"NOWA GRA+":"NOWA GRA"}</div><h1>${plus?"Zbuduj albo wylosuj cały świat":"Rozpocznij nową historię"}</h1><p>${plus?"W NG+ możesz ustawić wszystko ręcznie albo wylosować dowolny element osobno.":"W Nowej Grze świat startowy jest generowany automatycznie. Możesz zmienić dane zawodnika przed startem, ale rodzina i jej sytuacja są wynikiem losowania."}</p></div>
+ <div class="setup-card">
+   <div class="mode-note"><span>${plus?"✨":"🎲"}</span><div><strong>${plus?"NOWA GRA+ — PEŁNA KONTROLA":"NOWA GRA — LOSOWY ŚWIAT"}</strong><br>${plus?"Każde pole może być ręczne albo losowe.":"Kliknij „Losuj świat”, aby od razu dostać kompletną historię startową."}</div></div>
+   <div class="random-box"><div><strong>🎲 ${plus?"LOSOWANIE CAŁEGO ŚWIATA":"LOSOWANIE STARTU"}</strong><p>Imię, nazwisko, pochodzenie, miejsce urodzenia, miejsce zamieszkania, rodzice, ich narodowości, zawody, majątek, dom, auta i sytuacja rodzinna.</p></div><button class="btn" onclick="randomizeCreator()">🎲 Losuj wszystko</button></div>
+   <h2>👤 ZAWODNIK</h2><div class="field-grid">
+    <div class="field"><label>Imię</label><input id="c-name" placeholder="wylosowane / wpisz"></div>
+    <div class="field"><label>Nazwisko</label><input id="c-surname" placeholder="wylosowane / wpisz"></div>
+    <div class="field"><label>Płeć</label><select id="c-gender"><option value="M">Mężczyzna</option><option value="F">Kobieta</option></select></div>
+    <div class="field"><label>Pozycja</label><select id="c-pos">${["GK","RB","CB","LB","CDM","CM","CAM","RW","LW","ST"].map(x=>`<option>${x}</option>`).join("")}</select></div>
+    <div class="field"><label>Dominująca noga</label><select id="c-foot"><option>Prawa</option><option>Lewa</option><option>Obie</option></select></div>
+    <div class="field"><label>Preferowany ranking</label><select id="c-rank"><option>Ranking sportowy</option><option>Popularność</option><option>Ranking kraju</option><option>Ranking ligi</option><option>Ranking pozycji</option></select></div>
+   </div>
+   <div class="brandgrid" style="margin-top:9px"><button class="btn" onclick="randomizeCharacter()">🎲 Losuj tylko zawodnika</button></div>
  </div>
- <div class="brandgrid" id="creatorBrands"></div></div></div>
- <div class="setup-card"><h2>🧬 5 LOSOWYCH PYTAŃ</h2><p class="small muted">Pytania są losowane z puli 30. Każde ma 10 odpowiedzi, a kolejność odpowiedzi również jest losowa.</p><div class="qgrid">${qhtml}</div></div>
+ <div class="setup-card"><h2>🌍 POCHODZENIE I MIEJSCE ŻYCIA</h2><div class="field-grid">
+   <div class="field"><label>Kraj urodzenia</label><input id="c-birthcountry"></div>
+   <div class="field"><label>Miasto urodzenia</label><input id="c-birthcity"></div>
+   <div class="field"><label>Kraj zamieszkania</label><input id="c-rescountry"></div>
+   <div class="field"><label>Miasto zamieszkania</label><input id="c-rescity"></div>
+   <div class="field"><label>🇺🇳 Narodowość ojca</label><input id="c-fathernat"></div>
+   <div class="field"><label>🇺🇳 Narodowość matki</label><input id="c-mothernat"></div>
+ </div><div class="brandgrid" style="margin-top:9px"><button class="btn" onclick="randomizeWorldOnly()">🎲 Losuj tylko pochodzenie i miejsce</button></div></div>
+ ${plus?`<div class="setup-card"><h2>👨‍👩‍👧 RODZINA STARTOWA — NG+</h2><div class="field-grid">
+   <div class="field"><label>Zawód ojca</label><input id="c-fatherjob"></div>
+   <div class="field"><label>Zawód matki</label><input id="c-motherjob"></div>
+   <div class="field"><label>Zamożność rodziny</label><select id="c-wealth"><option value="20">Bardzo niska</option><option value="40">Niska</option><option value="60">Średnia</option><option value="80">Wysoka</option><option value="95">Bardzo wysoka</option></select></div>
+   <div class="field"><label>Mieszkanie / dom</label><select id="c-housing"><option>Wynajmowane mieszkanie</option><option>Mieszkanie własnościowe</option><option>Dom rodzinny</option><option>Duży dom</option></select></div>
+   <div class="field"><label>Samochody rodziców</label><select id="c-cars"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+   <div class="field"><label>Rodzeństwo</label><select id="c-siblings"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+ </div><div class="brandgrid" style="margin-top:9px"><button class="btn" onclick="randomizeFamily()">🎲 Losuj tylko rodzinę</button></div></div>`:""}
+ <div class="setup-card"><h2>🧬 5 PYTAŃ Z PULI 30</h2><p class="small muted">Za każdym razem 5 pytań i 10 odpowiedzi. Odpowiedzi wpływają na potencjał, mental, dyscyplinę, zdrowie, relacje i sytuację startową.</p><div class="qgrid">${qhtml}</div></div>
  <div class="setup-actions"><button class="btn secondary" onclick="closeCreator()">Anuluj</button><button class="big-start" onclick="finishCreator()">⚽ Rozpocznij karierę</button></div>
  </div>`;
 }
@@ -525,6 +565,14 @@ function finishCreator(){
  ];
  let idx=(score.wealth+score.social+Math.floor(Math.random()*8))%parentPool.length;
  let fam=parentPool[idx];
+ if(setupState.mode==="plus"){
+   const fj=document.getElementById("c-fatherjob")?.value||fam.father,mj=document.getElementById("c-motherjob")?.value||fam.mother;
+   const wealthBand=Number(document.getElementById("c-wealth")?.value||fam.wealth);
+   const housing=document.getElementById("c-housing")?.value||fam.housing;
+   const cars=Number(document.getElementById("c-cars")?.value||fam.cars);
+   const siblings=Number(document.getElementById("c-siblings")?.value||fam.siblings);
+   fam={father:fj,mother:mj,wealth:wealthBand,cars,housing,income:Math.round(3000+wealthBand*180),siblings};
+ }
  let base=47+(score.potential*2)+Math.floor(Math.random()*7);
  if(setupState.mode==="plus")base+=4;
  base=Math.max(35,Math.min(82,base));
@@ -563,14 +611,14 @@ function showStartScreen(){
  el.innerHTML=`<div class="start-card">
  <div class="start-logo">FOOTBALL LIFE 27</div><h1>Twoja kariera. Twoje życie.</h1>
  <p class="tagline">Nie zaczynasz od kariery. Zaczynasz od człowieka. Rodzina, miejsce urodzenia, szkoła, relacje, pieniądze, zdrowie i pierwsze decyzje będą budować historię, która może trwać przez całe życie.</p>
- ${hasSave?`<div class="save-status">💾 Znaleziono zapis poprzedniej kariery.</div>`:`<div class="save-status">✨ Brak aktywnej kariery — zacznij nową historię.</div>`}
+ ${hasSave?`<div class="save-status">💾 Znaleziono aktywną karierę.</div>`:`<div class="save-status">✨ To pierwsze uruchomienie — zacznij od Nowej Gry.</div>`}
  <div class="start-buttons">
- ${hasSave?`<button class="start-btn primary" onclick="continueGame()"><strong>▶ Kontynuuj karierę</strong><span>Wczytaj ostatni zapis i wróć dokładnie do miejsca, w którym skończyłeś/aś.</span></button>`:""}
- <button class="start-btn ${!hasSave?"primary":""}" onclick="newGame()"><strong>⚽ Nowa Gra</strong><span>Wylosuj zupełnie nowego zawodnika, rodzinę, pochodzenie i świat startowy.</span></button>
- <button class="start-btn" onclick="newGamePlus()"><strong>✨ Nowa Gra+</strong><span>Nowy przebieg z mechaniką NG+ i nowym losowaniem postaci.</span></button>
- <button class="start-btn" onclick="openSettingsFromStart()"><strong>⚙️ Ustawienia</strong><span>Opcje gry, reset, naprawa zapisu i preferencje.</span></button>
+ ${hasSave?`<button class="start-btn primary" onclick="continueGame()"><strong>▶ Kontynuuj karierę</strong><span>Wczytaj ostatni zapis.</span></button>`:""}
+ <button class="start-btn ${!hasSave?"primary":""}" onclick="newGame()"><strong>⚽ Nowa Gra</strong><span>Nowy świat. Rodzina, pochodzenie i sytuacja startowa są losowane automatycznie.</span></button>
+ ${hasSave?`<button class="start-btn" onclick="newGamePlus()"><strong>✨ Nowa Gra+</strong><span>Pełna kontrola albo losowanie każdego elementu świata.</span></button>`:`<button class="start-btn disabled" disabled><strong>✨ Nowa Gra+ 🔒</strong><span>Odblokuje się po ukończeniu kariery.</span></button>`}
+ ${hasSave?`<button class="start-btn" onclick="openSettingsFromStart()"><strong>⚙️ Ustawienia</strong><span>Opcje gry, reset, naprawa zapisu i preferencje.</span></button>`:`<button class="start-btn disabled" disabled><strong>⚙️ Ustawienia 🔒</strong><span>Dostępne po rozpoczęciu kariery.</span></button>`}
  </div>
- <div class="start-footer">${old?"Poprzedni zapis bezpieczeństwa jest zachowany.":""} · Data startowa nowej kariery: 30.07.2026</div>
+ <div class="start-footer">${old?"Zachowano zapis bezpieczeństwa.":""} · Nowa kariera zaczyna się 30.07.2026</div>
  </div>`;
  document.body.appendChild(el);
 }
