@@ -199,8 +199,8 @@ const initial={
     {id:'car1',name:'Volkswagen Golf',type:'auto',owned:false,price:14000}
   ],
   inventory:[],
-  investments:[],
-  businesses:[],
+investments:[{id:'inv_savings',name:'Lokata',price:500},{id:'inv_bonds',name:'Obligacje',price:1000},{id:'inv_index',name:'Fundusz indeksowy',price:1000},{id:'inv_etf',name:'ETF sektorowy',price:1500},{id:'inv_stocks',name:'Akcje',price:1000},{id:'inv_sports',name:'Fundusz sportowy',price:5000},{id:'inv_property',name:'Nieruchomość inwestycyjna',price:80000},{id:'inv_land',name:'Działka',price:30000},{id:'inv_startup',name:'Startup',price:10000},{id:'inv_media',name:'Projekt medialny',price:7500},{id:'inv_tech',name:'Technologie',price:5000},{id:'inv_collection',name:'Kolekcjonerstwo',price:2500},{id:'inv_education',name:'Inwestycja w edukację',price:2000}],
+businesses:[{id:'biz_cafe',name:'Mała kawiarnia',price:60000},{id:'biz_restaurant',name:'Restauracja',price:180000},{id:'biz_foodtruck',name:'Food truck',price:45000},{id:'biz_gym',name:'Siłownia / studio treningowe',price:140000},{id:'biz_academy',name:'Akademia piłkarska',price:220000},{id:'biz_sportswear',name:'Sklep sportowy',price:100000},{id:'biz_agency',name:'Agencja marketingowa',price:90000},{id:'biz_creator',name:'Studio contentu',price:70000},{id:'biz_music',name:'Studio muzyczne',price:85000},{id:'biz_app',name:'Startup technologiczny',price:250000},{id:'biz_property',name:'Firma nieruchomościowa',price:350000},{id:'biz_hotel',name:'Mały hotel / apartamenty',price:500000},{id:'biz_car',name:'Wypożyczalnia samochodów',price:300000},{id:'biz_social',name:'Firma społeczna',price:75000}],
   charity:[],
   sponsors:[],
   dating:{preference:'kobiety',enabled:true},
@@ -226,7 +226,7 @@ const initial={
   world:{
     transport:{mode:'parents',ownedBike:false,ownedCar:false,monthlyCost:0,travelSpeed:1},
     languages:[], skills:[], educationTracks:[], licenses:[],
-    clothing:[], shoes:[], equipment:[], specialists:[], properties:[], cars:[],
+    clothing:[], shoes:[], equipment:[], specialists:[], properties:[], cars:[], activeBootId:null, bootHistory:[],
     gifts:[], investments:[], businesses:[], charity:[],
     agents:[], sponsors:[], endorsements:[],
     parentSupport:{pocketMoney:0,financialHelp:0,materialHelp:0,majorLifeHelp:0},
@@ -669,9 +669,9 @@ function showNextEvent(){
   const e=window.eventQueue.shift();
   const id='ev'+(++S.eventCounter);
   window.pendingEvent={id,e};
-  openModal(`<div class="modal-head"><div><div class="eyebrow">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+  openModal(`<div class="modal-head event-modal-head"><div><div class="eyebrow">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2><div class="muted small" style="margin-top:6px">Wybierz jedną odpowiedź, aby kontynuować.</div></div></div>
     <div class="card" style="margin-top:12px;background:#171b22">${esc(e.text)}</div>
-    <div class="modal-actions">${e.choices.map((c,i)=>`<button class="choice event-choice" data-event-id="${esc(id)}" data-choice-index="${i}" onclick="chooseEvent(${JSON.stringify(id)},${i})"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
+    <div class="modal-actions event-choices">${e.choices.map((c,i)=>`<button type="button" class="choice event-choice" data-event-id="${esc(id)}" data-choice-index="${i}"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
 }
 function triggerEvent(e){
   if(!e)return;
@@ -702,10 +702,75 @@ function chooseEvent(id,i){
 }
 function addHistory(title,desc,effect){S.history.unshift({date:S.day.date,time:timePL(S.day.time),dayNo:S.day.dayNo,title,desc,effect});S.history=S.history.slice(0,120)}
 
+
+function renderActiveBootCard(){
+  const id=S.world.activeBootId;
+  const boot=(S.world.shoes||[]).find(x=>x.id===id) || (WORLD_CATALOG.shoes||[]).find(x=>x.id===id);
+  if(!boot) return `<div class="metric" style="margin-top:12px"><span>Aktywne korki</span><b>Brak — wybierz parę w Mieście → Korki</b></div>`;
+  const wear=Math.max(0,Math.min(100,boot.wear==null?0:boot.wear));
+  const attrs=boot.attributes||{};
+  return `<div class="card" style="margin-top:12px">
+    <div class="row"><h3>👟 ${esc(boot.name)}</h3><span class="badge">${esc(boot.brand)}</span></div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="metric"><span>Zużycie</span><b>${Math.round(wear)}%</b></div>
+      <div class="metric"><span>Jakość</span><b>${boot.quality||0}/10</b></div>
+      <div class="metric"><span>⚡ Szybkość</span><b>${attrs.speed||0}</b></div>
+      <div class="metric"><span>🎯 Kontrola</span><b>${attrs.control||0}</b></div>
+      <div class="metric"><span>🥅 Strzał</span><b>${attrs.shooting||0}</b></div>
+      <div class="metric"><span>🦶 Komfort / przyczepność</span><b>${attrs.comfort||0} / ${attrs.grip||0}</b></div>
+    </div>
+    <div class="muted small" style="margin-top:10px">Zużycie rośnie podczas treningów i meczów. Przy wysokim zużyciu atrybuty użytkowe stopniowo spadają.</div>
+  </div>`;
+}
+function renderSponsorCareerSummary(){
+  const deals=S.world.brandDeals||[];
+  const sponsors=S.world.sponsors||S.sponsors||[];
+  const firms=[...new Set([...deals,...sponsors.map(x=>x.brand||x.name).filter(Boolean)])];
+  if(!firms.length) return `<div class="muted">Brak aktywnego sponsora. Firmy mogą pojawiać się wraz ze wzrostem OVR, popularności, wyników i wizerunku.</div>`;
+  return `<div class="badges" style="margin-top:10px">${firms.map(x=>`<span class="badge gold">🤝 ${esc(x)}</span>`).join('')}</div>`;
+}
+function ensureBootState(item){
+  if(!item) return null;
+  if(item.wear==null) item.wear=0;
+  if(!item.attributes) item.attributes={speed:0,control:0,shooting:0,comfort:0,grip:0};
+  return item;
+}
+function activateBoot(id){
+  const pool=[...(S.world.shoes||[]),...(WORLD_CATALOG.shoes||[])];
+  const boot=pool.find(x=>x.id===id);
+  if(!boot) return;
+  ensureBootState(boot);
+  if(!S.world.shoes.some(x=>x.id===boot.id)) S.world.shoes.push(clone(boot));
+  S.world.activeBootId=boot.id;
+  addHistory('Zmiana korków',`Aktywna para: ${boot.name} (${boot.brand}).`,'sprzęt meczowy');
+  save();closeModal();render();toast('👟 Wybrano aktywną parę korków.');
+}
+function applyBootWear(amount){
+  const id=S.world.activeBootId;
+  if(!id) return;
+  const boot=S.world.shoes.find(x=>x.id===id);
+  if(!boot) return;
+  ensureBootState(boot);
+  boot.wear=clamp((boot.wear||0)+amount,0,100);
+  if(boot.wear>=85 && Math.random()<.25){
+    triggerEvent({title:'👟 Korki są mocno zużyte',text:`Para ${boot.name} jest już mocno zużyta. Zużycie: ${Math.round(boot.wear)}%. Możesz kupić nową parę lub dalej grać na obecnych.`,choices:[
+      ['Kup nową parę','Zyskujesz świeży sprzęt.',{form:1}],
+      ['Gram dalej','Oszczędzasz pieniądze, ale ryzykujesz dalsze zużycie.',{mental:-1}]
+    ]});
+  }
+}
+
 function renderCareer(){
   const next=S.calendar.matches.find(m=>m.status==='scheduled');
   return `<section class="section card gold-card"><div class="eyebrow">KARIERA PIŁKARSKA</div><h1>${esc(S.player.club)}</h1><div class="muted">${S.player.position} • ${S.player.age} lat • OVR ${S.player.ovr.toFixed(1)} • potencjał ${S.player.potential}</div>
-    <div class="grid2" style="margin-top:15px"><div class="metric"><span>Wartość rynkowa</span><b>${money(S.player.marketValue)}</b></div><div class="metric"><span>Forma</span><b>${Math.round(S.player.form)}</b></div><div class="metric"><span>Pozycja</span><b>${esc(S.player.position)}</b></div><div class="metric"><span>Reputacja</span><b>${Math.round(S.player.reputation)}</b></div></div></section>
+    <div class="grid2" style="margin-top:15px"><div class="metric"><span>Wartość rynkowa</span><b>${money(S.player.marketValue)}</b></div><div class="metric"><span>Forma</span><b>${Math.round(S.player.form)}</b></div><div class="metric"><span>Pozycja</span><b>${esc(S.player.position)}</b></div><div class="metric"><span>Reputacja</span><b>${Math.round(S.player.reputation)}</b></div></div>
+    <section class="section card" style="margin-top:12px"><div class="eyebrow">👟 SPRZĘT MECZOWY</div>
+      <div class="muted small">Korki mają własne atrybuty, zużycie i historię. Aktywna para wpływa na przygotowanie do meczu i jest widoczna w karierze.</div>
+      ${renderActiveBootCard()}
+    </section>
+    <section class="section card" style="margin-top:12px"><div class="eyebrow">🤝 FIRMY I SPONSORZY</div>
+      ${renderSponsorCareerSummary()}
+    </section></section>
     ${next?`<section class="section card"><div class="eyebrow">⚽ MECZ</div><h2>${esc(next.competition)}</h2><div class="muted">${datePL(next.date)} • ${esc(next.opponent)} • ${next.home?'u siebie':'wyjazd'}</div><button class="btn goldbtn" style="margin-top:12px" onclick="openMatch('${next.id}')">⚽ Otwórz przygotowania do meczu</button></section>`:''}
     <section class="section card"><div class="eyebrow">🔎 SKAUCI I OBOZY</div>
       ${S.scouting.length?S.scouting.map(s=>`<div class="job"><div class="row"><h3>${esc(s.club)}</h3><span class="badge ${s.status==='new'?'gold':''}">${s.status==='new'?'NOWE':s.status}</span></div><div class="muted small">${esc(s.country)} • ${esc(s.type)} • termin ${datePL(s.deadline)}</div><button class="btn" style="margin-top:10px" onclick="openScout('${s.id}')">Otwórz zaproszenie i podejmij decyzję</button></div>`).join(''):'<div class="muted">Brak aktywnych zaproszeń. Skauci pojawiają się zależnie od rozwoju i występów.</div>'}
@@ -756,7 +821,7 @@ function matchChoice(id,what){
   const r={attack:{form:7,ovr:.5,popularity:.3,mental:-2},safe:{form:4,ovr:.2,mental:3},team:{form:6,ovr:.35,reputation:3,mental:2}}[what];
   for(const[k,v]of Object.entries(r)){if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);else if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);else S.player[k]=clamp((S.player[k]||0)+v,0,100)}
   m.status='played';m.rating=what==='attack'?8.2:what==='safe'?7.3:8.0;m.result=Math.random()>.45?'W':'R';
-  addHistory('Mecz: '+m.competition,`Przeciwko ${m.opponent}. Wynik: ${m.result==='W'?'wygrana':'remis / niekorzystny wynik'}.`,`⭐ ocena ${m.rating} • ${what}`);
+  applyBootWear(4); addHistory('Mecz: '+m.competition,`Przeciwko ${m.opponent}. Wynik: ${m.result==='W'?'wygrana':'remis / niekorzystny wynik'}.`,`⭐ ocena ${m.rating} • ${what}`);
   S.tutorial.steps[3]=true;save();closeModal();render();toast('⚽ Mecz rozegrany — wynik i decyzja zapisane.');
 }
 function nationalTeamCandidates(){
@@ -833,7 +898,7 @@ function renderFamily(){
  <section class="section card"><div class="eyebrow">💰 AKTUALNA SYTUACJA RODZINY</div><div class="grid2">${[['Zamożność',f.familyWealth],['Stabilność domu',f.stability],['Wsparcie ojca',f.father.interest+'/100'],['Wsparcie matki',f.mother.interest+'/100'],['Dostępność ojca',f.father.available+'/100'],['Dostępność matki',f.mother.available+'/100']].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div><div class="muted small" style="margin-top:12px">Dochody i wydatki rodziców mogą się zmieniać. Po rozstaniu majątek, dom, auta i koszty nie znikają — są rozdzielane i dalej wpływają na życie.</div></section>
  <section class="section card"><div class="eyebrow">👨‍👩‍👦 RODZICE — AKTUALNY STAN</div>${parentCard('father','👨','OJCIEC',f.father)}${parentCard('mother','👩','MATKA',f.mother)}
  ${f.siblings.map(s=>`<div class="person"><h3>👦 ${esc(s.name)}</h3><div class="muted">${s.age} lat • rodzeństwo • relacja ${s.relation}/100</div></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">🌳 KORZENIE I JĘZYKI RODZINNE</div>${f.roots.map(r=>`<div class="person"><h3>🌎 ${r.label}</h3><div class="muted">${r.country} • ${r.city}</div></div>`).join('')}<div class="muted small" style="margin-top:10px">Pochodzenie rodzica może otworzyć język rodzinny. Nie oznacza automatycznie płynności — rodzic może przekazywać język regularnie, tylko częściowo albo wcale.</div>${(S.world?.languages||[]).length?`<div class="list" style="margin-top:10px">${S.world.languages.map(l=>`<div class="history-item"><div class="row"><b>🗣️ ${esc(l.name)}</b><span class="badge">${Math.round(l.level)}%</span></div><div class="muted small">${esc(l.source)}${l.taught?' • język częściowo przekazywany w domu':' • rodzina nie przekazała języka'}</div></div>`).join('')}</div>`:'<div class="muted small" style="margin-top:10px">Brak dodatkowego języka rodzinnego — można go później nauczyć się na kursie lub przez życie w danym kraju.</div>'}</section>`;
+ <section class="section card"><div class="eyebrow">🌳 KORZENIE I JĘZYKI</div>${f.roots.map(r=>`<div class="person"><h3>🌎 ${r.label}</h3><div class="muted">${r.country} • ${r.city}</div></div>`).join('')}<div class="muted small" style="margin-top:10px">Pochodzenie rodzica może otworzyć język rodzinny. Nie oznacza automatycznie płynności — rodzic może przekazywać język regularnie, tylko częściowo albo wcale.</div>${(S.world?.languages||[]).length?`<div class="list" style="margin-top:10px">${S.world.languages.map(l=>`<div class="history-item"><div class="row"><b>🗣️ ${esc(l.name)}</b><span class="badge">${Math.round(l.level)}%</span></div><div class="muted small">${esc(l.source)}${l.taught?' • język częściowo przekazywany w domu':' • rodzina nie przekazała języka'}</div></div>`).join('')}</div>`:'<div class="muted small" style="margin-top:10px">Brak dodatkowego języka rodzinnego — język kraju zamieszkania jest pokazany osobno; kolejne języki można zdobywać przez rodzinę, szkołę, kursy, relacje i życie za granicą.</div>'}</section>`;
 }
 function parentCard(key,ico,label,p){
  return `<div class="person" style="margin-top:10px"><div class="row"><div><div class="eyebrow">${ico} ${label}</div><h3>${esc(p.name)}</h3></div><span class="badge">${p.age} lat</span></div>
@@ -1009,6 +1074,90 @@ function setDating(v){S.dating.preference=v;save();toast('Preferencje randkowani
 function repair(){document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));closeDrawer();render();window.scrollTo({top:0});toast('🛠️ Gra zsynchronizowana — kariera nie została usunięta.')}
 function restartCareer(){if(confirm('Restart kariery zachowa dane rodziców, ale wyzeruje przebieg?')){const keep={...clone(initial),family:S.family,player:{...clone(initial).player, name:S.player.name,first:S.player.first,last:S.player.last, country:S.player.country,city:S.player.city}};S=keep;save();current='day';render();toast('Kariera uruchomiona od nowa.')}}
 const PLAYER_POSITIONS=['Bramkarz','Prawy obrońca','Lewy obrońca','Środkowy obrońca','Defensywny pomocnik','Środkowy pomocnik','Ofensywny pomocnik','Prawy skrzydłowy','Lewy skrzydłowy','Napastnik'];
+/* ===== BAZA IMION I NAZWISK =====
+   Imię i nazwisko nie są już losowane z jednej globalnej listy.
+   Gra dobiera je do kraju urodzenia/zamieszkania oraz, przy rodzinie mieszanej,
+   może korzystać z pochodzenia rodziców. To jest warstwa realizmu, a nie twarda reguła genealogiczna.
+*/
+const NAME_DATABASE={
+ PL:{first:['Jakub','Antoni','Jan','Franciszek','Szymon','Aleksander','Kacper','Mateusz','Michał','Filip','Wojciech','Piotr','Bartosz','Mikołaj','Adam'],last:['Nowak','Kowalski','Wiśniewski','Wójcik','Kowalczyk','Kamiński','Lewandowski','Zieliński','Szymański','Woźniak','Dąbrowski','Mazur','Krawczyk','Piotrowski','Grabowski']},
+ GB:{first:['Oliver','George','Harry','Jack','Noah','Charlie','Muhammad','Leo','Arthur','Oscar','Henry','Theo','Archie','Freddie','Alfie'],last:['Smith','Jones','Taylor','Brown','Williams','Wilson','Johnson','Davies','Patel','Robinson','Wright','Thompson','Evans','Walker','White']},
+ IE:{first:['Jack','Noah','James','Conor','Cian','Liam','Finn','Oisín','Sean','Daniel','Fionn','Ronan','Darragh','Tadhg'],last:['Murphy','Kelly','O’Sullivan','Walsh','Smith','Doyle','McCarthy','Byrne','Ryan','O’Connor','O’Brien','Kennedy','Lynch']},
+ PT:{first:['João','Miguel','Martim','Francisco','Afonso','Gonçalo','Tiago','Diogo','Duarte','Rafael','Rodrigo','Tomás','Pedro'],last:['Silva','Santos','Ferreira','Pereira','Oliveira','Costa','Rodrigues','Martins','Jesus','Sousa','Fernandes','Gonçalves','Gomes']},
+ BR:{first:['Miguel','Gabriel','Arthur','Heitor','Theo','Bernardo','Davi','Rafael','Lucas','Matheus','João','Pedro','Enzo','Gustavo','Felipe'],last:['Silva','Santos','Oliveira','Souza','Pereira','Costa','Rodrigues','Almeida','Nascimento','Lima','Carvalho','Araújo','Ribeiro','Martins']},
+ ES:{first:['Hugo','Mateo','Martín','Lucas','Leo','Daniel','Alejandro','Pablo','Álvaro','Diego','Adrián','Sergio','Javier','Bruno'],last:['García','Rodríguez','González','Fernández','López','Martínez','Sánchez','Pérez','Gómez','Martín','Jiménez','Ruiz','Hernández','Díaz']},
+ FR:{first:['Gabriel','Léo','Raphaël','Louis','Arthur','Jules','Maël','Lucas','Adam','Hugo','Nathan','Ethan','Noah','Théo'],last:['Martin','Bernard','Thomas','Petit','Robert','Richard','Durand','Dubois','Moreau','Laurent','Simon','Michel','Lefebvre','Leroy']},
+ IT:{first:['Leonardo','Francesco','Lorenzo','Alessandro','Andrea','Mattia','Gabriele','Tommaso','Riccardo','Federico','Luca','Marco','Giovanni'],last:['Rossi','Russo','Ferrari','Esposito','Bianchi','Romano','Colombo','Ricci','Marino','Greco','Bruno','Gallo','Conti']},
+ DE:{first:['Noah','Paul','Emil','Leon','Lukas','Finn','Felix','Jonas','Ben','Elias','Maximilian','Henry','Louis'],last:['Müller','Schmidt','Schneider','Fischer','Weber','Meyer','Wagner','Becker','Schulz','Hoffmann','Schäfer','Koch','Bauer']},
+ AT:{first:['Jakob','Paul','David','Lukas','Felix','Maximilian','Elias','Moritz','Leon','Florian','Tobias'],last:['Gruber','Huber','Wagner','Müller','Pichler','Steiner','Moser','Hofer','Berger','Fuchs','Eder']},
+ CH:{first:['Luca','Noah','Leon','Julian','Nico','Liam','David','Elias','Jan','Simon'],last:['Müller','Meier','Schmid','Keller','Weber','Huber','Frei','Brunner','Steiner','Gerber']},
+ NL:{first:['Daan','Sem','Lucas','Finn','Milan','Noah','Liam','Luuk','Bram','Thijs','Jesse'],last:['de Jong','Jansen','de Vries','van den Berg','van Dijk','Bakker','Janssen','Visser','Smit','Meijer','de Boer']},
+ BE:{first:['Louis','Arthur','Noah','Victor','Lucas','Milan','Liam','Mathis','Jules','Rayan'],last:['Peeters','Janssens','Maes','Jacobs','Mertens','Willems','Claes','Goossens','De Smet','Vermeulen']},
+ CZ:{first:['Jakub','Jan','Tomáš','Matyáš','Adam','Filip','Vojtěch','Matěj','David','Ondřej'],last:['Novák','Svoboda','Novotný','Dvořák','Černý','Procházka','Kučera','Veselý','Horák','Němec']},
+ SK:{first:['Jakub','Samuel','Tomáš','Adam','Matej','Filip','Martin','Michal','Dominik'],last:['Horváth','Kováč','Varga','Tóth','Nagy','Baláž','Molnár','Novák','Kováčik']},
+ HU:{first:['Bence','Máté','Levente','Noel','Dániel','Ádám','Balázs','Marcell','Milán','Zalán'],last:['Nagy','Kovács','Tóth','Szabó','Horváth','Varga','Kiss','Molnár','Németh','Farkas']},
+ HR:{first:['Luka','Ivan','Marko','Jakov','Petar','Mateo','Roko','Josip','Ante','Fran'],last:['Horvat','Kovačević','Babić','Marić','Jurić','Novak','Knežević','Radić','Perić','Vuković']},
+ RS:{first:['Luka','Nikola','Stefan','Lazar','Vuk','Marko','Miloš','Filip','Bogdan'],last:['Jovanović','Petrović','Nikolić','Marković','Đorđević','Stojanović','Ilić','Pavlović','Milošević']},
+ RO:{first:['Andrei','David','Alexandru','Matei','Ștefan','Vlad','Luca','Rareș','Darius'],last:['Popescu','Popa','Pop','Radu','Dumitru','Stan','Stoica','Gheorghe','Ionescu']},
+ BG:{first:['Georgi','Ivan','Alexander','Nikolay','Dimitar','Martin','Daniel','Viktor'],last:['Ivanov','Georgiev','Dimitrov','Petrov','Nikolov','Stoyanov','Todorov','Kolev','Kostov']},
+ GR:{first:['Giorgos','Giannis','Dimitris','Nikos','Konstantinos','Alexandros','Panagiotis','Vasileios'],last:['Papadopoulos','Papas','Nikolaidis','Georgiou','Dimitriou','Pappas','Vasilakis','Kostas']},
+ AL:{first:['Ardit','Erion','Noel','Klevis','Eris','Endrit','Klevis','Aldo'],last:['Hoxha','Shehu','Kola','Dervishi','Leka','Marku','Gashi','Krasniqi']},
+ TR:{first:['Yusuf','Emir','Kerem','Arda','Efe','Mert','Ömer','Ahmet','Mehmet','Ali'],last:['Yılmaz','Kaya','Demir','Şahin','Çelik','Yıldız','Yıldırım','Öztürk','Aydın','Arslan']},
+ UA:{first:['Oleksandr','Maksym','Dmytro','Artem','Andrii','Bohdan','Mykhailo','Nazar'],last:['Melnyk','Shevchenko','Kovalenko','Bondarenko','Tkachenko','Boyko','Kovalchuk','Tkachuk']},
+ LT:{first:['Matas','Nojus','Lukas','Dominykas','Jokūbas','Domas','Emilis','Kajus'],last:['Kazlauskas','Jankauskas','Petrauskas','Stankevičius','Žukauskas','Butkus','Paulauskas']},
+ LV:{first:['Jānis','Roberts','Rihards','Emīls','Kārlis','Mārtiņš','Artūrs'],last:['Bērziņš','Kalniņš','Ozoliņš','Jansons','Liepiņš','Krūmiņš']},
+ EE:{first:['Rasmus','Robin','Markus','Kristjan','Karl','Henri','Sander'],last:['Tamm','Saar','Mägi','Sepp','Kask','Rebane','Kivistik']},
+ FI:{first:['Elias','Oliver','Leo','Onni','Eetu','Aleksi','Veeti','Aapo'],last:['Korhonen','Virtanen','Mäkinen','Nieminen','Mäkelä','Hämäläinen','Laine']},
+ SE:{first:['William','Liam','Hugo','Elias','Noah','Oliver','Axel','Leo'],last:['Andersson','Johansson','Karlsson','Nilsson','Eriksson','Larsson','Olsson','Persson']},
+ NO:{first:['Jakob','Emil','Noah','Oliver','Lucas','Isak','William','Magnus'],last:['Hansen','Johansen','Olsen','Larsen','Andersen','Pedersen','Nilsen','Kristiansen']},
+ DK:{first:['William','Noah','Oscar','Carl','Emil','Oliver','Malthe','Magnus'],last:['Jensen','Nielsen','Hansen','Pedersen','Andersen','Christensen','Larsen','Sørensen']},
+ IS:{first:['Jón','Aron','Emil','Kristján','Viktor','Alexander','Dagur'],last:['Jónsson','Sigurðsson','Guðmundsson','Einarsson','Kristjánsson','Ólafsson']},
+ ISL:{first:['Jón','Aron','Emil','Kristján','Viktor'],last:['Jónsson','Sigurðsson','Guðmundsson','Einarsson']},
+ PLR:{first:['Kacper','Jakub','Mateusz','Antoni'],last:['Nowak','Kowalski','Wójcik','Kamiński']},
+ RU:{first:['Alexander','Mikhail','Dmitry','Ivan','Nikita','Artem','Maxim','Kirill'],last:['Ivanov','Smirnov','Kuznetsov','Popov','Vasiliev','Petrov','Sokolov','Mikhailov']},
+ GE:{first:['Giorgi','Nika','Luka','Saba','Davit','Giorgi'],last:['Beridze','Kapanadze','Gelashvili','Maisuradze','Lomidze']},
+ AM:{first:['Aram','Hayk','Narek','Tigran','Gor','Davit'],last:['Grigoryan','Harutyunyan','Sargsyan','Hovhannisyan','Petrosyan']},
+ AZ:{first:['Ali','Murad','Emil','Tural','Elvin','Nihat'],last:['Mammadov','Aliyev','Huseynov','Hasanov','Mehdiyev']},
+ IR:{first:['Ali','Mohammad','Arman','Amir','Sina','Kian','Reza'],last:['Ahmadi','Hosseini','Mohammadi','Karimi','Rahimi','Hosseinzadeh']},
+ IL:{first:['Noam','Ariel','Daniel','Eitan','Yonatan','Omer','Itai'],last:['Cohen','Levi','Mizrahi','Peretz','Biton','Shalev','Ben-David']},
+ IN:{first:['Arjun','Aarav','Vihaan','Kabir','Aditya','Rohan','Rahul','Dev','Ishaan'],last:['Sharma','Patel','Singh','Kumar','Gupta','Mehta','Verma','Reddy']},
+ PK:{first:['Muhammad','Ahmed','Hamza','Ali','Usman','Hassan','Bilal','Zain'],last:['Khan','Ahmed','Malik','Hussain','Sheikh','Qureshi','Butt']},
+ BD:{first:['Arif','Rahim','Sakib','Nabil','Adnan','Tahmid','Rafi'],last:['Rahman','Hossain','Islam','Ahmed','Khan','Chowdhury','Hasan']},
+ CN:{first:['Wei','Hao','Jun','Ming','Jie','Chen','Yang','Zhihao'],last:['Wang','Li','Zhang','Liu','Chen','Yang','Huang','Zhao']},
+ JP:{first:['Haruto','Sota','Ren','Yuto','Riku','Kaito','Hinata','Daiki'],last:['Sato','Suzuki','Takahashi','Tanaka','Watanabe','Ito','Yamamoto','Nakamura']},
+ KR:{first:['Min-jun','Seo-jun','Ji-ho','Hyun-woo','Do-yun','Jun-ho','Ji-hoon'],last:['Kim','Lee','Park','Choi','Jung','Kang','Cho','Yoon']},
+ TH:{first:['Narin','Thanawat','Pattadon','Krit','Phurin','Nattapong'],last:['Saengsawang','Srisuk','Kittisak','Sukhum','Chaiyaporn']},
+ VN:{first:['Minh','Duy','Khang','Huy','Nam','Long','Quang'],last:['Nguyen','Tran','Le','Pham','Huynh','Vo','Dang']},
+ ID:{first:['Rizky','Aditya','Fajar','Dimas','Rafi','Bagas','Ardi'],last:['Santoso','Wijaya','Pratama','Saputra','Setiawan','Hidayat']},
+ MY:{first:['Muhammad','Adam','Aiman','Haziq','Irfan','Danish'],last:['Abdullah','Ismail','Rahman','Hassan','Ibrahim','Yusof']},
+ PH:{first:['Miguel','Gabriel','Jose','Juan','Andrei','Rafael','Luis'],last:['Santos','Reyes','Cruz','Garcia','Mendoza','Bautista','Aquino']},
+ SG:{first:['Ethan','Ryan','Lucas','Daniel','Jayden','Evan'],last:['Tan','Lim','Lee','Ng','Ong','Chua']},
+ ZA:{first:['Liam','Ethan','Lwazi','Thabo','Sipho','Mandla','Kabelo'],last:['Nkosi','Dlamini','Mokoena','Molefe','Ndlovu','Naidoo']},
+ NG:{first:['Chinedu','Emeka','Obinna','Tunde','Ade','David','Samuel'],last:['Okafor','Adeyemi','Okoye','Ibrahim','Balogun','Eze','Nwosu']},
+ GH:{first:['Kwame','Kofi','Kojo','Yaw','Daniel','Samuel'],last:['Mensah','Owusu','Asare','Boateng','Osei','Adjei']},
+ KE:{first:['Brian','Kevin','Ian','Amani','Baraka','Eliud'],last:['Otieno','Kamau','Ochieng','Mwangi','Kiptoo','Njoroge']},
+ MA:{first:['Youssef','Adam','Ayoub','Anas','Omar','Amine'],last:['El Amrani','Bennani','Alaoui','Idrissi','Benali','Fassi']},
+ EG:{first:['Omar','Youssef','Ahmed','Mohamed','Karim','Adam'],last:['Mohamed','Hassan','Mahmoud','Ali','Ibrahim','Abdelrahman']},
+ TN:{first:['Youssef','Mohamed','Aymen','Anis','Malek','Ahmed'],last:['Ben Ali','Trabelsi','Jaziri','Mansour','Gharbi']},
+ DZ:{first:['Adam','Yacine','Amine','Rayan','Ilyes','Sofiane'],last:['Benali','Bensaid','Boudiaf','Mansouri','Khelifi','Belkacem']},
+ SN:{first:['Mamadou','Ibrahima','Cheikh','Abdou','Ousmane','Moussa'],last:['Diop','Ndiaye','Fall','Ba','Sarr','Diallo']},
+ AR:{first:['Mateo','Santiago','Benjamín','Thiago','Tomás','Franco','Joaquín'],last:['González','Rodríguez','Gómez','Fernández','López','Martínez','Díaz']},
+ CL:{first:['Agustín','Benjamín','Vicente','Mateo','Tomás','Joaquín'],last:['González','Muñoz','Rojas','Díaz','Pérez','Soto']},
+ CO:{first:['Juan','Santiago','Samuel','Mateo','Sebastián','Nicolás'],last:['Rodríguez','Gómez','Martínez','García','López','Hernández']},
+ PE:{first:['Diego','Sebastián','Mateo','Adrián','Luis','Alonso'],last:['Quispe','Flores','García','Rojas','Mamani','Huamán']},
+ UY:{first:['Mateo','Santiago','Juan','Martín','Felipe','Nicolás'],last:['Rodríguez','González','Pereira','Fernández','Silva','Martínez']},
+ PY:{first:['Juan','Mateo','Diego','Thiago','Rodrigo','Santiago'],last:['González','Benítez','Martínez','Rojas','Gómez','Ramírez']},
+ EC:{first:['Mateo','Sebastián','Santiago','Daniel','Emiliano','Martín'],last:['García','Rodríguez','González','Pérez','Vera','Mendoza']},
+ BO:{first:['Diego','Mateo','Luis','Juan','Bruno','Rodrigo'],last:['Mamani','Quispe','Condori','Flores','Choque','Gutiérrez']},
+ CR:{first:['Mateo','Santiago','Sebastián','Daniel','Andrés'],last:['Rodríguez','Gómez','Jiménez','Vargas','Mora','Castro']},
+ PA:{first:['Luis','José','Daniel','Santiago','Gabriel'],last:['Rodríguez','González','Castillo','Ríos','Martínez']},
+ JM:{first:['Jayden','Dwayne','Andre','Jordan','Kemar','Tyrese'],last:['Brown','Williams','Campbell','Thomas','Clarke','Miller']},
+ US:{first:['Liam','Noah','Oliver','James','Elijah','Mateo','Ethan','Lucas'],last:['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis']},
+ CA:{first:['Liam','Noah','Oliver','Ethan','Lucas','William','Owen'],last:['Smith','Brown','Martin','Roy','Tremblay','Gagnon','Wilson']},
+ AU:{first:['Oliver','Noah','Jack','William','Leo','Henry','Lachlan'],last:['Smith','Jones','Williams','Brown','Wilson','Taylor','Anderson']},
+ NZ:{first:['Oliver','Jack','Noah','Leo','Liam','Arlo'],last:['Smith','Williams','Brown','Taylor','Wilson','Jones']},
+ FJ:{first:['Jone','Semi','Josua','Viliame','Samu','Meli'],last:['Ratu','Naiqama','Tawake','Vakaloloma','Tuisova']}
+};
 const NG_FIRST=['Alex','Noah','Liam','Mateo','Leo','Lucas','Milan','Oliver','Ethan','Daniel','Adrian','Kacper','Jakub','Antoine','Marco','Hugo','Tiago','João','Gabriel','Rafael'];
 const NG_LAST=['Silva','Costa','Pereira','Santos','Rossi','Martins','Nowak','Kowalski','Garcia','Gonzalez','Fernandez','Muller','Schmidt','Dubois','Martin','Bianchi','Sato','Kim','Williams','Brown'];
 const COUNTRY_CITIES={
@@ -1225,7 +1374,35 @@ function ageFromBirthDate(date){if(!date)return 15;const b=new Date(date+'T12:00
 function countryOptions(selected){return Object.entries(COUNTRY_WORLD).filter(([k,v])=>v&&v.name).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${esc(v.name)}</option>`).join('')}
 function positionOptions(selected){return PLAYER_POSITIONS.map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join('')}
 function questionFields(values){return `<section class="card" style="margin-top:12px"><div class="eyebrow">🧠 PYTANIA STARTOWE</div><div class="muted small">Odpowiedzi wpływają na początkowe statystyki i historię zawodnika.</div><label class="field"><span>👨‍👩‍👦 Jak duże wsparcie daje rodzina?</span><select class="select" id="ngsupport"><option value="low">Niewielkie</option><option value="normal" selected>Normalne</option><option value="high">Bardzo duże</option></select></label><label class="field"><span>💰 Jak wygląda sytuacja finansowa rodziny?</span><select class="select" id="ngwealth"><option value="low">Skromna</option><option value="normal" selected>Normalna</option><option value="high">Zamożna</option></select></label><label class="field"><span>⚽ Jak długo trenujesz piłkę?</span><select class="select" id="ngfootball"><option value="new">Dopiero zaczynam</option><option value="regular" selected>Od kilku lat</option><option value="serious">Od dziecka bardzo poważnie</option></select></label><label class="field"><span>🧠 Jaki masz charakter?</span><select class="select" id="ngcharacter"><option value="calm">Spokojny i rozsądny</option><option value="balanced" selected>Zrównoważony</option><option value="ambitious">Bardzo ambitny i ryzykowny</option></select></label><label class="field"><span>🎓 Jak podchodzisz do szkoły?</span><select class="select" id="ngschool"><option value="weak">Sport jest najważniejszy</option><option value="balanced" selected>Staram się łączyć szkołę i sport</option><option value="strong">Bardzo dbam o naukę</option></select></label></section>`}
-function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=randomBirthDate();return {name:randomFrom(NG_FIRST)+' '+randomFrom(NG_LAST),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
+function namePoolForCountry(code){
+  return NAME_DATABASE[code]||{first:NG_FIRST,last:NG_LAST};
+}
+function randomNameForCountry(code){
+  const pool=namePoolForCountry(code);
+  return randomFrom(pool.first)+' '+randomFrom(pool.last);
+}
+function randomNameFromOrigins(residenceCode,fatherCode,motherCode){
+  const choices=[];
+  const push=(code,weight)=>{if(!code)return;for(let i=0;i<weight;i++)choices.push(code)};
+  push(residenceCode,5);push(fatherCode,2);push(motherCode,2);
+  const code=randomFrom(choices)||residenceCode;
+  return randomNameForCountry(code);
+}
+function countryCodeByName(name){return Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k]?.name===name)||null}
+function randomParentOriginCode(residenceCode){
+  const keys=Object.keys(COUNTRY_WORLD).filter(k=>k!==residenceCode);
+  return randomFrom(keys)||residenceCode;
+}
+function parentPersonName(originCode){return randomNameForCountry(originCode)}
+function suggestNameForSelectedCountry(){
+  const code=document.getElementById('ngcountry')?.value;if(!code)return;
+  const fatherCode=countryCodeByName(S?.family?.father?.originCountry)||null;
+  const motherCode=countryCodeByName(S?.family?.mother?.originCountry)||null;
+  const name=randomNameFromOrigins(code,fatherCode,motherCode);
+  const el=document.getElementById('ngname');if(el)el.value=name;
+}
+
+function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=randomBirthDate();const fatherOrigin=randomParentOriginCode(code);const motherOrigin=randomParentOriginCode(code);return {name:randomNameFromOrigins(code,fatherOrigin,motherOrigin),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),fatherOriginCode:fatherOrigin,motherOriginCode:motherOrigin,answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
 function languageForOriginCountry(countryName){
   const code=Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k]?.name===countryName);
   if(!code)return null;
@@ -1237,6 +1414,13 @@ function languageForOriginCountry(countryName){
   const name=names.find(x=>x && !x.toLowerCase().includes('angielski'))||names[0];
   if(!name)return null;
   return {id:'lang_'+code,name,difficulty:3,career:['football','creator'],countries:[code]};
+}
+function addResidenceLanguage(langs,residenceCode){
+  const lang=languageForOriginCountry(COUNTRY_WORLD[residenceCode]?.name);
+  if(!lang)return langs;
+  if(!langs.some(x=>x.id===lang.id)) langs.unshift({id:lang.id,name:lang.name,level:100,source:'język kraju zamieszkania',fromParent:null,taught:true,locked:true});
+  else { const x=langs.find(x=>x.id===lang.id); x.level=Math.max(x.level||0,100); x.source='język kraju zamieszkania + środowisko'; x.locked=true; }
+  return langs;
 }
 function buildFamilyLanguages(family, residenceCode){
   const result=[];
@@ -1250,23 +1434,24 @@ function buildFamilyLanguages(family, residenceCode){
   add(languageForOriginCountry(family?.mother?.originCountry),'pochodzenie matki',family?.mother?.name);
   return result;
 }
-function renderNewGameSetup(mode){const base=mode==='plus'?randomProfile():randomProfile();openModal(`<div class="modal-head"><div><div class="eyebrow">${mode==='plus'?'✨ NOWA GRA+':'🆕 NOWA GRA'}</div><h2>Utwórz zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><button class="btn" onclick="fillRandomNG('${mode}')">🎲 Wylosuj zawodnika</button><div class="muted small" style="margin-top:8px">Możesz wylosować cały profil albo ręcznie zmienić dowolne pole.</div></div><label class="field"><span>👤 Imię i nazwisko</span><input class="input" id="ngname" value="${esc(base.name)}" placeholder="Imię i nazwisko"></label><label class="field"><span>🌍 Kraj</span><select class="select" id="ngcountry">${countryOptions(base.countryCode)}</select></label><label class="field"><span>📍 Miasto</span><input class="input" id="ngcity" value="${esc(base.city)}" placeholder="Miasto"></label><label class="field"><span>⚽ Pozycja</span><select class="select" id="ngpos">${positionOptions(base.position)}</select></label><label class="field"><span>🎂 Data urodzenia</span><input class="input" type="date" id="ngbirth" value="${base.birthDate}"></label>${questionFields(base.answers)}<button class="btn goldbtn" style="margin-top:14px" onclick="applyNewProfile('${mode}')">Rozpocznij karierę</button>`,true)}
+function renderNewGameSetup(mode){const base=mode==='plus'?randomProfile():randomProfile();openModal(`<div class="modal-head"><div><div class="eyebrow">${mode==='plus'?'✨ NOWA GRA+':'🆕 NOWA GRA'}</div><h2>Utwórz zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><button class="btn" onclick="fillRandomNG('${mode}')">🎲 Wylosuj zawodnika</button><div class="muted small" style="margin-top:8px">Możesz wylosować cały profil albo ręcznie zmienić dowolne pole.</div></div><label class="field"><span>👤 Imię i nazwisko</span><input class="input" id="ngname" value="${esc(base.name)}" placeholder="Imię i nazwisko"><button class="btn" style="margin-top:8px" onclick="suggestNameForSelectedCountry()">🎲 Dopasuj imię i nazwisko do kraju / pochodzenia</button><div class="muted small" style="margin-top:6px">Możesz wpisać własne dane. Generator dobiera realistyczne imiona i nazwiska z kraju zawodnika oraz może uwzględnić pochodzenie rodziców.</div></label><label class="field"><span>🌍 Kraj</span><select class="select" id="ngcountry">${countryOptions(base.countryCode)}</select></label><label class="field"><span>📍 Miasto</span><input class="input" id="ngcity" value="${esc(base.city)}" placeholder="Miasto"></label><label class="field"><span>⚽ Pozycja</span><select class="select" id="ngpos">${positionOptions(base.position)}</select></label><label class="field"><span>🎂 Data urodzenia</span><input class="input" type="date" id="ngbirth" value="${base.birthDate}"></label>${questionFields(base.answers)}<button class="btn goldbtn" style="margin-top:14px" onclick="applyNewProfile('${mode}')">Rozpocznij karierę</button>`,true)}
 function fillRandomNG(mode){const r=randomProfile();document.getElementById('ngname').value=r.name;document.getElementById('ngcountry').value=r.countryCode;document.getElementById('ngcity').value=r.city;document.getElementById('ngpos').value=r.position;document.getElementById('ngbirth').value=r.birthDate;document.getElementById('ngsupport').value=r.answers.support;document.getElementById('ngwealth').value=r.answers.wealth;document.getElementById('ngfootball').value=r.answers.football;document.getElementById('ngcharacter').value=r.answers.character;document.getElementById('ngschool').value=r.answers.school}
 function applyNewProfile(mode){const name=document.getElementById('ngname').value.trim();const code=document.getElementById('ngcountry').value;const country=COUNTRY_WORLD[code];const city=document.getElementById('ngcity').value.trim()||randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=document.getElementById('ngbirth').value;if(!name||!birth||!country){toast('Uzupełnij imię, kraj i datę urodzenia.');return}const age=ageFromBirthDate(birth);if(age<10||age>19){toast('Wybierz datę dającą wiek 10–19 lat.');return}const answers={support:document.getElementById('ngsupport').value,wealth:document.getElementById('ngwealth').value,football:document.getElementById('ngfootball').value,character:document.getElementById('ngcharacter').value,school:document.getElementById('ngschool').value};let base=clone(initial);if(mode==='plus'){const oldFamily=clone(S.family);base.family=oldFamily}base.player.name=name;base.player.first=name.split(/\s+/)[0];base.player.last=name.split(/\s+/).slice(1).join(' ');base.player.country=country.name;base.player.countryCode=code;base.player.city=city;base.player.birthCountry=country.name;base.player.birthDate=birth;base.player.age=age;base.player.position=document.getElementById('ngpos').value;base.player.club='Akademia '+city;base.day.date=birth;let dt=new Date(birth+'T12:00:00');dt.setFullYear(dt.getFullYear()+age);base.day.date=dt.toISOString().slice(0,10);base.calendarConfig.country=code;base.world.calendarCountry=code;
 // Rodzina ma osobno miejsce zamieszkania i pochodzenie. Wszyscy mogą mieszkać razem w mieście zawodnika, niezależnie od narodowości/korzeni rodziców.
 const familyResidenceCountry=country.name;
 const familyResidenceCity=city;
-const parentOrigins=(base.family&&base.family.father&&base.family.father.originCountry&&base.family.mother&&base.family.mother.originCountry)
-  ? {father:base.family.father.originCountry,mother:base.family.mother.originCountry}
-  : {father:randomFrom(['Portugalia','Hiszpania','Włochy','Polska','Francja','Niemcy']),mother:randomFrom(['Brazylia','Portugalia','Hiszpania','Włochy','Polska','Francja'])};
+const parentOriginCodes=(mode==='plus' && base.family?.father?.originCountry && base.family?.mother?.originCountry)
+  ? {father:countryCodeByName(base.family.father.originCountry)||randomParentOriginCode(code),mother:countryCodeByName(base.family.mother.originCountry)||randomParentOriginCode(code)}
+  : {father:randomParentOriginCode(code),mother:randomParentOriginCode(code)};
+const parentOrigins={father:COUNTRY_WORLD[parentOriginCodes.father]?.name||country.name,mother:COUNTRY_WORLD[parentOriginCodes.mother]?.name||country.name};
 base.family.parentsTogether=true;
 base.family.homeType='Dom rodzinny';
-base.family.father.country=familyResidenceCountry;base.family.father.city=familyResidenceCity;base.family.father.originCountry=parentOrigins.father;base.family.father.nationality=parentOrigins.father;
-base.family.mother.country=familyResidenceCountry;base.family.mother.city=familyResidenceCity;base.family.mother.originCountry=parentOrigins.mother;base.family.mother.nationality=parentOrigins.mother;
+base.family.father.country=familyResidenceCountry;base.family.father.city=familyResidenceCity;base.family.father.originCountry=parentOrigins.father;base.family.father.nationality=parentOrigins.father;base.family.father.name=parentPersonName(parentOriginCodes.father);
+base.family.mother.country=familyResidenceCountry;base.family.mother.city=familyResidenceCity;base.family.mother.originCountry=parentOrigins.mother;base.family.mother.nationality=parentOrigins.mother;base.family.mother.name=parentPersonName(parentOriginCodes.mother);
 base.family.roots=[{label:'Ojciec',country:parentOrigins.father,city:'pochodzenie rodziny'},{label:'Matka',country:parentOrigins.mother,city:'pochodzenie rodziny'}];
 // Pochodzenie rodzica otwiera możliwość znajomości jego języka, ale nie gwarantuje biegłości.
 // Rodzic może mówić w domu, uczyć dziecko częściowo albo wcale — dlatego poziom jest losowy i może być bardzo niski.
-base.world.languages=buildFamilyLanguages(base.family,code);
+base.world.languages=addResidenceLanguage(buildFamilyLanguages(base.family,code),code);
 base.family.father.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.father.name)?'częściowo / regularnie':'nie przekazuje języka';
 base.family.mother.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.mother.name)?'częściowo / regularnie':'nie przekazuje języka';
 base.player.homeId='parents';
@@ -1582,13 +1767,20 @@ function setGameMode(mode){
    Moduły korzystają z jednego świata. Zakupy, transport, języki, relacje,
    rodzina, specjaliści, agent i sponsorzy mogą tworzyć kolejne konsekwencje.
 */
+const CHARITY_CATALOG=[{id:'char_local',name:'Pomoc lokalnej rodzinie',price:100,impact:1,description:'Jednorazowa pomoc potrzebującej rodzinie.'},{id:'char_food',name:'Bank żywności',price:250,impact:2,description:'Wsparcie żywnościowe.'},{id:'char_children',name:'Dzieci i młodzież',price:500,impact:3,description:'Pomoc w edukacji i rozwoju.'},{id:'char_sport',name:'Sport dla dzieci',price:750,impact:4,description:'Sprzęt i zajęcia sportowe.'},{id:'char_academy',name:'Stypendium sportowe',price:1500,impact:5,description:'Finansowanie rozwoju młodego talentu.'},{id:'char_school',name:'Wsparcie szkoły',price:2000,impact:5,description:'Sprzęt i wyposażenie szkoły.'},{id:'char_hospital',name:'Szpital / leczenie',price:5000,impact:6,description:'Wsparcie leczenia i placówki.'},{id:'char_disaster',name:'Pomoc po katastrofie',price:3000,impact:6,description:'Pomoc ofiarom katastrofy.'},{id:'char_animals',name:'Schronisko dla zwierząt',price:500,impact:3,description:'Wsparcie opieki nad zwierzętami.'},{id:'char_environment',name:'Ochrona środowiska',price:1000,impact:4,description:'Finansowanie działań ekologicznych.'},{id:'char_water',name:'Dostęp do czystej wody',price:5000,impact:7,description:'Wsparcie projektów wodnych.'},{id:'char_global',name:'Międzynarodowa pomoc humanitarna',price:10000,impact:8,description:'Wsparcie pomocy humanitarnej.'},{id:'char_foundation',name:'Własna fundacja',price:25000,impact:10,description:'Stała działalność charytatywna.'},{id:'char_anonymous',name:'Anonimowa darowizna',price:1000,impact:4,description:'Pomagasz bez ujawniania nazwiska.'},{id:'char_public',name:'Publiczna akcja charytatywna',price:5000,impact:7,description:'Duża akcja z udziałem mediów.'}];
 const WORLD_CATALOG={
-  shoes:[
-    {id:'boot_basic',name:'Korki treningowe Basic',brand:'FL Sport',price:45,quality:2,effects:{form:1},tags:['training'],deal:null},
-    {id:'boot_pro',name:'Korki Pro Speed',brand:'Adidas',price:140,quality:5,effects:{form:2,ovr:.2},tags:['speed'],deal:'adidas'},
-    {id:'boot_elite',name:'Korki Elite Carbon',brand:'Nike',price:280,quality:8,effects:{form:3,ovr:.4},tags:['elite'],deal:'nike'},
-    {id:'boot_control',name:'Korki Control',brand:'Puma',price:120,quality:5,effects:{form:2,mental:1},tags:['control'],deal:'puma'}
-  ],
+shoes:[
+{id:'boot_basic',name:'Korki treningowe Basic',brand:'FL Sport',price:45,quality:2,attributes:{speed:1,control:1,shooting:0,comfort:2,grip:2},effects:{form:1},tags:['training'],deal:null},
+{id:'boot_adidas_predator',name:'Predator Elite',brand:'adidas',price:280,quality:8,attributes:{speed:2,control:8,shooting:4,comfort:5,grip:7},effects:{form:3,ovr:.4},tags:['control','elite'],deal:'adidas'},
+{id:'boot_nike_phantom',name:'Phantom Elite',brand:'Nike',price:300,quality:8,attributes:{speed:3,control:7,shooting:6,comfort:5,grip:7},effects:{form:3,ovr:.4},tags:['control','shooting'],deal:'nike'},
+{id:'boot_nike_merc',name:'Mercurial Pro',brand:'Nike',price:260,quality:7,attributes:{speed:9,control:5,shooting:5,comfort:4,grip:6},effects:{form:2.5,ovr:.3},tags:['speed'],deal:'nike'},
+{id:'boot_puma_future',name:'Future Ultimate',brand:'Puma',price:240,quality:7,attributes:{speed:6,control:8,shooting:4,comfort:6,grip:7},effects:{form:2.5,mental:1},tags:['control'],deal:'puma'},
+{id:'boot_newbalance_furon',name:'Furon Elite',brand:'New Balance',price:230,quality:7,attributes:{speed:8,control:5,shooting:7,comfort:5,grip:6},effects:{form:2.5,ovr:.3},tags:['speed','shooting'],deal:'newbalance'},
+{id:'boot_mizuno_morelia',name:'Morelia Neo',brand:'Mizuno',price:270,quality:8,attributes:{speed:7,control:7,shooting:5,comfort:9,grip:7},effects:{form:3},tags:['comfort'],deal:'mizuno'},
+{id:'boot_asics',name:'DS Light X',brand:'Asics',price:190,quality:6,attributes:{speed:5,control:6,shooting:3,comfort:9,grip:7},effects:{form:2},tags:['comfort'],deal:'asics'},
+{id:'boot_joma',name:'Top Flex',brand:'Joma',price:120,quality:5,attributes:{speed:4,control:6,shooting:3,comfort:8,grip:6},effects:{form:1.5},tags:['comfort'],deal:'joma'},
+{id:'boot_umbro',name:'Velocita Pro',brand:'Umbro',price:150,quality:5,attributes:{speed:7,control:5,shooting:4,comfort:5,grip:6},effects:{form:1.8},tags:['speed'],deal:'umbro'}
+],
   clothes:[
     {id:'kit_basic',name:'Strój treningowy Basic',brand:'FL Sport',price:35,effects:{mental:1}},
     {id:'kit_pro',name:'Komplet Performance',brand:'Nike',price:130,effects:{mental:2,popularity:.2}},
@@ -1999,7 +2191,7 @@ function addWorldItem(type,item){
   S.world[type].push({...clone(item),boughtAt:S.day.date});
 }
 function buyWorldItem(type,id){
-  const list=WORLD_CATALOG[type]||[];
+  const list=(type==='charity'?(CHARITY_CATALOG||[]):getStoreCatalog(type));
   const item=list.find(x=>x.id===id); if(!item)return;
   const price=item.price||item.cost||0;
   let discount=0;
@@ -2008,10 +2200,24 @@ function buyWorldItem(type,id){
   if((S.player.money||0)<final){triggerEvent({title:'Brakuje pieniędzy',text:'Nie stać Cię teraz na ten zakup.',choices:[['Wróć później','Zachowujesz pieniądze.',{}],['Poproś rodziców o pomoc','Może pojawić się rodzinne wydarzenie.',{happiness:1}],['Poszukaj tańszej opcji','Rozglądasz się za alternatywą.',{mental:1}] ]});return;}
   S.player.money-=final;
   addWorldItem(type,item);
+  if(type==='property'){
+    if(!S.world.properties)S.world.properties=[];
+    const prop={...clone(item),value:final,city:item.city||S.player.city,status:'własność',comfort:item.comfort||50,rooms:item.rooms||1,expansions:0};
+    S.world.properties.push(prop);
+    if(!S.properties)S.properties=[];
+    S.properties.push(prop);
+  }
   for(const [k,v] of Object.entries(item.effects||{})){
     if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);
     else if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);
     else S.player[k]=clamp((S.player[k]||0)+v,0,100);
+  }
+  if(type==='shoes'){
+    ensureBootState(item);
+    const owned=clone(item);
+    owned.wear=0;
+    if(!S.world.shoes.some(x=>x.id===owned.id)) S.world.shoes.push(owned);
+    if(!S.world.activeBootId) S.world.activeBootId=owned.id;
   }
   if(item.deal && !S.world.brandDeals.includes(item.deal))S.world.brandDeals.push(item.deal);
   addHistory('Zakup: '+item.name,`Kupiono ${item.name}.`,'- '+final+' • wpływ zależny od przedmiotu');
@@ -2051,9 +2257,65 @@ function sideCareerSummary(){
     influencer:'Wizerunek + społeczność + współprace + sponsorzy'
   };
 }
+
+function cityMarketMultiplier(city){
+  const n=(city||'').toLowerCase();
+  const major=['london','paris','madrid','barcelona','rome','milan','munich','berlin','new york','los angeles','tokyo','dubai','singapore','zurich','amsterdam','sydney'];
+  if(major.some(x=>n.includes(x)))return 1.35;
+  const regional=['warszawa','kraków','krakow','wrocław','wroclaw','poznań','poznan','gdańsk','gdansk','manchester','lisbon','porto','valencia','napoli','turin'];
+  if(regional.some(x=>n.includes(x)))return 1.12;
+  return 0.88;
+}
+function marketCycle(){
+  const d=new Date(S.day.date+'T12:00:00');
+  return d.getFullYear()*12+d.getMonth();
+}
+function dynamicStoreCatalog(type){
+  const city=S.player.city||'Miejscowość'; const mult=cityMarketMultiplier(city); const cycle=marketCycle();
+  const brands={shoes:['Nike','adidas','Puma','New Balance','Under Armour','Asics','Mizuno','Joma','Umbro','Hummel'],clothes:['Nike','adidas','Puma','Under Armour','New Balance','Jordan','Levi’s','Zara','H&M','Uniqlo','The North Face','Lacoste'],electronics:['Apple','Samsung','Sony','Xiaomi','Google','Lenovo','Asus','Acer','LG','Nintendo','Meta','Bose','JBL'],equipment:['Garmin','Apple','Samsung','GoPro','DJI','Sony','Canon','Yamaha','Pioneer','Wilson','Adidas','Nike']};
+  const arr=[];
+  if(type==='shoes'){
+    const models=['Speed','Control','Ultra','Future','Mercurial','Phantom','Predator','Tiempo','X','Academy','Elite','Pro'];
+    brands.shoes.forEach((b,i)=>models.slice(0,5).forEach((m,j)=>arr.push({id:`dynshoe_${cycle}_${i}_${j}`,name:`${b} ${m}`,brand:b,price:Math.round((70+i*18+j*32)*mult),quality:2+j,effects:{form:1+j*.2},deal:b.toLowerCase()})));
+  } else if(type==='clothes'){
+    const items=['Koszulka treningowa','Bluza','Kurtka','Spodnie treningowe','Dres','Szorty','Koszulka casual','Jeansy','Buty lifestyle','Czapka','Plecak','Garnitur','Kurtka zimowa'];
+    brands.clothes.forEach((b,i)=>items.forEach((it,j)=>arr.push({id:`dyncloth_${cycle}_${i}_${j}`,name:`${b} ${it}`,brand:b,price:Math.round((35+i*15+j*12)*mult),effects:{mental:1+(j%3===0?1:0)},deal:b.toLowerCase()})));
+  } else if(type==='electronics'){
+    const items=['Smartfon','Laptop','Tablet','Smartwatch','Słuchawki','Telewizor','Konsola','Gogle VR','Aparat','Kamera','Monitor','Głośnik','Mikrofon','Router','Powerbank'];
+    brands.electronics.forEach((b,i)=>items.slice(0,7).forEach((it,j)=>arr.push({id:`dynelec_${cycle}_${i}_${j}`,name:`${b} ${it}`,brand:b,price:Math.round((120+i*90+j*75)*mult),effects:{mental:j%4===0?1:0},deal:b.toLowerCase()})));
+  } else if(type==='equipment'){
+    const items=['GPS sportowy','Kamera sportowa','Dron','Aparat','Mikrofon','Kontroler DJ','Słuchawki DJ','Piłka treningowa','Rakieta','Mata treningowa','Sprzęt regeneracyjny'];
+    brands.equipment.forEach((b,i)=>items.slice(0,5).forEach((it,j)=>arr.push({id:`dynequip_${cycle}_${i}_${j}`,name:`${b} ${it}`,brand:b,price:Math.round((80+i*55+j*45)*mult),effects:{form:j%3===0?1:0},deal:b.toLowerCase()})));
+  } else if(type==='property'){
+    const local=cityMarketMultiplier(city); const base=[['Pokój / mikrokawalerka',1,220],['Kawalerka',1,120000],['Mieszkanie 2-pokojowe',2,220000],['Mieszkanie 3-pokojowe',3,310000],['Mieszkanie 4-pokojowe',4,430000],['Apartament',3,650000],['Penthouse',5,1500000],['Dom szeregowy',5,600000],['Dom z ogrodem',6,850000],['Duży dom rodzinny',8,1250000],['Willa',10,2400000],['Rezydencja',14,5000000],['Działka budowlana',0,180000],['Działka rekreacyjna',0,90000],['Lokal użytkowy',0,300000],['Biuro',0,250000],['Apartament wakacyjny',2,450000],['Dom wakacyjny',5,1100000]];
+    base.forEach((x,i)=>arr.push({id:`dynprop_${cycle}_${i}_${city}`,name:x[0],city,rooms:x[1],price:Math.round(x[2]*local),type:'property',marketCycle:cycle,expandable:i>=1,comfort:45+i*3}));
+  } else if(type==='cars'){
+    const makers=[['Toyota',80000],['Volkswagen',85000],['Skoda',70000],['Ford',75000],['Honda',80000],['Mazda',95000],['BMW',220000],['Mercedes-Benz',250000],['Audi',230000],['Volvo',210000],['Tesla',190000],['Lexus',300000],['Porsche',500000],['Ferrari',1200000],['Lamborghini',1400000],['Land Rover',420000],['Jeep',180000],['Hyundai',90000],['Kia',85000],['Renault',65000],['Peugeot',70000],['Fiat',55000]];
+    const models=['miejski','hatchback','sedan','kombi','SUV','coupe','cabrio','elektryk','hybryda'];
+    makers.forEach((m,i)=>models.slice(0,5).forEach((model,j)=>arr.push({id:`dyncar_${cycle}_${i}_${j}`,name:`${m[0]} ${model}`,brand:m[0],price:Math.round(m[1]*(1+j*.28)*mult),comfort:2+j,speed:2+(j%4),marketCycle:cycle,deal:m[0].toLowerCase()})));
+    if(cycle%3===0) arr.push({id:`dyncar_new_${cycle}`,name:'Nowość rynkowa — model limitowany',brand:'Nowa marka',price:Math.round(380000*mult),comfort:8,speed:8,marketCycle:cycle});
+  }
+  return arr;
+}
+function getStoreCatalog(type){
+  const dynamic=['shoes','clothes','electronics','equipment','property','cars'];
+  if(dynamic.includes(type)){
+    const generated=dynamicStoreCatalog(type);
+    WORLD_CATALOG[type]=generated.concat(WORLD_CATALOG[type]||[]);
+    return generated;
+  }
+  return WORLD_CATALOG[type]||[];
+}
+function expandProperty(index){
+  const p=S.world.properties?.[index]; if(!p)return;
+  const cost=Math.round((p.price||p.value||100000)*0.12);
+  if((S.player.money||0)<cost){toast('Brakuje pieniędzy na rozbudowę.');return;}
+  S.player.money-=cost; p.value=(p.value||p.price||100000)+Math.round(cost*.75); p.comfort=Math.min(100,(p.comfort||50)+8); p.rooms=(p.rooms||1)+1; p.expansions=(p.expansions||0)+1;
+  addHistory('Rozbudowa nieruchomości',`Rozbudowano ${p.name} w ${p.city}.`,`-${cost} • +komfort • +1 pomieszczenie`); save(); render();
+}
 function openWorldCatalog(type){
-  const list=WORLD_CATALOG[type]||[];
-  const title={shoes:'👟 Korki i obuwie',clothes:'👕 Ubrania',gifts:'🎁 Prezenty',specialists:'🩺 Specjaliści',languages:'🌍 Języki',education:'🎓 Edukacja',licenses:'🪪 Licencje',property:'🏠 Nieruchomości',cars:'🚗 Samochody',businesses:'💼 Biznes',investments:'📈 Inwestycje'}[type]||'Katalog';
+  const list=getStoreCatalog(type);
+  const title={shoes:'👟 Korki i obuwie',clothes:'👕 Ubrania',gifts:'🎁 Prezenty',specialists:'🩺 Specjaliści',languages:'🌍 Języki',education:'🎓 Edukacja',licenses:'🪪 Licencje',property:'🏠 Nieruchomości',cars:'🚗 Samochody',businesses:'💼 Biznes',investments:'📈 Inwestycje',electronics:'📱 Elektronika',equipment:'🎮 / 🎥 Sprzęt'}[type]||'Katalog';
   openModal(`<div class="modal-head"><div><div class="eyebrow">KATALOG</div><h2>${title}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
   <div class="list">${list.map(x=>{
     const cost=x.price||x.cost||0;
@@ -2079,13 +2341,19 @@ function render(){
 }
 function openModal(html,full=false){const m=document.getElementById('modal'),s=document.getElementById('modalSheet');s.innerHTML=html;m.classList.toggle('full',full);m.classList.add('show')}
 function closeModal(){
-  const wasEvent=!!window.pendingEvent;
+  if(window.pendingEvent) return;
   document.getElementById('modal').classList.remove('show');
-  window.pendingEvent=null;
-  if(wasEvent) setTimeout(showNextEvent,80);
 }
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.getElementById('modal').addEventListener('click',e=>{
+  const eventChoice=e.target.closest('.event-choice');
+  if(eventChoice){
+    e.preventDefault(); e.stopPropagation();
+    const id=eventChoice.dataset.eventId; const i=Number(eventChoice.dataset.choiceIndex);
+    chooseEvent(id,i); return;
+  }
+  if(e.target.id==='modal' && !window.pendingEvent) closeModal();
+});
 render();
 </script>
 <script id="responsive-fl-life-js">
