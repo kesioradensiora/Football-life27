@@ -712,7 +712,7 @@ function renderCareer(){
     </section>
     <section class="section card"><div class="eyebrow">🏆 ŚCIEŻKA KARIERY</div><div class="list">
       ${['Trening i rozwój','Kontrakty i transfery','Reprezentacja','Trofea i nagrody','Specjalne wydarzenia kariery','Kariera po piłce'].map((x,i)=>`<button class="btn" onclick="careerDetail(${i})">${['📈','📄','🌎','🏆','✨','🎓'][i]} <b>${x}</b><span class="muted small"> → otwórz szczegóły</span></button>`).join('')}
-    </div></section>`;
+    </div><button class="btn goldbtn" style="margin-top:10px" onclick="openNationalTeams()">🌎 Sprawdź reprezentacje i zainteresowanie</button></section>`;
 }
 function openScout(id){
   const s=S.scouting.find(x=>x.id===id);if(!s)return;
@@ -758,6 +758,30 @@ function matchChoice(id,what){
   m.status='played';m.rating=what==='attack'?8.2:what==='safe'?7.3:8.0;m.result=Math.random()>.45?'W':'R';
   addHistory('Mecz: '+m.competition,`Przeciwko ${m.opponent}. Wynik: ${m.result==='W'?'wygrana':'remis / niekorzystny wynik'}.`,`⭐ ocena ${m.rating} • ${what}`);
   S.tutorial.steps[3]=true;save();closeModal();render();toast('⚽ Mecz rozegrany — wynik i decyzja zapisane.');
+}
+function nationalTeamCandidates(){
+  const p=S.player;
+  const code=p.countryCode || Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k].name===p.country) || 'PL';
+  const eligible=[{code,name:COUNTRY_WORLD[code]?.name||p.country,reason:'kraj zawodnika',status:p.ovr>=62?'zainteresowanie':'obserwacja'}];
+  const origins=(S.family?.father?.originCountry||S.family?.mother?.originCountry)?[S.family?.father?.originCountry,S.family?.mother?.originCountry]:[];
+  origins.filter(Boolean).forEach(origin=>{
+    const oc=Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k].name===origin);
+    if(oc && oc!==code && !eligible.some(x=>x.code===oc)) eligible.push({code:oc,name:origin,reason:'pochodzenie rodzinne',status:p.ovr>=68?'zainteresowanie':'możliwa ścieżka'});
+  });
+  const level=Math.round(p.ovr + p.form*.12 + p.reputation*.08);
+  return eligible.map(x=>({...x,level,offer:level>=72?'Powołanie / oferta':level>=62?'Wstępna obserwacja':'Brak propozycji — obserwują'}));
+}
+function openNationalTeams(){
+  const rows=nationalTeamCandidates();
+  openModal(`<div class="modal-head"><div><div class="eyebrow">🌎 REPREZENTACJA</div><h2>Kto się Tobą interesuje?</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+  <div class="muted small" style="margin:4px 0 12px">Gra pokazuje kadry wynikające z kraju zawodnika oraz, jeśli system na to pozwala, z jego rodzinnych korzeni. Zainteresowanie rośnie wraz z poziomem, formą, reputacją i występami.</div>
+  <div class="list">${rows.map(x=>`<div class="history-item"><div class="row"><b>🌎 ${esc(x.name)}</b><span class="badge ${x.offer.includes('Powołanie')?'gold':''}">${esc(x.offer)}</span></div><div class="muted small" style="margin-top:5px">${esc(x.reason)} • poziom ${x.level}/100</div>${x.offer.includes('Powołanie')?`<button class="btn goldbtn" style="margin-top:9px" onclick="acceptNationalOffer('${x.code}')">📩 Otwórz propozycję</button>`:''}</div>`).join('')}</div>`,true);
+}
+function acceptNationalOffer(code){
+  const c=COUNTRY_WORLD[code]; if(!c)return;
+  S.player.nationalTeam={code,country:c.name,status:'zainteresowanie',joinedAt:S.day.date};
+  addHistory('Reprezentacja',`Otrzymałeś propozycję z ${c.name}.`,'🌎 kadra narodowa');
+  save();closeModal();render();toast(`🌎 Propozycja reprezentacji: ${c.name}`);
 }
 function careerDetail(i){
  const titles=['Rozwój','Kontrakty','Reprezentacja','Gablota trofeów','Wydarzenia specjalne','Kariera po piłce'];
@@ -809,11 +833,11 @@ function renderFamily(){
  <section class="section card"><div class="eyebrow">💰 AKTUALNA SYTUACJA RODZINY</div><div class="grid2">${[['Zamożność',f.familyWealth],['Stabilność domu',f.stability],['Wsparcie ojca',f.father.interest+'/100'],['Wsparcie matki',f.mother.interest+'/100'],['Dostępność ojca',f.father.available+'/100'],['Dostępność matki',f.mother.available+'/100']].map(x=>`<div class="metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div><div class="muted small" style="margin-top:12px">Dochody i wydatki rodziców mogą się zmieniać. Po rozstaniu majątek, dom, auta i koszty nie znikają — są rozdzielane i dalej wpływają na życie.</div></section>
  <section class="section card"><div class="eyebrow">👨‍👩‍👦 RODZICE — AKTUALNY STAN</div>${parentCard('father','👨','OJCIEC',f.father)}${parentCard('mother','👩','MATKA',f.mother)}
  ${f.siblings.map(s=>`<div class="person"><h3>👦 ${esc(s.name)}</h3><div class="muted">${s.age} lat • rodzeństwo • relacja ${s.relation}/100</div></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">🌳 KORZENIE</div>${f.roots.map(r=>`<div class="person"><h3>🌎 ${r.label}</h3><div class="muted">${r.country} • ${r.city}</div></div>`).join('')}</section>`;
+ <section class="section card"><div class="eyebrow">🌳 KORZENIE I JĘZYKI RODZINNE</div>${f.roots.map(r=>`<div class="person"><h3>🌎 ${r.label}</h3><div class="muted">${r.country} • ${r.city}</div></div>`).join('')}<div class="muted small" style="margin-top:10px">Pochodzenie rodzica może otworzyć język rodzinny. Nie oznacza automatycznie płynności — rodzic może przekazywać język regularnie, tylko częściowo albo wcale.</div>${(S.world?.languages||[]).length?`<div class="list" style="margin-top:10px">${S.world.languages.map(l=>`<div class="history-item"><div class="row"><b>🗣️ ${esc(l.name)}</b><span class="badge">${Math.round(l.level)}%</span></div><div class="muted small">${esc(l.source)}${l.taught?' • język częściowo przekazywany w domu':' • rodzina nie przekazała języka'}</div></div>`).join('')}</div>`:'<div class="muted small" style="margin-top:10px">Brak dodatkowego języka rodzinnego — można go później nauczyć się na kursie lub przez życie w danym kraju.</div>'}</section>`;
 }
 function parentCard(key,ico,label,p){
  return `<div class="person" style="margin-top:10px"><div class="row"><div><div class="eyebrow">${ico} ${label}</div><h3>${esc(p.name)}</h3></div><span class="badge">${p.age} lat</span></div>
- <div class="muted">${esc(p.job)} • 🌎 ${esc(p.country)} • 📍 ${esc(p.city)}</div>
+ <div class="muted">${esc(p.job)} • 🏠 mieszka: ${esc(p.country)} • 📍 ${esc(p.city)}${p.nationality?` • 🌎 pochodzenie: ${esc(p.nationality)}`:''}</div>
  <div class="grid2" style="margin-top:10px"><div class="metric"><span>Zarobki / mies.</span><b>${money(p.income)}</b></div><div class="metric"><span>Wydatki / mies.</span><b>${money(p.expenses)}</b></div><div class="metric"><span>Mieszkanie</span><b style="font-size:15px">${esc(p.home)}</b></div><div class="metric"><span>Auto</span><b style="font-size:15px">${esc(p.car)}</b></div></div>
  <div class="badges"><span class="badge">❤️ zainteresowanie ${p.interest}/100</span><span class="badge">🕐 dostępność ${p.available}/100</span><span class="badge">${p.partner?'❤️ partner: '+p.partner:'💔 brak partnera'}</span></div></div>`;
 }
@@ -987,17 +1011,266 @@ function restartCareer(){if(confirm('Restart kariery zachowa dane rodziców, ale
 const PLAYER_POSITIONS=['Bramkarz','Prawy obrońca','Lewy obrońca','Środkowy obrońca','Defensywny pomocnik','Środkowy pomocnik','Ofensywny pomocnik','Prawy skrzydłowy','Lewy skrzydłowy','Napastnik'];
 const NG_FIRST=['Alex','Noah','Liam','Mateo','Leo','Lucas','Milan','Oliver','Ethan','Daniel','Adrian','Kacper','Jakub','Antoine','Marco','Hugo','Tiago','João','Gabriel','Rafael'];
 const NG_LAST=['Silva','Costa','Pereira','Santos','Rossi','Martins','Nowak','Kowalski','Garcia','Gonzalez','Fernandez','Muller','Schmidt','Dubois','Martin','Bianchi','Sato','Kim','Williams','Brown'];
-const COUNTRY_CITIES={PL:['Warszawa','Kraków','Poznań','Wrocław','Gdańsk'],ES:['Madryt','Barcelona','Walencja','Sewilla','Bilbao'],PT:['Lizbona','Porto','Braga','Faro'],FR:['Paryż','Marsylia','Lyon','Nicea'],IT:['Rzym','Mediolan','Turyn','Neapol'],DE:['Berlin','Monachium','Hamburg','Kolonia'],GB:['Londyn','Manchester','Liverpool','Birmingham'],US:['Nowy Jork','Los Angeles','Miami','Chicago','Dallas'],BR:['São Paulo','Rio de Janeiro','Curitiba','Brasília','Salvador'],AR:['Buenos Aires','Córdoba','Rosario'],MX:['Meksyk','Guadalajara','Monterrey'],JP:['Tokio','Osaka','Kioto','Yokohama'],KR:['Seul','Busan','Incheon'],CN:['Pekin','Szanghaj','Guangzhou','Shenzhen'],IN:['Mumbaj','Delhi','Bengaluru','Kolkata'],TR:['Stambuł','Ankara','Izmir'],GR:['Ateny','Saloniki'],HR:['Zagrzeb','Split','Dubrownik'],NL:['Amsterdam','Rotterdam','Utrecht'],BE:['Bruksela','Antwerpia'],CH:['Zurych','Genewa','Bazylea'],AT:['Wiedeń','Salzburg'],CZ:['Praga','Brno'],SK:['Bratysława','Koszyce'],HU:['Budapeszt'],SE:['Sztokholm','Göteborg'],NO:['Oslo','Bergen'],DK:['Kopenhaga'],FI:['Helsinki','Tampere'],AU:['Sydney','Melbourne','Brisbane'],CA:['Toronto','Montreal','Vancouver'],ZA:['Johannesburg','Kapsztad'],AE:['Dubaj','Abu Zabi'],SA:['Rijad','Dżudda'],EG:['Kair','Aleksandria'],MA:['Casablanca','Marrakesz']};
+const COUNTRY_CITIES={
+  AF:['Kabul','Herat','Kandahar','Mazar-i Szarif'],
+  AL:['Tirana','Durrës','Wlora','Szkodra'],
+  DZ:['Algier','Oran','Konstantyna','Annaba'],
+  AD:['Andora la Vella','Escaldes-Engordany','Encamp'],
+  AO:['Luanda','Huambo','Lubango','Benguela'],
+  AG:['Saint John\'s','All Saints','Liberta'],
+  AR:['Buenos Aires','Córdoba','Rosario','Mendoza','La Plata','Mar del Plata'],
+  AM:['Erywań','Giumri','Wanadzor'],
+  AU:['Sydney','Melbourne','Brisbane','Perth','Adelaide','Canberra','Hobart'],
+  AT:['Wiedeń','Graz','Linz','Salzburg','Innsbruck','Klagenfurt'],
+  AZ:['Baku','Gandża','Sumgait','Lankaran'],
+  BS:['Nassau','Freeport','Marsh Harbour'],
+  BH:['Manama','Riffa','Muharrak'],
+  BD:['Dhaka','Ćottogram','Khulna','Rajshahi','Sylhet'],
+  BB:['Bridgetown','Speightstown','Oistins'],
+  BE:['Bruksela','Antwerpia','Gandawa','Brugia','Liège','Charleroi'],
+  BZ:['Belmopan','Belize City','San Ignacio'],
+  BJ:['Porto-Novo','Kotonu','Abomey-Calavi'],
+  BT:['Thimphu','Phuntsholing','Paro'],
+  BY:['Mińsk','Homel','Grodno','Brześć','Witebsk'],
+  BO:['La Paz','Santa Cruz de la Sierra','Cochabamba','Sucre'],
+  BA:['Sarajewo','Banja Luka','Mostar','Tuzla'],
+  BW:['Gaborone','Francistown','Maun'],
+  BR:['São Paulo','Rio de Janeiro','Brasília','Salvador','Belo Horizonte','Curitiba','Recife','Porto Alegre','Fortaleza'],
+  BN:['Bandar Seri Begawan','Kuala Belait','Seria'],
+  BG:['Sofia','Płowdiw','Warna','Burgas','Ruse'],
+  BF:['Wagadugu','Bobo-Dioulasso','Koudougou'],
+  BI:['Gitega','Bużumbura','Ngozi'],
+  CV:['Praia','Mindelo','Santa Maria'],
+  CL:['Santiago','Valparaíso','Concepción','Viña del Mar','Antofagasta'],
+  CN:['Pekin','Szanghaj','Kanton','Shenzhen','Chengdu','Chongqing','Hangzhou','Xi\'an'],
+  HR:['Zagrzeb','Split','Dubrownik','Rijeka','Osijek'],
+  CY:['Nikozja','Limassol','Larnaka','Pafos'],
+  CZ:['Praga','Brno','Ostrawa','Pilzno','Liberec','Ołomuniec'],
+  TD:['Ndżamena','Moundou','Sarh'],
+  ME:['Podgorica','Budva','Bar','Kotor','Nikšić'],
+  DK:['Kopenhaga','Aarhus','Odense','Aalborg','Esbjerg'],
+  DM:['Roseau','Portsmouth','Marigot'],
+  DO:['Santo Domingo','Santiago de los Caballeros','Punta Cana','Puerto Plata'],
+  DJ:['Dżibuti','Ali Sabieh','Tadjoura'],
+  EG:['Kair','Aleksandria','Giza','Luksor','Asuan','Hurghada'],
+  EC:['Quito','Guayaquil','Cuenca','Manta'],
+  ER:['Asmara','Massawa','Keren'],
+  EE:['Tallinn','Tartu','Narwa','Pärnu'],
+  ET:['Addis Abeba','Dire Dawa','Gondar','Mekelie'],
+  FJ:['Suva','Nadi','Lautoka'],
+  PH:['Manila','Cebu City','Davao','Quezon City','Baguio'],
+  FI:['Helsinki','Espoo','Tampere','Turku','Oulu','Rovaniemi'],
+  FR:['Paryż','Marsylia','Lyon','Tuluza','Nicea','Bordeaux','Lille','Nantes'],
+  GA:['Libreville','Port-Gentil','Franceville'],
+  GM:['Bandżul','Serekunda','Brikama'],
+  GH:['Akra','Kumasi','Tamale','Takoradi'],
+  GR:['Ateny','Saloniki','Patras','Heraklion','Larisa'],
+  GD:['Saint George\'s','Gouyave','Grenville'],
+  GE:['Tbilisi','Batumi','Kutaisi','Rustawi'],
+  GY:['Georgetown','Linden','New Amsterdam'],
+  GT:['Gwatemala','Quetzaltenango','Escuintla'],
+  GN:['Konakry','Nzérékoré','Kankan'],
+  GW:['Bissau','Bafatá','Gabú'],
+  GQ:['Malabo','Bata','Ebebiyín'],
+  HT:['Port-au-Prince','Cap-Haïtien','Gonaïves'],
+  ES:['Madryt','Barcelona','Walencja','Sewilla','Malaga','Bilbao','Vigo','Granada','Alicante','Palma','Zaragoza','Murcja'],
+  NL:['Amsterdam','Rotterdam','Haga','Utrecht','Eindhoven','Groningen'],
+  HN:['Tegucigalpa','San Pedro Sula','La Ceiba'],
+  IN:['Mumbaj','Delhi','Bengaluru','Kolkata','Ćennaj','Hyderabad','Pune','Ahmedabad'],
+  ID:['Dżakarta','Surabaja','Bandung','Medan','Denpasar','Semarang'],
+  IQ:['Bagdad','Basra','Mosul','Erbil','Karbala'],
+  IR:['Teheran','Meszhed','Isfahan','Sziraz','Tabriz'],
+  IE:['Dublin','Cork','Limerick','Galway','Waterford'],
+  IS:['Reykjavík','Kópavogur','Hafnarfjörður','Akureyri'],
+  IL:['Jerozolima','Tel Awiw','Hajfa','Beer Szewa','Ejlatu'],
+  JM:['Kingston','Montego Bay','Spanish Town'],
+  JP:['Tokio','Osaka','Kioto','Jokohama','Nagoya','Sapporo','Fukuoka'],
+  YE:['Sana','Aden','Taizz','Al-Hudajda'],
+  JO:['Amman','Zarka','Irbid','Akaba'],
+  KH:['Phnom Penh','Siem Reap','Battambang','Sihanoukville'],
+  CM:['Jaunde','Duala','Bamenda','Garoua'],
+  CA:['Toronto','Montreal','Vancouver','Calgary','Ottawa','Edmonton','Quebec City','Winnipeg'],
+  QA:['Doha','Al Wakrah','Al Khor'],
+  KZ:['Astana','Ałmaty','Szymkent','Karaganda'],
+  KE:['Nairobi','Mombasa','Kisumu','Nakuru'],
+  KG:['Biszkek','Osz','Dżalalabad'],
+  KI:['Tarawa','Betio','Bairiki'],
+  CO:['Bogota','Medellín','Cali','Barranquilla','Cartagena'],
+  KM:['Moroni','Mutsamudu','Fomboni'],
+  CG:['Brazzaville','Pointe-Noire','Dolisie'],
+  CD:['Kinszasa','Lubumbashi','Goma','Kisangani'],
+  KR:['Seul','Busan','Incheon','Daegu','Daejeon','Gwangju'],
+  KP:['Pjongjang','Hamhung','Chongjin'],
+  CR:['San José','Alajuela','Heredia','Liberia'],
+  CI:['Abidżan','Bouaké','Yamoussoukro','Korhogo'],
+  CU:['Hawana','Santiago de Cuba','Camagüey','Holguín'],
+  KW:['Kuwejt','Hawalli','Al Ahmadi'],
+  LA:['Wientian','Luang Prabang','Pakse'],
+  LS:['Maseru','Mafeteng','Hlotse'],
+  LB:['Bejrut','Trypolis','Sidon','Byblos'],
+  LR:['Monrovia','Gbarnga','Buchanan'],
+  LY:['Trypolis','Bengazi','Misrata','Sabha'],
+  LI:['Vaduz','Schaan','Triesen'],
+  LT:['Wilno','Kowno','Kłajpeda','Szawle','Poniewież'],
+  LU:['Luksemburg','Esch-sur-Alzette','Differdange'],
+  LV:['Ryga','Daugavpils','Liepāja','Jelgava'],
+  MG:['Antananarywa','Toamasina','Antsirabe'],
+  MW:['Lilongwe','Blantyre','Mzuzu'],
+  MY:['Kuala Lumpur','George Town','Johor Bahru','Ipoh','Kota Kinabalu'],
+  MV:['Malé','Addu City','Fuvahmulah'],
+  ML:['Bamako','Sikasso','Mopti'],
+  MT:['Valletta','Birkirkara','Mosta','Victoria'],
+  MA:['Rabat','Casablanca','Marrakesz','Fez','Tanger','Agadir'],
+  MR:['Nawakszut','Nouadhibou','Kiffa'],
+  MU:['Port Louis','Curepipe','Quatre Bornes'],
+  MX:['Meksyk','Guadalajara','Monterrey','Puebla','Cancún','Tijuana'],
+  FM:['Palikir','Weno','Kolonia'],
+  MD:['Kiszyniów','Bălți','Tiraspol'],
+  MC:['Monako','Monte Carlo','La Condamine'],
+  MN:['Ułan Bator','Erdenet','Darchan'],
+  MZ:['Maputo','Matola','Beira','Nampula'],
+  MM:['Naypyidaw','Jangon','Mandalaj'],
+  NA:['Windhuk','Walvis Bay','Swakopmund'],
+  NR:['Yaren','Anibare','Aiwo'],
+  NP:['Katmandu','Pokhara','Lalitpur','Bharatpur'],
+  DE:['Berlin','Monachium','Hamburg','Kolonia','Frankfurt','Düsseldorf','Stuttgart','Dortmund','Leipzig','Drezno','Freiburg','Münster'],
+  NE:['Niamey','Zinder','Maradi'],
+  NG:['Lagos','Abudża','Kano','Ibadan','Benin City','Port Harcourt'],
+  NI:['Managua','León','Granada'],
+  NO:['Oslo','Bergen','Trondheim','Stavanger','Tromsø'],
+  NZ:['Auckland','Wellington','Christchurch','Hamilton','Dunedin','Queenstown'],
+  OM:['Maskat','Salala','Nizwa','Sohar'],
+  PK:['Karaczi','Lahaur','Islamabad','Rawalpindi','Peszawar'],
+  PW:['Ngerulmud','Koror','Airai'],
+  PS:['Ramallah','Gaza','Betlejem','Hebron','Nablus'],
+  PA:['Panama City','Colón','David'],
+  PG:['Port Moresby','Lae','Mount Hagen'],
+  PY:['Asunción','Ciudad del Este','Encarnación'],
+  PE:['Lima','Arequipa','Cusco','Trujillo','Piura'],
+  PL:['Warszawa','Kraków','Poznań','Wrocław','Gdańsk','Łódź','Szczecin','Lublin','Białystok','Rzeszów','Katowice','Toruń','Bydgoszcz','Olsztyn','Opole','Zielona Góra','Gorzów Wielkopolski','Swarzędz','Słubice','Lubsko','Leszno','Piła','Zakopane'],
+  PT:['Lizbona','Porto','Braga','Coimbra','Faro','Aveiro','Funchal','Ponta Delgada'],
+  CF:['Bangui','Berbérati','Bouar'],
+  ZA:['Johannesburg','Kapsztad','Durban','Pretoria','Port Elizabeth','Bloemfontein'],
+  RO:['Bukareszt','Kluż-Napoka','Timișoara','Jassy','Konstanca','Braszów'],
+  RW:['Kigali','Butare','Gisenyi'],
+  KN:['Basseterre','Charlestown'],
+  LC:['Castries','Vieux Fort','Soufrière'],
+  VC:['Kingstown','Georgetown','Barrouallie'],
+  WS:['Apia','Salelologa'],
+  SM:['San Marino','Serravalle','Borgo Maggiore'],
+  SN:['Dakar','Touba','Thiès','Saint-Louis'],
+  RS:['Belgrad','Novi Sad','Nisz','Kragujevac','Subotica'],
+  SC:['Victoria','Beau Vallon','Anse Royale'],
+  SL:['Freetown','Bo','Kenema'],
+  SG:['Singapur'],
+  SK:['Bratysława','Koszyce','Preszów','Żylina','Nitra'],
+  SI:['Lublana','Maribor','Celje','Koper'],
+  SO:['Mogadiszu','Hargejsa','Kismaju'],
+  LK:['Kolombo','Kandy','Galle','Jaffna'],
+  SD:['Chartum','Omdurman','Port Sudan'],
+  SS:['Dżuba','Wau','Malakal'],
+  SR:['Paramaribo','Lelydorp','Nieuw Nickerie'],
+  SZ:['Mbabane','Manzini','Lobamba'],
+  CH:['Zurych','Genewa','Bazylea','Lozanna','Berno','Lucerna'],
+  SE:['Sztokholm','Göteborg','Malmö','Uppsala','Örebro'],
+  SY:['Damaszek','Aleppo','Hims','Latakia'],
+  TW:['Tajpej','Nowe Tajpej','Taichung','Kaohsiung','Tainan'],
+  TJ:['Duszanbe','Chodżent','Kulob'],
+  TZ:['Dodoma','Dar es Salaam','Arusza','Mwanza'],
+  TH:['Bangkok','Chiang Mai','Phuket','Pattaya','Krabi'],
+  TL:['Dili','Baucau','Maliana'],
+  TG:['Lomé','Sokodé','Kara'],
+  TO:['Nuku\'alofa','Neiafu'],
+  TT:['Port of Spain','San Fernando','Scarborough'],
+  TN:['Tunis','Susa','Sfax','Monastyr','Dżerba'],
+  TR:['Stambuł','Ankara','Izmir','Antalya','Bursa','Adana','Trabzon'],
+  TM:['Aszchabad','Turkmenabat','Daszoguz'],
+  TV:['Funafuti','Asau'],
+  UG:['Kampala','Entebbe','Jinja','Mbarara'],
+  UA:['Kijów','Lwów','Odessa','Charków','Dnipro','Zaporoże','Czerniowce'],
+  UY:['Montevideo','Salto','Paysandú','Punta del Este'],
+  UZ:['Taszkent','Samarkanda','Buchara','Andiżan'],
+  VU:['Port Vila','Luganville'],
+  VA:['Watykan'],
+  VE:['Caracas','Maracaibo','Valencia','Barquisimeto'],
+  HU:['Budapeszt','Debreczyn','Szeged','Miszkolc','Pecz'],
+  GB:['Londyn','Manchester','Liverpool','Birmingham','Leeds','Sheffield','Newcastle','Bristol','Nottingham','Leicester','Southampton','Brighton','Cardiff','Glasgow','Edynburg','Belfast','Aberdeen','Swansea','Preston','Norwich'],
+  VN:['Hanoi','Ho Chi Minh','Da Nang','Hai Phong','Nha Trang','Hue'],
+  IT:['Rzym','Mediolan','Neapol','Turyn','Florencja','Bolonia','Genua','Palermo','Bari','Werona'],
+  SB:['Honiara','Gizo','Auki'],
+  MH:['Majuro','Ebeye'],
+  ZM:['Lusaka','Kitwe','Ndola','Livingstone'],
+  ZW:['Harare','Bulawayo','Mutare','Victoria Falls'],
+  AE:['Dubaj','Abu Zabi','Szardża','Adżman','Ras al-Chajma'],
+  US:['Nowy Jork','Los Angeles','Chicago','Houston','Phoenix','Filadelfia','San Antonio','San Diego','Dallas','Miami','Boston','Seattle','Denver','Atlanta','Orlando'],
+  XK:['Prisztina','Prizren','Peja','Mitrowica'],
+  RU:['Moskwa','Petersburg','Kazań','Nowosybirsk','Jekaterynburg','Soczi','Władywostok','Kaliningrad'],
+  SA:['Rijad','Dżudda','Mekka','Medyna','Dammam'],
+  SV:['San Salvador','Santa Ana','San Miguel'],
+  PR:['San Juan','Ponce','Mayagüez']
+};
+
 function randomFrom(a){return a[Math.floor(Math.random()*a.length)]}
-function randomBirthDate(){const y=2009+Math.floor(Math.random()*5);const m=1+Math.floor(Math.random()*12);const d=1+Math.floor(Math.random()*28);return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function randomBirthDate(){
+  const base=new Date(S.day.date+'T12:00:00');
+  const age=10+Math.floor(Math.random()*10);
+  const b=new Date(base);
+  b.setFullYear(base.getFullYear()-age);
+  b.setMonth(Math.floor(Math.random()*12));
+  b.setDate(1+Math.floor(Math.random()*28));
+  if(b>base)b.setFullYear(b.getFullYear()-1);
+  return b.toISOString().slice(0,10);
+}
 function ageFromBirthDate(date){if(!date)return 15;const b=new Date(date+'T12:00:00'), now=new Date(S.day.date+'T12:00:00');let a=now.getFullYear()-b.getFullYear();if(now.getMonth()<b.getMonth()||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))a--;return Math.max(10,Math.min(19,a))}
 function countryOptions(selected){return Object.entries(COUNTRY_WORLD).filter(([k,v])=>v&&v.name).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${esc(v.name)}</option>`).join('')}
 function positionOptions(selected){return PLAYER_POSITIONS.map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join('')}
 function questionFields(values){return `<section class="card" style="margin-top:12px"><div class="eyebrow">🧠 PYTANIA STARTOWE</div><div class="muted small">Odpowiedzi wpływają na początkowe statystyki i historię zawodnika.</div><label class="field"><span>👨‍👩‍👦 Jak duże wsparcie daje rodzina?</span><select class="select" id="ngsupport"><option value="low">Niewielkie</option><option value="normal" selected>Normalne</option><option value="high">Bardzo duże</option></select></label><label class="field"><span>💰 Jak wygląda sytuacja finansowa rodziny?</span><select class="select" id="ngwealth"><option value="low">Skromna</option><option value="normal" selected>Normalna</option><option value="high">Zamożna</option></select></label><label class="field"><span>⚽ Jak długo trenujesz piłkę?</span><select class="select" id="ngfootball"><option value="new">Dopiero zaczynam</option><option value="regular" selected>Od kilku lat</option><option value="serious">Od dziecka bardzo poważnie</option></select></label><label class="field"><span>🧠 Jaki masz charakter?</span><select class="select" id="ngcharacter"><option value="calm">Spokojny i rozsądny</option><option value="balanced" selected>Zrównoważony</option><option value="ambitious">Bardzo ambitny i ryzykowny</option></select></label><label class="field"><span>🎓 Jak podchodzisz do szkoły?</span><select class="select" id="ngschool"><option value="weak">Sport jest najważniejszy</option><option value="balanced" selected>Staram się łączyć szkołę i sport</option><option value="strong">Bardzo dbam o naukę</option></select></label></section>`}
-function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Stolica kraju']);const birth=randomBirthDate();return {name:randomFrom(NG_FIRST)+' '+randomFrom(NG_LAST),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
+function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=randomBirthDate();return {name:randomFrom(NG_FIRST)+' '+randomFrom(NG_LAST),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
+function languageForOriginCountry(countryName){
+  const code=Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k]?.name===countryName);
+  if(!code)return null;
+  const candidates=(WORLD_CATALOG.languages||[]).filter(l=>l.countries?.includes(code));
+  if(candidates.length){
+    return candidates.find(l=>!['Angielski'].includes(l.name))||candidates[0];
+  }
+  const names=COUNTRY_WORLD[code]?.languages||[];
+  const name=names.find(x=>x && !x.toLowerCase().includes('angielski'))||names[0];
+  if(!name)return null;
+  return {id:'lang_'+code,name,difficulty:3,career:['football','creator'],countries:[code]};
+}
+function buildFamilyLanguages(family, residenceCode){
+  const result=[];
+  const add=(lang,source,parentName)=>{
+    if(!lang||result.some(x=>x.id===lang.id))return;
+    const taught=Math.random()<0.72;
+    const level=taught?(Math.random()<0.45?25+Math.floor(Math.random()*31):56+Math.floor(Math.random()*25)):Math.floor(Math.random()*12);
+    result.push({id:lang.id,name:lang.name,level,source,fromParent:parentName||null,taught,locked:false});
+  };
+  add(languageForOriginCountry(family?.father?.originCountry),'pochodzenie ojca',family?.father?.name);
+  add(languageForOriginCountry(family?.mother?.originCountry),'pochodzenie matki',family?.mother?.name);
+  return result;
+}
 function renderNewGameSetup(mode){const base=mode==='plus'?randomProfile():randomProfile();openModal(`<div class="modal-head"><div><div class="eyebrow">${mode==='plus'?'✨ NOWA GRA+':'🆕 NOWA GRA'}</div><h2>Utwórz zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><button class="btn" onclick="fillRandomNG('${mode}')">🎲 Wylosuj zawodnika</button><div class="muted small" style="margin-top:8px">Możesz wylosować cały profil albo ręcznie zmienić dowolne pole.</div></div><label class="field"><span>👤 Imię i nazwisko</span><input class="input" id="ngname" value="${esc(base.name)}" placeholder="Imię i nazwisko"></label><label class="field"><span>🌍 Kraj</span><select class="select" id="ngcountry">${countryOptions(base.countryCode)}</select></label><label class="field"><span>📍 Miasto</span><input class="input" id="ngcity" value="${esc(base.city)}" placeholder="Miasto"></label><label class="field"><span>⚽ Pozycja</span><select class="select" id="ngpos">${positionOptions(base.position)}</select></label><label class="field"><span>🎂 Data urodzenia</span><input class="input" type="date" id="ngbirth" value="${base.birthDate}"></label>${questionFields(base.answers)}<button class="btn goldbtn" style="margin-top:14px" onclick="applyNewProfile('${mode}')">Rozpocznij karierę</button>`,true)}
 function fillRandomNG(mode){const r=randomProfile();document.getElementById('ngname').value=r.name;document.getElementById('ngcountry').value=r.countryCode;document.getElementById('ngcity').value=r.city;document.getElementById('ngpos').value=r.position;document.getElementById('ngbirth').value=r.birthDate;document.getElementById('ngsupport').value=r.answers.support;document.getElementById('ngwealth').value=r.answers.wealth;document.getElementById('ngfootball').value=r.answers.football;document.getElementById('ngcharacter').value=r.answers.character;document.getElementById('ngschool').value=r.answers.school}
-function applyNewProfile(mode){const name=document.getElementById('ngname').value.trim();const code=document.getElementById('ngcountry').value;const country=COUNTRY_WORLD[code];const city=document.getElementById('ngcity').value.trim()||randomFrom(COUNTRY_CITIES[code]||['Stolica kraju']);const birth=document.getElementById('ngbirth').value;if(!name||!birth||!country){toast('Uzupełnij imię, kraj i datę urodzenia.');return}const age=ageFromBirthDate(birth);if(age<10||age>19){toast('Wybierz datę dającą wiek 10–19 lat.');return}const answers={support:document.getElementById('ngsupport').value,wealth:document.getElementById('ngwealth').value,football:document.getElementById('ngfootball').value,character:document.getElementById('ngcharacter').value,school:document.getElementById('ngschool').value};let base=clone(initial);if(mode==='plus'){const oldFamily=clone(S.family);base.family=oldFamily}base.player.name=name;base.player.first=name.split(/\s+/)[0];base.player.last=name.split(/\s+/).slice(1).join(' ');base.player.country=country.name;base.player.countryCode=code;base.player.city=city;base.player.birthCountry=country.name;base.player.birthDate=birth;base.player.age=age;base.player.position=document.getElementById('ngpos').value;base.player.club='Akademia '+city;base.day.date=birth;let dt=new Date(birth+'T12:00:00');dt.setFullYear(dt.getFullYear()+age);base.day.date=dt.toISOString().slice(0,10);base.calendarConfig.country=code;base.world.calendarCountry=code;base.family.familyWealth=answers.wealth;base.family.stability=answers.support==='high'?'stabilna':answers.support==='low'?'niestabilna':'stabilna';base.player.character=answers.character==='ambitious'?75:answers.character==='calm'?58:65;base.player.education=answers.school==='strong'?35:answers.school==='weak'?10:22;base.player.mental=answers.support==='high'?78:answers.support==='low'?62:72;base.player.form=answers.football==='serious'?75:answers.football==='new'?58:68;base.player.ovr=answers.football==='serious'?58:answers.football==='new'?45:52;base.player.potential=answers.football==='serious'?90:answers.football==='new'?82:86;base.player.happiness=answers.support==='high'?88:answers.support==='low'?70:82;base.player.reputation=0;base.player.popularity=0;base.history=[];base.consequenceLedger=[];base.lifeTags=[];base.scouting=[];base.calendar.matches=[];base.gameMode=mode;S=base;save();closeModal();current='day';render();toast(mode==='plus'?'✨ Nowa gra+ rozpoczęta.':'🆕 Nowa kariera rozpoczęta.')}
+function applyNewProfile(mode){const name=document.getElementById('ngname').value.trim();const code=document.getElementById('ngcountry').value;const country=COUNTRY_WORLD[code];const city=document.getElementById('ngcity').value.trim()||randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=document.getElementById('ngbirth').value;if(!name||!birth||!country){toast('Uzupełnij imię, kraj i datę urodzenia.');return}const age=ageFromBirthDate(birth);if(age<10||age>19){toast('Wybierz datę dającą wiek 10–19 lat.');return}const answers={support:document.getElementById('ngsupport').value,wealth:document.getElementById('ngwealth').value,football:document.getElementById('ngfootball').value,character:document.getElementById('ngcharacter').value,school:document.getElementById('ngschool').value};let base=clone(initial);if(mode==='plus'){const oldFamily=clone(S.family);base.family=oldFamily}base.player.name=name;base.player.first=name.split(/\s+/)[0];base.player.last=name.split(/\s+/).slice(1).join(' ');base.player.country=country.name;base.player.countryCode=code;base.player.city=city;base.player.birthCountry=country.name;base.player.birthDate=birth;base.player.age=age;base.player.position=document.getElementById('ngpos').value;base.player.club='Akademia '+city;base.day.date=birth;let dt=new Date(birth+'T12:00:00');dt.setFullYear(dt.getFullYear()+age);base.day.date=dt.toISOString().slice(0,10);base.calendarConfig.country=code;base.world.calendarCountry=code;
+// Rodzina ma osobno miejsce zamieszkania i pochodzenie. Wszyscy mogą mieszkać razem w mieście zawodnika, niezależnie od narodowości/korzeni rodziców.
+const familyResidenceCountry=country.name;
+const familyResidenceCity=city;
+const parentOrigins=(base.family&&base.family.father&&base.family.father.originCountry&&base.family.mother&&base.family.mother.originCountry)
+  ? {father:base.family.father.originCountry,mother:base.family.mother.originCountry}
+  : {father:randomFrom(['Portugalia','Hiszpania','Włochy','Polska','Francja','Niemcy']),mother:randomFrom(['Brazylia','Portugalia','Hiszpania','Włochy','Polska','Francja'])};
+base.family.parentsTogether=true;
+base.family.homeType='Dom rodzinny';
+base.family.father.country=familyResidenceCountry;base.family.father.city=familyResidenceCity;base.family.father.originCountry=parentOrigins.father;base.family.father.nationality=parentOrigins.father;
+base.family.mother.country=familyResidenceCountry;base.family.mother.city=familyResidenceCity;base.family.mother.originCountry=parentOrigins.mother;base.family.mother.nationality=parentOrigins.mother;
+base.family.roots=[{label:'Ojciec',country:parentOrigins.father,city:'pochodzenie rodziny'},{label:'Matka',country:parentOrigins.mother,city:'pochodzenie rodziny'}];
+// Pochodzenie rodzica otwiera możliwość znajomości jego języka, ale nie gwarantuje biegłości.
+// Rodzic może mówić w domu, uczyć dziecko częściowo albo wcale — dlatego poziom jest losowy i może być bardzo niski.
+base.world.languages=buildFamilyLanguages(base.family,code);
+base.family.father.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.father.name)?'częściowo / regularnie':'nie przekazuje języka';
+base.family.mother.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.mother.name)?'częściowo / regularnie':'nie przekazuje języka';
+base.player.homeId='parents';
+base.family.familyWealth=answers.wealth;base.family.stability=answers.support==='high'?'stabilna':answers.support==='low'?'niestabilna':'stabilna';base.player.character=answers.character==='ambitious'?75:answers.character==='calm'?58:65;base.player.education=answers.school==='strong'?35:answers.school==='weak'?10:22;base.player.mental=answers.support==='high'?78:answers.support==='low'?62:72;base.player.form=answers.football==='serious'?75:answers.football==='new'?58:68;base.player.ovr=answers.football==='serious'?58:answers.football==='new'?45:52;base.player.potential=answers.football==='serious'?90:answers.football==='new'?82:86;base.player.happiness=answers.support==='high'?88:answers.support==='low'?70:82;base.player.reputation=0;base.player.popularity=0;base.history=[];base.consequenceLedger=[];base.lifeTags=[];base.scouting=[];base.calendar.matches=[];base.gameMode=mode;S=base;save();closeModal();current='day';render();toast(mode==='plus'?'✨ Nowa gra+ rozpoczęta.':'🆕 Nowa kariera rozpoczęta.')}
 function newGame(){if(confirm('Rozpocząć nową karierę? Wszystkie dane bieżącej kariery zostaną zastąpione.'))renderNewGameSetup('new')}
 function newGamePlus(){renderNewGameSetup('plus')}
 function renderCode(){
@@ -1479,9 +1752,247 @@ const COUNTRY_WORLD={
  NZ:{name:'Nowa Zelandia',currency:'NZD',schoolMonths:[2,3,4,5,6,7,8,9,10,11,12],summer:[12,1],languages:['angielski']},
  ZA:{name:'Republika Południowej Afryki',currency:'ZAR',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['angielski','afrikaans']},
  EG:{name:'Egipt',currency:'EGP',schoolMonths:[9,10,11,12,1,2,3,4,5],summer:[6,7,8],languages:['arabski','angielski']},
- MA:{name:'Maroko',currency:'MAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
- PT2:{name:'Portugalia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski','angielski']}
+ MA:{name:'Maroko',currency:'MAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']}
 };
+Object.assign(COUNTRY_WORLD,{
+  DK:{name:'Dania',currency:'DKK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['duński','angielski']},
+  RS:{name:'Serbia',currency:'RSD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['serbski','angielski']},
+  RO:{name:'Rumunia',currency:'RON',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński','angielski']},
+  BG:{name:'Bułgaria',currency:'BGN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bułgarski','angielski']},
+  SI:{name:'Słowenia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słoweński','angielski']},
+  BA:{name:'Bośnia i Hercegowina',currency:'BAM',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bośniacki','angielski']},
+  AL:{name:'Albania',currency:'ALL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański','angielski']},
+  ME:{name:'Czarnogóra',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czarnogórski','angielski']},
+  UA:{name:'Ukraina',currency:'UAH',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ukraiński','angielski']},
+  LT:{name:'Litwa',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['litewski','angielski']},
+  LV:{name:'Łotwa',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['łotewski','angielski']},
+  EE:{name:'Estonia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['estoński','angielski']},
+  IS:{name:'Islandia',currency:'ISK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['islandzki','angielski']},
+  LU:{name:'Luksemburg',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['luksemburski','francuski','niemiecki','angielski']},
+  CY:{name:'Cypr',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki','turecki','angielski']},
+  IL:{name:'Izrael',currency:'ILS',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hebrajski','arabski','angielski']},
+  QA:{name:'Katar',currency:'QAR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['arabski','angielski']},
+  SG:{name:'Singapur',currency:'SGD',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['angielski','mandaryński','malajski','tamilski']},
+  MY:{name:'Malezja',currency:'MYR',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['malajski','angielski','chiński']},
+  ID:{name:'Indonezja',currency:'IDR',schoolMonths:[7,8,9,10,11,12,1,2,3,4,5,6],summer:[6,7],languages:['indonezyjski','angielski']},
+  VN:{name:'Wietnam',currency:'VND',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['wietnamski','angielski']},
+  PH:{name:'Filipiny',currency:'PHP',schoolMonths:[6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['filipiński','angielski']},
+  PK:{name:'Pakistan',currency:'PKR',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['urdu','angielski','pendżabski']},
+  BD:{name:'Bangladesz',currency:'BDT',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['bengalski','angielski']},
+  NG:{name:'Nigeria',currency:'NGN',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski','hausa','joruba','igbo']},
+  GH:{name:'Ghana',currency:'GHS',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski','akan']},
+  KE:{name:'Kenia',currency:'KES',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['suahili','angielski']},
+  TN:{name:'Tunezja',currency:'TND',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
+  DZ:{name:'Algieria',currency:'DZD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
+  PE:{name:'Peru',currency:'PEN',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
+  UY:{name:'Urugwaj',currency:'UYU',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
+  EC:{name:'Ekwador',currency:'USD',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2],summer:[1,2],languages:['hiszpański','angielski']},
+  CR:{name:'Kostaryka',currency:'CRC',schoolMonths:[2,3,4,5,6,7,8,9,10,11,12],summer:[1],languages:['hiszpański','angielski']},
+  JM:{name:'Jamajka',currency:'JMD',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
+  PA:{name:'Panama',currency:'PAB',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
+  DO:{name:'Dominikana',currency:'DOP',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['hiszpański','angielski']}
+});
+Object.assign(COUNTRY_WORLD,{
+  AF:{name:'Afganistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dari / paszto']},
+  AL:{name:'Albania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański']},
+  DZ:{name:'Algieria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  AD:{name:'Andora',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kataloński']},
+  AO:{name:'Angola',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  AG:{name:'Antigua i Barbuda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  AR:{name:'Argentyna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  AM:{name:'Armenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ormiański']},
+  AU:{name:'Australia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  AT:{name:'Austria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
+  AZ:{name:'Azerbejdżan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['azerski']},
+  BS:{name:'Bahamy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  BH:{name:'Bahrajn',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  BD:{name:'Bangladesz',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bengalski']},
+  BB:{name:'Barbados',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  BE:{name:'Belgia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki / francuski']},
+  BZ:{name:'Belize',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  BJ:{name:'Benin',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  BT:{name:'Bhutan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dzongkha']},
+  BY:{name:'Białoruś',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['białoruski / rosyjski']},
+  BO:{name:'Boliwia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  BA:{name:'Bośnia i Hercegowina',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bośniacki']},
+  BW:{name:'Botswana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  BR:{name:'Brazylia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  BN:{name:'Brunei',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malajski']},
+  BG:{name:'Bułgaria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bułgarski']},
+  BF:{name:'Burkina Faso',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  BI:{name:'Burundi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kirundi']},
+  CV:{name:'Cabo Verde',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  CL:{name:'Chile',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  CN:{name:'Chiny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chiński mandaryński']},
+  HR:{name:'Chorwacja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chorwacki']},
+  CY:{name:'Cypr',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki / turecki']},
+  CZ:{name:'Czechy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czeski']},
+  TD:{name:'Czad',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski / arabski']},
+  ME:{name:'Czarnogóra',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czarnogórski']},
+  DK:{name:'Dania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['duński']},
+  DM:{name:'Dominika',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  DO:{name:'Dominikana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  DJ:{name:'Dżibuti',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / francuski']},
+  EG:{name:'Egipt',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  EC:{name:'Ekwador',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  ER:{name:'Erytrea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tigrinia / arabski']},
+  EE:{name:'Estonia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['estoński']},
+  ET:{name:'Etiopia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['amharski']},
+  FJ:{name:'Fidżi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / fidżyjski']},
+  PH:{name:'Filipiny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['filipiński']},
+  FI:{name:'Finlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['fiński']},
+  FR:{name:'Francja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  GA:{name:'Gabon',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  GM:{name:'Gambia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  GH:{name:'Ghana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  GR:{name:'Grecja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki']},
+  GD:{name:'Grenada',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  GE:{name:'Gruzja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['gruziński']},
+  GY:{name:'Gujana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  GT:{name:'Gwatemala',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  GN:{name:'Gwinea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  GW:{name:'Gwinea Bissau',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  GQ:{name:'Gwinea Równikowa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  HT:{name:'Haiti',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kreolski haitański / francuski']},
+  ES:{name:'Hiszpania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  NL:{name:'Niderlandy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki']},
+  HN:{name:'Honduras',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  IN:{name:'Indie',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hindi']},
+  ID:{name:'Indonezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['indonezyjski']},
+  IQ:{name:'Irak',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  IR:{name:'Iran',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['perski']},
+  IE:{name:'Irlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  IS:{name:'Islandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['islandzki']},
+  IL:{name:'Izrael',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hebrajski']},
+  JM:{name:'Jamajka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  JP:{name:'Japonia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['japoński']},
+  YE:{name:'Jemen',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  JO:{name:'Jordania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  KH:{name:'Kambodża',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['khmerski']},
+  CM:{name:'Kamerun',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski / angielski']},
+  CA:{name:'Kanada',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / francuski']},
+  QA:{name:'Katar',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  KZ:{name:'Kazachstan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kazachski / rosyjski']},
+  KE:{name:'Kenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suahili / angielski']},
+  KG:{name:'Kirgistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kirgiski']},
+  KI:{name:'Kiribati',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / gilbertański']},
+  CO:{name:'Kolumbia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  KM:{name:'Komory',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / francuski']},
+  CG:{name:'Kongo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  CD:{name:'Demokratyczna Republika Konga',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  KR:{name:'Korea Południowa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['koreański']},
+  KP:{name:'Korea Północna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['koreański']},
+  CR:{name:'Kostaryka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  CI:{name:'Wybrzeże Kości Słoniowej',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  CU:{name:'Kuba',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  KW:{name:'Kuwejt',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  LA:{name:'Laos',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['laotański']},
+  LS:{name:'Lesotho',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['sesotho / angielski']},
+  LB:{name:'Liban',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  LR:{name:'Liberia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  LY:{name:'Libia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  LI:{name:'Liechtenstein',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
+  LT:{name:'Litwa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['litewski']},
+  LU:{name:'Luksemburg',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['luksemburski / francuski']},
+  LV:{name:'Łotwa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['łotewski']},
+  MG:{name:'Madagaskar',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malgaski / francuski']},
+  MW:{name:'Malawi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / chichewa']},
+  MY:{name:'Malezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malajski']},
+  MV:{name:'Malediwy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dhivehi']},
+  ML:{name:'Mali',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  MT:{name:'Malta',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['maltański / angielski']},
+  MA:{name:'Maroko',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / amazigh']},
+  MR:{name:'Mauretania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  MU:{name:'Mauritius',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / francuski']},
+  MX:{name:'Meksyk',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  FM:{name:'Mikronezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  MD:{name:'Mołdawia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński']},
+  MC:{name:'Monako',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  MN:{name:'Mongolia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['mongolski']},
+  MZ:{name:'Mozambik',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  MM:{name:'Mjanma',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['birmański']},
+  NA:{name:'Namibia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  NR:{name:'Nauru',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['nauruański / angielski']},
+  NP:{name:'Nepal',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['nepalski']},
+  DE:{name:'Niemcy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
+  NE:{name:'Niger',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  NG:{name:'Nigeria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  NI:{name:'Nikaragua',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  NO:{name:'Norwegia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['norweski']},
+  NZ:{name:'Nowa Zelandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / maoryski']},
+  OM:{name:'Oman',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  PK:{name:'Pakistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['urdu']},
+  PW:{name:'Palau',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['palau']},
+  PS:{name:'Palestyna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  PA:{name:'Panama',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  PG:{name:'Papua-Nowa Gwinea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / tok pisin']},
+  PY:{name:'Paragwaj',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański / guarani']},
+  PE:{name:'Peru',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  PL:{name:'Polska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski']},
+  PT:{name:'Portugalia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
+  CF:{name:'Republika Środkowoafrykańska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  ZA:{name:'Republika Południowej Afryki',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / afrikaans']},
+  RO:{name:'Rumunia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński']},
+  RW:{name:'Rwanda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kinyarwanda / angielski']},
+  KN:{name:'Saint Kitts i Nevis',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  LC:{name:'Saint Lucia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  VC:{name:'Saint Vincent i Grenadyny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  WS:{name:'Samoa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['samoański / angielski']},
+  SM:{name:'San Marino',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski']},
+  SN:{name:'Senegal',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  RS:{name:'Serbia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['serbski']},
+  SC:{name:'Seszele',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kreolski seszelski / angielski']},
+  SL:{name:'Sierra Leone',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  SG:{name:'Singapur',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / mandaryński']},
+  SK:{name:'Słowacja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słowacki']},
+  SI:{name:'Słowenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słoweński']},
+  SO:{name:'Somalia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['somalijski']},
+  LK:{name:'Sri Lanka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['syngaleski / tamilski']},
+  SD:{name:'Sudan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  SS:{name:'Sudan Południowy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  SR:{name:'Surinam',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki']},
+  SZ:{name:'Eswatini',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suazi / angielski']},
+  CH:{name:'Szwajcaria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki / francuski / włoski']},
+  SE:{name:'Szwecja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['szwedzki']},
+  SY:{name:'Syria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  TW:{name:'Tajwan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['mandaryński']},
+  TJ:{name:'Tadżykistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tadżycki']},
+  TZ:{name:'Tanzania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suahili / angielski']},
+  TH:{name:'Tajlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tajski']},
+  TL:{name:'Timor Wschodni',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tetum / portugalski']},
+  TG:{name:'Togo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
+  TO:{name:'Tonga',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tongański / angielski']},
+  TT:{name:'Trynidad i Tobago',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  TN:{name:'Tunezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  TR:{name:'Turcja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turecki']},
+  TM:{name:'Turkmenistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turkmeński']},
+  TV:{name:'Tuvalu',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tuvalski / angielski']},
+  UG:{name:'Uganda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / suahili']},
+  UA:{name:'Ukraina',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ukraiński']},
+  UY:{name:'Urugwaj',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  UZ:{name:'Uzbekistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['uzbecki']},
+  VU:{name:'Vanuatu',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bislamijski / angielski']},
+  VA:{name:'Watykan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski / łacina']},
+  VE:{name:'Wenezuela',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
+  HU:{name:'Węgry',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['węgierski']},
+  GB:{name:'Wielka Brytania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  VN:{name:'Wietnam',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['wietnamski']},
+  IT:{name:'Włochy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski']},
+  SB:{name:'Wyspy Salomona',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  MH:{name:'Wyspy Marshalla',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['marszalski / angielski']},
+  ZM:{name:'Zambia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  ZW:{name:'Zimbabwe',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / shona']},
+  AE:{name:'Zjednoczone Emiraty Arabskie',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / angielski']},
+  US:{name:'Stany Zjednoczone',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
+  XK:{name:'Kosowo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański / serbski']},
+  RU:{name:'Rosja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rosyjski']},
+  SA:{name:'Arabia Saudyjska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
+  SV:{name:'Salwador',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['lokalny język']},
+  PR:{name:'Portoryko',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański / angielski']}
+});
+const EXTRA_COUNTRY_CITIES={
+ RS:['Belgrad','Novi Sad','Nisz'],RO:['Bukareszt','Kluż-Napoka','Timișoara'],BG:['Sofia','Płowdiw','Warna'],SI:['Lublana','Maribor','Koper'],BA:['Sarajewo','Banja Luka','Mostar'],AL:['Tirana','Durrës','Wlora'],ME:['Podgorica','Budva','Bar'],UA:['Kijów','Lwów','Odessa','Charków'],LT:['Wilno','Kowno','Kłajpeda'],LV:['Ryga','Daugavpils','Liepāja'],EE:['Tallinn','Tartu','Pärnu'],IS:['Reykjavík','Akureyri'],LU:['Luksemburg','Esch-sur-Alzette'],CY:['Nikozja','Limassol','Larnaka'],IL:['Tel Awiw','Jerozolima','Hajfa'],QA:['Doha','Al Wakrah'],SG:['Singapur'],MY:['Kuala Lumpur','George Town','Johor Bahru'],ID:['Dżakarta','Surabaja','Bandung','Bali'],VN:['Ho Chi Minh','Hanoi','Da Nang'],PH:['Manila','Cebu','Davao'],PK:['Karaczi','Lahaur','Islamabad'],BD:['Dhaka','Ćottogram','Khulna'],NG:['Lagos','Abudża','Kano'],GH:['Akra','Kumasi','Tamale'],KE:['Nairobi','Mombasa','Kisumu'],TN:['Tunis','Susa','Sfax'],DZ:['Algier','Oran','Konstantyna'],PE:['Lima','Arequipa','Cusco'],UY:['Montevideo','Salto','Punta del Este'],EC:['Quito','Guayaquil','Cuenca'],CR:['San José','Liberia','Alajuela'],JM:['Kingston','Montego Bay'],PA:['Panama City','Colón'],DO:['Santo Domingo','Santiago de los Caballeros']};
+Object.assign(COUNTRY_CITIES,EXTRA_COUNTRY_CITIES);
 function worldCountry(){return COUNTRY_WORLD[S.calendarConfig?.country||S.world?.calendarCountry||'PL']||COUNTRY_WORLD.PL}
 function addWorldItem(type,item){
   if(!S.world[type])S.world[type]=[];
