@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080a0f">
 <title>FL Life 27 — Football Life</title>
+<meta name="description" content="FL Life 27 — Football Life RPG">
 <style>
 :root{
   --bg:#07090d;--panel:#11141b;--panel2:#171b23;--panel3:#1d222c;
@@ -64,6 +65,25 @@ h1{font-size:32px;line-height:1.05;margin:8px 0 8px}h2{font-size:24px;margin:0 0
 .form{display:grid;gap:9px}.input,.select,.textarea{width:100%;background:#171b22;color:#fff;border:1px solid #303a49;border-radius:14px;padding:12px}.textarea{min-height:90px;resize:vertical}
 .kpi{font-size:13px;color:var(--muted)}.kpi b{color:#fff}
 @media(min-width:761px){.app{border-left:1px solid #161c25;border-right:1px solid #161c25;min-height:100vh}.topbar{padding-left:24px;padding-right:24px}}
+
+.fl-run-loading{position:relative;height:12px;overflow:visible;margin-top:2px}
+.fl-run-loading #flLoadBar{position:absolute;left:0;top:0;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#a9832f,#f0cf68,#fff1a3);box-shadow:0 0 16px rgba(240,207,104,.35);transition:width .2s linear}
+.fl-load-runner{position:absolute;left:0;top:50%;width:48px;height:54px;transform:translate(-22px,-70%);z-index:3;pointer-events:none;transition:left .2s linear;filter:drop-shadow(0 5px 8px rgba(0,0,0,.45))}
+.fl-load-person{position:absolute;left:2px;top:0;font-size:35px;line-height:1;display:block;transform:scaleX(-1);animation:flMiniRun .22s infinite alternate}
+.fl-load-ball{position:absolute;right:0;bottom:1px;font-size:15px;line-height:1;animation:flMiniBall .45s ease-in-out infinite alternate}
+@keyframes flMiniRun{from{transform:scaleX(-1) translateY(1px)}to{transform:scaleX(-1) translateY(-2px)}}
+@keyframes flMiniBall{from{transform:translateY(0) rotate(0)}to{transform:translateY(-3px) rotate(20deg)}}
+
+<style id="fl-runner-art">
+.fl-load-person{font-size:0!important;width:76px;height:86px;position:relative;display:block!important}
+.fl-load-person:before{
+ content:"";position:absolute;left:30px;top:4px;width:20px;height:20px;border-radius:50%;
+ background:#e9edf2;box-shadow:0 0 0 1px rgba(255,255,255,.12);
+}
+.fl-load-person:after{
+ content:"";position:absolute;left:27px;top:24px;width:27px;height:37px;border-radius:9px 9px 6px 6px;
+ background:linear-gradient(145deg,#f0cf68,#b08a35);box-shadow:14px 27px 0 -8px #e9edf2,-13px 29px 0 -8px #e9edf2;
+}
 </style>
 <style id="responsive-fl-life">
 *{box-sizing:border-box}html,body{width:100%;min-height:100%;overflow-x:hidden}
@@ -86,8 +106,105 @@ button,.btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .card,.section,.panel{min-width:0!important}table{display:block;width:100%;overflow-x:auto}
 input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.activity,.choice,.tile{min-height:46px}
 }
-</style></head>
-<body>
+</style>
+<style id="fl-life-startscreen">
+#flStartScreen{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(214,173,69,.14),transparent 28%),linear-gradient(145deg,#05070b,#090c12 48%,#05070b);overflow:hidden;transition:opacity .65s ease,visibility .65s ease}
+#flStartScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.fl-start-noise{position:absolute;inset:0;opacity:.12;background-image:radial-gradient(rgba(255,255,255,.12) .7px,transparent .7px);background-size:7px 7px}
+.fl-start-glow{position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(214,173,69,.12),transparent 65%);filter:blur(8px);animation:flGlow 4s ease-in-out infinite}
+.fl-start-inner{position:relative;width:min(620px,92vw);display:flex;flex-direction:column;align-items:center;text-align:center}
+.fl-start-brand{display:flex;flex-direction:column;align-items:center;gap:10px;transform:translateY(25px) scale(.58);opacity:0;animation:flLogoLand 1.65s cubic-bezier(.2,.85,.2,1) .15s forwards}
+.fl-start-logo{width:min(360px,68vw);height:auto;max-height:210px;object-fit:contain;filter:drop-shadow(0 18px 38px rgba(0,0,0,.6))}
+.fl-start-title{font-size:clamp(30px,7vw,52px);font-weight:950;letter-spacing:7px;line-height:1;background:linear-gradient(180deg,#fff,#f0cf68 75%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fl-start-subtitle{font-size:11px;letter-spacing:4px;color:#8e97a7;text-transform:uppercase}
+.fl-runner{width:min(520px,84vw);height:130px;margin:10px auto 0;position:relative;opacity:0;animation:flAppear .7s ease 1s forwards}
+.fl-runner-track{position:absolute;left:3%;right:3%;bottom:25px;height:2px;background:linear-gradient(90deg,transparent,#39404b 12%,#39404b 88%,transparent)}
+.fl-player{position:absolute;left:5%;bottom:25px;width:74px;height:82px;animation:flRunAcross 2.7s linear infinite}
+.fl-head{position:absolute;width:18px;height:18px;border-radius:50%;background:#e9c39b;left:29px;top:1px}
+.fl-body{position:absolute;width:28px;height:37px;border-radius:10px 10px 7px 7px;background:linear-gradient(135deg,#f0cf68,#8d6c29);left:24px;top:19px;transform:skew(-6deg)}
+.fl-leg,.fl-arm{position:absolute;width:8px;border-radius:8px;background:#d7dbe2;transform-origin:top center}
+.fl-leg{height:31px;top:50px}.fl-leg.l{left:27px;transform:rotate(25deg);animation:flLeg1 .32s infinite alternate}.fl-leg.r{left:42px;transform:rotate(-25deg);animation:flLeg2 .32s infinite alternate}
+.fl-arm{height:27px;top:22px}.fl-arm.l{left:20px;transform:rotate(38deg);animation:flArm1 .32s infinite alternate}.fl-arm.r{left:48px;transform:rotate(-35deg);animation:flArm2 .32s infinite alternate}
+.fl-ball{position:absolute;width:19px;height:19px;border-radius:50%;background:#f4f4f4;border:2px solid #222;left:68px;top:67px;box-shadow:0 0 10px rgba(255,255,255,.2);animation:flBall 1.35s ease-in-out infinite}
+.fl-loading{width:min(520px,84vw);margin-top:0;opacity:0;animation:flAppear .7s ease 1.15s forwards}
+.fl-loading-line{height:12px;border-radius:99px;background:#151a22;overflow:visible;border:1px solid #303846;position:relative}
+.fl-loading-line i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a9832f,#f0cf68,#fff1a3);box-shadow:0 0 18px rgba(240,207,104,.4);transition:width .18s ease}
+.fl-loading-row{display:flex;justify-content:space-between;margin-top:11px;font-size:11px;color:#8992a1;letter-spacing:.2px}
+#flLoadStatus{color:#d9b95b}.fl-start-menu{width:min(440px,86vw);display:grid;gap:9px;margin-top:22px;opacity:0;transform:translateY(12px);pointer-events:none;transition:.35s ease}.fl-start-menu.ready{opacity:1;transform:none;pointer-events:auto}
+.fl-start-btn{width:100%;min-height:58px;border-radius:17px;border:1px solid #303a49;background:rgba(20,25,33,.86);color:#f5f6f8;text-align:left;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;box-shadow:0 10px 28px rgba(0,0,0,.16);transition:transform .15s,border-color .15s,background .15s}
+.fl-start-btn:hover{transform:translateY(-1px);border-color:#806727;background:#191e27}.fl-start-btn.primary{border-color:#846b2b;background:linear-gradient(180deg,#302718,#1c1811)}
+.fl-start-btn .sico{font-size:25px;width:34px;text-align:center}.fl-start-btn b{display:block;font-size:16px}.fl-start-btn span{display:block;font-size:11px;color:#929aa8;margin-top:2px}.fl-start-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.fl-start-foot{margin-top:18px;color:#596273;font-size:10px;letter-spacing:1px;opacity:0;animation:flAppear .6s ease 1.5s forwards}
+@keyframes flLogoLand{0%{opacity:0;transform:translateY(55px) scale(.28)}55%{opacity:1;transform:translateY(-10px) scale(1.08)}78%{transform:translateY(3px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes flAppear{to{opacity:1}}@keyframes flGlow{0%,100%{transform:scale(.96);opacity:.7}50%{transform:scale(1.05);opacity:1}}
+@keyframes flRunAcross{0%{left:5%;transform:scaleX(1)}49%{left:80%;transform:scaleX(1)}50%{left:80%;transform:scaleX(-1)}99%{left:5%;transform:scaleX(-1)}100%{left:5%;transform:scaleX(1)}}
+@keyframes flLeg1{to{transform:rotate(-32deg)}}@keyframes flLeg2{to{transform:rotate(32deg)}}@keyframes flArm1{to{transform:rotate(-32deg)}}@keyframes flArm2{to{transform:rotate(32deg)}}
+@keyframes flBall{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-9px) rotate(180deg)}}
+@media(max-width:520px){.fl-start-logo{width:250px}.fl-start-title{font-size:31px;letter-spacing:5px}.fl-start-subtitle{font-size:9px}.fl-start-menu{margin-top:18px}}
+</style>
+<style>.fl-quick-save{position:fixed;right:16px;bottom:16px;z-index:1200;border:1px solid #5e4b22;background:#16140f;color:#f0cf68;border-radius:14px;padding:10px 13px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3)}#flStartScreen.hidden~.fl-quick-save{display:block}</style>
+<style id="fl-life-startscreen-v18">
+#flStartScreen,#flStartScreen button,#flStartScreen input,#flStartScreen textarea{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+#flStartScreen .fl-start-title{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-weight:900;letter-spacing:6px;
+}
+#flStartScreen .fl-start-subtitle,#flStartScreen .fl-loading-row,#flStartScreen .fl-start-foot{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.fl-run-loading{height:16px!important;border-radius:999px!important;background:#151a22!important;border:1px solid #303846!important;box-shadow:inset 0 1px 3px rgba(0,0,0,.45);overflow:visible!important}
+.fl-run-loading #flLoadBar{height:100%!important;border-radius:999px!important}
+.fl-load-runner{
+  width:76px!important;height:86px!important;
+  transform:translate(-38px,-76%)!important;
+  transition:left .22s linear!important;
+}
+.fl-load-person{
+  font-size:64px!important;
+  line-height:1!important;
+  filter:grayscale(1) brightness(1.9) contrast(.9) drop-shadow(0 5px 7px rgba(0,0,0,.45));
+  animation:flSilhouetteRun .20s infinite alternate!important;
+}
+.fl-load-ball{
+  display:none!important;
+}
+@keyframes flSilhouetteRun{
+  from{transform:translateY(1px) scaleX(-1)}
+  to{transform:translateY(-3px) scaleX(-1)}
+}
+</style>
+
+<style id="fl-logo-only">
+.fl-start-brand{gap:12px!important}
+.fl-start-logo{width:min(430px,78vw)!important;max-height:270px!important}
+</style>
+</head>
+<body><button class="fl-quick-save" onclick="flSaveAs()" title="Zapisz karierę">💾 Zapisz</button>
+
+<div id="flStartScreen" aria-label="FL Life 27 — ekran startowy">
+  <div class="fl-start-noise"></div>
+  <div class="fl-start-glow"></div>
+  <div class="fl-start-inner">
+    <div class="fl-start-brand">
+      <img id="flStartLogo" class="fl-start-logo" alt="FL Life 27">
+      <div class="fl-start-subtitle">Football Life • Your story, your career</div>
+    </div><div class="fl-loading">
+      <div class="fl-loading-line fl-run-loading"><i id="flLoadBar"></i><div id="flLoadRunner" class="fl-load-runner"><span class="fl-load-person">⚽</span></div></div>
+      <div class="fl-loading-row"><span id="flLoadStatus">Ładowanie świata…</span><span id="flLoadPct">0%</span></div>
+    </div>
+    <div class="fl-start-menu" id="flStartMenu">
+      <button class="fl-start-btn primary" onclick="flStartContinue()"><div class="sico">▶️</div><div><b>Kontynuuj</b><span id="flContinueDesc">Wznów ostatnią karierę</span></div></button>
+      <button class="fl-start-btn" onclick="flStartNewGame()"><div class="sico">✨</div><div><b>Nowa gra</b><span>Stwórz zupełnie nową historię</span></div></button>
+      <button class="fl-start-btn" onclick="flStartNewGamePlus()"><div class="sico">♻️</div><div><b>Nowa Gra+</b><span>Rozpocznij nową historię z dziedzictwem</span></div></button>
+      <button class="fl-start-btn" onclick="flOpenSlots()"><div class="sico">💾</div><div><b>Wczytaj grę</b><span>Wczytaj zapis z urządzenia lub kopię zapasową</span></div></button>
+      <button class="fl-start-btn" onclick="flStartSettings()"><div class="sico">⚙️</div><div><b>Ustawienia</b><span>Opcje gry i konfiguracja</span></div></button>
+    </div>
+    <div class="fl-start-foot">ŁADOWANIE ŚWIATA • BAZA KRAJÓW • KARIERA • ŻYCIE • WYDARZENIA</div>
+  </div>
+</div>
+
 <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Otwórz menu" onclick="toggleSideMenu()">☰</button>
 <div id="mobileMenuBackdrop" class="mobile-menu-backdrop" onclick="closeSideMenu()"></div>
 <div class="app">
@@ -1490,5 +1607,159 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 <script id="game-mode-fixes">
 function startNewGame(){S.gameMode='auto';if(!confirm('Rozpocząć zupełnie nową karierę?'))return;localStorage.removeItem('fl-life-27-etap3');location.reload()}
 function startNewGamePlus(){S.gameMode='plus';if(!confirm('Rozpocząć Nową Grę+? Zachowamy wybrane dziedzictwo poprzedniej kariery.'))return;const old=localStorage.getItem('fl-life-27-etap3');let legacy={};try{legacy=old?JSON.parse(old):{}}catch(e){}localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify({savedAt:Date.now(),history:legacy.history||[],consequenceLedger:legacy.consequenceLedger||[],worldFlags:legacy.worldFlags||{},lifeTags:legacy.lifeTags||[]}));localStorage.removeItem('fl-life-27-etap3');location.reload()}
-</script></body>
+</script>
+<script id="fl-life-startscreen-js">
+(function(){
+  const SLOT_PREFIX='FL_LIFE_27_SLOT_';
+  const start=document.getElementById('flStartScreen');
+  const logo=document.querySelector('.topbar .logo');
+  const startLogo=document.getElementById('flStartLogo');
+  if(startLogo && logo) startLogo.src=logo.src;
+
+  const hasSave=!!localStorage.getItem(SLOT_PREFIX + (localStorage.getItem('FL_LIFE_27_LAST_SLOT')||'1')) || !!localStorage.getItem(KEY);
+  const continueBtn=start?.querySelector('.fl-start-btn.primary');
+  if(continueBtn && !hasSave){
+    continueBtn.disabled=true;
+    const d=document.getElementById('flContinueDesc');
+    if(d)d.textContent='Brak zapisanej kariery — rozpocznij nową grę';
+  }
+
+  const stages=[
+    [8,'Uruchamianie silnika gry…'],
+    [20,'Ładowanie świata…'],
+    [34,'Wczytywanie krajów i miejscowości…'],
+    [49,'Przygotowywanie bazy postaci…'],
+    [63,'Ładowanie kariery i reprezentacji…'],
+    [77,'Ładowanie relacji i wydarzeń…'],
+    [89,'Przygotowywanie miasta i rynku…'],
+    [97,'Sprawdzanie zapisów…'],
+    [100,'Gotowe']
+  ];
+  let i=0;
+  function stage(){
+    if(!start)return;
+    const [pct,msg]=stages[i++];
+    const bar=document.getElementById('flLoadBar'), p=document.getElementById('flLoadPct'), s=document.getElementById('flLoadStatus');
+    if(bar)bar.style.width=pct+'%';
+    const runner=document.getElementById('flLoadRunner');
+    if(runner){
+      const safePct=Math.max(2,Math.min(98,pct));
+      runner.style.left=safePct+'%';
+    }
+    if(p)p.textContent=pct+'%';
+    if(s)s.textContent=msg;
+    if(pct<100){setTimeout(stage,150+Math.random()*230)}
+    else{
+      setTimeout(()=>{
+        document.getElementById('flStartMenu')?.classList.add('ready');
+      },420);
+    }
+  }
+  window.flCloseStart=function(){
+    start?.classList.add('hidden');
+    setTimeout(()=>{if(start)start.style.display='none'},700);
+  };
+  window.flStartContinue=function(){
+    const last=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
+    if(last && localStorage.getItem(SLOT_PREFIX+last)){flLoadSlot(last);return;}
+    if(!localStorage.getItem(KEY)){toast('Nie masz jeszcze zapisanej kariery.');return;}
+    flCloseStart(); current='day'; render();
+  };
+  window.flStartNewGame=function(){
+    flCloseStart();
+    setTimeout(()=>startNewGame(),150);
+  };
+  window.flStartNewGamePlus=function(){
+    flCloseStart();
+    setTimeout(()=>startNewGamePlus(),150);
+  };
+  window.flStartSettings=function(){
+    flCloseStart();
+    setTimeout(()=>{current='settings';render()},200);
+  };
+  window.flOpenLoad=function(){
+    const saved=localStorage.getItem(KEY);
+    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISY GRY</div><h2>Wczytaj grę</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+      <div class="history-item" style="margin-top:14px">
+        <div class="row"><b>📁 Ostatni zapis na tym urządzeniu</b><span class="badge">${saved?'Dostępny':'Brak'}</span></div>
+        <div class="muted small" style="margin-top:6px">${saved?'Możesz wrócić do ostatniej zapisanej kariery.':'Nie znaleziono zapisu.'}</div>
+        ${saved?'<button class="btn goldbtn" style="margin-top:10px" onclick="flLoadLocalSave()">▶️ Wczytaj ostatni zapis</button>':''}
+      </div>
+      <div class="divider"></div>
+      <div class="history-item">
+        <b>📦 Wczytaj kopię zapasową</b>
+        <div class="muted small" style="margin-top:6px">Wybierz plik JSON zapisany wcześniej z FL Life 27.</div>
+        <input id="flSaveFile" type="file" accept=".json,application/json" class="input" style="margin-top:10px" onchange="flImportSave(event)">
+      </div>`,true);
+  };
+  window.flLoadLocalSave=function(){
+    if(!localStorage.getItem(KEY)){toast('Brak zapisu.');return;}
+    closeModal();flCloseStart();current='day';render();toast('💾 Wczytano ostatnią karierę.');
+  };
+  window.flImportSave=function(e){
+    const file=e.target.files?.[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(){
+      try{
+        const data=JSON.parse(reader.result);
+        if(!data || !data.player || !data.day) throw new Error('invalid');
+        localStorage.setItem(KEY,JSON.stringify(data));
+        closeModal();
+        location.reload();
+      }catch(err){toast('Nieprawidłowy plik zapisu FL Life 27.');}
+    };
+    reader.readAsText(file);
+  };
+  window.addEventListener('load',()=>setTimeout(stage,520),{once:true});
+})();
+</script>
+
+<script id="fl-life-save-slots">
+(function(){
+  const SLOT_PREFIX='FL_LIFE_27_SLOT_';
+  const META_KEY='FL_LIFE_27_SLOT_META';
+  const MAX_SLOTS=5;
+  function slotMeta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'[]')}catch(e){return[]}}
+  function setMeta(a){localStorage.setItem(META_KEY,JSON.stringify(a))}
+  function slotKey(n){return SLOT_PREFIX+n}
+  function saveSlot(n,data){
+    localStorage.setItem(slotKey(n),JSON.stringify(data));
+    const a=slotMeta().filter(x=>x.slot!==n);
+    a.push({slot:n,name:data?.player?.name||`Kariera ${n}`,city:data?.player?.city||'',age:data?.player?.age||'',updated:new Date().toLocaleString('pl-PL')});
+    setMeta(a);
+    localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));
+  }
+  function getSlot(n){try{const s=localStorage.getItem(slotKey(n));return s?JSON.parse(s):null}catch(e){return null}}
+  window.flGetSaveSlots=function(){return Array.from({length:MAX_SLOTS},(_,i)=>({slot:i+1,data:getSlot(i+1),meta:slotMeta().find(x=>x.slot===i+1)||null}))};
+  window.flSaveCurrentToSlot=function(n){
+    if(!S?.player)return;
+    saveSlot(n,S);
+    if(typeof toast==='function')toast(`💾 Zapisano karierę w slocie ${n}.`);
+  };
+  window.flLoadSlot=function(n){
+    const d=getSlot(n);if(!d){if(typeof toast==='function')toast('Ten slot jest pusty.');return;}
+    localStorage.setItem(KEY,JSON.stringify(d));
+    localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));
+    location.reload();
+  };
+  window.flDeleteSlot=function(n){
+    localStorage.removeItem(slotKey(n));
+    setMeta(slotMeta().filter(x=>x.slot!==n));
+    if(typeof toast==='function')toast(`Usunięto zapis z slotu ${n}.`);
+    if(typeof flOpenLoad==='function')flOpenLoad();
+  };
+  window.flSaveAs=function(){
+    const slots=flGetSaveSlots();
+    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISZ KARIERĘ</div><h2>Wybierz slot</h2><div class="muted">5 niezależnych karier</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="list">${slots.map(s=>`<div class="history-item"><div class="row"><b>Slot ${s.slot}</b><span class="badge">${s.data?'ZAJĘTY':'PUSTY'}</span></div>${s.data?`<div class="muted small">${esc(s.meta?.name||s.data.player?.name||'Kariera')} • ${esc(s.meta?.city||s.data.player?.city||'')} • ${s.meta?.updated||''}</div>`:'<div class="muted small">Brak zapisanej kariery</div>'}<button class="btn goldbtn" style="margin-top:9px" onclick="flSaveCurrentToSlot(${s.slot});closeModal()">💾 Zapisz tutaj</button></div>`).join('')}</div>`,true);
+  };
+  window.flOpenSlots=function(){
+    const slots=flGetSaveSlots();
+    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 WCZYTAJ GRĘ</div><h2>Twoje kariery</h2><div class="muted">Możesz mieć maksymalnie 5 różnych zapisów.</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="list">${slots.map(s=>`<div class="history-item"><div class="row"><b>Slot ${s.slot}</b><span class="badge">${s.data?'ZAJĘTY':'PUSTY'}</span></div>${s.data?`<div style="margin-top:6px"><b>${esc(s.meta?.name||s.data.player?.name||'Kariera')}</b><div class="muted small">${esc(s.meta?.city||s.data.player?.city||'')} • wiek ${s.meta?.age||s.data.player?.age||'?'} • ${s.meta?.updated||''}</div></div><div style="display:flex;gap:7px;margin-top:9px"><button class="btn goldbtn" onclick="flLoadSlot(${s.slot})">▶️ Wczytaj</button><button class="btn" onclick="flDeleteSlot(${s.slot})">🗑️ Usuń</button></div>`:'<div class="muted small" style="margin-top:6px">Ten slot jest wolny.</div>'}</div>`).join('')}</div>`,true);
+  };
+  window.flLastPlayedSlot=function(){return Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0)};
+})();
+</script>
+</body>
 </html>
