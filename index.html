@@ -208,12 +208,18 @@ const initial={
   familyEvents:[],
   calendarConfig:{country:null,schoolYear:true},
   gameMode:'manual',
-agent:{
-  name:null,agency:null,feePct:5,monthlyFee:0,market:'global',relationship:50,
-  specialties:[],searchTargets:[],offers:[],history:[]
-},
-sponsors:{active:[],proposals:[],rejected:[],negotiations:[],history:[]},
-clubNegotiations:{active:[],completed:[],rejected:[],withdrawn:[],history:[]}
+  world:{
+    transport:{mode:'parents',ownedBike:false,ownedCar:false,monthlyCost:0,travelSpeed:1},
+    languages:[], skills:[], educationTracks:[], licenses:[],
+    clothing:[], shoes:[], equipment:[], specialists:[], properties:[], cars:[],
+    gifts:[], investments:[], businesses:[], charity:[],
+    agents:[], sponsors:[], endorsements:[],
+    parentSupport:{pocketMoney:0,financialHelp:0,materialHelp:0,majorLifeHelp:0},
+    familyWealth:[], familyHousing:[], familyAssets:[],
+    relationships:{}, contacts:{}, brandDeals:[],
+    sideCareers:{music:null,film:null,creator:null,influencer:null},
+    calendarCountry:'PL'
+  }
 };
 
 let S=load();
@@ -354,7 +360,17 @@ function renderDay(){
 <div class="muted">Kraj: ${esc(S.calendarConfig?.country||S.player.countryCode||S.player.country||'—')}</div>
 <div style="margin-top:10px">${renderLifeCalendar()}</div>
 </section>
-<section class="section card"><div class="eyebrow">🤝 KARIERA</div><h2>Agent, kluby i sponsorzy</h2><div class="muted">Tutaj pojawią się propozycje, negocjacje, odrzucenia, rezygnacje i zadania dla agenta.</div><div style="margin-top:12px"><button class="btn goldbtn" onclick="showAgentSearch()">🤝 Znajdź agenta</button></div></section>
+<section class="section card">
+<div class="eyebrow">🚦 DOJAZD</div><h2>Jak docierasz?</h2>
+<div class="muted">Sposób transportu wpływa na czas, koszt i późniejsze możliwości.</div>
+<div class="grid2" style="margin-top:10px">
+<button class="btn" onclick="selectTransport('parents')">👨‍👩‍👧 Rodzice</button>
+<button class="btn" onclick="selectTransport('bus')">🚌 Autobus</button>
+<button class="btn" onclick="selectTransport('walk')">🚶 Pieszo</button>
+<button class="btn" onclick="selectTransport('bike')">🚲 Rower</button>
+<button class="btn" onclick="selectTransport('car')">🚗 Własne auto</button>
+</div>
+</section>
 <section class="section card"><div class="eyebrow">AKTYWNOŚCI</div><h2>Co robisz teraz?</h2>
     <div class="badges"><span class="badge gold">⏱️ czas: ${timePL(d.time)}</span><span class="badge">🎲 wydarzenia aktywne</span><span class="badge">💾 zapis automatyczny</span></div>
     <div class="muted small">Każda aktywność naprawdę przesuwa czas i zmienia stan zawodnika. Nowe możliwości odblokowują się wraz z życiem.</div>
@@ -432,7 +448,7 @@ function sleep(){
   addHistory('Nowy dzień',`Rozpoczęto dzień ${S.day.dayNo}.`, '⚡ +energia • ❤️ regeneracja');
   processFutureConsequences();
   maybeSchoolConsequence();
-  if(Math.random()<0.28) maybeFamilyEvent();
+  if(Math.random()<0.28) maybeFamilyEvent(); if(Math.random()<0.16) familySupportEvent();
   maybeDailyEvent();
   save();render();window.scrollTo({top:0,behavior:'smooth'});toast('🌅 Nowy dzień rozpoczęty!');
 }
@@ -1023,10 +1039,17 @@ function inspectLifeMemory(){
 
 
 /* ===== ETAP 4: SZKOŁA — OBECNOŚĆ WYNIKA Z PRZEBIEGU DNIA ===== */
+function setWorldCountry(code){
+  if(!COUNTRY_WORLD[code])return;
+  S.calendarConfig.country=code; S.world.calendarCountry=code;
+  addHistory('Zmiana kraju',`Świat gry działa teraz według kalendarza ${COUNTRY_WORLD[code].name}.`,'📅 kalendarz zaktualizowany');
+  save();render();
+}
 function isSchoolDay(dateStr){
   const d=new Date(dateStr+'T12:00:00');
   const dow=d.getDay();
   if(dow===0||dow===6)return false;
+  const cw=worldCountry(); if(cw.schoolMonths && !cw.schoolMonths.includes(d.getMonth()+1))return false;
   // Holiday calendar can be extended later; for now major fixed Polish holidays.
   const md=(d.getMonth()+1)+'-'+d.getDate();
   const fixed=['1-1','1-6','5-1','5-3','8-15','11-1','11-11','12-25','12-26'];
@@ -1077,22 +1100,6 @@ function schoolAttendanceStatus(){
   return {label:'Szkoła czeka',icon:'📚'};
 }
 
-
-
-const WORLD_COUNTRIES=[
-['PL','Polska','🇵🇱'],['DE','Niemcy','🇩🇪'],['FR','Francja','🇫🇷'],['ES','Hiszpania','🇪🇸'],['PT','Portugalia','🇵🇹'],
-['IT','Włochy','🇮🇹'],['GB','Wielka Brytania','🇬🇧'],['NL','Holandia','🇳🇱'],['BE','Belgia','🇧🇪'],['AT','Austria','🇦🇹'],
-['CH','Szwajcaria','🇨🇭'],['CZ','Czechy','🇨🇿'],['SK','Słowacja','🇸🇰'],['HU','Węgry','🇭🇺'],['RO','Rumunia','🇷🇴'],
-['HR','Chorwacja','🇭🇷'],['RS','Serbia','🇷🇸'],['GR','Grecja','🇬🇷'],['TR','Turcja','🇹🇷'],['SE','Szwecja','🇸🇪'],
-['NO','Norwegia','🇳🇴'],['DK','Dania','🇩🇰'],['FI','Finlandia','🇫🇮'],['IS','Islandia','🇮🇸'],['IE','Irlandia','🇮🇪'],
-['US','USA','🇺🇸'],['CA','Kanada','🇨🇦'],['MX','Meksyk','🇲🇽'],['BR','Brazylia','🇧🇷'],['AR','Argentyna','🇦🇷'],
-['CL','Chile','🇨🇱'],['CO','Kolumbia','🇨🇴'],['UY','Urugwaj','🇺🇾'],['AU','Australia','🇦🇺'],['NZ','Nowa Zelandia','🇳🇿'],
-['JP','Japonia','🇯🇵'],['KR','Korea Południowa','🇰🇷'],['CN','Chiny','🇨🇳'],['IN','Indie','🇮🇳'],['AE','ZEA','🇦🇪'],
-['SA','Arabia Saudyjska','🇸🇦'],['QA','Katar','🇶🇦'],['MA','Maroko','🇲🇦'],['EG','Egipt','🇪🇬'],['ZA','RPA','🇿🇦'],
-['NG','Nigeria','🇳🇬'],['GH','Ghana','🇬🇭'],['SN','Senegal','🇸🇳'],['CI','Wybrzeże Kości Słoniowej','🇨🇮']
-];
-function countryName(code){const x=WORLD_COUNTRIES.find(c=>c[0]===code);return x?`${x[2]} ${x[1]}`:code||'Nie wybrano';}
-function countryOptions(){return WORLD_COUNTRIES.map(c=>`<option value="${c[0]}">${c[2]} ${c[1]}</option>`).join('');}
 
 /* ===== ETAP 5: SZKOŁA, RODZINA, KALENDARZ I TRYB NOWEJ GRY ===== */
 function schoolConsequenceEvent(){
@@ -1180,7 +1187,7 @@ function getCountryCalendar(country){
 function calendarEventsForDate(dateStr){
   const events=[];
   const d=new Date(dateStr+'T12:00:00'), md=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const country=S.calendarConfig?.country||S.player.countryCode||S.player.country||'PL';
+  const country=S.calendarConfig?.country||S.player.countryCode||'PL';
   for(const e of getCountryCalendar(country))if(e[0]===md)events.push({date:dateStr,title:e[1],icon:e[2],type:e[3]});
   if(d.getDay()===0||d.getDay()===6)events.push({date:dateStr,title:'Weekend',icon:'🏖️',type:'wolne'});
   if(S.calendar?.matches)for(const m of S.calendar.matches)if(m.date===dateStr)events.push({date:dateStr,title:'Mecz: '+(m.opponent||'rywal'),icon:'⚽',type:'mecz'});
@@ -1196,106 +1203,164 @@ function setGameMode(mode){
 }
 
 
-/* ===== ETAP 6: KLUBY, AGENT, SPONSORZY I NEGOCJACJE ===== */
-function ensureCareerPeople(){
-  if(!S.agent)S.agent={name:null,agency:null,feePct:5,monthlyFee:0,market:'global',relationship:50,specialties:[],searchTargets:[],offers:[],history:[]};
-  if(!S.sponsors)S.sponsors={active:[],proposals:[],rejected:[],negotiations:[],history:[]};
-  if(!S.clubNegotiations)S.clubNegotiations={active:[],completed:[],rejected:[],withdrawn:[],history:[]};
+/* ===== ETAP 6: ROZBUDOWANY ŚWIAT — DANE I ZASADY =====
+   Moduły korzystają z jednego świata. Zakupy, transport, języki, relacje,
+   rodzina, specjaliści, agent i sponsorzy mogą tworzyć kolejne konsekwencje.
+*/
+const WORLD_CATALOG={
+  shoes:[
+    {id:'boot_basic',name:'Korki treningowe Basic',brand:'FL Sport',price:45,quality:2,effects:{form:1},tags:['training'],deal:null},
+    {id:'boot_pro',name:'Korki Pro Speed',brand:'Adidas',price:140,quality:5,effects:{form:2,ovr:.2},tags:['speed'],deal:'adidas'},
+    {id:'boot_elite',name:'Korki Elite Carbon',brand:'Nike',price:280,quality:8,effects:{form:3,ovr:.4},tags:['elite'],deal:'nike'},
+    {id:'boot_control',name:'Korki Control',brand:'Puma',price:120,quality:5,effects:{form:2,mental:1},tags:['control'],deal:'puma'}
+  ],
+  clothes:[
+    {id:'kit_basic',name:'Strój treningowy Basic',brand:'FL Sport',price:35,effects:{mental:1}},
+    {id:'kit_pro',name:'Komplet Performance',brand:'Nike',price:130,effects:{mental:2,popularity:.2}},
+    {id:'jacket',name:'Kurtka klubowa',brand:'Adidas',price:110,effects:{mental:2,reputation:1}}
+  ],
+  gifts:[
+    {id:'gift_small',name:'Drobny prezent dla bliskiej osoby',price:25,effects:{happiness:4}},
+    {id:'gift_family',name:'Większy prezent rodzinny',price:100,effects:{happiness:8,reputation:1}},
+    {id:'gift_partner',name:'Prezent dla partnerki / partnera',price:180,effects:{happiness:10}}
+  ],
+  transport:[
+    {id:'walk',name:'Pieszo',price:0,speed:.7,mental:1},
+    {id:'bus',name:'Autobus / komunikacja',price:2,speed:1,mental:0},
+    {id:'bike',name:'Rower',price:0,speed:1.25,requires:'bike'},
+    {id:'parents',name:'Rodzice podwożą',price:0,speed:1.2,requires:'parents'},
+    {id:'car',name:'Własne auto',price:0,speed:1.5,requires:'car'}
+  ],
+  specialists:[
+    {id:'sports_psych',name:'Psycholog sportowy',price:60,effects:{mental:8}},
+    {id:'physio',name:'Fizjoterapeuta sportowy',price:75,effects:{health:6}},
+    {id:'doctor',name:'Lekarz medycyny sportowej',price:90,effects:{health:7}},
+    {id:'nutrition',name:'Dietetyk sportowy',price:70,effects:{health:4,form:2}},
+    {id:'sleep',name:'Specjalista regeneracji / snu',price:65,effects:{energy:8,mental:3}},
+    {id:'performance',name:'Trener przygotowania motorycznego',price:85,effects:{form:3,ovr:.3}}
+  ],
+  languages:[
+    {id:'english',name:'Angielski',difficulty:2,career:['football','creator','music'],countries:['GB','US','ES','DE']},
+    {id:'spanish',name:'Hiszpański',difficulty:2,career:['football','creator'],countries:['ES','MX','AR']},
+    {id:'german',name:'Niemiecki',difficulty:3,career:['football'],countries:['DE','AT','CH']},
+    {id:'french',name:'Francuski',difficulty:3,career:['football','creator'],countries:['FR','BE','CH']}
+  ],
+  education:[
+    {id:'school',name:'Szkoła ogólna',time:1,requires:0},
+    {id:'sports_course',name:'Kurs podstaw sportu',time:3,cost:120,requires:30},
+    {id:'media_course',name:'Kurs mediów i wystąpień',time:4,cost:180,requires:35},
+    {id:'business_course',name:'Podstawy biznesu',time:5,cost:220,requires:40},
+    {id:'coaching_course',name:'Kurs trenerski',time:8,cost:600,requires:55}
+  ],
+  licenses:[
+    {id:'car_b',name:'Prawo jazdy B',cost:900,time:12,requiresAge:18},
+    {id:'motorcycle',name:'Prawo jazdy A',cost:1200,time:16,requiresAge:18},
+    {id:'boat',name:'Licencja żeglarska',cost:700,time:8,requiresAge:16},
+    {id:'pilot',name:'Licencja pilota',cost:25000,time:60,requiresAge:18}
+  ],
+  property:[
+    {id:'room',name:'Pokój / wynajem',price:350,rooms:1,type:'rental'},
+    {id:'studio',name:'Kawalerka',price:180000,rooms:1,type:'apartment'},
+    {id:'flat2',name:'Mieszkanie 2-pokojowe',price:320000,rooms:2,type:'apartment'},
+    {id:'flat4',name:'Mieszkanie rodzinne',price:520000,rooms:4,type:'apartment'},
+    {id:'house',name:'Dom z małym ogrodem',price:760000,rooms:5,type:'house'},
+    {id:'villa',name:'Duży dom z ogrodem',price:1450000,rooms:7,type:'villa'},
+    {id:'estate',name:'Rezydencja z zapleczem sportowym',price:3200000,rooms:10,type:'estate'}
+  ],
+  cars:[
+    {id:'city',name:'Małe auto miejskie',price:45000,comfort:2,speed:2},
+    {id:'sport',name:'Sportowe coupe',price:180000,comfort:4,speed:5},
+    {id:'suv',name:'SUV rodzinny',price:240000,comfort:5,speed:3},
+    {id:'luxury',name:'Luksusowy samochód',price:650000,comfort:7,speed:5}
+  ],
+  businesses:[
+    {id:'academy',name:'Mała szkółka sportowa',cost:120000,monthly:2500,potential:8},
+    {id:'gym',name:'Studio treningowe',cost:300000,monthly:5000,potential:12},
+    {id:'media',name:'Studio medialne',cost:180000,monthly:3500,potential:10},
+    {id:'cafe',name:'Kawiarnia',cost:220000,monthly:3000,potential:7}
+  ],
+  investments:[
+    {id:'safe',name:'Lokata / bezpieczne oszczędzanie',risk:1,entry:100},
+    {id:'fund',name:'Fundusz inwestycyjny',risk:3,entry:500},
+    {id:'shares',name:'Akcje',risk:5,entry:500},
+    {id:'property',name:'Inwestycja w nieruchomość',risk:4,entry:5000}
+  ]
+};
+const COUNTRY_WORLD={
+  PL:{name:'Polska',currency:'PLN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski','angielski']},
+  ES:{name:'Hiszpania',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański','angielski']},
+  GB:{name:'Wielka Brytania',currency:'GBP',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
+  US:{name:'USA',currency:'USD',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['angielski']},
+  BR:{name:'Brazylia',currency:'BRL',schoolMonths:[2,3,4,5,6,7,8,9,10,11],summer:[12,1],languages:['portugalski','angielski']},
+  DE:{name:'Niemcy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niemiecki','angielski']}
+};
+function worldCountry(){return COUNTRY_WORLD[S.calendarConfig?.country||S.world?.calendarCountry||'PL']||COUNTRY_WORLD.PL}
+function addWorldItem(type,item){
+  if(!S.world[type])S.world[type]=[];
+  S.world[type].push({...clone(item),boughtAt:S.day.date});
 }
-function createAgent(name='Marco Silva',agency='Next Level Sports'){
-  ensureCareerPeople();
-  S.agent={name,agency,feePct:5,monthlyFee:250,market:'global',relationship:55,
-    specialties:['transfery','kontrakty','sponsorzy'],searchTargets:[],offers:[],history:[]};
-  addHistory('Nowy agent',`${name} z ${agency} został Twoim agentem.`,'🤝 prowizja '+S.agent.feePct+'%');
-}
-function agentBrief(){
-  ensureCareerPeople();
-  const a=S.agent;
-  if(!a.name)return `<div class="muted">Nie masz obecnie agenta. Możesz rozpocząć poszukiwania.</div>`;
-  return `<div class="card"><div class="row"><b>🤝 ${esc(a.name)}</b><span class="badge gold">${a.relationship}/100 relacja</span></div>
-  <div class="muted small" style="margin-top:6px">${esc(a.agency)} • rynek: ${esc(a.market)} • prowizja: ${a.feePct}% • stała opłata: €${a.monthlyFee}/mies.</div>
-  <div class="muted small" style="margin-top:6px">Specjalizacje: ${a.specialties.map(esc).join(' • ')||'brak'}</div></div>`;
-}
-function agentRequest(type){
-  ensureCareerPeople();
-  if(!S.agent.name){showAgentSearch();return;}
-  const labels={club:'klub',sponsor:'sponsora',transfer:'oferty transferowej',contract:'nowego kontraktu',international:'rynku zagranicznego'};
-  S.agent.searchTargets.push({type,day:S.day.dayNo,status:'szuka',label:labels[type]||type});
-  S.agent.relationship=clamp(S.agent.relationship+1,0,100);
-  addHistory('Rozmowa z agentem',`Poprosiłeś agenta o poszukiwanie: ${labels[type]||type}.`,'🔎 zadanie dodane');
+function buyWorldItem(type,id){
+  const list=WORLD_CATALOG[type]||[];
+  const item=list.find(x=>x.id===id); if(!item)return;
+  const price=item.price||item.cost||0;
+  let discount=0;
+  if(item.deal && S.world.brandDeals.includes(item.deal)) discount=.15;
+  const final=Math.round(price*(1-discount));
+  if((S.player.money||0)<final){triggerEvent({title:'Brakuje pieniędzy',text:'Nie stać Cię teraz na ten zakup.',choices:[['Wróć później','Zachowujesz pieniądze.',{}],['Poproś rodziców o pomoc','Może pojawić się rodzinne wydarzenie.',{happiness:1}],['Poszukaj tańszej opcji','Rozglądasz się za alternatywą.',{mental:1}] ]});return;}
+  S.player.money-=final;
+  addWorldItem(type,item);
+  for(const [k,v] of Object.entries(item.effects||{})){
+    if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);
+    else if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);
+    else S.player[k]=clamp((S.player[k]||0)+v,0,100);
+  }
+  if(item.deal && !S.world.brandDeals.includes(item.deal))S.world.brandDeals.push(item.deal);
+  addHistory('Zakup: '+item.name,`Kupiono ${item.name}.`,'- '+final+' • wpływ zależny od przedmiotu');
   save();render();
 }
-function showAgentSearch(){
-  openModal(`<div class="modal-head"><div><div class="eyebrow">🤝 AGENT</div><h2>Znajdź swojego agenta</h2></div><button class="close" onclick="closeModal()">✕</button></div>
-  <div class="list">
-  ${['Anna Kowalska — NextGen Football','Marco Silva — Global Player Management','Daniel Weber — Elite Sports','Sofia Rossi — Pro Athlete Agency'].map((x,i)=>`<button class="btn ${i===0?'goldbtn':''}" onclick="chooseAgent(${i})">${x}<br><span class="muted small">rynek: ${i===2?'Europa + USA':'global'} • prowizja: ${4+i}%</span></button>`).join('')}
-  </div>`,true);
+function selectTransport(mode){
+  const t=WORLD_CATALOG.transport.find(x=>x.id===mode); if(!t)return;
+  if(t.requires==='bike'&&!S.world.transport.ownedBike)return alert('Najpierw musisz posiadać rower.');
+  if(t.requires==='car'&&!S.world.transport.ownedCar)return alert('Najpierw musisz posiadać samochód.');
+  S.world.transport.mode=mode;
+  S.world.transport.travelSpeed=t.speed;
+  S.world.transport.monthlyCost=t.price;
+  addHistory('Transport',`Dojeżdżasz na aktywności: ${t.name}.`,'wpływ na czas dojazdu');
+  save();render();
 }
-function chooseAgent(i){
-  const agents=[
-    ['Anna Kowalska','NextGen Football',4,'Europa'],
-    ['Marco Silva','Global Player Management',5,'global'],
-    ['Daniel Weber','Elite Sports',6,'Europa + USA'],
-    ['Sofia Rossi','Pro Athlete Agency',7,'Europa + Ameryka Południowa']
+function familySupportEvent(){
+  if(Math.random()>0.3)return;
+  const options=[
+    ['Rodzice dają kieszonkowe','Stałe wsparcie może poprawić Twoją niezależność.',{happiness:2,mental:2}],
+    ['Rodzice kupują Ci sprzęt','Sprzęt poprawia możliwości treningowe.',{form:2,mental:2}],
+    ['Rodzice odmawiają pomocy','Musisz znaleźć własny sposób finansowania.',{mental:-2,reputation:1}]
   ];
-  const a=agents[i];createAgent(a[0],a[1]);S.agent.feePct=a[2];S.agent.market=a[3];closeModal();save();render();
+  const e=options[Math.floor(Math.random()*options.length)];
+  triggerEvent({title:'Rodzinne wsparcie finansowe',text:e[1],choices:[
+    [e[0],e[1],e[2]],['Podziękuj, ale odmów','Chcesz być bardziej niezależny.',{mental:2}],['Porozmawiajcie o zasadach','Ustalasz warunki wsparcia.',{happiness:3,mental:1}]
+  ]});
 }
-function fireAgent(){
-  ensureCareerPeople();
-  if(!S.agent.name)return;
-  const old=S.agent.name;
-  S.agent.history.push({day:S.day.dayNo,action:'zakończenie współpracy',name:old});
-  addHistory('Rozstanie z agentem',`Zakończyłeś współpracę z agentem ${old}.`,'🤝 możesz rozpocząć poszukiwanie nowego');
-  S.agent.name=null;S.agent.agency=null;S.agent.offers=[];S.agent.searchTargets=[];
-  save();render();
+function futureFamilySupport(){
+  // Used later by marriage/home/children systems.
+  return {wedding:false,home:false,car:false,debt:false};
 }
-function proposeClubOffer(club='Academia FC',country='PL'){
-  ensureCareerPeople();
-  const offer={id:'club_'+Date.now(),club,country,salary:Math.round(600+S.player.ovr*35),years:2,
-    role:S.player.ovr>70?'pierwszy skład':'rozwój',status:'propozycja',day:S.day.dayNo};
-  S.clubNegotiations.active.push(offer);
-  addHistory('Oferta klubowa',`${club} przedstawił Ci propozycję.`,'⚽ otwórz negocjacje');
-  return offer;
+function sideCareerSummary(){
+  return {
+    music:'Nauka instrumentu/wokal + sprzęt + kursy + publikacje + popularność',
+    film:'Sprzęt + montaż + kursy + projekty + sieć kontaktów',
+    creator:'Tworzenie treści + sprzęt + regularność + algorytm + marka',
+    influencer:'Wizerunek + społeczność + współprace + sponsorzy'
+  };
 }
-function clubDecision(id,action){
-  ensureCareerPeople();
-  const o=S.clubNegotiations.active.find(x=>x.id===id);if(!o)return;
-  o.status=action;
-  S.clubNegotiations.active=S.clubNegotiations.active.filter(x=>x.id!==id);
-  if(action==='accepted'){S.clubNegotiations.completed.unshift(o);S.player.club=o.club;S.player.money=(S.player.money||0)+o.salary;
-    addHistory('Podpisano kontrakt',`Zaakceptowałeś ofertę ${o.club}.`,'⚽ nowy etap kariery');
-  } else if(action==='rejected'){S.clubNegotiations.rejected.unshift(o);addHistory('Odrzucona oferta',`Odrzuciłeś propozycję ${o.club}.`,'⚽ oferta zamknięta');
-  } else {S.clubNegotiations.withdrawn.unshift(o);addHistory('Wycofana propozycja',`Negocjacje z ${o.club} zostały zakończone.`,'⚽ możliwość powrotu w przyszłości');}
-  save();render();
-}
-function sponsorProposal(brand='FL Sport'){
-  ensureCareerPeople();
-  const p={id:'sp_'+Date.now(),brand,value:Math.round(1000+S.player.popularity*100),duration:6,requirements:['aktywność w mediach'],status:'new',day:S.day.dayNo};
-  S.sponsors.proposals.unshift(p);
-  addHistory('Propozycja sponsora',`${brand} chce rozpocząć rozmowy.`,'💰 sprawdź warunki');
-  return p;
-}
-function sponsorDecision(id,action){
-  ensureCareerPeople();
-  const p=S.sponsors.proposals.find(x=>x.id===id);if(!p)return;
-  p.status=action;S.sponsors.proposals=S.sponsors.proposals.filter(x=>x.id!==id);
-  if(action==='accept'){S.sponsors.active.unshift(p);addHistory('Podpisano sponsora',`Rozpocząłeś współpracę z ${p.brand}.`,'💰 aktywna umowa');
-  }else if(action==='reject'){S.sponsors.rejected.unshift(p);addHistory('Odrzucono sponsora',`Odrzuciłeś propozycję ${p.brand}.`,'💬 decyzja zapisana');
-  }else {S.sponsors.negotiations.unshift({...p,status:'negocjacje'});addHistory('Negocjacje sponsorskie',`Rozpocząłeś negocjacje z ${p.brand}.`,'💬 warunki mogą się zmienić');}
-  save();render();
-}
-function careerOffersPanel(){
-  ensureCareerPeople();
-  const clubs=S.clubNegotiations.active||[], sp=S.sponsors.proposals||[];
-  return `<div class="section card"><div class="eyebrow">🤝 OFERTY I NEGOCJACJE</div>
-  <h2>Kariera poza boiskiem</h2>${agentBrief()}
-  <div class="list" style="margin-top:12px">
-  <button class="btn" onclick="agentRequest('club')">🔎 Poproś agenta o szukanie klubu</button>
-  <button class="btn" onclick="agentRequest('sponsor')">💼 Poproś agenta o szukanie sponsora</button>
-  <button class="btn" onclick="agentRequest('international')">🌍 Szukaj rynku zagranicznego</button>
-  <button class="btn" onclick="fireAgent()">🔁 Szukaj nowego agenta</button>
-  </div>
-  <div class="muted small" style="margin-top:14px">Kluby: ${clubs.length} aktywnych propozycji • Sponsorzy: ${sp.length} nowych propozycji</div></div>`;
+function openWorldCatalog(type){
+  const list=WORLD_CATALOG[type]||[];
+  const title={shoes:'👟 Korki i obuwie',clothes:'👕 Ubrania',gifts:'🎁 Prezenty',specialists:'🩺 Specjaliści',languages:'🌍 Języki',education:'🎓 Edukacja',licenses:'🪪 Licencje',property:'🏠 Nieruchomości',cars:'🚗 Samochody',businesses:'💼 Biznes',investments:'📈 Inwestycje'}[type]||'Katalog';
+  openModal(`<div class="modal-head"><div><div class="eyebrow">KATALOG</div><h2>${title}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+  <div class="list">${list.map(x=>{
+    const cost=x.price||x.cost||0;
+    return `<div class="history-item"><div class="row"><b>${esc(x.name)}</b><span class="badge">${cost?cost:'bezpłatne'}</span></div>
+    <div class="muted small">${esc(x.brand||x.type||x.description||'Różne właściwości i możliwe konsekwencje.')}</div>
+    <button class="btn" style="margin-top:8px" onclick="buyWorldItem('${type}','${x.id}')">Wybierz / kup</button></div>`}).join('')}</div>`,true);
 }
 
 function render(){
