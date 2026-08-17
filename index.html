@@ -243,8 +243,37 @@ let S=load();
 let current='day';
 
 function load(){
-  try{const x=JSON.parse(localStorage.getItem(KEY)); if(x){return deepMerge(clone(initial),x)}}catch(e){}
-  return clone(initial);
+  try{const x=JSON.parse(localStorage.getItem(KEY)); if(x){
+    const s=deepMerge(clone(initial),x);
+    migrateSave(s);
+    return s;
+  }}catch(e){}
+  const s=clone(initial); migrateSave(s); return s;
+}
+function migrateSave(s){
+  s.world=s.world||{}; s.world.properties=s.world.properties||[];
+  s.properties=(s.properties||[]).filter(p=>p.status==='mieszkam z rodzicami'||p.status==='własność'||p.owned===true);
+  s.properties.forEach(p=>{if(p.status==='mieszkam z rodzicami')p.owned=true});
+  if(s.player?.age<18 && s.properties.length===0){
+    s.properties=[{id:'parents',name:'Dom rodzinny',type:'dom',city:s.player.city,status:'mieszkam z rodzicami',value:0,rooms:5,comfort:70,owned:true,expandable:false}];
+  }
+  if(s.day && s.day.time>24*60)s.day.time=24*60;
+  if(!s.world.shoes)s.world.shoes=[];
+  if(!s.world.languages)s.world.languages=[];
+  // Jeśli niepełnoletni zawodnik mieszka z rodzicami, rodzice mieszkają z nim;
+  // ich narodowość/pochodzenie pozostaje niezależne od miejsca zamieszkania.
+  if(s.player?.age<18 && s.family?.parentsTogether){
+    s.family.father.country=s.player.country;
+    s.family.father.city=s.player.city;
+    s.family.mother.country=s.player.country;
+    s.family.mother.city=s.player.city;
+  }
+  // Język miejsca zamieszkania jest językiem środowiska i zawsze wynosi 100%.
+  try{
+    if(s.player?.countryCode && typeof addResidenceLanguage==='function'){
+      s.world.languages=addResidenceLanguage(s.world.languages,s.player.countryCode);
+    }
+  }catch(e){}
 }
 function deepMerge(a,b){
   for(const k in b){
@@ -300,107 +329,206 @@ function openDrawer(){document.getElementById('drawer').classList.add('open')}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
 
 const activities=[
- {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2,mental:2}},
+ {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2},fixed:true},
+ {id:'school',ic:'🎓',name:'Szkoła',time:420,cost:0,desc:'Lekcje, obowiązki i normalny dzień szkolny — trzeba zmieścić ją do 15:00',effects:{energy:-12,education:3,mental:-1},fixed:true},
  {id:'tech',ic:'🎯',name:'Trening techniczny',time:60,cost:10,desc:'Indywidualna technika z piłką',effects:{energy:-8,form:4,ovr:.25}},
  {id:'speed',ic:'🏃',name:'Szybkość i dynamika',time:60,cost:10,desc:'Przyspieszenie, koordynacja, zwrotność',effects:{energy:-10,health:-1,ovr:.2}},
- {id:'strength',ic:'🏋️',name:'Siła',time:60,cost:12,desc:'Przygotowanie motoryczne',effects:{energy:-10,health:-1,ovr:.2}},
+ {id:'strength',ic:'🏋️',name:'Siła i motoryka',time:60,cost:12,desc:'Przygotowanie motoryczne',effects:{energy:-10,health:-1,ovr:.2}},
  {id:'analysis',ic:'📹',name:'Analiza meczu',time:60,cost:0,desc:'Oglądanie i analiza decyzji boiskowych',effects:{energy:-4,mental:3,ovr:.15}},
- {id:'school',ic:'🎓',name:'Szkoła / nauka',time:120,cost:0,desc:'Nauka i obowiązki szkolne',effects:{energy:-7,education:3,mental:-1}},
- {id:'study',ic:'📚',name:'Nauka do sprawdzianu',time:60,cost:0,desc:'Przygotowanie do egzaminu lub sprawdzianu',effects:{energy:-5,education:4}},
+ {id:'study',ic:'📚',name:'Nauka do sprawdzianu',time:60,cost:0,desc:'Przygotowanie do sprawdzianu lub kartkówki',effects:{energy:-5,education:4}},
+ {id:'studyFriends',ic:'🧑‍🏫',name:'Nauka ze znajomymi',time:90,cost:5,desc:'Wspólna nauka i motywacja',effects:{energy:-6,education:3,happiness:3,mental:2}},
+ {id:'library',ic:'📖',name:'Biblioteka',time:60,cost:0,desc:'Ciche miejsce do nauki i odpoczynku',effects:{energy:-3,education:2,mental:3}},
  {id:'games',ic:'🎮',name:'Wieczór z grami',time:120,cost:0,desc:'Rozrywka i relaks',effects:{energy:-2,happiness:7,mental:5}},
  {id:'flgram',ic:'📱',name:'FLgram / social media',time:60,cost:0,desc:'Publikacje, feed, obserwowanie i wiadomości',effects:{energy:-2,happiness:3,mental:2,popularity:.15}},
  {id:'help',ic:'🤝',name:'Pomoc innym',time:120,cost:0,desc:'Relacje, charakter i reputacja',effects:{energy:-8,happiness:7,mental:6,popularity:.1,reputation:2}},
- {id:'family',ic:'👨‍👩‍👦',name:'Czas z rodziną',time:120,cost:0,desc:'Rozmowa, wspólny czas i relacje',effects:{energy:-4,happiness:6,mental:4}},
- {id:'friend',ic:'🧑‍🤝‍🧑',name:'Spotkanie ze znajomym',time:120,cost:10,desc:'Relacje społeczne',effects:{energy:-5,happiness:8,mental:5}},
- {id:'walk',ic:'🚶',name:'Spacer',time:60,cost:0,desc:'Lekka aktywność i reset głowy',effects:{energy:-3,happiness:3,mental:5,health:1}},
+ {id:'family',ic:'👨‍👩‍👦',name:'Czas z rodziną',time:120,cost:0,desc:'Rozmowa, wspólny czas i relacje',effects:{energy:-4,happiness:6,mental:4},fixed:true},
+ {id:'friend',ic:'🧑‍🤝‍🧑',name:'Spotkanie ze znajomym',time:120,cost:10,desc:'Relacje społeczne',effects:{energy:-5,happiness:8,mental:5},fixed:true},
+ {id:'walk',ic:'🚶',name:'Spacer',time:60,cost:0,desc:'Lekka aktywność i reset głowy',effects:{energy:-3,happiness:3,mental:5,health:1},fixed:true},
  {id:'pool',ic:'🏊',name:'Basen',time:90,cost:8,desc:'Regeneracja i ogólna sprawność',effects:{energy:-7,health:3,mental:3}},
+ {id:'skate',ic:'🛹',name:'Skatepark',time:120,cost:5,desc:'Jazda, ruch i spotkania z ekipą',effects:{energy:-8,health:1,happiness:8,mental:4}},
+ {id:'bike',ic:'🚲',name:'Przejażdżka rowerowa',time:90,cost:0,desc:'Ruch i odkrywanie okolicy',effects:{energy:-7,health:2,happiness:5,mental:4}},
+ {id:'park',ic:'🌳',name:'Park / boisko osiedlowe',time:90,cost:0,desc:'Luźna aktywność na świeżym powietrzu',effects:{energy:-5,health:1,happiness:6,mental:4}},
+ {id:'basket',ic:'🏀',name:'Koszykówka ze znajomymi',time:120,cost:0,desc:'Gra rekreacyjna i rywalizacja',effects:{energy:-10,health:1,happiness:8,mental:3}},
+ {id:'footballFriends',ic:'⚽',name:'Piłka ze znajomymi',time:120,cost:0,desc:'Luźna gra poza treningiem klubowym',effects:{energy:-10,health:1,happiness:7,mental:4,form:1}},
  {id:'regen',ic:'💆',name:'Regeneracja',time:60,cost:20,desc:'Lekka regeneracja zamiast treningu',effects:{energy:8,health:4,mental:2}},
  {id:'music',ic:'🎤',name:'Nauka muzyki',time:120,cost:20,desc:'Rozwijanie pobocznej kariery',effects:{energy:-8,mental:2}},
  {id:'film',ic:'🎬',name:'Tworzenie filmu',time:120,cost:25,desc:'Praca nad materiałem',effects:{energy:-10,mental:1,popularity:.25}},
  {id:'date',ic:'❤️',name:'Spotkanie / randka',time:120,cost:30,desc:'Czas z osobą ważną dla Ciebie',effects:{energy:-5,happiness:10,mental:5}},
  {id:'psych',ic:'🧠',name:'Psycholog sportowy',time:60,cost:90,desc:'Praca nad mentalem',effects:{energy:-3,mental:8}},
  {id:'chores',ic:'🧹',name:'Pomoc w domu',time:60,cost:0,desc:'Obowiązki domowe',effects:{energy:-4,happiness:-1,reputation:1}},
- {id:'sleep',ic:'🌙',name:'Sen',time:600,cost:0,desc:'Zakończ dzień i rozpocznij następny o 08:00',effects:{}}
+ {id:'shopping',ic:'🛍️',name:'Wyjście na zakupy',time:90,cost:0,desc:'Miasto, sklepy i okazje',effects:{energy:-4,happiness:4,mental:2}},
+ {id:'cinema',ic:'🎬',name:'Kino',time:150,cost:15,desc:'Wyjście ze znajomymi lub rodzina',effects:{energy:-3,happiness:9,mental:5}},
+ {id:'cook',ic:'🍳',name:'Gotowanie w domu',time:60,cost:8,desc:'Wspólne przygotowanie jedzenia',effects:{energy:-3,happiness:5,mental:4}},
+ {id:'volunteer',ic:'❤️',name:'Wolontariat',time:120,cost:0,desc:'Pomoc lokalnej społeczności',effects:{energy:-7,happiness:8,mental:6,reputation:2}},
+ {id:'sleep',ic:'🌙',name:'Sen',time:0,cost:0,desc:'Zakończ dzień i rozpocznij następny o 07:00',effects:{},fixed:true}
 ];
 
+function weekdayPL(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  const names=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  return names[d.getDay()];
+}
+function dateLongPL(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  return d.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function isSchoolToday(){return isSchoolDay(S.day.date) && S.player.age<19}
+function dailySeed(){
+  const s=(S.day.date||'').replace(/-/g,'').split('').reduce((a,c)=>a+c.charCodeAt(0),0)+S.day.dayNo*17;
+  return Math.abs(s);
+}
+function dailyActivityList(){
+  const fixed=activities.filter(a=>a.fixed && a.id!=='sleep');
+  const rotating=activities.filter(a=>!a.fixed && a.id!=='sleep');
+  let arr=rotating.map((x,i)=>({x,score:(dailySeed()*(i+7)+i*31)%997})).sort((a,b)=>a.score-b.score).slice(0,14).map(x=>x.x);
+  // Szkoła pojawia się tylko w dni szkolne. Trening klubowy może pojawić się każdego dnia,
+  // ale realny kalendarz i dostępność nadal ograniczają jego wykonanie.
+  if(!isSchoolToday()) arr=arr.filter(a=>a.id!=='study'&&a.id!=='studyFriends'&&a.id!=='library');
+  return [...fixed.filter(a=>a.id!=='school'||isSchoolToday()),...arr];
+}
 function availability(a){
-  const p=S.player, h=Math.floor(S.day.time/60);
-  if(a.id==='sleep') return true;
+  const p=S.player, t=S.day.time, h=t/60;
+  if(a.id==='sleep') return h>=20;
   if(a.id==='date' && p.age<13) return false;
   if(['music','film'].includes(a.id) && p.money<a.cost) return false;
   if(a.id==='psych' && p.money<a.cost) return false;
+  if(a.id==='school'){
+    if(!isSchoolToday()) return false;
+    if(h<7 || h>8) return false;
+    if(t+a.time>15*60) return false;
+  }
   if(p.energy<Math.max(3,-(a.effects.energy||0))) return false;
   if(h>=22) return false;
-  if(h+a.time/60>23) return false;
-  if(a.id==='school' && (h<7 || h>17)) return false;
+  if(t+a.time>24*60) return false;
   return true;
 }
 function activityCard(a){
-  const ok=availability(a);
   const ef=Object.entries(a.effects).map(([k,v])=>`${v>0?'+':''}${v} ${labelStat(k)}`).join(' • ');
-  return `<button class="action" ${ok?'':'disabled'} onclick="doActivity('${a.id}')">
+  return `<button class="action" onclick="doActivity('${a.id}')">
     <div class="ico">${a.ic}</div><div class="body"><div class="title">${a.name}</div><div class="desc">${a.desc}</div><div class="desc">${ef||'regeneracja / przejście czasu'}</div></div>
-    <div class="right"><div class="time">${a.time>=60?Math.floor(a.time/60)+'h':a.time+' min'}</div><div class="cost">${a.cost?money(a.cost):'bez kosztu'}</div></div>
+    <div class="right"><div class="time">${a.id==='sleep'?'do 07:00':a.time>=60?Math.floor(a.time/60)+'h':a.time+' min'}</div><div class="cost">${a.cost?money(a.cost):'bez kosztu'}</div></div>
   </button>`;
 }
 function labelStat(k){return ({energy:'⚡',health:'❤️',mental:'🧠',happiness:'⭐',popularity:'POP',form:'forma',ovr:'OVR',education:'edu.',reputation:'REP'})[k]||k}
 
+
+function randomTravelEvent(context='akcja'){
+  const modes=[
+    {name:'🚶 Pieszo',min:10,max:25,energy:.5},
+    {name:'🚌 Autobus',min:15,max:35,energy:.3},
+    {name:'🚲 Rower',min:10,max:25,energy:1},
+    {name:'🚗 Rodzice podwożą',min:8,max:22,energy:0},
+    {name:'🛴 Hulajnoga',min:10,max:28,energy:.7}
+  ];
+  const m=modes[Math.floor(Math.random()*modes.length)];
+  const minutes=Math.floor(m.min+Math.random()*(m.max-m.min+1));
+  const eventRoll=Math.random();
+  let event=null;
+  if(eventRoll<.10) event={title:'🚦 Niespodziewany dojazd',text:`Dojazd na ${context} nie przebiegł normalnie. ${m.name} — ${minutes} min.`,choices:[
+    ['Czekam spokojnie','Docierasz później, ale bez większych konsekwencji.',{mental:1}],
+    ['Szukam szybszej trasy','Ryzykujesz większe zmęczenie.',{energy:-2}]
+  ]};
+  else if(eventRoll<.16) event={title:'📸 Zauważono Cię po drodze',text:`Podczas dojazdu na ${context} ktoś Cię rozpoznał.`,choices:[
+    ['Zatrzymuję się na zdjęcie','Miły kontakt z kibicem.',{popularity:1}],
+    ['Idę dalej','Zachowujesz prywatność.',{mental:1}]
+  ]};
+  return {mode:m.name,minutes,event};
+}
+function startActionWithTravel(action){
+  const travel=randomTravelEvent(action.name||'aktywność');
+  S.day.lastTravel={action:action.name,mode:travel.mode,minutes:travel.minutes,date:S.date};
+  if(travel.event){
+    S.day.pendingAfterTravel={action,travel};
+    triggerEvent(travel.event);
+    return false;
+  }
+  advanceMinutes(travel.minutes);
+  return true;
+}
+function finishAction(action){
+  const travel=randomTravelEvent(action.name||'aktywność');
+  S.day.lastTravel={action:action.name,mode:travel.mode,minutes:travel.minutes,date:S.date};
+  advanceMinutes(travel.minutes);
+  if(travel.event){
+    S.day.pendingAfterTravel={action,travel};
+    triggerEvent(travel.event);
+    return;
+  }
+  executeActionCore(action);
+}
+
+
+function resumeAfterTravel(){
+  const p=S.day.pendingAfterTravel;
+  if(!p) return;
+  S.day.pendingAfterTravel=null;
+  __originalExecuteActionCore(p.action);
+}
+
 function renderDay(){
+  const travelInfo=S.day.lastTravel?`<div class="card" style="margin:10px 0"><div class="eyebrow">🚦 OSTATNI DOJAZD</div><b>${esc(S.day.lastTravel.mode)}</b><div class="muted small">${Math.round(S.day.lastTravel.minutes)} min • ${esc(S.day.lastTravel.action||'')}</div></div>`:'';
+
   const p=S.player,d=S.day;
   const upcoming=S.calendar.matches.find(m=>m.status==='scheduled');
   const invite=S.scouting.find(x=>x.status==='new');
-  let cards=activities.filter(a=>{
-    if(a.id==='school' || a.id==='study') return p.age<19;
-    if(a.id==='music') return true;
-    if(a.id==='film') return p.age>=16;
-    return true;
-  });
+  const all=dailyActivityList();
+  const available=all.filter(availability);
+  const nonSleep=available.filter(a=>a.id!=='sleep');
+  const onlySleep=nonSleep.length===0 && availability(activities.find(a=>a.id==='sleep'));
+  const sleepCard=activities.find(a=>a.id==='sleep');
   return `<section class="section card gold-card">
-    <div class="eyebrow">PRZEBIEG DNIA</div><h1>${esc(p.name)}</h1>
-    <div class="muted">${esc(p.club)} • ${esc(p.position)} • ${p.age} lat • ${esc(p.city)}, ${esc(p.country)}</div>
+    <div class="eyebrow">PRZEBIEG DNIA</div>
+    <h1 style="text-transform:capitalize">${esc(dateLongPL(d.date))}</h1>
+    <div class="muted">${esc(p.name)} • ${esc(p.club)} • ${esc(p.position)} • ${p.age} lat • ${esc(p.city)}, ${esc(p.country)}</div>
     <div class="grid2" style="margin-top:16px">
-      <div class="metric"><span>Dzień / data</span><b>${datePL(d.date)}</b></div>
-      <div class="metric"><span>Godzina</span><b>${timePL(d.time)}</b></div>
+      <div class="metric"><span>Dzień tygodnia</span><b style="font-size:22px;text-transform:capitalize">${esc(weekdayPL(d.date))}</b></div>
+      <div class="metric"><span>Data</span><b>${datePL(d.date)}</b></div>
+      <div class="metric"><span>Godzina</span><b style="font-size:22px">${timePL(d.time)}</b></div>
       <div class="metric"><span>Energia</span><b>${Math.round(p.energy)}</b></div>
       <div class="metric"><span>Popularność</span><b>${p.popularity.toFixed(1)}%</b></div>
+      <div class="metric"><span>Szkoła</span><b>${isSchoolToday()?'📚 dzień szkolny':'🌤️ brak szkoły'}</b></div>
     </div>
     ${invite?`<div class="notice" onclick="openScout('${invite.id}')"><div class="ico">🔎</div><div><b>NOWE ZAPROSZENIE OD SKAUTA</b><span>${esc(invite.club)} • ${esc(invite.type)} • Otwórz i zdecyduj</span></div></div>`:''}
     <div class="notice" onclick="go('calendar')"><div class="ico">📅</div><div><b>${upcoming?'Mecz za '+daysUntil(upcoming.date)+' dni':'Kalendarz'}</b><span>${upcoming?esc(upcoming.competition+' • '+upcoming.opponent):'Święta, mecze i ważne terminy'}</span></div></div>
   </section>
   <section class="section card school-status-card">
-<div class="eyebrow">📚 EDUKACJA</div>
-<div class="row"><div><h2 style="margin:4px 0">Szkoła</h2><div class="muted">Jeżeli dziś jest dzień szkolny i nie wybierzesz szkoły jako aktywności, wieczorem zostanie to zapisane jako nieobecność.</div></div>
-<div class="badge gold" id="schoolStatusBadge">📚 Szkoła czeka</div></div>
-</section>
-<section class="section card">
-<div class="eyebrow">📅 DZISIAJ</div><h2>Kalendarz</h2>
-<div class="muted">Kraj: ${esc(S.calendarConfig?.country||S.player.countryCode||S.player.country||'—')}</div>
-<div style="margin-top:10px">${renderLifeCalendar()}</div>
-</section>
-<section class="section card">
-<div class="eyebrow">🚦 DOJAZD</div><h2>Jak docierasz?</h2>
-<div class="muted">Sposób transportu wpływa na czas, koszt i późniejsze możliwości.</div>
-<div class="grid2" style="margin-top:10px">
-<button class="btn" onclick="selectTransport('parents')">👨‍👩‍👧 Rodzice</button>
-<button class="btn" onclick="selectTransport('bus')">🚌 Autobus</button>
-<button class="btn" onclick="selectTransport('walk')">🚶 Pieszo</button>
-<button class="btn" onclick="selectTransport('bike')">🚲 Rower</button>
-<button class="btn" onclick="selectTransport('car')">🚗 Własne auto</button>
-</div>
-</section>
-<section class="section card"><div class="eyebrow">AKTYWNOŚCI</div><h2>Co robisz teraz?</h2>
-    <div class="badges"><span class="badge gold">⏱️ czas: ${timePL(d.time)}</span><span class="badge">🎲 wydarzenia aktywne</span><span class="badge">💾 zapis automatyczny</span></div>
-    <div class="muted small">Każda aktywność naprawdę przesuwa czas i zmienia stan zawodnika. Nowe możliwości odblokowują się wraz z życiem.</div>
-    ${cards.map(activityCard).join('')}
-  </section>
-  <section class="section card gold-card">
-    <div class="row"><div><div class="eyebrow">DZIEŃ</div><h2>🌙 Sen</h2></div><span class="badge gold">22:00 → 08:00</span></div>
-    <div class="muted">Sen kończy dzień natychmiast. Następny dzień zostanie zapisany, energia i zdrowie się zregenerują, a ekran wróci na górę.</div>
-    <button class="btn goldbtn" style="margin-top:12px" onclick="doActivity('sleep')">🌙 Zakończ dzień i śpij</button>
+    <div class="eyebrow">📚 EDUKACJA</div>
+    <div class="row"><div><h2 style="margin:4px 0">Szkoła</h2><div class="muted">${isSchoolToday()?'Dzisiaj jest dzień szkolny. Jeśli nie wybierzesz szkoły, wieczorem zostanie to zapisane jako nieobecność.':'Dzisiaj nie ma obowiązkowej szkoły.'}</div></div>
+    <div class="badge gold">${isSchoolToday()?'📚 Szkoła czeka':'🌤️ Dzień wolny'}</div></div>
   </section>
   <section class="section card">
-    <div class="eyebrow">🧠 HISTORIA I PRZYSZŁOŚĆ</div>
-    <h2>Twoje życie pamięta</h2>
+    <div class="eyebrow">📅 DZISIAJ</div><h2>${esc(dateLongPL(d.date))}</h2>
+    <div class="muted">Kraj: ${esc(S.calendarConfig?.country||S.player.countryCode||S.player.country||'—')}</div>
+    <div style="margin-top:10px">${renderLifeCalendar()}</div>
+  </section>
+  <section class="section card">
+    <div class="eyebrow">🚦 DOJAZD</div><h2>Jak docierasz?</h2>
+    <div class="muted">Sposób transportu wpływa na czas, koszt i późniejsze możliwości.</div>
+    <div class="grid2" style="margin-top:10px">
+      <button class="btn" onclick="selectTransport('parents')">👨‍👩‍👧 Rodzice</button>
+      <button class="btn" onclick="selectTransport('bus')">🚌 Autobus</button>
+      <button class="btn" onclick="selectTransport('walk')">🚶 Pieszo</button>
+      <button class="btn" onclick="selectTransport('bike')">🚲 Rower</button>
+      <button class="btn" onclick="selectTransport('car')">🚗 Własne auto</button>
+    </div>
+  </section>
+  ${onlySleep?`<section class="section card gold-card" style="border:2px solid rgba(212,175,55,.5)">
+    <div class="row"><div><div class="eyebrow">🌙 KONIEC DNIA</div><h2>😴 Sen jest teraz jedyną dostępną akcją</h2></div><span class="badge gold">${timePL(d.time)} → 07:00</span></div>
+    <div class="muted">Wszystkie pozostałe aktywności nie mieszczą się już dzisiaj. Zakończ dzień, aby rozpocząć kolejny.</div>
+    <button class="btn goldbtn" style="margin-top:12px" onclick="doActivity('sleep')">🌙 Śpij do 07:00</button>
+  </section>`:
+  `<section class="section card"><div class="eyebrow">AKTYWNOŚCI NA DZIŚ</div><h2>Co robisz teraz?</h2>
+    <div class="badges"><span class="badge gold">⏱️ ${timePL(d.time)}</span><span class="badge">🎲 oferta dnia zmienia się</span><span class="badge">💾 zapis automatyczny</span></div>
+    <div class="muted small">Nie wszystkie akcje są dostępne codziennie. Część możliwości rotuje wraz z dniem, a godzina, energia, szkoła i pieniądze zmieniają ofertę.</div>
+    ${available.filter(a=>a.id!=='sleep').map(activityCard).join('')}
+    ${availability(sleepCard)?`<div style="margin-top:12px">${activityCard(sleepCard)}</div>`:''}
+  </section>`}
+  <section class="section card gold-card">
+    <div class="eyebrow">DZIEŃ I SEN</div><h2>🌙 Sen</h2>
+    <div class="muted">Sen zaczyna się o aktualnej godzinie i kończy o 07:00 następnego dnia. Im wcześniej zaśniesz, tym więcej godzin regeneracji.</div>
+  </section>
+  <section class="section card">
+    <div class="eyebrow">🧠 HISTORIA I PRZYSZŁOŚĆ</div><h2>Twoje życie pamięta</h2>
     <div class="muted">Decyzje mogą mieć skutki za kilka dni, tygodni, miesięcy albo sezonów. Nie wszystkie konsekwencje są widoczne od razu.</div>
     <button class="btn goldbtn" style="margin-top:12px" onclick="inspectLifeMemory()">🧠 Otwórz pamięć decyzji</button>
   </section>
@@ -427,19 +555,20 @@ function doActivity(id){
   const a=activities.find(x=>x.id===id); if(!a)return;
   if(!availability(a)){toast('Ta aktywność jest teraz niedostępna.');return}
   if(id==='sleep'){sleep();return}
-  if(S.day.time<8*60) S.day.time=8*60;
   const old={...S.player};
   S.player.money-=a.cost;
   S.day.time+=a.time;
-  if(S.day.time>=23*60){toast('Jest już późno — pora na sen.');S.day.time=23*60}
+  if(S.day.time>24*60)S.day.time=24*60;
   for(const [k,v] of Object.entries(a.effects)){
     if(k==='popularity') S.player.popularity=clamp(S.player.popularity+v,0,100);
     else S.player[k]=clamp((S.player[k]||0)+v,0,100);
   }
   if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis'){S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99)}
+  if(id==='school') attendSchool();
   if(id==='music') secondaryWork('music',false);
   if(id==='film') secondaryWork('film',false);
   if(id==='flgram') flgramAction();
+  if(['club','tech','speed','strength'].includes(id)) applyBootWear(2);
   addHistory(`Aktywność: ${a.name}`,`Wykonano ${a.name} o ${timePL(S.day.time-a.time)}.`,effectsDiff(old,S.player));
   maybeEvent(id);
   S.tutorial.steps[0]=true; S.tutorial.steps[1]=true;
@@ -450,24 +579,26 @@ function effectsDiff(o,n){
   return keys.filter(k=>o[k]!==n[k]).map(k=>`${labelStat(k)} ${n[k]>o[k]?'+':''}${Math.round((n[k]-o[k])*10)/10}`).join(' • ');
 }
 function sleep(){
+  const currentMinutes=Math.min(24*60,Math.max(0,S.day.time));
+  const hours=(currentMinutes<=7*60?0:(24*60-currentMinutes)+7*60)/60;
+  const h=Math.max(0,Math.min(12,hours));
   const d=new Date(S.day.date+'T12:00:00');d.setDate(d.getDate()+1);
   S.day.date=d.toISOString().slice(0,10);S.day.dayNo++;
-  S.day.time=8*60;
-  S.player.energy=clamp(S.player.energy+45,0,100);
-  S.player.health=clamp(S.player.health+10,0,100);
-  S.player.mental=clamp(S.player.mental+8,0,100);
-  S.player.happiness=clamp(S.player.happiness+4,0,100);
+  S.day.time=7*60;
+  const quality=Math.max(0,Math.min(1,h/9));
+  S.player.energy=clamp(S.player.energy+Math.round(20+45*quality),0,100);
+  S.player.health=clamp(S.player.health+Math.round(3+8*quality),0,100);
+  S.player.mental=clamp(S.player.mental+Math.round(3+7*quality),0,100);
+  S.player.happiness=clamp(S.player.happiness+Math.round(1+3*quality),0,100);
   S.tutorial.steps[2]=true;
-  // Zakończenie dnia rozlicza szkołę automatycznie.
-  // Jeśli gracz nie wybrał aktywności „Szkoła”, jest to nieobecność.
   schoolDayMissed();
   dailyUpdate();
-  addHistory('Nowy dzień',`Rozpoczęto dzień ${S.day.dayNo}.`, '⚡ +energia • ❤️ regeneracja');
+  addHistory('Sen',`Spałaś ${h.toFixed(1)} h. Nowy dzień rozpoczął się o 07:00.`,`⚡ regeneracja zależna od długości snu`);
   processFutureConsequences();
   maybeSchoolConsequence();
   if(Math.random()<0.28) maybeFamilyEvent(); if(Math.random()<0.16) familySupportEvent();
   maybeDailyEvent();
-  save();render();window.scrollTo({top:0,behavior:'smooth'});toast('🌅 Nowy dzień rozpoczęty!');
+  save();render();window.scrollTo({top:0,behavior:'smooth'});toast(`🌅 Nowy dzień — sen: ${h.toFixed(1)} h`);
 }
 function dailyUpdate(){
   S.family.father.age += Math.random()<.03?1:0;
@@ -874,7 +1005,7 @@ function renderLife(){
  <div class="grid2" style="margin-top:15px">${[['❤️ Zdrowie',S.player.health],['🧠 Mental',S.player.mental],['⭐ Szczęście',S.player.happiness],['⚽ Forma',S.player.form]].map(x=>`<div class="metric"><span>${x[0]}</span><b>${Math.round(x[1])}</b></div>`).join('')}</div></section>
  <section class="section card"><div class="eyebrow">🎓 EDUKACJA</div><h2>${esc(S.player.school)}</h2><div class="muted">Edukacja wymaga czasu i nauki. Samo zapłacenie za kurs nigdy nie daje automatycznie kwalifikacji.</div><button class="btn" style="margin-top:12px" onclick="go('education')">🎓 Otwórz szkołę, kursy i ścieżki po piłce</button></section>
  <section class="section card"><div class="eyebrow">🚀 KARIERA POBOCZNA</div><h2>Rozwijaj równolegle</h2>${S.secondary.map(j=>`<div class="job"><div class="row"><h3>${j.icon} ${j.name}</h3><span class="badge">${j.level}%</span></div><div class="muted small">${j.needs}</div><div class="progress" style="margin:9px 0"><i style="width:${j.level}%"></i></div><button class="btn" onclick="secondaryWork('${j.id}',true)" ${!j.unlocked?'disabled':''}>${j.unlocked?'Rozwijaj — czas + nauka + zasoby':'🔒 jeszcze zablokowane'}</button></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">🏠 MIESZKANIE I MAJĄTEK</div><div class="list">${S.properties.map(p=>`<div class="property"><h3>🏠 ${esc(p.name)}</h3><div class="muted">${esc(p.city)} • ${p.rooms} pok. • komfort ${p.comfort}/100</div><div class="badges"><span class="badge">${esc(p.status)}</span><span class="badge">${money(p.value)}</span></div></div>`).join('')}</div></section>`;
+ <section class="section card"><div class="eyebrow">🏠 MIESZKANIE I MAJĄTEK</div><div class="list">${S.properties.filter(p=>p.owned!==false && (p.status==='własność'||p.status==='mieszkam z rodzicami')).map(p=>`<div class="property"><h3>🏠 ${esc(p.name)}</h3><div class="muted">${esc(p.city)} • ${p.rooms} pok. • komfort ${p.comfort}/100</div><div class="badges"><span class="badge">${esc(p.status)}</span><span class="badge">${p.value?money(p.value):'rodzinny'}</span></div></div>`).join('')||'<div class="muted">Brak własnej nieruchomości. W wieku 15 lat dom rodziców jest jedynym miejscem zamieszkania, dopóki wydarzenie nie zmieni sytuacji.</div>'}</div></section>`;
 }
 function secondaryWork(id,fromButton){
  const j=S.secondary.find(x=>x.id===id);if(!j)return;
@@ -2202,7 +2333,7 @@ function buyWorldItem(type,id){
   addWorldItem(type,item);
   if(type==='property'){
     if(!S.world.properties)S.world.properties=[];
-    const prop={...clone(item),value:final,city:item.city||S.player.city,status:'własność',comfort:item.comfort||50,rooms:item.rooms||1,expansions:0};
+    const prop={...clone(item),value:final,city:item.city||S.player.city,status:'własność',owned:true,comfort:item.comfort||50,rooms:item.rooms||1,expansions:0};
     S.world.properties.push(prop);
     if(!S.properties)S.properties=[];
     S.properties.push(prop);
@@ -2275,10 +2406,10 @@ function dynamicStoreCatalog(type){
   const brands={shoes:['Nike','adidas','Puma','New Balance','Under Armour','Asics','Mizuno','Joma','Umbro','Hummel'],clothes:['Nike','adidas','Puma','Under Armour','New Balance','Jordan','Levi’s','Zara','H&M','Uniqlo','The North Face','Lacoste'],electronics:['Apple','Samsung','Sony','Xiaomi','Google','Lenovo','Asus','Acer','LG','Nintendo','Meta','Bose','JBL'],equipment:['Garmin','Apple','Samsung','GoPro','DJI','Sony','Canon','Yamaha','Pioneer','Wilson','Adidas','Nike']};
   const arr=[];
   if(type==='shoes'){
-    const models=['Speed','Control','Ultra','Future','Mercurial','Phantom','Predator','Tiempo','X','Academy','Elite','Pro'];
-    brands.shoes.forEach((b,i)=>models.slice(0,5).forEach((m,j)=>arr.push({id:`dynshoe_${cycle}_${i}_${j}`,name:`${b} ${m}`,brand:b,price:Math.round((70+i*18+j*32)*mult),quality:2+j,effects:{form:1+j*.2},deal:b.toLowerCase()})));
+    const models=['Speed','Control','Ultra','Future','Mercurial','Phantom','Predator','Tiempo','Furon','Morelia','Copa','King','Academy','Elite','Pro','Ultimate','Match'];
+    brands.shoes.forEach((b,i)=>models.slice(0,10).forEach((m,j)=>arr.push({id:`dynshoe_${cycle}_${i}_${j}`,name:`${b} ${m}`,brand:b,price:Math.round((55+i*15+j*24)*mult),quality:2+(j%9),attributes:{speed:2+(j%8),control:2+((j+2)%8),shooting:1+((j+4)%8),comfort:3+((j+1)%7),grip:2+((j+3)%8)},effects:{form:1+(j%5)*.3,ovr:j>6?.15:0},deal:b.toLowerCase()})));
   } else if(type==='clothes'){
-    const items=['Koszulka treningowa','Bluza','Kurtka','Spodnie treningowe','Dres','Szorty','Koszulka casual','Jeansy','Buty lifestyle','Czapka','Plecak','Garnitur','Kurtka zimowa'];
+    const items=['Koszulka treningowa','Bluza','Kurtka','Spodnie treningowe','Dres','Szorty','Koszulka meczowa','Koszulka casual','Jeansy','Buty lifestyle','Sneakersy','Czapka','Plecak','Saszetka','Garnitur','Kurtka zimowa','Płaszcz','Bielizna sportowa','Skarpety','Kostium kąpielowy','Piżama','Strój reprezentacyjny','Strój klubowy'];
     brands.clothes.forEach((b,i)=>items.forEach((it,j)=>arr.push({id:`dyncloth_${cycle}_${i}_${j}`,name:`${b} ${it}`,brand:b,price:Math.round((35+i*15+j*12)*mult),effects:{mental:1+(j%3===0?1:0)},deal:b.toLowerCase()})));
   } else if(type==='electronics'){
     const items=['Smartfon','Laptop','Tablet','Smartwatch','Słuchawki','Telewizor','Konsola','Gogle VR','Aparat','Kamera','Monitor','Głośnik','Mikrofon','Router','Powerbank'];
