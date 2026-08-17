@@ -127,7 +127,7 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY='fl-life-27-etap6';
+const KEY='fl-life-27-etap5';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const initial={
   version:2,
@@ -1139,7 +1139,6 @@ function maybeFamilyEvent(){
   S.familyEvents.push({date:S.day.date,title:e.title});
   triggerEvent(e);
 }
-const SUPPORTED_COUNTRY_CODES=['PL','ES','BR','US','GB','DE','FR','IT','PT','NL','BE','AT','CH','CZ','SK','HU','RO','HR','GR','TR','SE','NO','DK','FI','IS','IE','UA','LT','LV','EE','SI','RS','BG','MX','AR','CL','CO','PE','CA','AU','NZ','ZA','EG','MA','IN','JP','KR','CN','SG','ID','MY','TH','AE','SA'];
 function getCountryCalendar(country){
   const common=[
     ['01-01','Nowy Rok','🎆','wolne'],
@@ -1147,67 +1146,12 @@ function getCountryCalendar(country){
     ['12-25','Boże Narodzenie','🎄','wolne'],
     ['12-26','Drugi dzień Świąt','🎄','wolne']
   ];
-  /* Kalendarz jest przygotowany jako system globalny.
-     Nie ograniczamy świata do kilku przykładowych państw.
-     Dla każdego kraju korzystamy z jego kodu ISO i zestawu świąt.
-     Pakiet może być rozszerzany bez zmiany silnika gry. */
   const maps={
     PL:[['01-06','Święto Trzech Króli','✝️','wolne'],['05-03','Święto Konstytucji','🇵🇱','wolne'],['08-15','Wniebowzięcie / Święto Wojska Polskiego','🇵🇱','wolne'],['11-01','Wszystkich Świętych','🕯️','wolne'],['11-11','Narodowe Święto Niepodległości','🇵🇱','wolne']],
     ES:[['01-06','Día de Reyes','👑','wolne'],['10-12','Fiesta Nacional de España','🇪🇸','wolne'],['12-08','Inmaculada Concepción','⛪','wolne']],
     BR:[['04-21','Tiradentes','🇧🇷','wolne'],['09-07','Independência do Brasil','🇧🇷','wolne'],['10-12','Nossa Senhora Aparecida','⛪','wolne']],
-    US:[['07-04','Independence Day','🇺🇸','wolne'],['11-27','Thanksgiving','🦃','wolne']],
-    GB:[['12-26','Boxing Day','🎁','wolne']],
-    DE:[['10-03','Tag der Deutschen Einheit','🇩🇪','wolne']],
-    FR:[['07-14','Fête nationale','🇫🇷','wolne']],
-    IT:[['04-25','Festa della Liberazione','🇮🇹','wolne'],['06-02','Festa della Repubblica','🇮🇹','wolne']],
-    PT:[['04-25','Dia da Liberdade','🇵🇹','wolne'],['06-10','Dia de Portugal','🇵🇹','wolne']],
-    NL:[['04-27','Koningsdag','👑','wolne']],
-    BE:[['07-21','Belgian National Day','🇧🇪','wolne']],
-    AT:[['10-26','Nationalfeiertag','🇦🇹','wolne']],
-    CH:[['08-01','Swiss National Day','🇨🇭','wolne']],
-    CZ:[['05-08','Den vítězství','🇨🇿','wolne'],['10-28','Den vzniku samostatného československého státu','🇨🇿','wolne']],
-    SK:[['07-05','Sviatok svätého Cyrila a Metoda','🇸🇰','wolne']],
-    HU:[['03-15','Nemzeti ünnep','🇭🇺','wolne'],['10-23','Nemzeti ünnep','🇭🇺','wolne']],
-    RO:[['12-01','Ziua Națională','🇷🇴','wolne']],
-    HR:[['06-22','Dan antifašističke borbe','🇭🇷','wolne'],['06-25','Dan državnosti','🇭🇷','wolne']],
-    GR:[['10-28','Ohi Day','🇬🇷','wolne']],
-    TR:[['04-23','National Sovereignty and Children’s Day','🇹🇷','wolne'],['10-29','Republic Day','🇹🇷','wolne']],
-    SE:[['06-06','Nationaldagen','🇸🇪','wolne']],
-    NO:[['05-17','Constitution Day','🇳🇴','wolne']],
-    DK:[['06-05','Grundlovsdag','🇩🇰','wolne']],
-    FI:[['12-06','Independence Day','🇫🇮','wolne']],
-    IS:[['06-17','National Day','🇮🇸','wolne']],
-    IE:[['03-17','St Patrick’s Day','☘️','wolne']],
-    UA:[['08-24','Independence Day','🇺🇦','wolne']],
-    LT:[['02-16','State Restoration Day','🇱🇹','wolne'],['07-06','Statehood Day','🇱🇹','wolne']],
-    LV:[['11-18','Proclamation Day','🇱🇻','wolne']],
-    EE:[['02-24','Independence Day','🇪🇪','wolne']],
-    SI:[['06-25','Statehood Day','🇸🇮','wolne']],
-    RS:[['02-15','Statehood Day','🇷🇸','wolne']],
-    BG:[['03-03','Liberation Day','🇧🇬','wolne']],
-    MX:[['09-16','Independence Day','🇲🇽','wolne']],
-    AR:[['05-25','May Revolution Day','🇦🇷','wolne'],['07-09','Independence Day','🇦🇷','wolne']],
-    CL:[['09-18','Independence Day','🇨🇱','wolne']],
-    CO:[['07-20','Independence Day','🇨🇴','wolne']],
-    PE:[['07-28','Independence Day','🇵🇪','wolne']],
-    CA:[['07-01','Canada Day','🇨🇦','wolne']],
-    AU:[['01-26','Australia Day','🇦🇺','wolne']],
-    NZ:[['02-06','Waitangi Day','🇳🇿','wolne']],
-    ZA:[['04-27','Freedom Day','🇿🇦','wolne']],
-    EG:[['07-23','Revolution Day','🇪🇬','wolne']],
-    MA:[['07-30','Throne Day','🇲🇦','wolne']],
-    IN:[['01-26','Republic Day','🇮🇳','wolne'],['08-15','Independence Day','🇮🇳','wolne']],
-    JP:[['02-11','National Foundation Day','🇯🇵','wolne'],['02-23','Emperor’s Birthday','🇯🇵','wolne'],['11-03','Culture Day','🇯🇵','wolne']],
-    KR:[['03-01','Independence Movement Day','🇰🇷','wolne'],['10-03','National Foundation Day','🇰🇷','wolne']],
-    CN:[['10-01','National Day','🇨🇳','wolne']],
-    SG:[['08-09','National Day','🇸🇬','wolne']],
-    ID:[['08-17','Independence Day','🇮🇩','wolne']],
-    MY:[['08-31','National Day','🇲🇾','wolne']],
-    TH:[['12-05','National Day','🇹🇭','wolne']],
-    AE:[['12-02','National Day','🇦🇪','wolne']],
-    SA:[['09-23','Saudi National Day','🇸🇦','wolne']]
+    US:[['07-04','Independence Day','🇺🇸','wolne'],['11-27','Thanksgiving','🦃','wolne']]
   };
-  /* Common fixed dates are only a fallback. Country-specific rules override/add to them. */
   return [...common,...(maps[country]||[])];
 }
 function calendarEventsForDate(dateStr){
