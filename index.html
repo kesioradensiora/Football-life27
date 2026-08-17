@@ -330,7 +330,7 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 
 const activities=[
  {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2},fixed:true},
- {id:'school',ic:'🎓',name:'Szkoła',time:420,cost:0,desc:'Lekcje, obowiązki i normalny dzień szkolny — trzeba zmieścić ją do 15:00',effects:{energy:-12,education:3,mental:-1},fixed:true},
+ {id:'school',ic:'🎓',name:'Szkoła',time:300,cost:0,desc:'Lekcje, obowiązki i normalny dzień szkolny — trzeba zmieścić ją do 15:00',effects:{energy:-12,education:3,mental:-1},fixed:true},
  {id:'tech',ic:'🎯',name:'Trening techniczny',time:60,cost:10,desc:'Indywidualna technika z piłką',effects:{energy:-8,form:4,ovr:.25}},
  {id:'speed',ic:'🏃',name:'Szybkość i dynamika',time:60,cost:10,desc:'Przyspieszenie, koordynacja, zwrotność',effects:{energy:-10,health:-1,ovr:.2}},
  {id:'strength',ic:'🏋️',name:'Siła i motoryka',time:60,cost:12,desc:'Przygotowanie motoryczne',effects:{energy:-10,health:-1,ovr:.2}},
@@ -445,25 +445,8 @@ function startActionWithTravel(action){
   advanceMinutes(travel.minutes);
   return true;
 }
-function finishAction(action){
-  const travel=randomTravelEvent(action.name||'aktywność');
-  S.day.lastTravel={action:action.name,mode:travel.mode,minutes:travel.minutes,date:S.date};
-  advanceMinutes(travel.minutes);
-  if(travel.event){
-    S.day.pendingAfterTravel={action,travel};
-    triggerEvent(travel.event);
-    return;
-  }
-  executeActionCore(action);
-}
 
 
-function resumeAfterTravel(){
-  const p=S.day.pendingAfterTravel;
-  if(!p) return;
-  S.day.pendingAfterTravel=null;
-  __originalExecuteActionCore(p.action);
-}
 
 function renderDay(){
   const travelInfo=S.day.lastTravel?`<div class="card" style="margin:10px 0"><div class="eyebrow">🚦 OSTATNI DOJAZD</div><b>${esc(S.day.lastTravel.mode)}</b><div class="muted small">${Math.round(S.day.lastTravel.minutes)} min • ${esc(S.day.lastTravel.action||'')}</div></div>`:'';
@@ -551,29 +534,94 @@ function tutorialRows(){
 }
 function daysUntil(ds){return Math.max(0,Math.ceil((new Date(ds)-new Date(S.day.date))/86400000))}
 
+
+function activityDuration(a){
+  if(!a) return 60;
+  if(a.id==='school') return 300;
+  if(a.id==='sleep') return 0;
+  const long=['club','friend','family','skate','basket','footballFriends','games','music','film','date','volunteer'];
+  const short=['tech','speed','strength','analysis','study','library','pool','regen','psych','walk','bike','park','shopping','cook','flgram'];
+  if(long.includes(a.id)) return 150;
+  if(short.includes(a.id)) return 60 + (dailySeed()+a.id.length*17)%2*30;
+  return a.time>=120?90:60;
+}
+function travelForAction(a){
+  const modes=[
+    {name:'🚶 Pieszo',min:8,max:25},
+    {name:'🚌 Autobus',min:12,max:35},
+    {name:'🚲 Rower',min:8,max:22},
+    {name:'🚗 Rodzice podwożą',min:7,max:20},
+    {name:'🛴 Hulajnoga',min:10,max:28}
+  ];
+  // Existing owned transport can bias the roll, but it is never forced.
+  const pool=[...modes];
+  if(S.world?.transport?.ownedBike) pool.push(modes[2],modes[2]);
+  if(S.world?.transport?.ownedCar) pool.push(modes[3],modes[3]);
+  const m=pool[Math.floor(Math.random()*pool.length)];
+  const minutes=Math.floor(m.min+Math.random()*(m.max-m.min+1));
+  return {mode:m.name,minutes};
+}
+
 function doActivity(id){
   const a=activities.find(x=>x.id===id); if(!a)return;
   if(!availability(a)){toast('Ta aktywność jest teraz niedostępna.');return}
   if(id==='sleep'){sleep();return}
+
+  const duration=activityDuration(a);
+  const travel=travelForAction(a);
+  const total=duration+travel.minutes;
+  if(S.day.time+total>24*60){toast('Nie zmieścisz już tej aktywności wraz z dojazdem.');return}
+
   const old={...S.player};
   S.player.money-=a.cost;
-  S.day.time+=a.time;
+  S.day.lastTravel={action:a.name,mode:travel.mode,minutes:travel.minutes,date:S.day.date};
+  S.day.lastActivityDuration=duration;
+
+  // Dojazd jest częścią planu, ale może wywołać wydarzenie po drodze.
+  S.day.time+=travel.minutes;
+  if(Math.random()<0.10){
+    triggerEvent({
+      title:'🚦 Coś wydarzyło się po drodze',
+      text:`Jedziesz na: ${a.name}. Wylosowany dojazd: ${travel.mode}, około ${travel.minutes} min.`,
+      choices:[
+        ['Jadę dalej zgodnie z planem','Docierasz na miejsce bez dodatkowych zmian.',{}],
+        ['Zmieniam trasę','Poświęcasz trochę więcej energii, ale próbujesz uniknąć problemu.',{energy:-2}],
+        ['Spokojnie czekam','Nie ryzykujesz i zachowujesz spokój.',{mental:1}]
+      ]
+    });
+  }
+
+  S.day.time+=duration;
   if(S.day.time>24*60)S.day.time=24*60;
+
   for(const [k,v] of Object.entries(a.effects)){
     if(k==='popularity') S.player.popularity=clamp(S.player.popularity+v,0,100);
+    else if(k==='ovr') S.player.ovr=clamp(S.player.ovr+v,1,99);
     else S.player[k]=clamp((S.player[k]||0)+v,0,100);
   }
-  if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis'){S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99)}
+  if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis'){
+    S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99)
+  }
   if(id==='school') attendSchool();
   if(id==='music') secondaryWork('music',false);
   if(id==='film') secondaryWork('film',false);
   if(id==='flgram') flgramAction();
   if(['club','tech','speed','strength'].includes(id)) applyBootWear(2);
-  addHistory(`Aktywność: ${a.name}`,`Wykonano ${a.name} o ${timePL(S.day.time-a.time)}.`,effectsDiff(old,S.player));
+
+  addHistory(`Aktywność: ${a.name}`,
+    `Wykonano ${a.name}. Czas aktywności: ${duration===150?'2,5 h':duration===90?'1,5 h':'1 h'} • dojazd: ${travel.mode} ${travel.minutes} min.`,
+    effectsDiff(old,S.player));
+
+  // Szansa na wydarzenie po wykonaniu aktywności; osobno od wydarzenia w dojeździe.
   maybeEvent(id);
+
+  // Poznawanie nowych osób może nastąpić w wielu miejscach.
+  if(Math.random()<0.10 && !['school','sleep'].includes(id)) createEncounterEvent(a.name);
+
   S.tutorial.steps[0]=true; S.tutorial.steps[1]=true;
   save();render();window.scrollTo({top:0,behavior:'smooth'});
 }
+
 function effectsDiff(o,n){
   const keys=['energy','health','mental','happiness','popularity','form','ovr','education','reputation'];
   return keys.filter(k=>o[k]!==n[k]).map(k=>`${labelStat(k)} ${n[k]>o[k]?'+':''}${Math.round((n[k]-o[k])*10)/10}`).join(' • ');
@@ -648,6 +696,33 @@ function eventScore(source){
   if(c.minor) score+=4;
   return Math.min(85,score);
 }
+
+function createEncounterEvent(place){
+  const names=[
+    ['Maja','koleżanka'],['Oliwia','znajoma'],['Kuba','znajomy'],['Maks','znajomy'],
+    ['Nina','koleżanka'],['Filip','znajomy'],['Zuzia','koleżanka'],['Igor','znajomy'],
+    ['Lena','koleżanka'],['Bartek','znajomy']
+  ];
+  const pick=names[Math.floor(Math.random()*names.length)];
+  const id='new_'+Date.now()+Math.floor(Math.random()*999);
+  triggerEvent({
+    title:'👋 Nowa osoba',
+    text:`Podczas aktywności „${place}” poznajesz ${pick[0]}. Możesz potraktować to jako krótkie spotkanie albo spróbować utrzymać kontakt.`,
+    choices:[
+      ['💬 Porozmawiaj dłużej','Wymieniacie się kontaktem.',{happiness:3,mental:1}],
+      ['📱 Dodaj na FLgramie','Nowy kontakt trafia do Twojej sieci.',{popularity:.1}],
+      ['👋 Tylko się przywitaj','Miłe spotkanie, ale bez dalszego kontaktu.',{happiness:1}]
+    ],
+    onChoose:(index)=>{
+      if(index<2){
+        const rel={id,name:pick[0],type:pick[1],age:15,relation:index===0?28:18,status:'nowa znajomość',metAt:S.day.date,metWhere:place};
+        if(!S.relations.some(x=>x.name===rel.name && x.metWhere===place)) S.relations.push(rel);
+        addHistory('Nowa osoba',`Poznano ${rel.name} podczas: ${place}.`,`❤️ relacja ${rel.relation}/100`);
+      }
+    }
+  });
+}
+
 function maybeEvent(source){
   if(!canEventAppear()) return;
   const score=eventScore(source);
@@ -802,7 +877,7 @@ function showNextEvent(){
   window.pendingEvent={id,e};
   openModal(`<div class="modal-head event-modal-head"><div><div class="eyebrow">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2><div class="muted small" style="margin-top:6px">Wybierz jedną odpowiedź, aby kontynuować.</div></div></div>
     <div class="card" style="margin-top:12px;background:#171b22">${esc(e.text)}</div>
-    <div class="modal-actions event-choices">${e.choices.map((c,i)=>`<button type="button" class="choice event-choice" data-event-id="${esc(id)}" data-choice-index="${i}"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
+    <div class="modal-actions event-choices">${e.choices.map((c,i)=>`<button type="button" class="choice event-choice" data-event-id="${esc(id)}" data-choice-index="${i}" onclick="chooseEvent('${id}',${i})"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
 }
 function triggerEvent(e){
   if(!e)return;
@@ -821,6 +896,7 @@ function chooseEvent(id,i){
   if(/trener|skaut|karier|mecz|klub/i.test(title)) tags.push('career','career_risk');
   if(/flgram|wiadomo|relacj|kontakt|znajom/i.test(title)) tags.push('social');
   const memoryId=applyDecisionMemory(title,c[0],c[2],tags);
+  if(typeof p.e.onChoose==='function') p.e.onChoose(i,c);
   S.tutorial.steps[3]=true;
   addHistory('Decyzja: '+p.e.title,c[0],c[1]+' • pamięć #'+memoryId.slice(-5));
   // Zakończ tylko aktualne wydarzenie. Kolejne czeka w kolejce.
@@ -975,9 +1051,22 @@ function openNationalTeams(){
 }
 function acceptNationalOffer(code){
   const c=COUNTRY_WORLD[code]; if(!c)return;
-  S.player.nationalTeam={code,country:c.name,status:'zainteresowanie',joinedAt:S.day.date};
-  addHistory('Reprezentacja',`Otrzymałeś propozycję z ${c.name}.`,'🌎 kadra narodowa');
-  save();closeModal();render();toast(`🌎 Propozycja reprezentacji: ${c.name}`);
+  closeModal();
+  triggerEvent({
+    title:'🌎 Propozycja z reprezentacji',
+    text:`Reprezentacja ${c.name} chce wejść z Tobą w konkretną rozmowę. To jeszcze nie jest automatyczne powołanie — musisz zdecydować, co robisz dalej.`,
+    choices:[
+      ['🇺🇳 Przyjmuję propozycję','Deklarujesz gotowość do gry dla tej reprezentacji. Sprawa trafia do dalszych formalności.',{reputation:2,happiness:5}],
+      ['📋 Chcę poznać wszystkie warunki','Nie odrzucasz propozycji. Chcesz wiedzieć o terminach, turniejach i planach kadry.',{mental:2,education:1}],
+      ['❌ Odrzucam na razie','Nie przyjmujesz propozycji. Reprezentacja może wrócić do Ciebie później.',{mental:1}]
+    ],
+    onChoose:(index)=>{
+      if(index===0) S.player.nationalTeam={code,country:c.name,status:'zaakceptowana propozycja',joinedAt:S.day.date};
+      else if(index===1) S.player.nationalTeam={code,country:c.name,status:'negocjacja / poznawanie warunków',joinedAt:S.day.date};
+      else S.player.nationalTeam={code,country:c.name,status:'odrzucona propozycja',joinedAt:S.day.date};
+      addHistory('Reprezentacja',`Decyzja dotycząca ${c.name}.`,index===0?'🌎 przyjęta propozycja':index===1?'📋 poznawanie warunków':'❌ odrzucona propozycja');
+    }
+  });
 }
 function careerDetail(i){
  const titles=['Rozwój','Kontrakty','Reprezentacja','Gablota trofeów','Wydarzenia specjalne','Kariera po piłce'];
@@ -1042,22 +1131,64 @@ function renderRelations(){
  return `<section class="section card gold-card"><div class="eyebrow">KATALOG RELACJE</div><h1>Każda poznana osoba</h1><div class="muted">Osoba trafia tutaj, gdy pojawi się z Tobą realna styczność. Relacja może rosnąć, słabnąć albo wygasnąć.</div></section>
  <section class="section card"><div class="list">${S.relations.map(r=>`<div class="person"><div class="row"><h3>${esc(r.name)}</h3><span class="badge">${r.age} lat</span></div><div class="muted">${esc(r.type)} • status: ${r.status}</div><div style="margin-top:9px"><div class="row"><span class="small muted">Relacja</span><b>${r.relation}/100</b></div><div class="progress"><i style="width:${r.relation}%"></i></div></div><button class="btn" style="margin-top:10px" onclick="relationActions('${r.id}')">💬 Akcje z tą osobą</button></div>`).join('')}</div></section>`;
 }
+function relationLevel(r){
+  if(r.relation>=90)return 'najbliższa osoba';
+  if(r.relation>=75)return 'bardzo bliska osoba';
+  if(r.relation>=55)return 'bliska osoba';
+  if(r.relation>=35)return 'znajomy / znajoma';
+  return 'nowa znajomość';
+}
 function relationActions(id){
  const r=S.relations.find(x=>x.id===id);if(!r)return;
- const actions=r.type==='koleżanka'||r.type==='partner'?['💬 Rozmowa','🚶 Spacer','🍦 Lody','🎬 Kino','🎁 Prezent','❤️ Randka']:['💬 Rozmowa','🚶 Spacer','☕ Kawa','🎁 Prezent','🤝 Pomoc','📞 Telefon'];
- openModal(`<div class="modal-head"><div><div class="eyebrow">❤️ RELACJA</div><h2>${esc(r.name)}</h2><div class="muted">${esc(r.type)} • ${r.relation}/100</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${actions.map(a=>`<button class="choice relation-choice" onclick="relationDo(${JSON.stringify(id)},${JSON.stringify(a)})"><b>${esc(a)}</b><span>Wpływa na relację, czas, pieniądze i może generować nowe wydarzenia.</span></button>`).join('')}</div>`,true)
+ const a=[
+   '💬 Rozmowa','📞 Telefon','📱 Wiadomość','🚶 Spacer','☕ Kawa','🍦 Lody',
+   '🎮 Wspólne granie','🛹 Skatepark','🏊 Basen','⚽ Gra w piłkę','🎬 Kino'
+ ];
+ if(r.relation>=35)a.push('🧑‍🤝‍🧑 Wspólna nauka','🛍️ Zakupy');
+ if(r.relation>=55)a.push('🍽️ Wspólny posiłek','🎁 Prezent','🏖️ Wspólny wyjazd');
+ if(r.relation>=75)a.push('❤️ Szczera rozmowa','🤝 Pomoc w ważnej sprawie');
+ if((r.type==='koleżanka'||r.type==='partner')&&r.relation>=65)a.push('❤️ Randka');
+ if(r.relation>=90)a.push('💍 Bardzo ważna decyzja o relacji');
+
+ openModal(`<div class="modal-head"><div><div class="eyebrow">❤️ RELACJA</div><h2>${esc(r.name)}</h2><div class="muted">${esc(r.type)} • ${relationLevel(r)} • ${r.relation}/100</div></div><button class="close" onclick="closeModal()">✕</button></div>
+ <div class="progress" style="margin:12px 0"><i style="width:${r.relation}%"></i></div>
+ <div class="modal-actions">${a.map((x,i)=>`<button type="button" class="choice relation-choice" onclick="relationDo('${r.id}',${JSON.stringify(x)})"><b>${esc(x)}</b><span>Może zmienić relację, czas, pieniądze albo wywołać kolejne wydarzenie.</span></button>`).join('')}</div>`,true)
 }
+
 function relationDo(id,a){
  const r=S.relations.find(x=>x.id===id);if(!r)return;
- const cost=a.includes('Kawa')?6:a.includes('Lody')?5:a.includes('Kino')?15:a.includes('Prezent')?25:0;
+ const cost=a.includes('Kawa')?6:a.includes('Lody')?5:a.includes('Kino')?15:a.includes('Prezent')?25:a.includes('posiłek')||a.includes('posiłek')?20:a.includes('wyjazd')?60:0;
+ const duration=a.includes('Telefon')||a.includes('Wiadomość')?30:a.includes('Spacer')||a.includes('Kawa')||a.includes('Lody')?60:90;
  if(S.player.money<cost){toast('Za mało pieniędzy na tę aktywność.');return;}
- const gain=a.includes('Randka')?12:a.includes('Prezent')?8:6;
+ if(S.day.time+duration>24*60){toast('Nie masz już tyle czasu dzisiaj.');return;}
+ const gain=a.includes('Szczera')?10:a.includes('Prezent')?8:a.includes('Wspólny wyjazd')?12:a.includes('Randka')?12:a.includes('Ważnej')?9:6;
  r.relation=clamp(r.relation+gain,0,100);
  S.player.money-=cost;
- S.day.time+=a.includes('Telefon')?30:60;
- addHistory('Relacja: '+r.name,a,`❤️ +${gain}${cost?' • -'+money(cost):''}`);
- document.getElementById('modal').classList.remove('show');window.pendingEvent=null;
- save();render();toast('Relacja zaktualizowana.');
+ S.day.time+=duration;
+ addHistory('Relacja: '+r.name,a,`❤️ +${gain}${cost?' • -'+money(cost):''} • ${duration===30?'30 min':duration===60?'1 h':'1,5 h'}`);
+ document.getElementById('modal').classList.remove('show');
+ save();render();toast('❤️ Relacja zaktualizowana.');
+ if(Math.random()<.18) triggerEvent({
+   title:'❤️ Coś wydarzyło się w relacji',
+   text:`Po aktywności z ${r.name} pojawia się kolejna sytuacja. Bliskość relacji: ${r.relation}/100.`,
+   choices:[
+     ['Porozmawiaj szczerze','Budujesz zaufanie.',{mental:2,happiness:3}],
+     ['Zostaw temat na później','Nie komplikujesz sytuacji.',{mental:1}],
+     ['Zaproponuj kolejne spotkanie','Relacja dostaje kolejną szansę na rozwój.',{happiness:2}]
+   ]
+ });
+}
+
+
+function languageRows(){
+  const langs=S.player.languages||S.languages||{};
+  const rows=Object.entries(langs).map(([name,val])=>({name,value:typeof val==='number'?val:(val?.percent||val?.level||0)}));
+  return rows.sort((a,b)=>b.value-a.value);
+}
+function renderLanguageSummary(){
+  const rows=languageRows();
+  if(!rows.length)return '<div class="muted">Brak zapisanych języków.</div>';
+  return `<div class="list">${rows.map(x=>`<div class="history-item"><div class="row"><b>🗣️ ${esc(x.name)}</b><span class="badge gold">${Math.round(x.value)}%</span></div><div class="progress" style="margin-top:7px"><i style="width:${clamp(x.value,0,100)}%"></i></div></div>`).join('')}</div>`;
 }
 
 function renderHistory(){
@@ -1067,22 +1198,74 @@ function renderHistory(){
 
 function renderFlgram(){
  const f=S.flgram;
- return `<section class="section card gold-card"><div class="eyebrow">📱 FLGRAM</div><div class="row"><div><h1 style="font-size:26px;margin-bottom:4px">${esc(f.handle)}</h1><div class="muted">${f.followers} obserwujących • ${f.following} obserwowanych • ❤️ ${f.likes}</div></div><button class="btn" style="width:auto" onclick="flgramProfile()">Profil</button></div>
- <div class="badges"><span class="badge">⭐ popularność ${S.player.popularity.toFixed(1)}%</span><span class="badge">💬 ${f.messages.length} wiadomości</span></div></section>
- <section class="section card"><div class="row"><h2>Feed</h2><button class="btn" style="width:auto" onclick="newPost()">➕ Wpis</button></div>${f.posts.map(p=>`<div class="post" style="margin-top:10px"><div class="row"><b>${esc(p.author)} ${p.star?'⭐':''}</b><span class="muted small">${p.following?'Obserwujesz':''}</span></div><div style="margin:10px 0">${esc(p.text)}</div><div class="row"><span>❤️ ${p.likes}</span><span>💬 ${p.comments}</span><button class="btn" style="width:auto;padding:8px 10px" onclick="likePost('${p.id}')">❤️ Lubię</button></div></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">⭐ ODKRYWAJ GWIAZDY</div>${f.stars.map((s,i)=>`<div class="person"><div class="row"><div><h3>${esc(s.name)}</h3><div class="muted">konto publiczne • możesz obserwować</div></div><button class="btn" style="width:auto" onclick="followStar(${i})">${s.following?'✓ Obserwujesz':'Obserwuj'}</button></div></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">💬 WIADOMOŚCI</div>${f.messages.map(m=>`<div class="post"><b>${esc(m.from)}</b><div class="muted" style="margin-top:6px">${esc(m.text)}</div></div>`).join('')}</section>`;
+ f.stories=f.stories||[{author:'FLgram',text:'Dzisiaj w sporcie',expires:24}];
+ f.notifications=f.notifications||[];
+ return `<section class="section card gold-card"><div class="eyebrow">📱 FLGRAM</div>
+ <div class="row"><div><h1 style="font-size:26px;margin-bottom:4px">${esc(f.handle)}</h1><div class="muted">${f.followers} obserwujących • ${f.following} obserwowanych • ❤️ ${f.likes}</div></div>
+ <button class="btn" style="width:auto" onclick="flgramProfile()">Profil</button></div>
+ <div class="badges"><span class="badge">⭐ popularność ${S.player.popularity.toFixed(1)}%</span><span class="badge">📸 ${f.posts.length} postów</span><span class="badge">💬 ${f.messages.length} wiadomości</span></div></section>
+ <section class="section card"><div class="row"><h2>⭕ Stories</h2><button class="btn" style="width:auto" onclick="newStory()">➕ Dodaj</button></div>
+ ${f.stories.map(s=>`<div class="post" style="margin-top:8px"><b>⭕ ${esc(s.author)}</b><div style="margin-top:7px">${esc(s.text)}</div><div class="muted small">wygasa za ${s.expires} h</div></div>`).join('')}</section>
+ <section class="section card"><div class="row"><h2>Feed</h2><div><button class="btn" style="width:auto" onclick="newPost()">➕ Wpis</button> <button class="btn" style="width:auto" onclick="refreshFeed()">🔄 Odśwież</button></div></div>
+ ${f.posts.map(p=>`<div class="post" style="margin-top:10px"><div class="row"><b>${esc(p.author)} ${p.star?'⭐':''}</b><span class="muted small">${p.following?'Obserwujesz':''}</span></div>
+ <div style="margin:10px 0">${esc(p.text)}</div><div class="row"><span>❤️ ${p.likes}</span><span>💬 ${p.comments}</span><button class="btn" style="width:auto;padding:8px 10px" onclick="likePost('${p.id}')">❤️ Lubię</button><button class="btn" style="width:auto;padding:8px 10px" onclick="commentPost('${p.id}')">💬 Komentuj</button><button class="btn" style="width:auto;padding:8px 10px" onclick="sharePost('${p.id}')">↗ Udostępnij</button></div></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">⭐ ODKRYWAJ</div>${f.stars.map((s,i)=>`<div class="person"><div class="row"><div><h3>${esc(s.name)}</h3><div class="muted">konto publiczne • ${s.followers||'dużo'} obserwujących</div></div><button class="btn" style="width:auto" onclick="followStar(${i})">${s.following?'✓ Obserwujesz':'Obserwuj'}</button></div></div>`).join('')}</section>
+ <section class="section card"><div class="eyebrow">💬 WIADOMOŚCI</div>${f.messages.length?f.messages.map((m,i)=>`<div class="post"><div class="row"><b>${esc(m.from)}</b><button class="btn" style="width:auto;padding:7px 10px" onclick="replyMessage(${i})">↩ Odpisz</button></div><div class="muted" style="margin-top:6px">${esc(m.text)}</div></div>`).join(''):'<div class="muted">Brak wiadomości.</div>'}</section>
+ <section class="section card"><div class="eyebrow">🔔 POWIADOMIENIA</div>${f.notifications.length?f.notifications.map(n=>`<div class="history-item"><b>${esc(n.title)}</b><div class="muted small">${esc(n.text)}</div></div>`).join(''):'<div class="muted">Brak nowych powiadomień.</div>'}</section>`;
 }
-function flgramAction(){
- if(Math.random()<.18){const stars=S.flgram.stars.filter(x=>x.following);if(stars.length)S.flgram.messages.push({from:stars[Math.floor(Math.random()*stars.length)].name,text:'Hej! Widziałem Twój ostatni wpis. 👋',read:false})}
+function refreshFeed(){
+ const pool=[
+  {author:'FL Sport',text:'Nowy trening młodzieżowy pojawił się dziś w Twojej okolicy.',likes:Math.floor(Math.random()*900),comments:Math.floor(Math.random()*80),following:false},
+  {author:'Scout Hub',text:'Skauci obserwują młodych zawodników z coraz większej liczby miejsc.',likes:Math.floor(Math.random()*1200),comments:Math.floor(Math.random()*120),following:false},
+  {author:'Maja',text:'Kto idzie dziś na skatepark?',likes:Math.floor(Math.random()*100),comments:Math.floor(Math.random()*20),following:false}
+ ];
+ S.flgram.posts.unshift({...pool[Math.floor(Math.random()*pool.length)],id:'feed'+Date.now()});
+ S.flgram.notifications=S.flgram.notifications||[];
+ S.flgram.notifications.unshift({title:'Nowy element feedu',text:'Twój feed został odświeżony.'});
+ save();render();
 }
-function likePost(id){const p=S.flgram.posts.find(x=>x.id===id);if(!p)return;p.likes++;S.flgram.likes++;S.player.popularity=clamp(S.player.popularity+.03,0,100);save();render();toast('❤️ Polubiono wpis.')}
-function followStar(i){const s=S.flgram.stars[i];s.following=!s.following;S.flgram.following+=s.following?1:-1;save();render();toast(s.following?'⭐ Obserwujesz teraz to konto.':'Przestałeś obserwować.')}
-function newPost(){
- openModal(`<div class="modal-head"><div><div class="eyebrow">📱 FLGRAM</div><h2>Nowy wpis</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form" style="margin-top:14px"><textarea class="textarea" id="postText" placeholder="Co chcesz opublikować?"></textarea><button class="btn goldbtn" onclick="publishPost()">Opublikuj</button></div>`,true)
+function newStory(){
+ openModal(`<div class="modal-head"><div><div class="eyebrow">⭕ STORY</div><h2>Nowe story</h2></div><button class="close" onclick="closeModal()">✕</button></div><textarea class="textarea" id="storyText" placeholder="Co wrzucasz?"></textarea><button class="btn goldbtn" onclick="publishStory()">Opublikuj</button>`,true)
 }
-function publishPost(){const t=document.getElementById('postText').value.trim();if(!t)return;S.flgram.posts.unshift({id:'p'+Date.now(),author:'Noah Pereira',text:t,likes:0,comments:0,following:true});S.flgram.followers+=Math.random()<.2?1:0;S.player.popularity=clamp(S.player.popularity+.1,0,100);addHistory('FLgram — nowy wpis','Opublikowano post.', 'popularność +0.1');closeModal();save();render()}
-function flgramProfile(){openModal(`<div class="modal-head"><div><div class="eyebrow">📱 PROFIL</div><h2>${esc(S.flgram.handle)}</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="grid2" style="margin-top:14px"><div class="metric"><span>Obserwujący</span><b>${S.flgram.followers}</b></div><div class="metric"><span>Obserwowani</span><b>${S.flgram.following}</b></div><div class="metric"><span>Polubienia</span><b>${S.flgram.likes}</b></div><div class="metric"><span>Popularność</span><b>${S.player.popularity.toFixed(1)}%</b></div></div>`,true)}
+function publishStory(){
+ const t=document.getElementById('storyText').value.trim();if(!t)return;
+ S.flgram.stories=S.flgram.stories||[];
+ S.flgram.stories.unshift({author:'Ty',text:t,expires:24});
+ S.player.popularity=clamp(S.player.popularity+.15,0,100);
+ addHistory('FLgram — story','Dodano story.','popularność +0.15');
+ closeModal();save();render();
+}
+function commentPost(id){
+ const p=S.flgram.posts.find(x=>x.id===id);if(!p)return;
+ openModal(`<div class="modal-head"><div><div class="eyebrow">💬 KOMENTARZ</div><h2>Dodaj komentarz</h2></div><button class="close" onclick="closeModal()">✕</button></div><textarea class="textarea" id="commentText" placeholder="Napisz komentarz"></textarea><button class="btn goldbtn" onclick="sendComment('${id}')">Dodaj</button>`,true)
+}
+function sendComment(id){
+ const p=S.flgram.posts.find(x=>x.id===id);if(!p)return;
+ const t=document.getElementById('commentText').value.trim();if(!t)return;
+ p.comments=(p.comments||0)+1;
+ S.flgram.notifications=S.flgram.notifications||[];
+ S.flgram.notifications.unshift({title:'Komentarz',text:`Skomentowałeś/aś wpis ${p.author}.`});
+ addHistory('FLgram — komentarz',`Skomentowano wpis ${p.author}.`,'nowa interakcja');
+ closeModal();save();render();
+}
+function sharePost(id){
+ const p=S.flgram.posts.find(x=>x.id===id);if(!p)return;
+ p.shares=(p.shares||0)+1;S.player.popularity=clamp(S.player.popularity+.08,0,100);
+ addHistory('FLgram — udostępnienie',`Udostępniono wpis ${p.author}.`,'popularność +0.08');
+ save();render();toast('↗ Udostępniono.');
+}
+function replyMessage(i){
+ const m=S.flgram.messages[i];if(!m)return;
+ openModal(`<div class="modal-head"><div><div class="eyebrow">💬 WIADOMOŚĆ</div><h2>Odpisz do ${esc(m.from)}</h2></div><button class="close" onclick="closeModal()">✕</button></div><textarea class="textarea" id="replyText" placeholder="Napisz wiadomość"></textarea><button class="btn goldbtn" onclick="sendReply(${i})">Wyślij</button>`,true)
+}
+function sendReply(i){
+ const m=S.flgram.messages[i];if(!m)return;
+ const t=document.getElementById('replyText').value.trim();if(!t)return;
+ S.flgram.messages.push({from:'Ty',text:t,read:true});
+ S.flgram.notifications=S.flgram.notifications||[];
+ S.flgram.notifications.unshift({title:'Wysłano wiadomość',text:`Odpisałeś/aś do ${m.from}.`});
+ closeModal();save();render();
+}
 
 function renderFinance(){
  return `<section class="section card gold-card"><div class="eyebrow">FINANSE</div><h1>${money(S.player.money)}</h1><div class="grid2" style="margin-top:14px"><div class="metric"><span>Gotówka</span><b>${money(S.player.money)}</b></div><div class="metric"><span>Wartość jako piłkarz</span><b>${money(S.player.marketValue)}</b></div><div class="metric"><span>Zainwestowane</span><b>${money(S.investments.reduce((a,x)=>a+x.amount,0))}</b></div><div class="metric"><span>Biznesy</span><b>${S.businesses.length}</b></div></div></section>
@@ -1098,1232 +1281,48 @@ function charity(){openModal(`<div class="modal-head"><div><div class="eyebrow">
 function doCharity(n,a){if(S.player.money<a){toast('Za mało pieniędzy.');return}S.player.money-=a;S.player.reputation=clamp(S.player.reputation+2,0,100);S.charity.push({name:n,amount:a,date:S.day.date});addHistory('Wpłata charytatywna',n,'REP +2 • '+money(a));closeModal();save();render()}
 
 function renderShop(){
- return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>Miasto życia</h1><div class="muted">Duży katalog codziennych zakupów, sprzętu, transportu, nieruchomości, usług, luksusu i podróży. Dostępność i ceny mogą zależeć od wieku, kraju, pieniędzy i popularności.</div></section>
- ${[['🍽️','Jedzenie i rozrywka','restauracje, fast food, kawa, kino, koncerty, atrakcje'],['👟','Sport i sprzęt','korki, stroje, piłki, plecaki, zegarki sportowe, regeneracja'],['📱','Elektronika','telefon, laptop, konsola, VR, kamera, aparat, audio, streaming'],['👕','Moda','codzienne, treningowe, wyjściowe, garnitury, luksus, dodatki'],['🏠','Nieruchomości','wynajem, mieszkania, domy, wille, działki, inwestycje'],['🚗','Transport','rowery, auta, leasing, pociągi, loty, wynajem'],['🛥️','Luksus i pojazdy specjalne','łodzie, jachty, helikoptery, samoloty, luksusowe aktywa'],['🎁','Prezenty','rodzina, partner, znajomi, zegarki, biżuteria, większe prezenty'],['🩺','Zdrowie i usługi','lekarze, psycholog, fizjo, dentysta, dietetyk, badania'],['🏖️','Wakacje i podróże','wiele kierunków, standardów i sposobów podróży']].map((x,i)=>`<button class="action" onclick="shopCategory(${i})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">${x[2]}</div></div><div>›</div></button>`).join('')}`;
+ return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>${esc(S.player.city||'Twoje miasto')}</h1>
+ <div class="muted">Rynek jest zależny od miejscowości, wieku, budżetu i czasu. Katalog zmienia się wraz z rynkiem — nowe produkty i modele mogą pojawić się później.</div></section>
+ <section class="section card"><div class="grid2">${[
+ ['👟','Korki i obuwie',0],['👕','Ubrania i moda',1],['📱','Elektronika',2],['🎮','Sprzęt i hobby',3],
+ ['🏠','Nieruchomości',4],['🚗','Samochody',5],['🍔','Jedzenie',6],['☕','Kawiarnie',7],
+ ['🎬','Rozrywka',8],['🏊','Sport i rekreacja',9],['💇','Usługi i uroda',10],['🩺','Zdrowie',11],
+ ['🎁','Prezenty',12],['📚','Nauka i kursy',13],['🛍️','Zakupy codzienne',14],['🏖️','Wakacje i podróże',15]
+ ].map(x=>`<button class="action" onclick="shopCategory(${x[2]})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">Otwórz lokalny katalog</div></div><div>›</div></button>`).join('')}</div></section>`;
 }
+
 function shopCategory(i){
- if(i===9){openVacationPlanner();return;}
- const cats=[
-  [['☕ Kawa','€4'],['🥐 Śniadanie','€8'],['🍔 Fast food','€12'],['🍽️ Restauracja','€25'],['🍿 Kino','€15'],['🎳 Kręgle','€18'],['🎟️ Koncert','€60'],['🎢 Atrakcja / park','€35'],['☕ Kawiarnia premium','€12']],
-  [['👟 Korki podstawowe','€60'],['👟 Korki premium','€180'],['👟 Korki Elite','€320'],['⚽ Piłka treningowa','€25'],['🎒 Plecak sportowy','€55'],['⌚ Zegarek sportowy','€180'],['🧘 Mata / sprzęt regeneracyjny','€45'],['🏋️ Domowy sprzęt treningowy','€250'],['🎽 Komplet treningowy','€90']],
-  [['📱 Telefon budżetowy','€180'],['📱 Flagowy telefon','€900'],['💻 Laptop','€900'],['🖥️ Komputer gamingowy','€1400'],['🎮 Konsola','€500'],['🥽 VR','€450'],['📷 Aparat','€700'],['🎥 Kamera','€1000'],['🎙️ Mikrofon / studio','€350'],['🎧 Słuchawki premium','€300']],
-  [['👕 Ubrania codzienne','€80'],['👕 Streetwear','€180'],['👔 Garnitur','€400'],['👟 Buty lifestyle','€150'],['🧥 Kurtka','€180'],['🕶️ Okulary','€180'],['⌚ Zegarek','€500'],['💎 Biżuteria','€800'],['👜 Dodatek premium','€600']],
-  [['🏠 Wynajem pokoju','€350/mies.'],['🏠 Wynajem mieszkania','€700/mies.'],['🏢 Kawalerka','€80000'],['🏠 Mieszkanie 2-pokojowe','€180000'],['🏡 Mieszkanie rodzinne','€320000'],['🏡 Dom','€760000'],['🏰 Willa','€1450000'],['🌳 Działka','€120000'],['🏢 Lokal inwestycyjny','€400000']],
-  [['🚲 Rower','€250'],['🛵 Skuter','€2500'],['🚗 Auto używane','€9000'],['🚗 Volkswagen Golf','€14000'],['🚙 SUV rodzinny','€240000'],['🏎️ Sportowe coupe','€180000'],['🚆 Pociąg','€20'],['✈️ Zwykły lot','€120'],['🚐 Kamper / wynajem','€180/dzień']],
-  [['🛥️ Łódź','€60000'],['🛥️ Jacht','€250000'],['🚤 Luksusowy jacht','€1200000'],['🚁 Helikopter','€1500000'],['✈️ Prywatny samolot','€4000000'],['🏝️ Wyspa','€5000000']],
-  [['🎁 Mały prezent rodzinny','€25'],['🎁 Prezent dla partnera','€180'],['🎁 Prezent dla rodzica','€250'],['⌚ Zegarek premium','€1200'],['💎 Biżuteria','€1500'],['🚗 Auto na prezent','€14000'],['🏠 Mieszkanie na prezent','€80000']],
-  [['🩺 Lekarz','€120'],['🧠 Psycholog sportowy','€90'],['💆 Fizjoterapia','€70'],['🧬 Badanie predyspozycji','€180'],['🦷 Dentysta','€100'],['🥗 Dietetyk','€80'],['👁️ Okulista','€90'],['🧪 Badania kontrolne','€150']]
- ];
- const items=cats[i]||[];
- openModal(`<div class="modal-head"><div><div class="eyebrow">🏙️ SKLEP</div><h2>Oferta</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${items.map((x,j)=>`<button class="choice" onclick="buyItem(${i},${j})"><b>${x[0]}</b><span>${x[1]} • zakup może wpłynąć na życie, relacje, popularność lub możliwości.</span></button>`).join('')}</div>`,true)
-}
-function buyItem(cat,j){
- const priceLists=[[4,8,12,25,15,18,60,35,12],[60,180,320,25,55,180,45,250,90],[180,900,900,1400,500,450,700,1000,350,300],[80,180,400,150,180,180,500,800,600],[350,700,80000,180000,320000,760000,1450000,120000,400000],[250,2500,9000,14000,240000,180000,20,120,180],[60000,250000,1200000,1500000,4000000,5000000],[25,180,250,1200,1500,14000,80000],[120,90,70,180,100,80,90,150]];
- const names=[['Kawa','Śniadanie','Fast food','Restauracja','Kino','Kręgle','Koncert','Atrakcja / park','Kawiarnia premium'],['Korki podstawowe','Korki premium','Korki Elite','Piłka treningowa','Plecak sportowy','Zegarek sportowy','Mata / sprzęt regeneracyjny','Domowy sprzęt treningowy','Komplet treningowy'],['Telefon budżetowy','Flagowy telefon','Laptop','Komputer gamingowy','Konsola','VR','Aparat','Kamera','Mikrofon / studio','Słuchawki premium'],['Ubrania codzienne','Streetwear','Garnitur','Buty lifestyle','Kurtka','Okulary','Zegarek','Biżuteria','Dodatek premium'],['Wynajem pokoju','Wynajem mieszkania','Kawalerka','Mieszkanie 2-pokojowe','Mieszkanie rodzinne','Dom','Willa','Działka','Lokal inwestycyjny'],['Rower','Skuter','Auto używane','Volkswagen Golf','SUV rodzinny','Sportowe coupe','Pociąg','Zwykły lot','Kamper / wynajem'],['Łódź','Jacht','Luksusowy jacht','Helikopter','Prywatny samolot','Wyspa'],['Mały prezent rodzinny','Prezent dla partnera','Prezent dla rodzica','Zegarek premium','Biżuteria','Auto na prezent','Mieszkanie na prezent'],['Lekarz','Psycholog sportowy','Fizjoterapia','Badanie predyspozycji','Dentysta','Dietetyk','Okulista','Badania kontrolne']];
- let a=priceLists[cat][j]; if(typeof a!=='number'){toast('Ta opcja jest usługą cykliczną — wybierz ją w odpowiednim systemie.');return} let n=names[cat][j];
- if(S.player.money<a){toast('Za mało pieniędzy.');return} S.player.money-=a;S.inventory.push({name:n,price:a,date:S.day.date});
- if(n.includes('Korki'))S.player.ovr=clamp(S.player.ovr+(n.includes('Elite')?1:n.includes('premium')?.8:.3),1,99);
- if(n.includes('Telefon')||n.includes('Kamera')||n.includes('Aparat'))S.player.popularity=clamp(S.player.popularity+.3,0,100);
- if(n==='Garnitur'||n==='Zegarek premium')S.player.reputation=clamp(S.player.reputation+1,0,100);
- if(n==='Koncert'||n==='Kino'||n==='Kręgle'||n==='Atrakcja / park')S.player.happiness=clamp(S.player.happiness+3,0,100);
- addHistory('Zakup',n,money(a));closeModal();save();render();toast('Zakup zapisany.');
-}
-function openVacationPlanner(){
- const countries=[['ES','🇪🇸 Hiszpania'],['PT','🇵🇹 Portugalia'],['IT','🇮🇹 Włochy'],['GR','🇬🇷 Grecja'],['HR','🇭🇷 Chorwacja'],['FR','🇫🇷 Francja'],['US','🇺🇸 USA'],['JP','🇯🇵 Japonia'],['AE','🇦🇪 ZEA'],['TH','🇹🇭 Tajlandia'],['MX','🇲🇽 Meksyk'],['BR','🇧🇷 Brazylia'],['AU','🇦🇺 Australia']];
- openModal(`<div class="modal-head"><div><div class="eyebrow">🏖️ WAKACJE</div><h2>Zaplanuj wyjazd</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${countries.map(x=>`<button class="choice" onclick="vacationDestination('${x[0]}')"><b>${x[1]}</b><span>Wybierz kierunek i sposób podróży</span></button>`).join('')}</div>`,true);
-}
-function vacationDestination(code){
- const modes=[['flight_economy','✈️ Zwykły lot — ekonomiczna',120],['flight_business','💺 Business class',650],['train','🚆 Pociąg / transport lądowy',90],['car','🚗 Własne / wynajęte auto',180],['boat','🛥️ Łódź / jacht',700],['private_jet','🛩️ Prywatny samolot',9000],['own_plane','✈️ Własny samolot',0],['own_boat','🛥️ Własna łódź / jacht',0]];
- openModal(`<div class="modal-head"><div><div class="eyebrow">🌍 ${esc((COUNTRY_WORLD[code]||{name:code}).name)}</div><h2>Jak podróżujesz?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${modes.map(m=>`<button class="choice" onclick="vacationTransport('${code}','${m[0]}',${m[2]})"><b>${m[1]}</b><span>od ${money(m[2])}</span></button>`).join('')}</div>`,true);
-}
-function vacationTransport(code,mode,cost){
- const w=S.world.vacation||{}; const lic=S.licenses||{};
- if(mode==='own_plane' && !w.ownedPlane && !(lic.plane&&lic.plane.passed)){toast('Nie masz własnego samolotu ani licencji pilota.');return}
- if(mode==='own_boat' && !w.ownedBoat && !(lic.boat&&lic.boat.passed)){toast('Nie masz własnej łodzi ani licencji.');return}
- if(mode==='boat' && !(lic.boat&&lic.boat.passed)){cost+=250;}
- if(S.player.money<cost){toast('Za mało pieniędzy na ten sposób podróży.');return}
- S.player.money-=cost;
- const country=COUNTRY_WORLD[code]||{name:code};
- const privateTrip=mode==='private_jet'||mode==='own_plane';
- if(S.player.popularity>=60 && mode==='flight_economy'){
-   closeModal();triggerEvent({title:'Kibice rozpoznali Cię na lotnisku',text:'Masz wysoką popularność, ale lecisz zwykłym lotem. Ktoś robi zdjęcie, a sytuacja trafia do FLgramu.',choices:[['Pozuj do zdjęć','Budujesz bliskość z kibicami.',{popularity:.8,happiness:2}],['Poproś o trochę prywatności','Unikasz większego zamieszania.',{mental:2}],['Zmień klasę na business','Płacisz więcej za większy komfort.',{mental:3}] ]});
- }
- const trip={country:country.name,code,mode,date:S.day.date,cost};
- S.vacations=S.vacations||{active:null,history:[]};S.vacations.active=trip;S.vacations.history.unshift(trip);w.travelHistory.push(trip);
- addHistory('Wakacje',`Wyjazd do ${country.name}`,`podróż: ${mode}`);save();render();
- setTimeout(()=>openVacationActivities(code),100);
-}
-function openVacationActivities(code){
- const acts=[['🏖️ Plaża / odpoczynek',0],['🤿 Nurkowanie',90],['🏄 Surfing',80],['🛥️ Rejs',150],['🚗 Zwiedzanie autem',120],['🥾 Trekking',40],['🎢 Atrakcja turystyczna',60],['🍽️ Lokalne restauracje',70],['🛍️ Zakupy',150],['📸 Tworzenie contentu',0],['🎉 Impreza / nocne życie',80],['❤️ Romantyczny dzień',100]];
- openModal(`<div class="modal-head"><div><div class="eyebrow">🏖️ WAKACJE</div><h2>Co robisz na miejscu?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${acts.map((a,i)=>`<button class="choice" onclick="vacationActivity('${a[0]}',${a[1]})"><b>${a[0]}</b><span>${a[1]?'€'+a[1]:'bez dodatkowej opłaty'}</span></button>`).join('')}</div>`,true);
-}
-function vacationActivity(name,cost){if(S.player.money<cost){toast('Za mało pieniędzy.');return}S.player.money-=cost;S.player.happiness=clamp(S.player.happiness+5,0,100);if(name.includes('content'))S.player.popularity=clamp(S.player.popularity+.5,0,100);if(name.includes('Romantyczny')){const r=S.relations.find(x=>/partner|dziew|chłopak/i.test(x.type+' '+x.name));if(r)r.relation=clamp(r.relation+6,0,100)}addHistory('Wakacje — aktywność',name,'dzień wyjazdu');save();closeModal();render();toast('Aktywność zapisana.');}
-
-function renderEducation(){
- return `<section class="section card gold-card"><div class="eyebrow">🎓 EDUKACJA</div><h1>Szkoła i kwalifikacje</h1><div class="muted">Nie wystarczy zapłacić. Kurs wymaga czasu, nauki i zaliczenia.</div><div class="metric" style="margin-top:14px"><span>Postęp edukacyjny</span><b>${Math.round(S.player.education)}/100</b></div></section>
- <section class="section card"><div class="eyebrow">📚 KURSY</div>${[['Język obcy',30,50],['Podstawy biznesu',40,80],['DJ / produkcja',45,120],['Montaż filmu',45,100],['Psychologia sportu',55,150],['Przygotowanie trenerskie',70,250],['Kurs agenta sportowego',80,300]].map(x=>`<div class="job"><h3>📚 ${x[0]}</h3><div class="muted">wymagany poziom edukacji: ${x[1]} • koszt ${money(x[2])}</div><button class="btn" style="margin-top:9px" onclick="startCourse('${x[0]}',${x[1]},${x[2]})">Rozpocznij naukę</button></div>`).join('')}</section>`;
-}
-function startCourse(n,req,cost){if(S.player.education<req){toast('Brakuje wymaganego poziomu edukacji.');return}if(S.player.money<cost){toast('Za mało pieniędzy.');return}S.player.money-=cost;S.player.education=clamp(S.player.education+5,0,100);S.education.courses.push({name:n,progress:5,passed:false});S.day.time+=60;addHistory('Kurs',n,'nauka +5 • czas 1h');save();render();toast('Kurs rozpoczęty — trzeba go kontynuować i zaliczyć.')}
-function renderLicenses(){
- const catalog=WORLD_CATALOG.licenses||[];
- const rows=catalog.map(l=>{const st=S.licenses[l.id]||{name:l.name,requiredAge:l.requiresAge,progress:0,passed:false};return `<div class="job"><div class="row"><h3>🪪 ${esc(l.name)}</h3><span class="badge ${st.passed?'gold':''}">${st.passed?'ZALICZONA':st.progress+'%'}</span></div><div class="muted">${l.category} • wymagany wiek: ${l.requiresAge}+ • kurs + przygotowanie + egzamin</div><div class="progress" style="margin:10px 0"><i style="width:${st.passed?100:st.progress}%"></i></div><button class="btn" onclick="licenseAction('${l.id}')">${st.passed?'Informacje':'Rozpocznij / kontynuuj'}</button></div>`}).join('');
- return `<section class="section card gold-card"><div class="eyebrow">🪪 LICENCJE I UPRAWNIENIA</div><h1>Uprawnienia na całe życie</h1><div class="muted">Wymagania są ogólne i zależne od kraju. Licencja może odblokować pojazdy, podróże, pracę i nowe wydarzenia.</div></section><section class="section card"><div class="list">${rows}</div></section>`;
-}
-function licenseAction(id){
- const l=(WORLD_CATALOG.licenses||[]).find(x=>x.id===id);if(!l)return;
- if(S.player.age<l.requiresAge){toast('Jeszcze za wcześnie na tę licencję.');return}
- const st=S.licenses[id]||(S.licenses[id]={name:l.name,requiredAge:l.requiresAge,progress:0,passed:false});
- if(st.passed){toast('Ta licencja jest już zaliczona.');return}
- if(S.player.money<l.cost){toast('Za mało pieniędzy na kurs i egzamin.');return}
- S.player.money-=l.cost;st.progress=Math.min(100,st.progress+Math.round(100/l.steps));S.day.time+=l.time;
- if(st.progress>=100){st.passed=true;addHistory('Licencja zdobyta',l.name,'uprawnienie uzyskane');triggerEvent({title:'Nowe uprawnienie',text:'Zdobywasz '+l.name+'. To może otworzyć nowe możliwości podróży i życia.',choices:[['Korzystaj z nowej możliwości','Planujesz wykorzystać uprawnienie.',{happiness:4,mental:2}],['Zachowaj je na przyszłość','Masz nowe możliwości, ale na razie z nich nie korzystasz.',{mental:2}],['Pochwal się na FLgramie','Informujesz obserwujących o nowym uprawnieniu.',{popularity:.4,reputation:1}] ]});}
- else addHistory('Kurs licencyjny',l.name,'postęp +'+Math.round(100/l.steps)+'%');save();render();
-}
-function renderSpecialists(){
- return `<section class="section card gold-card"><div class="eyebrow">🩺 SPECJALIŚCI</div><h1>Zdrowie i predyspozycje</h1><div class="muted">Specjaliści kosztują, mają różne efekty i nie każdy problem znika od razu.</div></section><section class="section card">${S.specialists.map(x=>`<div class="job"><div class="row"><h3>${esc(x.name)}</h3><span class="badge">${money(x.price)}</span></div><div class="muted">${esc(x.effect)}</div><button class="btn" style="margin-top:10px" onclick="specialist('${x.id}')">Umów wizytę</button></div>`).join('')}</section>`;
-}
-function specialist(id){const x=S.specialists.find(z=>z.id===id);if(S.player.money<x.price){toast('Za mało pieniędzy.');return}S.player.money-=x.price;S.day.time+=60;if(id==='sportpsych')S.player.mental=clamp(S.player.mental+8,0,100);if(id==='physio'){S.player.health=clamp(S.player.health+6,0,100);S.player.energy=clamp(S.player.energy+5,0,100)}if(id==='genetics'){openModal(`<div class="modal-head"><div><div class="eyebrow">🧬 WYNIK BADANIA</div><h2>Predyspozycje</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="grid2" style="margin-top:14px"><div class="metric"><span>Szacowany potencjał</span><b>${S.player.potential}</b></div><div class="metric"><span>Ryzyko kontuzji</span><b>${S.player.health<60?'podwyższone':'umiarkowane'}</b></div><div class="metric"><span>Motoryka</span><b>wysoka</b></div><div class="metric"><span>Technika</span><b>rozwijalna</b></div></div>`,true);save();render();return}if(id==='doctor')S.player.health=clamp(S.player.health+12,0,100);addHistory('Wizyta u specjalisty',x.name,x.effect);save();render();toast('Wizyta zakończona.')}
-function renderCalendar(){
- const holidays=[['2026-09-01','📚 Rozpoczęcie roku szkolnego'],['2026-12-24','🎄 Wigilia'],['2026-12-25','🎄 Boże Narodzenie'],['2026-12-26','🎄 Drugi dzień świąt'],['2027-01-01','🎆 Nowy Rok']];
- return `<section class="section card gold-card"><div class="eyebrow">📅 KALENDARZ</div><h1>${datePL(S.day.date)}</h1><div class="muted">Święta i dni wolne zależą od kraju zamieszkania. Mecze, szkoła, kursy i wydarzenia trafiają tutaj automatycznie.</div></section>
- <section class="section card"><div class="eyebrow">⚽ MECZE</div>${S.calendar.matches.map(m=>`<div class="job"><div class="row"><h3>⚽ ${esc(m.competition)}</h3><span class="badge">${m.status==='played'?'ROZEGRANY':'ZA '+daysUntil(m.date)+' DNI'}</span></div><div class="muted">${datePL(m.date)} • ${esc(m.opponent)}</div><button class="btn" style="margin-top:9px" onclick="openMatch('${m.id}')">Otwórz mecz</button></div>`).join('')}</section>
- <section class="section card"><div class="eyebrow">🎉 ŚWIĘTA / WAŻNE DATY</div>${holidays.map(h=>`<div class="history-item"><div class="row"><b>${h[1]}</b><span class="badge">${datePL(h[0])}</span></div></div>`).join('')}</section>`;
+ const map=['shoes','clothes','electronics','equipment','property','cars','food','cafes','entertainment','sport','services','health','gifts','education','daily','vacation'];
+ if(i===15){openVacationPlanner();return;}
+ const type=map[i];
+ if(['shoes','clothes','electronics','equipment','property','cars'].includes(type)){openWorldCatalog(type);return;}
+ const city=S.player.city||'Twoje miasto';
+ const mult=cityMarketMultiplier(city);
+ const common={
+  food:['🍔 Burger','🍕 Pizza','🍜 Kuchnia azjatycka','🥪 Kanapka','🍦 Lody','🥗 Zdrowy lunch','🍟 Fast food','🥐 Piekarnia','🍝 Restauracja lokalna','🌮 Street food','🍰 Cukiernia','🥤 Napoje'],
+  cafes:['☕ Kawiarnia','🧋 Bubble tea','🍵 Herbaciarnia','🥐 Śniadanie','🍰 Cukiernia premium','📚 Kawiarnia do nauki','🍦 Lodziarnia'],
+  entertainment:['🎬 Kino','🎳 Kręgle','🎮 Salon gier','🕹️ Arcade','🎤 Koncert','🎭 Teatr','🎨 Wystawa','🎢 Park rozrywki','🧩 Escape room','🎤 Karaoke'],
+  sport:['🏊 Basen','🛹 Skatepark','🏋️ Siłownia','🎾 Kort','⚽ Boisko','🏀 Hala sportowa','🧗 Ścianka wspinaczkowa','🚲 Wypożyczalnia rowerów','🏄 Sport wodny'],
+  services:['✂️ Fryzjer','💅 Manicure','🧺 Pralnia','🧹 Sprzątanie','📦 Paczkomat / przesyłka','🔧 Serwis sprzętu','📱 Serwis telefonu','🚗 Myjnia','🪛 Warsztat'],
+  health:['🦷 Dentysta','👓 Optyk','🩺 Lekarz','💆 Fizjoterapia','🧠 Psycholog','🥗 Dietetyk','🧪 Badania','💊 Apteka'],
+  gifts:['🎁 Prezent dla rodziny','⌚ Zegarek','💎 Biżuteria','🌸 Kwiaty','🎮 Prezent gamingowy','👟 Prezent sportowy','📱 Gadżet','🎂 Tort'],
+  education:['📚 Korepetycje','🗣️ Kurs językowy','💻 Kurs komputerowy','🎨 Kurs kreatywny','🎵 Kurs muzyczny','🎬 Montaż filmu','📷 Fotografia','🏫 Kurs szkolny'],
+  daily:['🛒 Zakupy spożywcze','🧴 Kosmetyki','🧼 Chemia domowa','🧻 Artykuły domowe','🎒 Plecak','☂️ Akcesoria','🔋 Baterie','🖊️ Papiernicze','🧢 Dodatki'],
+ };
+ const items=(common[type]||[]).map((name,j)=>({id:`city_${type}_${marketCycle()}_${j}`,name,city,price:Math.max(3,Math.round((10+j*7)*mult)),type,description:`Dostępne w ${city}.`}));
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🏙️ ${esc(city)}</div><h2>${esc(type)}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+ <div class="list">${items.map(x=>`<div class="history-item"><div class="row"><b>${esc(x.name)}</b><span class="badge">${money(x.price)}</span></div><div class="muted small">${esc(x.description)}</div><button class="btn" style="margin-top:8px" onclick="buyWorldItem('${type}','${x.id}')">Wybierz / kup</button></div>`).join('')}</div>`,true);
+ WORLD_CATALOG[type]=items;
 }
 
-function renderSecondary(){
- return `<section class="section card gold-card"><div class="eyebrow">🚀 KARIERA POBOCZNA</div><h1>Równoległe życie zawodowe</h1><div class="muted">Możesz rozwijać kilka ścieżek jednocześnie, ale każda wymaga czasu, nauki, sprzętu, pieniędzy i odpowiednich warunków.</div></section>${S.secondary.map(j=>`<section class="section card"><div class="row"><div><h2>${j.icon} ${j.name}</h2><div class="muted">${j.needs}</div></div><span class="badge">${j.level}%</span></div><div class="progress" style="margin:14px 0"><i style="width:${j.level}%"></i></div><button class="btn goldbtn" onclick="secondaryWork('${j.id}',true)" ${!j.unlocked?'disabled':''}>${j.unlocked?'Rozwijaj 2h':'🔒 najpierw odblokuj warunki'}</button></section>`).join('')}`;
-}
-
-function renderSettings(){
- return `<section class="section card gold-card"><div class="eyebrow">⚙️ USTAWIENIA</div><h1>Gra</h1><div class="muted">Ustawienia dotyczą zapisu gry, nowej kariery, preferencji randkowania, naprawy i kodeksu.</div></section>
- <section class="section card"><div class="eyebrow">❤️ PREFERENCJE RANDKOWANIA</div><select class="select" onchange="setDating(this.value)"><option value="kobiety" ${S.dating.preference==='kobiety'?'selected':''}>Kobiety</option><option value="mężczyźni" ${S.dating.preference==='mężczyźni'?'selected':''}>Mężczyźni</option><option value="wszyscy" ${S.dating.preference==='wszyscy'?'selected':''}>Wszyscy</option><option value="brak" ${S.dating.preference==='brak'?'selected':''}>Nie chcę randkować</option></select><div class="muted small" style="margin-top:8px">Możesz zmienić to w każdej chwili.</div></section>
- <section class="section card"><div class="eyebrow">🎮 ROZPOCZĘCIE GRY</div><div class="list"><button class="btn" onclick="restartCareer()">🔄 Restart kariery — te same dane rodziców, nowy przebieg</button><button class="btn" onclick="newGame()">🆕 Nowa gra — nowe imiona, rodzina i dane</button><button class="btn" onclick="newGamePlus()">✨ Nowa gra+ — Ty ustalasz zawodnika, rodzice zostają</button></div></section>
- <section class="section card"><div class="eyebrow">🛠️ NAPRAW GRĘ</div><div class="muted">Odświeża mechanizmy i usuwa tymczasowe blokady bez kasowania kariery.</div><button class="btn goldbtn" style="margin-top:10px" onclick="repair()">🛠️ Napraw i zsynchronizuj grę</button></section>
- <section class="section card"><div class="eyebrow">📖 KODEKS</div><button class="btn" onclick="go('code')">Otwórz pełną instrukcję</button></section>`;
-}
-function setDating(v){S.dating.preference=v;save();toast('Preferencje randkowania zapisane.')}
-function repair(){document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));closeDrawer();render();window.scrollTo({top:0});toast('🛠️ Gra zsynchronizowana — kariera nie została usunięta.')}
-function restartCareer(){if(confirm('Restart kariery zachowa dane rodziców, ale wyzeruje przebieg?')){const keep={...clone(initial),family:S.family,player:{...clone(initial).player, name:S.player.name,first:S.player.first,last:S.player.last, country:S.player.country,city:S.player.city}};S=keep;save();current='day';render();toast('Kariera uruchomiona od nowa.')}}
-const PLAYER_POSITIONS=['Bramkarz','Prawy obrońca','Lewy obrońca','Środkowy obrońca','Defensywny pomocnik','Środkowy pomocnik','Ofensywny pomocnik','Prawy skrzydłowy','Lewy skrzydłowy','Napastnik'];
-/* ===== BAZA IMION I NAZWISK =====
-   Imię i nazwisko nie są już losowane z jednej globalnej listy.
-   Gra dobiera je do kraju urodzenia/zamieszkania oraz, przy rodzinie mieszanej,
-   może korzystać z pochodzenia rodziców. To jest warstwa realizmu, a nie twarda reguła genealogiczna.
-*/
-const NAME_DATABASE={
- PL:{first:['Jakub','Antoni','Jan','Franciszek','Szymon','Aleksander','Kacper','Mateusz','Michał','Filip','Wojciech','Piotr','Bartosz','Mikołaj','Adam'],last:['Nowak','Kowalski','Wiśniewski','Wójcik','Kowalczyk','Kamiński','Lewandowski','Zieliński','Szymański','Woźniak','Dąbrowski','Mazur','Krawczyk','Piotrowski','Grabowski']},
- GB:{first:['Oliver','George','Harry','Jack','Noah','Charlie','Muhammad','Leo','Arthur','Oscar','Henry','Theo','Archie','Freddie','Alfie'],last:['Smith','Jones','Taylor','Brown','Williams','Wilson','Johnson','Davies','Patel','Robinson','Wright','Thompson','Evans','Walker','White']},
- IE:{first:['Jack','Noah','James','Conor','Cian','Liam','Finn','Oisín','Sean','Daniel','Fionn','Ronan','Darragh','Tadhg'],last:['Murphy','Kelly','O’Sullivan','Walsh','Smith','Doyle','McCarthy','Byrne','Ryan','O’Connor','O’Brien','Kennedy','Lynch']},
- PT:{first:['João','Miguel','Martim','Francisco','Afonso','Gonçalo','Tiago','Diogo','Duarte','Rafael','Rodrigo','Tomás','Pedro'],last:['Silva','Santos','Ferreira','Pereira','Oliveira','Costa','Rodrigues','Martins','Jesus','Sousa','Fernandes','Gonçalves','Gomes']},
- BR:{first:['Miguel','Gabriel','Arthur','Heitor','Theo','Bernardo','Davi','Rafael','Lucas','Matheus','João','Pedro','Enzo','Gustavo','Felipe'],last:['Silva','Santos','Oliveira','Souza','Pereira','Costa','Rodrigues','Almeida','Nascimento','Lima','Carvalho','Araújo','Ribeiro','Martins']},
- ES:{first:['Hugo','Mateo','Martín','Lucas','Leo','Daniel','Alejandro','Pablo','Álvaro','Diego','Adrián','Sergio','Javier','Bruno'],last:['García','Rodríguez','González','Fernández','López','Martínez','Sánchez','Pérez','Gómez','Martín','Jiménez','Ruiz','Hernández','Díaz']},
- FR:{first:['Gabriel','Léo','Raphaël','Louis','Arthur','Jules','Maël','Lucas','Adam','Hugo','Nathan','Ethan','Noah','Théo'],last:['Martin','Bernard','Thomas','Petit','Robert','Richard','Durand','Dubois','Moreau','Laurent','Simon','Michel','Lefebvre','Leroy']},
- IT:{first:['Leonardo','Francesco','Lorenzo','Alessandro','Andrea','Mattia','Gabriele','Tommaso','Riccardo','Federico','Luca','Marco','Giovanni'],last:['Rossi','Russo','Ferrari','Esposito','Bianchi','Romano','Colombo','Ricci','Marino','Greco','Bruno','Gallo','Conti']},
- DE:{first:['Noah','Paul','Emil','Leon','Lukas','Finn','Felix','Jonas','Ben','Elias','Maximilian','Henry','Louis'],last:['Müller','Schmidt','Schneider','Fischer','Weber','Meyer','Wagner','Becker','Schulz','Hoffmann','Schäfer','Koch','Bauer']},
- AT:{first:['Jakob','Paul','David','Lukas','Felix','Maximilian','Elias','Moritz','Leon','Florian','Tobias'],last:['Gruber','Huber','Wagner','Müller','Pichler','Steiner','Moser','Hofer','Berger','Fuchs','Eder']},
- CH:{first:['Luca','Noah','Leon','Julian','Nico','Liam','David','Elias','Jan','Simon'],last:['Müller','Meier','Schmid','Keller','Weber','Huber','Frei','Brunner','Steiner','Gerber']},
- NL:{first:['Daan','Sem','Lucas','Finn','Milan','Noah','Liam','Luuk','Bram','Thijs','Jesse'],last:['de Jong','Jansen','de Vries','van den Berg','van Dijk','Bakker','Janssen','Visser','Smit','Meijer','de Boer']},
- BE:{first:['Louis','Arthur','Noah','Victor','Lucas','Milan','Liam','Mathis','Jules','Rayan'],last:['Peeters','Janssens','Maes','Jacobs','Mertens','Willems','Claes','Goossens','De Smet','Vermeulen']},
- CZ:{first:['Jakub','Jan','Tomáš','Matyáš','Adam','Filip','Vojtěch','Matěj','David','Ondřej'],last:['Novák','Svoboda','Novotný','Dvořák','Černý','Procházka','Kučera','Veselý','Horák','Němec']},
- SK:{first:['Jakub','Samuel','Tomáš','Adam','Matej','Filip','Martin','Michal','Dominik'],last:['Horváth','Kováč','Varga','Tóth','Nagy','Baláž','Molnár','Novák','Kováčik']},
- HU:{first:['Bence','Máté','Levente','Noel','Dániel','Ádám','Balázs','Marcell','Milán','Zalán'],last:['Nagy','Kovács','Tóth','Szabó','Horváth','Varga','Kiss','Molnár','Németh','Farkas']},
- HR:{first:['Luka','Ivan','Marko','Jakov','Petar','Mateo','Roko','Josip','Ante','Fran'],last:['Horvat','Kovačević','Babić','Marić','Jurić','Novak','Knežević','Radić','Perić','Vuković']},
- RS:{first:['Luka','Nikola','Stefan','Lazar','Vuk','Marko','Miloš','Filip','Bogdan'],last:['Jovanović','Petrović','Nikolić','Marković','Đorđević','Stojanović','Ilić','Pavlović','Milošević']},
- RO:{first:['Andrei','David','Alexandru','Matei','Ștefan','Vlad','Luca','Rareș','Darius'],last:['Popescu','Popa','Pop','Radu','Dumitru','Stan','Stoica','Gheorghe','Ionescu']},
- BG:{first:['Georgi','Ivan','Alexander','Nikolay','Dimitar','Martin','Daniel','Viktor'],last:['Ivanov','Georgiev','Dimitrov','Petrov','Nikolov','Stoyanov','Todorov','Kolev','Kostov']},
- GR:{first:['Giorgos','Giannis','Dimitris','Nikos','Konstantinos','Alexandros','Panagiotis','Vasileios'],last:['Papadopoulos','Papas','Nikolaidis','Georgiou','Dimitriou','Pappas','Vasilakis','Kostas']},
- AL:{first:['Ardit','Erion','Noel','Klevis','Eris','Endrit','Klevis','Aldo'],last:['Hoxha','Shehu','Kola','Dervishi','Leka','Marku','Gashi','Krasniqi']},
- TR:{first:['Yusuf','Emir','Kerem','Arda','Efe','Mert','Ömer','Ahmet','Mehmet','Ali'],last:['Yılmaz','Kaya','Demir','Şahin','Çelik','Yıldız','Yıldırım','Öztürk','Aydın','Arslan']},
- UA:{first:['Oleksandr','Maksym','Dmytro','Artem','Andrii','Bohdan','Mykhailo','Nazar'],last:['Melnyk','Shevchenko','Kovalenko','Bondarenko','Tkachenko','Boyko','Kovalchuk','Tkachuk']},
- LT:{first:['Matas','Nojus','Lukas','Dominykas','Jokūbas','Domas','Emilis','Kajus'],last:['Kazlauskas','Jankauskas','Petrauskas','Stankevičius','Žukauskas','Butkus','Paulauskas']},
- LV:{first:['Jānis','Roberts','Rihards','Emīls','Kārlis','Mārtiņš','Artūrs'],last:['Bērziņš','Kalniņš','Ozoliņš','Jansons','Liepiņš','Krūmiņš']},
- EE:{first:['Rasmus','Robin','Markus','Kristjan','Karl','Henri','Sander'],last:['Tamm','Saar','Mägi','Sepp','Kask','Rebane','Kivistik']},
- FI:{first:['Elias','Oliver','Leo','Onni','Eetu','Aleksi','Veeti','Aapo'],last:['Korhonen','Virtanen','Mäkinen','Nieminen','Mäkelä','Hämäläinen','Laine']},
- SE:{first:['William','Liam','Hugo','Elias','Noah','Oliver','Axel','Leo'],last:['Andersson','Johansson','Karlsson','Nilsson','Eriksson','Larsson','Olsson','Persson']},
- NO:{first:['Jakob','Emil','Noah','Oliver','Lucas','Isak','William','Magnus'],last:['Hansen','Johansen','Olsen','Larsen','Andersen','Pedersen','Nilsen','Kristiansen']},
- DK:{first:['William','Noah','Oscar','Carl','Emil','Oliver','Malthe','Magnus'],last:['Jensen','Nielsen','Hansen','Pedersen','Andersen','Christensen','Larsen','Sørensen']},
- IS:{first:['Jón','Aron','Emil','Kristján','Viktor','Alexander','Dagur'],last:['Jónsson','Sigurðsson','Guðmundsson','Einarsson','Kristjánsson','Ólafsson']},
- ISL:{first:['Jón','Aron','Emil','Kristján','Viktor'],last:['Jónsson','Sigurðsson','Guðmundsson','Einarsson']},
- PLR:{first:['Kacper','Jakub','Mateusz','Antoni'],last:['Nowak','Kowalski','Wójcik','Kamiński']},
- RU:{first:['Alexander','Mikhail','Dmitry','Ivan','Nikita','Artem','Maxim','Kirill'],last:['Ivanov','Smirnov','Kuznetsov','Popov','Vasiliev','Petrov','Sokolov','Mikhailov']},
- GE:{first:['Giorgi','Nika','Luka','Saba','Davit','Giorgi'],last:['Beridze','Kapanadze','Gelashvili','Maisuradze','Lomidze']},
- AM:{first:['Aram','Hayk','Narek','Tigran','Gor','Davit'],last:['Grigoryan','Harutyunyan','Sargsyan','Hovhannisyan','Petrosyan']},
- AZ:{first:['Ali','Murad','Emil','Tural','Elvin','Nihat'],last:['Mammadov','Aliyev','Huseynov','Hasanov','Mehdiyev']},
- IR:{first:['Ali','Mohammad','Arman','Amir','Sina','Kian','Reza'],last:['Ahmadi','Hosseini','Mohammadi','Karimi','Rahimi','Hosseinzadeh']},
- IL:{first:['Noam','Ariel','Daniel','Eitan','Yonatan','Omer','Itai'],last:['Cohen','Levi','Mizrahi','Peretz','Biton','Shalev','Ben-David']},
- IN:{first:['Arjun','Aarav','Vihaan','Kabir','Aditya','Rohan','Rahul','Dev','Ishaan'],last:['Sharma','Patel','Singh','Kumar','Gupta','Mehta','Verma','Reddy']},
- PK:{first:['Muhammad','Ahmed','Hamza','Ali','Usman','Hassan','Bilal','Zain'],last:['Khan','Ahmed','Malik','Hussain','Sheikh','Qureshi','Butt']},
- BD:{first:['Arif','Rahim','Sakib','Nabil','Adnan','Tahmid','Rafi'],last:['Rahman','Hossain','Islam','Ahmed','Khan','Chowdhury','Hasan']},
- CN:{first:['Wei','Hao','Jun','Ming','Jie','Chen','Yang','Zhihao'],last:['Wang','Li','Zhang','Liu','Chen','Yang','Huang','Zhao']},
- JP:{first:['Haruto','Sota','Ren','Yuto','Riku','Kaito','Hinata','Daiki'],last:['Sato','Suzuki','Takahashi','Tanaka','Watanabe','Ito','Yamamoto','Nakamura']},
- KR:{first:['Min-jun','Seo-jun','Ji-ho','Hyun-woo','Do-yun','Jun-ho','Ji-hoon'],last:['Kim','Lee','Park','Choi','Jung','Kang','Cho','Yoon']},
- TH:{first:['Narin','Thanawat','Pattadon','Krit','Phurin','Nattapong'],last:['Saengsawang','Srisuk','Kittisak','Sukhum','Chaiyaporn']},
- VN:{first:['Minh','Duy','Khang','Huy','Nam','Long','Quang'],last:['Nguyen','Tran','Le','Pham','Huynh','Vo','Dang']},
- ID:{first:['Rizky','Aditya','Fajar','Dimas','Rafi','Bagas','Ardi'],last:['Santoso','Wijaya','Pratama','Saputra','Setiawan','Hidayat']},
- MY:{first:['Muhammad','Adam','Aiman','Haziq','Irfan','Danish'],last:['Abdullah','Ismail','Rahman','Hassan','Ibrahim','Yusof']},
- PH:{first:['Miguel','Gabriel','Jose','Juan','Andrei','Rafael','Luis'],last:['Santos','Reyes','Cruz','Garcia','Mendoza','Bautista','Aquino']},
- SG:{first:['Ethan','Ryan','Lucas','Daniel','Jayden','Evan'],last:['Tan','Lim','Lee','Ng','Ong','Chua']},
- ZA:{first:['Liam','Ethan','Lwazi','Thabo','Sipho','Mandla','Kabelo'],last:['Nkosi','Dlamini','Mokoena','Molefe','Ndlovu','Naidoo']},
- NG:{first:['Chinedu','Emeka','Obinna','Tunde','Ade','David','Samuel'],last:['Okafor','Adeyemi','Okoye','Ibrahim','Balogun','Eze','Nwosu']},
- GH:{first:['Kwame','Kofi','Kojo','Yaw','Daniel','Samuel'],last:['Mensah','Owusu','Asare','Boateng','Osei','Adjei']},
- KE:{first:['Brian','Kevin','Ian','Amani','Baraka','Eliud'],last:['Otieno','Kamau','Ochieng','Mwangi','Kiptoo','Njoroge']},
- MA:{first:['Youssef','Adam','Ayoub','Anas','Omar','Amine'],last:['El Amrani','Bennani','Alaoui','Idrissi','Benali','Fassi']},
- EG:{first:['Omar','Youssef','Ahmed','Mohamed','Karim','Adam'],last:['Mohamed','Hassan','Mahmoud','Ali','Ibrahim','Abdelrahman']},
- TN:{first:['Youssef','Mohamed','Aymen','Anis','Malek','Ahmed'],last:['Ben Ali','Trabelsi','Jaziri','Mansour','Gharbi']},
- DZ:{first:['Adam','Yacine','Amine','Rayan','Ilyes','Sofiane'],last:['Benali','Bensaid','Boudiaf','Mansouri','Khelifi','Belkacem']},
- SN:{first:['Mamadou','Ibrahima','Cheikh','Abdou','Ousmane','Moussa'],last:['Diop','Ndiaye','Fall','Ba','Sarr','Diallo']},
- AR:{first:['Mateo','Santiago','Benjamín','Thiago','Tomás','Franco','Joaquín'],last:['González','Rodríguez','Gómez','Fernández','López','Martínez','Díaz']},
- CL:{first:['Agustín','Benjamín','Vicente','Mateo','Tomás','Joaquín'],last:['González','Muñoz','Rojas','Díaz','Pérez','Soto']},
- CO:{first:['Juan','Santiago','Samuel','Mateo','Sebastián','Nicolás'],last:['Rodríguez','Gómez','Martínez','García','López','Hernández']},
- PE:{first:['Diego','Sebastián','Mateo','Adrián','Luis','Alonso'],last:['Quispe','Flores','García','Rojas','Mamani','Huamán']},
- UY:{first:['Mateo','Santiago','Juan','Martín','Felipe','Nicolás'],last:['Rodríguez','González','Pereira','Fernández','Silva','Martínez']},
- PY:{first:['Juan','Mateo','Diego','Thiago','Rodrigo','Santiago'],last:['González','Benítez','Martínez','Rojas','Gómez','Ramírez']},
- EC:{first:['Mateo','Sebastián','Santiago','Daniel','Emiliano','Martín'],last:['García','Rodríguez','González','Pérez','Vera','Mendoza']},
- BO:{first:['Diego','Mateo','Luis','Juan','Bruno','Rodrigo'],last:['Mamani','Quispe','Condori','Flores','Choque','Gutiérrez']},
- CR:{first:['Mateo','Santiago','Sebastián','Daniel','Andrés'],last:['Rodríguez','Gómez','Jiménez','Vargas','Mora','Castro']},
- PA:{first:['Luis','José','Daniel','Santiago','Gabriel'],last:['Rodríguez','González','Castillo','Ríos','Martínez']},
- JM:{first:['Jayden','Dwayne','Andre','Jordan','Kemar','Tyrese'],last:['Brown','Williams','Campbell','Thomas','Clarke','Miller']},
- US:{first:['Liam','Noah','Oliver','James','Elijah','Mateo','Ethan','Lucas'],last:['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis']},
- CA:{first:['Liam','Noah','Oliver','Ethan','Lucas','William','Owen'],last:['Smith','Brown','Martin','Roy','Tremblay','Gagnon','Wilson']},
- AU:{first:['Oliver','Noah','Jack','William','Leo','Henry','Lachlan'],last:['Smith','Jones','Williams','Brown','Wilson','Taylor','Anderson']},
- NZ:{first:['Oliver','Jack','Noah','Leo','Liam','Arlo'],last:['Smith','Williams','Brown','Taylor','Wilson','Jones']},
- FJ:{first:['Jone','Semi','Josua','Viliame','Samu','Meli'],last:['Ratu','Naiqama','Tawake','Vakaloloma','Tuisova']}
-};
-const NG_FIRST=['Alex','Noah','Liam','Mateo','Leo','Lucas','Milan','Oliver','Ethan','Daniel','Adrian','Kacper','Jakub','Antoine','Marco','Hugo','Tiago','João','Gabriel','Rafael'];
-const NG_LAST=['Silva','Costa','Pereira','Santos','Rossi','Martins','Nowak','Kowalski','Garcia','Gonzalez','Fernandez','Muller','Schmidt','Dubois','Martin','Bianchi','Sato','Kim','Williams','Brown'];
-const COUNTRY_CITIES={
-  AF:['Kabul','Herat','Kandahar','Mazar-i Szarif'],
-  AL:['Tirana','Durrës','Wlora','Szkodra'],
-  DZ:['Algier','Oran','Konstantyna','Annaba'],
-  AD:['Andora la Vella','Escaldes-Engordany','Encamp'],
-  AO:['Luanda','Huambo','Lubango','Benguela'],
-  AG:['Saint John\'s','All Saints','Liberta'],
-  AR:['Buenos Aires','Córdoba','Rosario','Mendoza','La Plata','Mar del Plata'],
-  AM:['Erywań','Giumri','Wanadzor'],
-  AU:['Sydney','Melbourne','Brisbane','Perth','Adelaide','Canberra','Hobart'],
-  AT:['Wiedeń','Graz','Linz','Salzburg','Innsbruck','Klagenfurt'],
-  AZ:['Baku','Gandża','Sumgait','Lankaran'],
-  BS:['Nassau','Freeport','Marsh Harbour'],
-  BH:['Manama','Riffa','Muharrak'],
-  BD:['Dhaka','Ćottogram','Khulna','Rajshahi','Sylhet'],
-  BB:['Bridgetown','Speightstown','Oistins'],
-  BE:['Bruksela','Antwerpia','Gandawa','Brugia','Liège','Charleroi'],
-  BZ:['Belmopan','Belize City','San Ignacio'],
-  BJ:['Porto-Novo','Kotonu','Abomey-Calavi'],
-  BT:['Thimphu','Phuntsholing','Paro'],
-  BY:['Mińsk','Homel','Grodno','Brześć','Witebsk'],
-  BO:['La Paz','Santa Cruz de la Sierra','Cochabamba','Sucre'],
-  BA:['Sarajewo','Banja Luka','Mostar','Tuzla'],
-  BW:['Gaborone','Francistown','Maun'],
-  BR:['São Paulo','Rio de Janeiro','Brasília','Salvador','Belo Horizonte','Curitiba','Recife','Porto Alegre','Fortaleza'],
-  BN:['Bandar Seri Begawan','Kuala Belait','Seria'],
-  BG:['Sofia','Płowdiw','Warna','Burgas','Ruse'],
-  BF:['Wagadugu','Bobo-Dioulasso','Koudougou'],
-  BI:['Gitega','Bużumbura','Ngozi'],
-  CV:['Praia','Mindelo','Santa Maria'],
-  CL:['Santiago','Valparaíso','Concepción','Viña del Mar','Antofagasta'],
-  CN:['Pekin','Szanghaj','Kanton','Shenzhen','Chengdu','Chongqing','Hangzhou','Xi\'an'],
-  HR:['Zagrzeb','Split','Dubrownik','Rijeka','Osijek'],
-  CY:['Nikozja','Limassol','Larnaka','Pafos'],
-  CZ:['Praga','Brno','Ostrawa','Pilzno','Liberec','Ołomuniec'],
-  TD:['Ndżamena','Moundou','Sarh'],
-  ME:['Podgorica','Budva','Bar','Kotor','Nikšić'],
-  DK:['Kopenhaga','Aarhus','Odense','Aalborg','Esbjerg'],
-  DM:['Roseau','Portsmouth','Marigot'],
-  DO:['Santo Domingo','Santiago de los Caballeros','Punta Cana','Puerto Plata'],
-  DJ:['Dżibuti','Ali Sabieh','Tadjoura'],
-  EG:['Kair','Aleksandria','Giza','Luksor','Asuan','Hurghada'],
-  EC:['Quito','Guayaquil','Cuenca','Manta'],
-  ER:['Asmara','Massawa','Keren'],
-  EE:['Tallinn','Tartu','Narwa','Pärnu'],
-  ET:['Addis Abeba','Dire Dawa','Gondar','Mekelie'],
-  FJ:['Suva','Nadi','Lautoka'],
-  PH:['Manila','Cebu City','Davao','Quezon City','Baguio'],
-  FI:['Helsinki','Espoo','Tampere','Turku','Oulu','Rovaniemi'],
-  FR:['Paryż','Marsylia','Lyon','Tuluza','Nicea','Bordeaux','Lille','Nantes'],
-  GA:['Libreville','Port-Gentil','Franceville'],
-  GM:['Bandżul','Serekunda','Brikama'],
-  GH:['Akra','Kumasi','Tamale','Takoradi'],
-  GR:['Ateny','Saloniki','Patras','Heraklion','Larisa'],
-  GD:['Saint George\'s','Gouyave','Grenville'],
-  GE:['Tbilisi','Batumi','Kutaisi','Rustawi'],
-  GY:['Georgetown','Linden','New Amsterdam'],
-  GT:['Gwatemala','Quetzaltenango','Escuintla'],
-  GN:['Konakry','Nzérékoré','Kankan'],
-  GW:['Bissau','Bafatá','Gabú'],
-  GQ:['Malabo','Bata','Ebebiyín'],
-  HT:['Port-au-Prince','Cap-Haïtien','Gonaïves'],
-  ES:['Madryt','Barcelona','Walencja','Sewilla','Malaga','Bilbao','Vigo','Granada','Alicante','Palma','Zaragoza','Murcja'],
-  NL:['Amsterdam','Rotterdam','Haga','Utrecht','Eindhoven','Groningen'],
-  HN:['Tegucigalpa','San Pedro Sula','La Ceiba'],
-  IN:['Mumbaj','Delhi','Bengaluru','Kolkata','Ćennaj','Hyderabad','Pune','Ahmedabad'],
-  ID:['Dżakarta','Surabaja','Bandung','Medan','Denpasar','Semarang'],
-  IQ:['Bagdad','Basra','Mosul','Erbil','Karbala'],
-  IR:['Teheran','Meszhed','Isfahan','Sziraz','Tabriz'],
-  IE:['Dublin','Cork','Limerick','Galway','Waterford'],
-  IS:['Reykjavík','Kópavogur','Hafnarfjörður','Akureyri'],
-  IL:['Jerozolima','Tel Awiw','Hajfa','Beer Szewa','Ejlatu'],
-  JM:['Kingston','Montego Bay','Spanish Town'],
-  JP:['Tokio','Osaka','Kioto','Jokohama','Nagoya','Sapporo','Fukuoka'],
-  YE:['Sana','Aden','Taizz','Al-Hudajda'],
-  JO:['Amman','Zarka','Irbid','Akaba'],
-  KH:['Phnom Penh','Siem Reap','Battambang','Sihanoukville'],
-  CM:['Jaunde','Duala','Bamenda','Garoua'],
-  CA:['Toronto','Montreal','Vancouver','Calgary','Ottawa','Edmonton','Quebec City','Winnipeg'],
-  QA:['Doha','Al Wakrah','Al Khor'],
-  KZ:['Astana','Ałmaty','Szymkent','Karaganda'],
-  KE:['Nairobi','Mombasa','Kisumu','Nakuru'],
-  KG:['Biszkek','Osz','Dżalalabad'],
-  KI:['Tarawa','Betio','Bairiki'],
-  CO:['Bogota','Medellín','Cali','Barranquilla','Cartagena'],
-  KM:['Moroni','Mutsamudu','Fomboni'],
-  CG:['Brazzaville','Pointe-Noire','Dolisie'],
-  CD:['Kinszasa','Lubumbashi','Goma','Kisangani'],
-  KR:['Seul','Busan','Incheon','Daegu','Daejeon','Gwangju'],
-  KP:['Pjongjang','Hamhung','Chongjin'],
-  CR:['San José','Alajuela','Heredia','Liberia'],
-  CI:['Abidżan','Bouaké','Yamoussoukro','Korhogo'],
-  CU:['Hawana','Santiago de Cuba','Camagüey','Holguín'],
-  KW:['Kuwejt','Hawalli','Al Ahmadi'],
-  LA:['Wientian','Luang Prabang','Pakse'],
-  LS:['Maseru','Mafeteng','Hlotse'],
-  LB:['Bejrut','Trypolis','Sidon','Byblos'],
-  LR:['Monrovia','Gbarnga','Buchanan'],
-  LY:['Trypolis','Bengazi','Misrata','Sabha'],
-  LI:['Vaduz','Schaan','Triesen'],
-  LT:['Wilno','Kowno','Kłajpeda','Szawle','Poniewież'],
-  LU:['Luksemburg','Esch-sur-Alzette','Differdange'],
-  LV:['Ryga','Daugavpils','Liepāja','Jelgava'],
-  MG:['Antananarywa','Toamasina','Antsirabe'],
-  MW:['Lilongwe','Blantyre','Mzuzu'],
-  MY:['Kuala Lumpur','George Town','Johor Bahru','Ipoh','Kota Kinabalu'],
-  MV:['Malé','Addu City','Fuvahmulah'],
-  ML:['Bamako','Sikasso','Mopti'],
-  MT:['Valletta','Birkirkara','Mosta','Victoria'],
-  MA:['Rabat','Casablanca','Marrakesz','Fez','Tanger','Agadir'],
-  MR:['Nawakszut','Nouadhibou','Kiffa'],
-  MU:['Port Louis','Curepipe','Quatre Bornes'],
-  MX:['Meksyk','Guadalajara','Monterrey','Puebla','Cancún','Tijuana'],
-  FM:['Palikir','Weno','Kolonia'],
-  MD:['Kiszyniów','Bălți','Tiraspol'],
-  MC:['Monako','Monte Carlo','La Condamine'],
-  MN:['Ułan Bator','Erdenet','Darchan'],
-  MZ:['Maputo','Matola','Beira','Nampula'],
-  MM:['Naypyidaw','Jangon','Mandalaj'],
-  NA:['Windhuk','Walvis Bay','Swakopmund'],
-  NR:['Yaren','Anibare','Aiwo'],
-  NP:['Katmandu','Pokhara','Lalitpur','Bharatpur'],
-  DE:['Berlin','Monachium','Hamburg','Kolonia','Frankfurt','Düsseldorf','Stuttgart','Dortmund','Leipzig','Drezno','Freiburg','Münster'],
-  NE:['Niamey','Zinder','Maradi'],
-  NG:['Lagos','Abudża','Kano','Ibadan','Benin City','Port Harcourt'],
-  NI:['Managua','León','Granada'],
-  NO:['Oslo','Bergen','Trondheim','Stavanger','Tromsø'],
-  NZ:['Auckland','Wellington','Christchurch','Hamilton','Dunedin','Queenstown'],
-  OM:['Maskat','Salala','Nizwa','Sohar'],
-  PK:['Karaczi','Lahaur','Islamabad','Rawalpindi','Peszawar'],
-  PW:['Ngerulmud','Koror','Airai'],
-  PS:['Ramallah','Gaza','Betlejem','Hebron','Nablus'],
-  PA:['Panama City','Colón','David'],
-  PG:['Port Moresby','Lae','Mount Hagen'],
-  PY:['Asunción','Ciudad del Este','Encarnación'],
-  PE:['Lima','Arequipa','Cusco','Trujillo','Piura'],
-  PL:['Warszawa','Kraków','Poznań','Wrocław','Gdańsk','Łódź','Szczecin','Lublin','Białystok','Rzeszów','Katowice','Toruń','Bydgoszcz','Olsztyn','Opole','Zielona Góra','Gorzów Wielkopolski','Swarzędz','Słubice','Lubsko','Leszno','Piła','Zakopane'],
-  PT:['Lizbona','Porto','Braga','Coimbra','Faro','Aveiro','Funchal','Ponta Delgada'],
-  CF:['Bangui','Berbérati','Bouar'],
-  ZA:['Johannesburg','Kapsztad','Durban','Pretoria','Port Elizabeth','Bloemfontein'],
-  RO:['Bukareszt','Kluż-Napoka','Timișoara','Jassy','Konstanca','Braszów'],
-  RW:['Kigali','Butare','Gisenyi'],
-  KN:['Basseterre','Charlestown'],
-  LC:['Castries','Vieux Fort','Soufrière'],
-  VC:['Kingstown','Georgetown','Barrouallie'],
-  WS:['Apia','Salelologa'],
-  SM:['San Marino','Serravalle','Borgo Maggiore'],
-  SN:['Dakar','Touba','Thiès','Saint-Louis'],
-  RS:['Belgrad','Novi Sad','Nisz','Kragujevac','Subotica'],
-  SC:['Victoria','Beau Vallon','Anse Royale'],
-  SL:['Freetown','Bo','Kenema'],
-  SG:['Singapur'],
-  SK:['Bratysława','Koszyce','Preszów','Żylina','Nitra'],
-  SI:['Lublana','Maribor','Celje','Koper'],
-  SO:['Mogadiszu','Hargejsa','Kismaju'],
-  LK:['Kolombo','Kandy','Galle','Jaffna'],
-  SD:['Chartum','Omdurman','Port Sudan'],
-  SS:['Dżuba','Wau','Malakal'],
-  SR:['Paramaribo','Lelydorp','Nieuw Nickerie'],
-  SZ:['Mbabane','Manzini','Lobamba'],
-  CH:['Zurych','Genewa','Bazylea','Lozanna','Berno','Lucerna'],
-  SE:['Sztokholm','Göteborg','Malmö','Uppsala','Örebro'],
-  SY:['Damaszek','Aleppo','Hims','Latakia'],
-  TW:['Tajpej','Nowe Tajpej','Taichung','Kaohsiung','Tainan'],
-  TJ:['Duszanbe','Chodżent','Kulob'],
-  TZ:['Dodoma','Dar es Salaam','Arusza','Mwanza'],
-  TH:['Bangkok','Chiang Mai','Phuket','Pattaya','Krabi'],
-  TL:['Dili','Baucau','Maliana'],
-  TG:['Lomé','Sokodé','Kara'],
-  TO:['Nuku\'alofa','Neiafu'],
-  TT:['Port of Spain','San Fernando','Scarborough'],
-  TN:['Tunis','Susa','Sfax','Monastyr','Dżerba'],
-  TR:['Stambuł','Ankara','Izmir','Antalya','Bursa','Adana','Trabzon'],
-  TM:['Aszchabad','Turkmenabat','Daszoguz'],
-  TV:['Funafuti','Asau'],
-  UG:['Kampala','Entebbe','Jinja','Mbarara'],
-  UA:['Kijów','Lwów','Odessa','Charków','Dnipro','Zaporoże','Czerniowce'],
-  UY:['Montevideo','Salto','Paysandú','Punta del Este'],
-  UZ:['Taszkent','Samarkanda','Buchara','Andiżan'],
-  VU:['Port Vila','Luganville'],
-  VA:['Watykan'],
-  VE:['Caracas','Maracaibo','Valencia','Barquisimeto'],
-  HU:['Budapeszt','Debreczyn','Szeged','Miszkolc','Pecz'],
-  GB:['Londyn','Manchester','Liverpool','Birmingham','Leeds','Sheffield','Newcastle','Bristol','Nottingham','Leicester','Southampton','Brighton','Cardiff','Glasgow','Edynburg','Belfast','Aberdeen','Swansea','Preston','Norwich'],
-  VN:['Hanoi','Ho Chi Minh','Da Nang','Hai Phong','Nha Trang','Hue'],
-  IT:['Rzym','Mediolan','Neapol','Turyn','Florencja','Bolonia','Genua','Palermo','Bari','Werona'],
-  SB:['Honiara','Gizo','Auki'],
-  MH:['Majuro','Ebeye'],
-  ZM:['Lusaka','Kitwe','Ndola','Livingstone'],
-  ZW:['Harare','Bulawayo','Mutare','Victoria Falls'],
-  AE:['Dubaj','Abu Zabi','Szardża','Adżman','Ras al-Chajma'],
-  US:['Nowy Jork','Los Angeles','Chicago','Houston','Phoenix','Filadelfia','San Antonio','San Diego','Dallas','Miami','Boston','Seattle','Denver','Atlanta','Orlando'],
-  XK:['Prisztina','Prizren','Peja','Mitrowica'],
-  RU:['Moskwa','Petersburg','Kazań','Nowosybirsk','Jekaterynburg','Soczi','Władywostok','Kaliningrad'],
-  SA:['Rijad','Dżudda','Mekka','Medyna','Dammam'],
-  SV:['San Salvador','Santa Ana','San Miguel'],
-  PR:['San Juan','Ponce','Mayagüez']
-};
-
-function randomFrom(a){return a[Math.floor(Math.random()*a.length)]}
-function randomBirthDate(){
-  const base=new Date(S.day.date+'T12:00:00');
-  const age=10+Math.floor(Math.random()*10);
-  const b=new Date(base);
-  b.setFullYear(base.getFullYear()-age);
-  b.setMonth(Math.floor(Math.random()*12));
-  b.setDate(1+Math.floor(Math.random()*28));
-  if(b>base)b.setFullYear(b.getFullYear()-1);
-  return b.toISOString().slice(0,10);
-}
-function ageFromBirthDate(date){if(!date)return 15;const b=new Date(date+'T12:00:00'), now=new Date(S.day.date+'T12:00:00');let a=now.getFullYear()-b.getFullYear();if(now.getMonth()<b.getMonth()||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))a--;return Math.max(10,Math.min(19,a))}
-function countryOptions(selected){return Object.entries(COUNTRY_WORLD).filter(([k,v])=>v&&v.name).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${esc(v.name)}</option>`).join('')}
-function positionOptions(selected){return PLAYER_POSITIONS.map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join('')}
-function questionFields(values){return `<section class="card" style="margin-top:12px"><div class="eyebrow">🧠 PYTANIA STARTOWE</div><div class="muted small">Odpowiedzi wpływają na początkowe statystyki i historię zawodnika.</div><label class="field"><span>👨‍👩‍👦 Jak duże wsparcie daje rodzina?</span><select class="select" id="ngsupport"><option value="low">Niewielkie</option><option value="normal" selected>Normalne</option><option value="high">Bardzo duże</option></select></label><label class="field"><span>💰 Jak wygląda sytuacja finansowa rodziny?</span><select class="select" id="ngwealth"><option value="low">Skromna</option><option value="normal" selected>Normalna</option><option value="high">Zamożna</option></select></label><label class="field"><span>⚽ Jak długo trenujesz piłkę?</span><select class="select" id="ngfootball"><option value="new">Dopiero zaczynam</option><option value="regular" selected>Od kilku lat</option><option value="serious">Od dziecka bardzo poważnie</option></select></label><label class="field"><span>🧠 Jaki masz charakter?</span><select class="select" id="ngcharacter"><option value="calm">Spokojny i rozsądny</option><option value="balanced" selected>Zrównoważony</option><option value="ambitious">Bardzo ambitny i ryzykowny</option></select></label><label class="field"><span>🎓 Jak podchodzisz do szkoły?</span><select class="select" id="ngschool"><option value="weak">Sport jest najważniejszy</option><option value="balanced" selected>Staram się łączyć szkołę i sport</option><option value="strong">Bardzo dbam o naukę</option></select></label></section>`}
-function namePoolForCountry(code){
-  return NAME_DATABASE[code]||{first:NG_FIRST,last:NG_LAST};
-}
-function randomNameForCountry(code){
-  const pool=namePoolForCountry(code);
-  return randomFrom(pool.first)+' '+randomFrom(pool.last);
-}
-function randomNameFromOrigins(residenceCode,fatherCode,motherCode){
-  const choices=[];
-  const push=(code,weight)=>{if(!code)return;for(let i=0;i<weight;i++)choices.push(code)};
-  push(residenceCode,5);push(fatherCode,2);push(motherCode,2);
-  const code=randomFrom(choices)||residenceCode;
-  return randomNameForCountry(code);
-}
-function countryCodeByName(name){return Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k]?.name===name)||null}
-function randomParentOriginCode(residenceCode){
-  const keys=Object.keys(COUNTRY_WORLD).filter(k=>k!==residenceCode);
-  return randomFrom(keys)||residenceCode;
-}
-function parentPersonName(originCode){return randomNameForCountry(originCode)}
-function suggestNameForSelectedCountry(){
-  const code=document.getElementById('ngcountry')?.value;if(!code)return;
-  const fatherCode=countryCodeByName(S?.family?.father?.originCountry)||null;
-  const motherCode=countryCodeByName(S?.family?.mother?.originCountry)||null;
-  const name=randomNameFromOrigins(code,fatherCode,motherCode);
-  const el=document.getElementById('ngname');if(el)el.value=name;
-}
-
-function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=randomBirthDate();const fatherOrigin=randomParentOriginCode(code);const motherOrigin=randomParentOriginCode(code);return {name:randomNameFromOrigins(code,fatherOrigin,motherOrigin),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),fatherOriginCode:fatherOrigin,motherOriginCode:motherOrigin,answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
-function languageForOriginCountry(countryName){
-  const code=Object.keys(COUNTRY_WORLD).find(k=>COUNTRY_WORLD[k]?.name===countryName);
-  if(!code)return null;
-  const candidates=(WORLD_CATALOG.languages||[]).filter(l=>l.countries?.includes(code));
-  if(candidates.length){
-    return candidates.find(l=>!['Angielski'].includes(l.name))||candidates[0];
-  }
-  const names=COUNTRY_WORLD[code]?.languages||[];
-  const name=names.find(x=>x && !x.toLowerCase().includes('angielski'))||names[0];
-  if(!name)return null;
-  return {id:'lang_'+code,name,difficulty:3,career:['football','creator'],countries:[code]};
-}
-function addResidenceLanguage(langs,residenceCode){
-  const lang=languageForOriginCountry(COUNTRY_WORLD[residenceCode]?.name);
-  if(!lang)return langs;
-  if(!langs.some(x=>x.id===lang.id)) langs.unshift({id:lang.id,name:lang.name,level:100,source:'język kraju zamieszkania',fromParent:null,taught:true,locked:true});
-  else { const x=langs.find(x=>x.id===lang.id); x.level=Math.max(x.level||0,100); x.source='język kraju zamieszkania + środowisko'; x.locked=true; }
-  return langs;
-}
-function buildFamilyLanguages(family, residenceCode){
-  const result=[];
-  const add=(lang,source,parentName)=>{
-    if(!lang||result.some(x=>x.id===lang.id))return;
-    const taught=Math.random()<0.72;
-    const level=taught?(Math.random()<0.45?25+Math.floor(Math.random()*31):56+Math.floor(Math.random()*25)):Math.floor(Math.random()*12);
-    result.push({id:lang.id,name:lang.name,level,source,fromParent:parentName||null,taught,locked:false});
-  };
-  add(languageForOriginCountry(family?.father?.originCountry),'pochodzenie ojca',family?.father?.name);
-  add(languageForOriginCountry(family?.mother?.originCountry),'pochodzenie matki',family?.mother?.name);
-  return result;
-}
-function renderNewGameSetup(mode){const base=mode==='plus'?randomProfile():randomProfile();openModal(`<div class="modal-head"><div><div class="eyebrow">${mode==='plus'?'✨ NOWA GRA+':'🆕 NOWA GRA'}</div><h2>Utwórz zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><button class="btn" onclick="fillRandomNG('${mode}')">🎲 Wylosuj zawodnika</button><div class="muted small" style="margin-top:8px">Możesz wylosować cały profil albo ręcznie zmienić dowolne pole.</div></div><label class="field"><span>👤 Imię i nazwisko</span><input class="input" id="ngname" value="${esc(base.name)}" placeholder="Imię i nazwisko"><button class="btn" style="margin-top:8px" onclick="suggestNameForSelectedCountry()">🎲 Dopasuj imię i nazwisko do kraju / pochodzenia</button><div class="muted small" style="margin-top:6px">Możesz wpisać własne dane. Generator dobiera realistyczne imiona i nazwiska z kraju zawodnika oraz może uwzględnić pochodzenie rodziców.</div></label><label class="field"><span>🌍 Kraj</span><select class="select" id="ngcountry">${countryOptions(base.countryCode)}</select></label><label class="field"><span>📍 Miasto</span><input class="input" id="ngcity" value="${esc(base.city)}" placeholder="Miasto"></label><label class="field"><span>⚽ Pozycja</span><select class="select" id="ngpos">${positionOptions(base.position)}</select></label><label class="field"><span>🎂 Data urodzenia</span><input class="input" type="date" id="ngbirth" value="${base.birthDate}"></label>${questionFields(base.answers)}<button class="btn goldbtn" style="margin-top:14px" onclick="applyNewProfile('${mode}')">Rozpocznij karierę</button>`,true)}
-function fillRandomNG(mode){const r=randomProfile();document.getElementById('ngname').value=r.name;document.getElementById('ngcountry').value=r.countryCode;document.getElementById('ngcity').value=r.city;document.getElementById('ngpos').value=r.position;document.getElementById('ngbirth').value=r.birthDate;document.getElementById('ngsupport').value=r.answers.support;document.getElementById('ngwealth').value=r.answers.wealth;document.getElementById('ngfootball').value=r.answers.football;document.getElementById('ngcharacter').value=r.answers.character;document.getElementById('ngschool').value=r.answers.school}
-function applyNewProfile(mode){const name=document.getElementById('ngname').value.trim();const code=document.getElementById('ngcountry').value;const country=COUNTRY_WORLD[code];const city=document.getElementById('ngcity').value.trim()||randomFrom(COUNTRY_CITIES[code]||['Miejscowość lokalna']);const birth=document.getElementById('ngbirth').value;if(!name||!birth||!country){toast('Uzupełnij imię, kraj i datę urodzenia.');return}const age=ageFromBirthDate(birth);if(age<10||age>19){toast('Wybierz datę dającą wiek 10–19 lat.');return}const answers={support:document.getElementById('ngsupport').value,wealth:document.getElementById('ngwealth').value,football:document.getElementById('ngfootball').value,character:document.getElementById('ngcharacter').value,school:document.getElementById('ngschool').value};let base=clone(initial);if(mode==='plus'){const oldFamily=clone(S.family);base.family=oldFamily}base.player.name=name;base.player.first=name.split(/\s+/)[0];base.player.last=name.split(/\s+/).slice(1).join(' ');base.player.country=country.name;base.player.countryCode=code;base.player.city=city;base.player.birthCountry=country.name;base.player.birthDate=birth;base.player.age=age;base.player.position=document.getElementById('ngpos').value;base.player.club='Akademia '+city;base.day.date=birth;let dt=new Date(birth+'T12:00:00');dt.setFullYear(dt.getFullYear()+age);base.day.date=dt.toISOString().slice(0,10);base.calendarConfig.country=code;base.world.calendarCountry=code;
-// Rodzina ma osobno miejsce zamieszkania i pochodzenie. Wszyscy mogą mieszkać razem w mieście zawodnika, niezależnie od narodowości/korzeni rodziców.
-const familyResidenceCountry=country.name;
-const familyResidenceCity=city;
-const parentOriginCodes=(mode==='plus' && base.family?.father?.originCountry && base.family?.mother?.originCountry)
-  ? {father:countryCodeByName(base.family.father.originCountry)||randomParentOriginCode(code),mother:countryCodeByName(base.family.mother.originCountry)||randomParentOriginCode(code)}
-  : {father:randomParentOriginCode(code),mother:randomParentOriginCode(code)};
-const parentOrigins={father:COUNTRY_WORLD[parentOriginCodes.father]?.name||country.name,mother:COUNTRY_WORLD[parentOriginCodes.mother]?.name||country.name};
-base.family.parentsTogether=true;
-base.family.homeType='Dom rodzinny';
-base.family.father.country=familyResidenceCountry;base.family.father.city=familyResidenceCity;base.family.father.originCountry=parentOrigins.father;base.family.father.nationality=parentOrigins.father;base.family.father.name=parentPersonName(parentOriginCodes.father);
-base.family.mother.country=familyResidenceCountry;base.family.mother.city=familyResidenceCity;base.family.mother.originCountry=parentOrigins.mother;base.family.mother.nationality=parentOrigins.mother;base.family.mother.name=parentPersonName(parentOriginCodes.mother);
-base.family.roots=[{label:'Ojciec',country:parentOrigins.father,city:'pochodzenie rodziny'},{label:'Matka',country:parentOrigins.mother,city:'pochodzenie rodziny'}];
-// Pochodzenie rodzica otwiera możliwość znajomości jego języka, ale nie gwarantuje biegłości.
-// Rodzic może mówić w domu, uczyć dziecko częściowo albo wcale — dlatego poziom jest losowy i może być bardzo niski.
-base.world.languages=addResidenceLanguage(buildFamilyLanguages(base.family,code),code);
-base.family.father.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.father.name)?'częściowo / regularnie':'nie przekazuje języka';
-base.family.mother.languageTeaching=base.world.languages.some(x=>x.fromParent===base.family.mother.name)?'częściowo / regularnie':'nie przekazuje języka';
-base.player.homeId='parents';
-base.family.familyWealth=answers.wealth;base.family.stability=answers.support==='high'?'stabilna':answers.support==='low'?'niestabilna':'stabilna';base.player.character=answers.character==='ambitious'?75:answers.character==='calm'?58:65;base.player.education=answers.school==='strong'?35:answers.school==='weak'?10:22;base.player.mental=answers.support==='high'?78:answers.support==='low'?62:72;base.player.form=answers.football==='serious'?75:answers.football==='new'?58:68;base.player.ovr=answers.football==='serious'?58:answers.football==='new'?45:52;base.player.potential=answers.football==='serious'?90:answers.football==='new'?82:86;base.player.happiness=answers.support==='high'?88:answers.support==='low'?70:82;base.player.reputation=0;base.player.popularity=0;base.history=[];base.consequenceLedger=[];base.lifeTags=[];base.scouting=[];base.calendar.matches=[];base.gameMode=mode;S=base;save();closeModal();current='day';render();toast(mode==='plus'?'✨ Nowa gra+ rozpoczęta.':'🆕 Nowa kariera rozpoczęta.')}
-function newGame(){if(confirm('Rozpocząć nową karierę? Wszystkie dane bieżącej kariery zostaną zastąpione.'))renderNewGameSetup('new')}
-function newGamePlus(){renderNewGameSetup('plus')}
-function renderCode(){
- const sections=[
- ['🧭 Jak działa dzień','Każda aktywność ma czas, koszt i efekty. Nie można wykonać rzeczy, na które nie pozwala godzina, energia, wiek lub zasoby. Sen natychmiast przechodzi do kolejnego dnia i zapisuje stan.'],
- ['⚡ Energia, zdrowie i mental','Energia spada podczas aktywności. Sen i regeneracja ją odnawiają. Zdrowie wpływa na trening i ryzyko urazów. Mental zależy m.in. od rodziny, relacji, presji, wyników, snu i specjalistów.'],
- ['⚽ Kariera','OVR i potencjał nie są tym samym. Rozwój zależy od treningu, meczów, zdrowia, mentalu, sprzętu, trenerów i decyzji. Skauci, obozy i kluby pojawiają się kontekstowo.'],
- ['🔎 Skauci i decyzje','Zaproszenie jest widoczne na głównym ekranie. Otwierasz je, poznajesz warunki i podejmujesz decyzję. Do 18 r.ż. rodzice mogą mieć realny wpływ. Później mogą wpływać partner, żona, dzieci lub inne osoby.'],
- ['⚽ Mecze','Mecz ma własne decyzje boiskowe. Wynik, ocena i decyzje wpływają na formę, OVR, popularność, relacje z trenerem, skautów i historię.'],
- ['📱 FLgram','FLgram ma feed, obserwowanie, gwiazdy, wiadomości, komentarze, lajki, posty i współprace. Liczba obserwujących nie oznacza automatycznie popularności — popularność jest szerszym wskaźnikiem tego, ile osób zna zawodnika.'],
- ['👥 Rodzina','Rodzice mają imię, wiek, kraj, miasto, zawód, dochody, wydatki, dom, auto, partnerów, dzieci, dostępność i relację z zawodnikiem. Rozstanie nie kasuje ich majątku — zmienia układ rodziny.'],
- ['❤️ Relacje','Każda osoba, z którą zawodnik ma znaczącą styczność, może trafić do katalogu. Relacja może się rozwijać, wygasać i tworzyć nowe wydarzenia.'],
- ['💰 Finanse i miasto','Pieniądze można wydawać, inwestować, przeznaczać na biznes lub cele charytatywne. Nieruchomości można kupować, wynajmować, sprzedawać i rozbudowywać.'],
- ['🎓 Edukacja i licencje','Kursy wymagają czasu i nauki. Licencje wymagają wieku, przygotowania i egzaminu. Samo zapłacenie nie daje automatycznie uprawnienia.'],
- ['🚀 Kariera poboczna','Muzyk, twórca filmowy, twórca internetowy, influencer i DJ mogą rozwijać się równolegle. Potrzebują czasu, sprzętu, nauki i często kursów.'],
- ['🏖️ Wakacje i podróże','Wyjazdy mają kierunek, budżet, sposób podróży, licencje i poziom prywatności. Własny samolot lub łódź wymagają odpowiednich zasobów/uprawnień. Wysoka popularność może powodować wydarzenia nawet podczas zwykłego lotu.'],
- ['🧬 Predyspozycje i specjaliści','Badania są płatne i ujawniają przybliżony potencjał oraz ryzyka. Psycholog sportowy, fizjoterapeuta i lekarze wpływają na stan zawodnika.'],
- ['🔗 Najważniejsza zasada','Wszystkie systemy są połączone. Zakup, relacja, przeprowadzka, kurs, sponsor, popularność, pieniądze, rodzina i kariera mogą powodować kolejne wydarzenia. Gra zapisuje konsekwencje w historii.']
- ];
- return `<section class="section card gold-card"><div class="eyebrow">📖 KODEKS / INSTRUKCJA</div><h1>FL Life 27 od A do Z</h1><div class="muted">Pełny opis systemów. To jest instrukcja, a nie dekoracyjna zakładka.</div></section>${sections.map(x=>`<section class="section card"><h2>${x[0]}</h2><div class="muted" style="line-height:1.6">${x[1]}</div></section>`).join('')}`;
-}
-
-
-/* ===== ETAP 2: PAMIĘĆ ŻYCIA I KONSEKWENCJE =====
-   Każda ważna decyzja może zostawić ślad na przyszłość.
-   Konsekwencje mają termin, warunki i mogą odblokowywać kolejne możliwości.
-*/
-function rememberDecision(eventTitle, choiceText, effects, tags=[]){
-  const id='dec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const rec={
-    id, date:S.day.date, dayNo:S.day.dayNo, age:S.player.age,
-    event:eventTitle, choice:choiceText,
-    effects:clone(effects||{}), tags:[...tags],
-    active:true, createdAt:S.day.date
-  };
-  S.consequenceLedger.unshift(rec);
-  for(const tag of tags) if(!S.lifeTags.includes(tag)) S.lifeTags.push(tag);
-  return id;
-}
-function scheduleConsequence(decisionId, delayDays, title, description, conditionFn, actionFn){
-  S.consequenceLedger.push({
-    id:'future_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-    parent:decisionId, dueDay:S.day.dayNo+delayDays, title, description,
-    kind:'future', resolved:false
-  });
-}
-function processFutureConsequences(){
-  const pending=S.consequenceLedger.filter(x=>x.kind==='future'&&!x.resolved&&x.dueDay<=S.day.dayNo);
-  for(const c of pending){
-    c.resolved=true;
-    addHistory('Konsekwencja: '+c.title,c.description,'wynik wcześniejszej decyzji');
-    // Future consequences intentionally reveal only their outcome,
-    // not the hidden chain that caused them.
-    triggerEvent({
-      title:c.title,
-      text:c.description,
-      choices:[
-        ['Zareaguj i zaangażuj się','Wchodzisz w sytuację i poznajesz jej dalszy ciąg.',{mental:2,happiness:2,reputation:1}],
-        ['Podejdź spokojnie','Minimalizujesz emocje i obserwujesz rozwój sytuacji.',{mental:3}],
-        ['Odłóż decyzję','Zostawiasz sprawę na później — może wrócić ponownie.',{mental:-1}]
-      ]
-    });
-    break;
-  }
-}
-function applyDecisionMemory(eventTitle, choiceText, effects, tags=[]){
-  const id=rememberDecision(eventTitle,choiceText,effects,tags);
-
-  // Example of delayed consequences: the engine stores them rather than
-  // immediately exposing every effect to the player.
-  if(tags.includes('career_risk')){
-    scheduleConsequence(
-      id, 14,
-      'Trener wraca do wcześniejszej decyzji',
-      'Minęły dwa tygodnie. Trener pamięta Twoje wcześniejsze podejście i podczas rozmowy odnosi się do niego.',
-      null, null
-    );
-  }
-  if(tags.includes('family')){
-    scheduleConsequence(
-      id, 30,
-      'Rodzina wraca do ważnej rozmowy',
-      'Po kilku tygodniach temat, który wydawał się zamknięty, wraca podczas rozmowy rodzinnej.',
-      null, null
-    );
-  }
-  if(tags.includes('education')){
-    scheduleConsequence(
-      id, 45,
-      'Konsekwencje wyborów dotyczących szkoły',
-      'Po kilku tygodniach pojawia się możliwość związana z Twoją wcześniejszą decyzją dotyczącą nauki.',
-      null, null
-    );
-  }
-  if(tags.includes('social')){
-    scheduleConsequence(
-      id, 21,
-      'Kontakt z przeszłości wraca',
-      'Osoba poznana wcześniej ponownie pojawia się w Twoim życiu.',
-      null, null
-    );
-  }
-  if(tags.includes('career')){
-    scheduleConsequence(
-      id, 90,
-      'Decyzja z przeszłości wpływa na karierę',
-      'Kilka miesięcy później ktoś związany z Twoją karierą przypomina sobie wcześniejszą sytuację.',
-      null, null
-    );
-  }
-  return id;
-}
-function inspectLifeMemory(){
-  const decisions=S.consequenceLedger.filter(x=>!x.kind||x.kind!=='future');
-  const future=S.consequenceLedger.filter(x=>x.kind==='future'&&!x.resolved);
-  openModal(`
-    <div class="modal-head">
-      <div><div class="eyebrow">🧠 PAMIĘĆ ŻYCIA</div><h2>Twoje decyzje mają dalszy ciąg</h2></div>
-      <button class="close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="grid2" style="margin-top:14px">
-      <div class="metric"><span>Zapamiętane decyzje</span><b>${decisions.length}</b></div>
-      <div class="metric"><span>Oczekujące konsekwencje</span><b>${future.length}</b></div>
-    </div>
-    <div class="card" style="margin-top:12px;background:#171b22">
-      <b>Najważniejsza zasada</b>
-      <div class="muted small" style="margin-top:6px">
-        Gra nie pokazuje wszystkich konsekwencji od razu. Niektóre mogą wrócić za dni, tygodnie lub miesiące.
-      </div>
-    </div>
-    <div class="list" style="margin-top:12px">
-      ${future.length ? future.map(x=>`
-        <div class="history-item">
-          <div class="row"><b>⏳ ${esc(x.title)}</b><span class="badge">dzień ${x.dueDay}</span></div>
-          <div class="muted small" style="margin-top:5px">${esc(x.description)}</div>
-        </div>`).join('') :
-        '<div class="muted">Brak oczekujących konsekwencji. Decyzje będą mogły tworzyć nowe w trakcie gry.</div>'}
-    </div>
-  `,true);
-}
-
-
-/* ===== ETAP 4: SZKOŁA — OBECNOŚĆ WYNIKA Z PRZEBIEGU DNIA ===== */
-function setWorldCountry(code){
-  if(!COUNTRY_WORLD[code])return;
-  S.calendarConfig.country=code; S.world.calendarCountry=code;
-  addHistory('Zmiana kraju',`Świat gry działa teraz według kalendarza ${COUNTRY_WORLD[code].name}.`,'📅 kalendarz zaktualizowany');
-  save();render();
-}
-function isSchoolDay(dateStr){
-  const d=new Date(dateStr+'T12:00:00');
-  const dow=d.getDay();
-  if(dow===0||dow===6)return false;
-  const cw=worldCountry(); if(cw.schoolMonths && !cw.schoolMonths.includes(d.getMonth()+1))return false;
-  // Holiday calendar can be extended later; for now major fixed Polish holidays.
-  const md=(d.getMonth()+1)+'-'+d.getDate();
-  const fixed=['1-1','1-6','5-1','5-3','8-15','11-1','11-11','12-25','12-26'];
-  if(fixed.includes(md))return false;
-  return true;
-}
-function schoolDayMissed(){
-  if(!S.player || S.player.age>=19 || !isSchoolDay(S.day.date)) return false;
-  const a=S.schoolAttendance;
-  if(a.lastDate===S.day.date) return false;
-  a.absent=(a.absent||0)+1;
-  a.streak=(a.streak||0)+1;
-  a.lastDate=S.day.date;
-  // Missing school affects the world without immediately forcing a giant penalty.
-  S.player.mental=clamp((S.player.mental||0)-2,0,100);
-  S.player.education=clamp((S.player.education||0)-1,0,100);
-  addHistory('Nieobecność w szkole','Nie wybrałaś szkoły w dniu szkolnym. System potraktował to jako opuszczenie zajęć.','📚 edukacja -1 • 🧠 mental -2');
-  if(a.streak>=3){
-    scheduleSchoolConsequence('Trzy kolejne nieobecności','Szkoła zaczyna reagować na powtarzające się opuszczanie zajęć.');
-  } else if(a.absent%3===0){
-    scheduleSchoolConsequence('Szkoła zauważyła Twoją nieobecność','Pojawia się rozmowa dotycząca frekwencji.');
-  }
-}
-function attendSchool(){
-  if(!isSchoolDay(S.day.date)) return;
-  const a=S.schoolAttendance;
-  a.present=(a.present||0)+1;
-  a.streak=0;
-  a.lastDate=S.day.date;
-  S.player.education=clamp((S.player.education||0)+1,0,100);
-  S.player.mental=clamp((S.player.mental||0)+1,0,100);
-  addHistory('Obecność w szkole','Poszłaś na zajęcia zgodnie z planem.','📚 edukacja +1 • 🧠 mental +1');
-}
-function scheduleSchoolConsequence(title,description){
-  if(!S.consequenceLedger)return;
-  const exists=S.consequenceLedger.some(x=>x.title===title&&!x.resolved);
-  if(exists)return;
-  S.consequenceLedger.push({
-    id:'school_'+Date.now(),
-    parent:null,dueDay:S.day.dayNo+1,title,description,
-    kind:'future',resolved:false
-  });
-}
-function schoolAttendanceStatus(){
-  if(!isSchoolDay(S.day.date))return {label:'Wolne od szkoły',icon:'🏖️'};
-  const a=S.schoolAttendance||{};
-  if(a.lastDate===S.day.date)return {label:'Szkoła zaliczona',icon:'🏫'};
-  return {label:'Szkoła czeka',icon:'📚'};
-}
-
-
-/* ===== ETAP 5: SZKOŁA, RODZINA, KALENDARZ I TRYB NOWEJ GRY ===== */
-function schoolConsequenceEvent(){
-  if(!isSchoolDay(S.day.date)||S.player.age>=19)return null;
-  const a=S.schoolAttendance||{};
-  if(a.absent<=0)return null;
-  const variants=[
-    {title:'Kartkówka z materiału, na którym Cię nie było',
-     text:'Nauczyciel zapowiada krótką kartkówkę. Trafia na nią materiał z lekcji, na której ostatnio Cię nie było.',
-     choices:[
-      ['Nauczę się przed lekcją','Edukacja +2, stres -1',{education:2,mental:-1}],
-      ['Poproszę kolegę o notatki','Edukacja +1, relacja +2',{education:1,happiness:2}],
-      ['Podejdę bez przygotowania','Ryzyko gorszego wyniku',{education:-2,mental:-2}]
-     ]},
-    {title:'Sprawdzian do odrobienia',
-     text:'Nauczyciel informuje Cię, że musisz napisać sprawdzian, którego nie pisałeś przez nieobecność.',
-     choices:[
-      ['Ustal termin i przygotuj się','Edukacja +3',{education:3,mental:1}],
-      ['Zapytaj o możliwość późniejszego terminu','Więcej czasu, ale sprawa pozostaje otwarta',{mental:2}],
-      ['Zignoruj informację','Problem może wrócić w poważniejszej formie',{education:-2,mental:-3}]
-     ]},
-    {title:'Nauczyciel pyta o Twoją nieobecność',
-     text:'Nauczyciel zauważył brak na zajęciach i pyta, co się wydarzyło.',
-     choices:[
-      ['Szczerze wyjaśnij sytuację','Relacja z nauczycielem +',{mental:2,reputation:1}],
-      ['Powiedz, że nadrobisz materiał','Dostajesz szansę, ale musisz ją wykorzystać',{education:1,mental:1}],
-      ['Unikaj rozmowy','Relacja z nauczycielem może się pogorszyć',{mental:-2,reputation:-1}]
-     ]},
-    {title:'Zaległości zaczynają się kumulować',
-     text:'Kilka nieobecności sprawiło, że masz więcej materiału do nadrobienia. Musisz zdecydować, co robisz.',
-     choices:[
-      ['Poświęć wieczór na naukę','Edukacja +3, energia -5',{education:3,energy:-5}],
-      ['Poproś rodzinę o pomoc','Rodzina zostaje włączona w sytuację',{mental:2,happiness:3}],
-      ['Odłóż wszystko','Zaległości mogą wywołać kolejne wydarzenie',{education:-2,mental:-2}]
-     ]}
-  ];
-  const v=variants[Math.floor(Math.random()*variants.length)];
-  return {title:v.title,text:v.text,choices:v.choices};
-}
-function maybeSchoolConsequence(){
-  const a=S.schoolAttendance||{};
-  if(a.absent>0 && isSchoolDay(S.day.date) && Math.random()<0.42){
-    const e=schoolConsequenceEvent();
-    if(e)triggerEvent(e);
-  }
-}
-function maybeFamilyEvent(){
-  if(Math.random()>0.28)return;
-  const family=[
-    {title:'Mama chce z Tobą porozmawiać',text:'Mama pyta, jak naprawdę idzie Ci w szkole, sporcie i poza nim.',choices:[
-      ['Opowiedz jej wszystko','Relacja z mamą +8',{happiness:3,mental:4}],
-      ['Powiedz tylko najważniejsze','Relacja +3',{happiness:1}],
-      ['Zmień temat','Rozmowa może wrócić później',{mental:-1}]
-    ]},
-    {title:'Tata proponuje pomoc',text:'Tata zauważył, że masz sporo wydatków i pyta, czy czegoś potrzebujesz.',choices:[
-      ['Poproś o konkretną pomoc','Rodzinne wsparcie finansowe może wpłynąć na późniejsze decyzje',{happiness:3,mental:2}],
-      ['Odmów, chcę zarabiać sam','Większa niezależność',{mental:2,reputation:1}],
-      ['Poproś o radę zamiast pieniędzy','Relacja +5',{happiness:3,mental:2}]
-    ]},
-    {title:'Rodzice rozmawiają o Twojej przyszłości',text:'W domu pojawia się rozmowa o tym, czy sport powinien być Twoim głównym kierunkiem.',choices:[
-      ['Porozmawiajcie spokojnie','Rodzina lepiej rozumie Twoje plany',{mental:4,happiness:3}],
-      ['Powiedz, że decyzja należy do Ciebie','Więcej niezależności',{reputation:2,mental:1}],
-      ['Poproś ich o wspólny plan','Może odblokować przyszłe rodzinne wsparcie',{happiness:5,education:1}]
-    ]}
-  ];
-  const e=family[Math.floor(Math.random()*family.length)];
-  S.familyEvents.push({date:S.day.date,title:e.title});
-  triggerEvent(e);
-}
-function getCountryCalendar(country){
-  const common=[
-    ['01-01','Nowy Rok','🎆','wolne'],
-    ['05-01','Święto Pracy','🌿','wolne'],
-    ['12-25','Boże Narodzenie','🎄','wolne'],
-    ['12-26','Drugi dzień Świąt','🎄','wolne']
-  ];
-  const maps={
-    PL:[['01-06','Święto Trzech Króli','✝️','wolne'],['05-03','Święto Konstytucji','🇵🇱','wolne'],['08-15','Wniebowzięcie / Święto Wojska Polskiego','🇵🇱','wolne'],['11-01','Wszystkich Świętych','🕯️','wolne'],['11-11','Narodowe Święto Niepodległości','🇵🇱','wolne']],
-    ES:[['01-06','Día de Reyes','👑','wolne'],['10-12','Fiesta Nacional de España','🇪🇸','wolne'],['12-08','Inmaculada Concepción','⛪','wolne']],
-    BR:[['04-21','Tiradentes','🇧🇷','wolne'],['09-07','Independência do Brasil','🇧🇷','wolne'],['10-12','Nossa Senhora Aparecida','⛪','wolne']],
-    US:[['07-04','Independence Day','🇺🇸','wolne'],['11-27','Thanksgiving','🦃','wolne']]
-  };
-  return [...common,...(maps[country]||[])];
-}
-function calendarEventsForDate(dateStr){
-  const events=[];
-  const d=new Date(dateStr+'T12:00:00'), md=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const country=S.calendarConfig?.country||S.player.countryCode||'PL';
-  for(const e of getCountryCalendar(country))if(e[0]===md)events.push({date:dateStr,title:e[1],icon:e[2],type:e[3]});
-  if(d.getDay()===0||d.getDay()===6)events.push({date:dateStr,title:'Weekend',icon:'🏖️',type:'wolne'});
-  if(S.calendar?.matches)for(const m of S.calendar.matches)if(m.date===dateStr)events.push({date:dateStr,title:'Mecz: '+(m.opponent||'rywal'),icon:'⚽',type:'mecz'});
-  return events;
-}
-function renderLifeCalendar(){
-  const events=calendarEventsForDate(S.day.date);
-  return events.map(e=>`<div class="history-item"><div class="row"><b>${e.icon} ${esc(e.title)}</b><span class="badge">${esc(e.type)}</span></div></div>`).join('')||'<div class="muted">Brak szczególnych wydarzeń w tym dniu.</div>';
-}
-function setGameMode(mode){
-  S.gameMode=mode;
-  save();
-}
-
-
-/* ===== ETAP 6: ROZBUDOWANY ŚWIAT — DANE I ZASADY =====
-   Moduły korzystają z jednego świata. Zakupy, transport, języki, relacje,
-   rodzina, specjaliści, agent i sponsorzy mogą tworzyć kolejne konsekwencje.
-*/
-const CHARITY_CATALOG=[{id:'char_local',name:'Pomoc lokalnej rodzinie',price:100,impact:1,description:'Jednorazowa pomoc potrzebującej rodzinie.'},{id:'char_food',name:'Bank żywności',price:250,impact:2,description:'Wsparcie żywnościowe.'},{id:'char_children',name:'Dzieci i młodzież',price:500,impact:3,description:'Pomoc w edukacji i rozwoju.'},{id:'char_sport',name:'Sport dla dzieci',price:750,impact:4,description:'Sprzęt i zajęcia sportowe.'},{id:'char_academy',name:'Stypendium sportowe',price:1500,impact:5,description:'Finansowanie rozwoju młodego talentu.'},{id:'char_school',name:'Wsparcie szkoły',price:2000,impact:5,description:'Sprzęt i wyposażenie szkoły.'},{id:'char_hospital',name:'Szpital / leczenie',price:5000,impact:6,description:'Wsparcie leczenia i placówki.'},{id:'char_disaster',name:'Pomoc po katastrofie',price:3000,impact:6,description:'Pomoc ofiarom katastrofy.'},{id:'char_animals',name:'Schronisko dla zwierząt',price:500,impact:3,description:'Wsparcie opieki nad zwierzętami.'},{id:'char_environment',name:'Ochrona środowiska',price:1000,impact:4,description:'Finansowanie działań ekologicznych.'},{id:'char_water',name:'Dostęp do czystej wody',price:5000,impact:7,description:'Wsparcie projektów wodnych.'},{id:'char_global',name:'Międzynarodowa pomoc humanitarna',price:10000,impact:8,description:'Wsparcie pomocy humanitarnej.'},{id:'char_foundation',name:'Własna fundacja',price:25000,impact:10,description:'Stała działalność charytatywna.'},{id:'char_anonymous',name:'Anonimowa darowizna',price:1000,impact:4,description:'Pomagasz bez ujawniania nazwiska.'},{id:'char_public',name:'Publiczna akcja charytatywna',price:5000,impact:7,description:'Duża akcja z udziałem mediów.'}];
-const WORLD_CATALOG={
-shoes:[
-{id:'boot_basic',name:'Korki treningowe Basic',brand:'FL Sport',price:45,quality:2,attributes:{speed:1,control:1,shooting:0,comfort:2,grip:2},effects:{form:1},tags:['training'],deal:null},
-{id:'boot_adidas_predator',name:'Predator Elite',brand:'adidas',price:280,quality:8,attributes:{speed:2,control:8,shooting:4,comfort:5,grip:7},effects:{form:3,ovr:.4},tags:['control','elite'],deal:'adidas'},
-{id:'boot_nike_phantom',name:'Phantom Elite',brand:'Nike',price:300,quality:8,attributes:{speed:3,control:7,shooting:6,comfort:5,grip:7},effects:{form:3,ovr:.4},tags:['control','shooting'],deal:'nike'},
-{id:'boot_nike_merc',name:'Mercurial Pro',brand:'Nike',price:260,quality:7,attributes:{speed:9,control:5,shooting:5,comfort:4,grip:6},effects:{form:2.5,ovr:.3},tags:['speed'],deal:'nike'},
-{id:'boot_puma_future',name:'Future Ultimate',brand:'Puma',price:240,quality:7,attributes:{speed:6,control:8,shooting:4,comfort:6,grip:7},effects:{form:2.5,mental:1},tags:['control'],deal:'puma'},
-{id:'boot_newbalance_furon',name:'Furon Elite',brand:'New Balance',price:230,quality:7,attributes:{speed:8,control:5,shooting:7,comfort:5,grip:6},effects:{form:2.5,ovr:.3},tags:['speed','shooting'],deal:'newbalance'},
-{id:'boot_mizuno_morelia',name:'Morelia Neo',brand:'Mizuno',price:270,quality:8,attributes:{speed:7,control:7,shooting:5,comfort:9,grip:7},effects:{form:3},tags:['comfort'],deal:'mizuno'},
-{id:'boot_asics',name:'DS Light X',brand:'Asics',price:190,quality:6,attributes:{speed:5,control:6,shooting:3,comfort:9,grip:7},effects:{form:2},tags:['comfort'],deal:'asics'},
-{id:'boot_joma',name:'Top Flex',brand:'Joma',price:120,quality:5,attributes:{speed:4,control:6,shooting:3,comfort:8,grip:6},effects:{form:1.5},tags:['comfort'],deal:'joma'},
-{id:'boot_umbro',name:'Velocita Pro',brand:'Umbro',price:150,quality:5,attributes:{speed:7,control:5,shooting:4,comfort:5,grip:6},effects:{form:1.8},tags:['speed'],deal:'umbro'}
-],
-  clothes:[
-    {id:'kit_basic',name:'Strój treningowy Basic',brand:'FL Sport',price:35,effects:{mental:1}},
-    {id:'kit_pro',name:'Komplet Performance',brand:'Nike',price:130,effects:{mental:2,popularity:.2}},
-    {id:'jacket',name:'Kurtka klubowa',brand:'Adidas',price:110,effects:{mental:2,reputation:1}}
-  ],
-  gifts:[
-    {id:'gift_small',name:'Drobny prezent dla bliskiej osoby',price:25,effects:{happiness:4}},
-    {id:'gift_family',name:'Większy prezent rodzinny',price:100,effects:{happiness:8,reputation:1}},
-    {id:'gift_partner',name:'Prezent dla partnerki / partnera',price:180,effects:{happiness:10}}
-  ],
-  transport:[
-    {id:'walk',name:'Pieszo',price:0,speed:.7,mental:1},
-    {id:'bus',name:'Autobus / komunikacja',price:2,speed:1,mental:0},
-    {id:'bike',name:'Rower',price:0,speed:1.25,requires:'bike'},
-    {id:'parents',name:'Rodzice podwożą',price:0,speed:1.2,requires:'parents'},
-    {id:'car',name:'Własne auto',price:0,speed:1.5,requires:'car'}
-  ],
-  specialists:[
-    {id:'sports_psych',name:'Psycholog sportowy',price:60,effects:{mental:8}},
-    {id:'physio',name:'Fizjoterapeuta sportowy',price:75,effects:{health:6}},
-    {id:'doctor',name:'Lekarz medycyny sportowej',price:90,effects:{health:7}},
-    {id:'nutrition',name:'Dietetyk sportowy',price:70,effects:{health:4,form:2}},
-    {id:'sleep',name:'Specjalista regeneracji / snu',price:65,effects:{energy:8,mental:3}},
-    {id:'performance',name:'Trener przygotowania motorycznego',price:85,effects:{form:3,ovr:.3}}
-  ],
-  languages:[
-    {id:'english',name:'Angielski',difficulty:2,career:['football','creator','music'],countries:['GB','US','CA','AU','IE','MT','ZA']},
-    {id:'spanish',name:'Hiszpański',difficulty:2,career:['football','creator'],countries:['ES','MX','AR','CO','CL','PE','UY','CR','PA']},
-    {id:'portuguese',name:'Portugalski',difficulty:2,career:['football','creator'],countries:['BR','PT','AO','MZ']},
-    {id:'french',name:'Francuski',difficulty:3,career:['football','creator'],countries:['FR','BE','CH','CA','LU','MC']},
-    {id:'german',name:'Niemiecki',difficulty:3,career:['football'],countries:['DE','AT','CH','LI']},
-    {id:'italian',name:'Włoski',difficulty:2,countries:['IT','SM','CH']},
-    {id:'dutch',name:'Niderlandzki',difficulty:3,countries:['NL','BE']},
-    {id:'flemish',name:'Niderlandzki belgijski',difficulty:3,countries:['BE']},
-    {id:'catalan',name:'Kataloński',difficulty:2,countries:['ES','AD']},
-    {id:'basque',name:'Baskijski',difficulty:5,countries:['ES','FR']},
-    {id:'galician',name:'Galicyjski',difficulty:2,countries:['ES']},
-    {id:'polish',name:'Polski',difficulty:4,countries:['PL']},
-    {id:'czech',name:'Czeski',difficulty:3,countries:['CZ']},
-    {id:'slovak',name:'Słowacki',difficulty:3,countries:['SK']},
-    {id:'ukrainian',name:'Ukraiński',difficulty:3,countries:['UA']},
-    {id:'russian',name:'Rosyjski',difficulty:3,countries:['RU','BY','KZ']},
-    {id:'hungarian',name:'Węgierski',difficulty:5,countries:['HU']},
-    {id:'romanian',name:'Rumuński',difficulty:3,countries:['RO','MD']},
-    {id:'bulgarian',name:'Bułgarski',difficulty:3,countries:['BG']},
-    {id:'greek',name:'Grecki',difficulty:4,countries:['GR','CY']},
-    {id:'turkish',name:'Turecki',difficulty:3,countries:['TR','CY']},
-    {id:'swedish',name:'Szwedzki',difficulty:3,countries:['SE']},
-    {id:'norwegian',name:'Norweski',difficulty:3,countries:['NO']},
-    {id:'danish',name:'Duński',difficulty:3,countries:['DK']},
-    {id:'finnish',name:'Fiński',difficulty:5,countries:['FI']},
-    {id:'icelandic',name:'Islandzki',difficulty:5,countries:['IS']},
-    {id:'serbian',name:'Serbski',difficulty:3,countries:['RS','BA','ME']},
-    {id:'croatian',name:'Chorwacki',difficulty:3,countries:['HR','BA']},
-    {id:'slovenian',name:'Słoweński',difficulty:3,countries:['SI']},
-    {id:'albanian',name:'Albański',difficulty:4,countries:['AL','XK']},
-    {id:'arabic',name:'Arabski',difficulty:5,countries:['AE','SA','QA','EG','MA','TN']},
-    {id:'hebrew',name:'Hebrajski',difficulty:5,countries:['IL']},
-    {id:'persian',name:'Perski',difficulty:5,countries:['IR']},
-    {id:'hindi',name:'Hindi',difficulty:5,countries:['IN']},
-    {id:'bengali',name:'Bengalski',difficulty:5,countries:['BD','IN']},
-    {id:'urdu',name:'Urdu',difficulty:5,countries:['PK','IN']},
-    {id:'mandarin',name:'Chiński mandaryński',difficulty:5,countries:['CN','TW','SG']},
-    {id:'japanese',name:'Japoński',difficulty:5,countries:['JP']},
-    {id:'korean',name:'Koreański',difficulty:5,countries:['KR']},
-    {id:'vietnamese',name:'Wietnamski',difficulty:5,countries:['VN']},
-    {id:'thai',name:'Tajski',difficulty:5,countries:['TH']},
-    {id:'indonesian',name:'Indonezyjski',difficulty:4,countries:['ID']},
-    {id:'malay',name:'Malajski',difficulty:4,countries:['MY','BN','SG']},
-    {id:'filipino',name:'Filipiński',difficulty:4,countries:['PH']}
-  ],
-  education:[
-    {id:'school',name:'Szkoła ogólna',time:1,requires:0},
-    {id:'sports_course',name:'Kurs podstaw sportu',time:3,cost:120,requires:30},
-    {id:'media_course',name:'Kurs mediów i wystąpień',time:4,cost:180,requires:35},
-    {id:'business_course',name:'Podstawy biznesu',time:5,cost:220,requires:40},
-    {id:'coaching_course',name:'Kurs trenerski',time:8,cost:600,requires:55}
-  ],
-  licenses:[
-    {id:'scooter_am',name:'AM — motorower / skuter',category:'🛵 drogi',cost:250,time:6,requiresAge:14,steps:3},
-    {id:'motorcycle_a1',name:'A1 — motocykl',category:'🏍️ drogi',cost:600,time:10,requiresAge:16,steps:4},
-    {id:'car_b',name:'B — samochód',category:'🚗 drogi',cost:900,time:12,requiresAge:18,steps:4},
-    {id:'motorcycle_a2',name:'A2 — motocykl',category:'🏍️ drogi',cost:1100,time:14,requiresAge:18,steps:4},
-    {id:'motorcycle_a',name:'A — motocykl bez ograniczeń',category:'🏍️ drogi',cost:1400,time:16,requiresAge:24,steps:4},
-    {id:'trailer_be',name:'B+E — przyczepa',category:'🚗 drogi',cost:800,time:8,requiresAge:18,steps:3},
-    {id:'truck_c',name:'C — samochód ciężarowy',category:'🚚 zawodowe',cost:1800,time:20,requiresAge:21,steps:5},
-    {id:'truck_ce',name:'C+E — ciężarowy z przyczepą',category:'🚚 zawodowe',cost:2200,time:24,requiresAge:21,steps:5},
-    {id:'bus_d',name:'D — autobus',category:'🚌 zawodowe',cost:2200,time:24,requiresAge:24,steps:5},
-    {id:'boat',name:'Łódź / jacht motorowy',category:'🛥️ woda',cost:700,time:8,requiresAge:16,steps:3},
-    {id:'sailing',name:'Jacht żaglowy',category:'⛵ woda',cost:900,time:10,requiresAge:16,steps:3},
-    {id:'plane',name:'Samolot',category:'✈️ lotnictwo',cost:25000,time:60,requiresAge:18,steps:6},
-    {id:'helicopter',name:'Helikopter',category:'🚁 lotnictwo',cost:35000,time:70,requiresAge:18,steps:6},
-    {id:'instructor',name:'Instruktor sportowy',category:'🏅 sport',cost:1800,time:20,requiresAge:18,steps:4}
-  ],
-  property:[
-    {id:'room',name:'Pokój / wynajem',price:350,rooms:1,type:'rental'},
-    {id:'studio',name:'Kawalerka',price:180000,rooms:1,type:'apartment'},
-    {id:'flat2',name:'Mieszkanie 2-pokojowe',price:320000,rooms:2,type:'apartment'},
-    {id:'flat4',name:'Mieszkanie rodzinne',price:520000,rooms:4,type:'apartment'},
-    {id:'house',name:'Dom z małym ogrodem',price:760000,rooms:5,type:'house'},
-    {id:'villa',name:'Duży dom z ogrodem',price:1450000,rooms:7,type:'villa'},
-    {id:'estate',name:'Rezydencja z zapleczem sportowym',price:3200000,rooms:10,type:'estate'}
-  ],
-  cars:[
-    {id:'city',name:'Małe auto miejskie',price:45000,comfort:2,speed:2},
-    {id:'sport',name:'Sportowe coupe',price:180000,comfort:4,speed:5},
-    {id:'suv',name:'SUV rodzinny',price:240000,comfort:5,speed:3},
-    {id:'luxury',name:'Luksusowy samochód',price:650000,comfort:7,speed:5}
-  ],
-  businesses:[
-    {id:'academy',name:'Mała szkółka sportowa',cost:120000,monthly:2500,potential:8},
-    {id:'gym',name:'Studio treningowe',cost:300000,monthly:5000,potential:12},
-    {id:'media',name:'Studio medialne',cost:180000,monthly:3500,potential:10},
-    {id:'cafe',name:'Kawiarnia',cost:220000,monthly:3000,potential:7}
-  ],
-  investments:[
-    {id:'safe',name:'Lokata / bezpieczne oszczędzanie',risk:1,entry:100},
-    {id:'fund',name:'Fundusz inwestycyjny',risk:3,entry:500},
-    {id:'shares',name:'Akcje',risk:5,entry:500},
-    {id:'property',name:'Inwestycja w nieruchomość',risk:4,entry:5000}
-  ]
-};
-const COUNTRY_WORLD={
- PL:{name:'Polska',currency:'PLN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski','angielski']},
- ES:{name:'Hiszpania',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański','kataloński','galicyjski','baskijski','angielski']},
- PT:{name:'Portugalia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski','angielski']},
- FR:{name:'Francja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski','angielski']},
- IT:{name:'Włochy',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski','angielski']},
- DE:{name:'Niemcy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niemiecki','angielski']},
- AT:{name:'Austria',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki','angielski']},
- CH:{name:'Szwajcaria',currency:'CHF',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki','francuski','włoski','angielski']},
- NL:{name:'Niderlandy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niderlandzki','angielski']},
- BE:{name:'Belgia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki','francuski','niemiecki','angielski']},
- GB:{name:'Wielka Brytania',currency:'GBP',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
- IE:{name:'Irlandia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski','irlandzki']},
- US:{name:'USA',currency:'USD',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['angielski','hiszpański']},
- CA:{name:'Kanada',currency:'CAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski','francuski']},
- BR:{name:'Brazylia',currency:'BRL',schoolMonths:[2,3,4,5,6,7,8,9,10,11],summer:[12,1],languages:['portugalski','angielski']},
- AR:{name:'Argentyna',currency:'ARS',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
- MX:{name:'Meksyk',currency:'MXN',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['hiszpański','angielski']},
- CL:{name:'Chile',currency:'CLP',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
- CO:{name:'Kolumbia',currency:'COP',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['hiszpański','angielski']},
- JP:{name:'Japonia',currency:'JPY',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2,3],summer:[7,8],languages:['japoński','angielski']},
- KR:{name:'Korea Południowa',currency:'KRW',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[7,8],languages:['koreański','angielski']},
- CN:{name:'Chiny',currency:'CNY',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['chiński mandaryński','angielski']},
- IN:{name:'Indie',currency:'INR',schoolMonths:[6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['hindi','angielski','bengalski','urdu']},
- TH:{name:'Tajlandia',currency:'THB',schoolMonths:[5,6,7,8,9,10,11,12,1,2,3],summer:[4],languages:['tajski','angielski']},
- AE:{name:'ZEA',currency:'AED',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['arabski','angielski']},
- SA:{name:'Arabia Saudyjska',currency:'SAR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['arabski','angielski']},
- TR:{name:'Turcja',currency:'TRY',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turecki','angielski']},
- GR:{name:'Grecja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki','angielski']},
- HR:{name:'Chorwacja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chorwacki','angielski']},
- CZ:{name:'Czechy',currency:'CZK',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czeski','angielski']},
- SK:{name:'Słowacja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słowacki','angielski']},
- HU:{name:'Węgry',currency:'HUF',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['węgierski','angielski']},
- SE:{name:'Szwecja',currency:'SEK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['szwedzki','angielski']},
- NO:{name:'Norwegia',currency:'NOK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['norweski','angielski']},
- DK:{name:'Dania',currency:'DKK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['duński','angielski']},
- FI:{name:'Finlandia',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['fiński','szwedzki','angielski']},
- AU:{name:'Australia',currency:'AUD',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11,12],summer:[12,1,2],languages:['angielski']},
- NZ:{name:'Nowa Zelandia',currency:'NZD',schoolMonths:[2,3,4,5,6,7,8,9,10,11,12],summer:[12,1],languages:['angielski']},
- ZA:{name:'Republika Południowej Afryki',currency:'ZAR',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['angielski','afrikaans']},
- EG:{name:'Egipt',currency:'EGP',schoolMonths:[9,10,11,12,1,2,3,4,5],summer:[6,7,8],languages:['arabski','angielski']},
- MA:{name:'Maroko',currency:'MAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']}
-};
-Object.assign(COUNTRY_WORLD,{
-  DK:{name:'Dania',currency:'DKK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['duński','angielski']},
-  RS:{name:'Serbia',currency:'RSD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['serbski','angielski']},
-  RO:{name:'Rumunia',currency:'RON',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński','angielski']},
-  BG:{name:'Bułgaria',currency:'BGN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bułgarski','angielski']},
-  SI:{name:'Słowenia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słoweński','angielski']},
-  BA:{name:'Bośnia i Hercegowina',currency:'BAM',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bośniacki','angielski']},
-  AL:{name:'Albania',currency:'ALL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański','angielski']},
-  ME:{name:'Czarnogóra',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czarnogórski','angielski']},
-  UA:{name:'Ukraina',currency:'UAH',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ukraiński','angielski']},
-  LT:{name:'Litwa',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['litewski','angielski']},
-  LV:{name:'Łotwa',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['łotewski','angielski']},
-  EE:{name:'Estonia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['estoński','angielski']},
-  IS:{name:'Islandia',currency:'ISK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['islandzki','angielski']},
-  LU:{name:'Luksemburg',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['luksemburski','francuski','niemiecki','angielski']},
-  CY:{name:'Cypr',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki','turecki','angielski']},
-  IL:{name:'Izrael',currency:'ILS',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hebrajski','arabski','angielski']},
-  QA:{name:'Katar',currency:'QAR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['arabski','angielski']},
-  SG:{name:'Singapur',currency:'SGD',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['angielski','mandaryński','malajski','tamilski']},
-  MY:{name:'Malezja',currency:'MYR',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['malajski','angielski','chiński']},
-  ID:{name:'Indonezja',currency:'IDR',schoolMonths:[7,8,9,10,11,12,1,2,3,4,5,6],summer:[6,7],languages:['indonezyjski','angielski']},
-  VN:{name:'Wietnam',currency:'VND',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['wietnamski','angielski']},
-  PH:{name:'Filipiny',currency:'PHP',schoolMonths:[6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['filipiński','angielski']},
-  PK:{name:'Pakistan',currency:'PKR',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['urdu','angielski','pendżabski']},
-  BD:{name:'Bangladesz',currency:'BDT',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['bengalski','angielski']},
-  NG:{name:'Nigeria',currency:'NGN',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski','hausa','joruba','igbo']},
-  GH:{name:'Ghana',currency:'GHS',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski','akan']},
-  KE:{name:'Kenia',currency:'KES',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['suahili','angielski']},
-  TN:{name:'Tunezja',currency:'TND',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
-  DZ:{name:'Algieria',currency:'DZD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
-  PE:{name:'Peru',currency:'PEN',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
-  UY:{name:'Urugwaj',currency:'UYU',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
-  EC:{name:'Ekwador',currency:'USD',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2],summer:[1,2],languages:['hiszpański','angielski']},
-  CR:{name:'Kostaryka',currency:'CRC',schoolMonths:[2,3,4,5,6,7,8,9,10,11,12],summer:[1],languages:['hiszpański','angielski']},
-  JM:{name:'Jamajka',currency:'JMD',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
-  PA:{name:'Panama',currency:'PAB',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
-  DO:{name:'Dominikana',currency:'DOP',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['hiszpański','angielski']}
-});
-Object.assign(COUNTRY_WORLD,{
-  AF:{name:'Afganistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dari / paszto']},
-  AL:{name:'Albania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański']},
-  DZ:{name:'Algieria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  AD:{name:'Andora',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kataloński']},
-  AO:{name:'Angola',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  AG:{name:'Antigua i Barbuda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  AR:{name:'Argentyna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  AM:{name:'Armenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ormiański']},
-  AU:{name:'Australia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  AT:{name:'Austria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
-  AZ:{name:'Azerbejdżan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['azerski']},
-  BS:{name:'Bahamy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  BH:{name:'Bahrajn',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  BD:{name:'Bangladesz',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bengalski']},
-  BB:{name:'Barbados',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  BE:{name:'Belgia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki / francuski']},
-  BZ:{name:'Belize',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  BJ:{name:'Benin',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  BT:{name:'Bhutan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dzongkha']},
-  BY:{name:'Białoruś',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['białoruski / rosyjski']},
-  BO:{name:'Boliwia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  BA:{name:'Bośnia i Hercegowina',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bośniacki']},
-  BW:{name:'Botswana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  BR:{name:'Brazylia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  BN:{name:'Brunei',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malajski']},
-  BG:{name:'Bułgaria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bułgarski']},
-  BF:{name:'Burkina Faso',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  BI:{name:'Burundi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kirundi']},
-  CV:{name:'Cabo Verde',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  CL:{name:'Chile',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  CN:{name:'Chiny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chiński mandaryński']},
-  HR:{name:'Chorwacja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chorwacki']},
-  CY:{name:'Cypr',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki / turecki']},
-  CZ:{name:'Czechy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czeski']},
-  TD:{name:'Czad',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski / arabski']},
-  ME:{name:'Czarnogóra',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czarnogórski']},
-  DK:{name:'Dania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['duński']},
-  DM:{name:'Dominika',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  DO:{name:'Dominikana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  DJ:{name:'Dżibuti',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / francuski']},
-  EG:{name:'Egipt',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  EC:{name:'Ekwador',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  ER:{name:'Erytrea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tigrinia / arabski']},
-  EE:{name:'Estonia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['estoński']},
-  ET:{name:'Etiopia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['amharski']},
-  FJ:{name:'Fidżi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / fidżyjski']},
-  PH:{name:'Filipiny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['filipiński']},
-  FI:{name:'Finlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['fiński']},
-  FR:{name:'Francja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  GA:{name:'Gabon',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  GM:{name:'Gambia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  GH:{name:'Ghana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  GR:{name:'Grecja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki']},
-  GD:{name:'Grenada',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  GE:{name:'Gruzja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['gruziński']},
-  GY:{name:'Gujana',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  GT:{name:'Gwatemala',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  GN:{name:'Gwinea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  GW:{name:'Gwinea Bissau',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  GQ:{name:'Gwinea Równikowa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  HT:{name:'Haiti',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kreolski haitański / francuski']},
-  ES:{name:'Hiszpania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  NL:{name:'Niderlandy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki']},
-  HN:{name:'Honduras',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  IN:{name:'Indie',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hindi']},
-  ID:{name:'Indonezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['indonezyjski']},
-  IQ:{name:'Irak',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  IR:{name:'Iran',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['perski']},
-  IE:{name:'Irlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  IS:{name:'Islandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['islandzki']},
-  IL:{name:'Izrael',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hebrajski']},
-  JM:{name:'Jamajka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  JP:{name:'Japonia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['japoński']},
-  YE:{name:'Jemen',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  JO:{name:'Jordania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  KH:{name:'Kambodża',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['khmerski']},
-  CM:{name:'Kamerun',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski / angielski']},
-  CA:{name:'Kanada',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / francuski']},
-  QA:{name:'Katar',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  KZ:{name:'Kazachstan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kazachski / rosyjski']},
-  KE:{name:'Kenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suahili / angielski']},
-  KG:{name:'Kirgistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kirgiski']},
-  KI:{name:'Kiribati',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / gilbertański']},
-  CO:{name:'Kolumbia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  KM:{name:'Komory',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / francuski']},
-  CG:{name:'Kongo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  CD:{name:'Demokratyczna Republika Konga',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  KR:{name:'Korea Południowa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['koreański']},
-  KP:{name:'Korea Północna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['koreański']},
-  CR:{name:'Kostaryka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  CI:{name:'Wybrzeże Kości Słoniowej',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  CU:{name:'Kuba',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  KW:{name:'Kuwejt',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  LA:{name:'Laos',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['laotański']},
-  LS:{name:'Lesotho',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['sesotho / angielski']},
-  LB:{name:'Liban',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  LR:{name:'Liberia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  LY:{name:'Libia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  LI:{name:'Liechtenstein',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
-  LT:{name:'Litwa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['litewski']},
-  LU:{name:'Luksemburg',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['luksemburski / francuski']},
-  LV:{name:'Łotwa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['łotewski']},
-  MG:{name:'Madagaskar',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malgaski / francuski']},
-  MW:{name:'Malawi',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / chichewa']},
-  MY:{name:'Malezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['malajski']},
-  MV:{name:'Malediwy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['dhivehi']},
-  ML:{name:'Mali',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  MT:{name:'Malta',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['maltański / angielski']},
-  MA:{name:'Maroko',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / amazigh']},
-  MR:{name:'Mauretania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  MU:{name:'Mauritius',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / francuski']},
-  MX:{name:'Meksyk',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  FM:{name:'Mikronezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  MD:{name:'Mołdawia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński']},
-  MC:{name:'Monako',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  MN:{name:'Mongolia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['mongolski']},
-  MZ:{name:'Mozambik',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  MM:{name:'Mjanma',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['birmański']},
-  NA:{name:'Namibia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  NR:{name:'Nauru',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['nauruański / angielski']},
-  NP:{name:'Nepal',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['nepalski']},
-  DE:{name:'Niemcy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki']},
-  NE:{name:'Niger',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  NG:{name:'Nigeria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  NI:{name:'Nikaragua',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  NO:{name:'Norwegia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['norweski']},
-  NZ:{name:'Nowa Zelandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / maoryski']},
-  OM:{name:'Oman',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  PK:{name:'Pakistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['urdu']},
-  PW:{name:'Palau',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['palau']},
-  PS:{name:'Palestyna',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  PA:{name:'Panama',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  PG:{name:'Papua-Nowa Gwinea',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / tok pisin']},
-  PY:{name:'Paragwaj',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański / guarani']},
-  PE:{name:'Peru',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  PL:{name:'Polska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski']},
-  PT:{name:'Portugalia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski']},
-  CF:{name:'Republika Środkowoafrykańska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  ZA:{name:'Republika Południowej Afryki',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / afrikaans']},
-  RO:{name:'Rumunia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rumuński']},
-  RW:{name:'Rwanda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kinyarwanda / angielski']},
-  KN:{name:'Saint Kitts i Nevis',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  LC:{name:'Saint Lucia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  VC:{name:'Saint Vincent i Grenadyny',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  WS:{name:'Samoa',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['samoański / angielski']},
-  SM:{name:'San Marino',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski']},
-  SN:{name:'Senegal',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  RS:{name:'Serbia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['serbski']},
-  SC:{name:'Seszele',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['kreolski seszelski / angielski']},
-  SL:{name:'Sierra Leone',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  SG:{name:'Singapur',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / mandaryński']},
-  SK:{name:'Słowacja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słowacki']},
-  SI:{name:'Słowenia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słoweński']},
-  SO:{name:'Somalia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['somalijski']},
-  LK:{name:'Sri Lanka',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['syngaleski / tamilski']},
-  SD:{name:'Sudan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  SS:{name:'Sudan Południowy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  SR:{name:'Surinam',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki']},
-  SZ:{name:'Eswatini',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suazi / angielski']},
-  CH:{name:'Szwajcaria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki / francuski / włoski']},
-  SE:{name:'Szwecja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['szwedzki']},
-  SY:{name:'Syria',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  TW:{name:'Tajwan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['mandaryński']},
-  TJ:{name:'Tadżykistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tadżycki']},
-  TZ:{name:'Tanzania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['suahili / angielski']},
-  TH:{name:'Tajlandia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tajski']},
-  TL:{name:'Timor Wschodni',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tetum / portugalski']},
-  TG:{name:'Togo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski']},
-  TO:{name:'Tonga',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tongański / angielski']},
-  TT:{name:'Trynidad i Tobago',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  TN:{name:'Tunezja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  TR:{name:'Turcja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turecki']},
-  TM:{name:'Turkmenistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turkmeński']},
-  TV:{name:'Tuvalu',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['tuvalski / angielski']},
-  UG:{name:'Uganda',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / suahili']},
-  UA:{name:'Ukraina',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['ukraiński']},
-  UY:{name:'Urugwaj',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  UZ:{name:'Uzbekistan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['uzbecki']},
-  VU:{name:'Vanuatu',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['bislamijski / angielski']},
-  VA:{name:'Watykan',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski / łacina']},
-  VE:{name:'Wenezuela',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański']},
-  HU:{name:'Węgry',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['węgierski']},
-  GB:{name:'Wielka Brytania',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  VN:{name:'Wietnam',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['wietnamski']},
-  IT:{name:'Włochy',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski']},
-  SB:{name:'Wyspy Salomona',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  MH:{name:'Wyspy Marshalla',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['marszalski / angielski']},
-  ZM:{name:'Zambia',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  ZW:{name:'Zimbabwe',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski / shona']},
-  AE:{name:'Zjednoczone Emiraty Arabskie',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski / angielski']},
-  US:{name:'Stany Zjednoczone',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski']},
-  XK:{name:'Kosowo',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['albański / serbski']},
-  RU:{name:'Rosja',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['rosyjski']},
-  SA:{name:'Arabia Saudyjska',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski']},
-  SV:{name:'Salwador',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['lokalny język']},
-  PR:{name:'Portoryko',currency:'LOCAL',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański / angielski']}
-});
-const EXTRA_COUNTRY_CITIES={
- RS:['Belgrad','Novi Sad','Nisz'],RO:['Bukareszt','Kluż-Napoka','Timișoara'],BG:['Sofia','Płowdiw','Warna'],SI:['Lublana','Maribor','Koper'],BA:['Sarajewo','Banja Luka','Mostar'],AL:['Tirana','Durrës','Wlora'],ME:['Podgorica','Budva','Bar'],UA:['Kijów','Lwów','Odessa','Charków'],LT:['Wilno','Kowno','Kłajpeda'],LV:['Ryga','Daugavpils','Liepāja'],EE:['Tallinn','Tartu','Pärnu'],IS:['Reykjavík','Akureyri'],LU:['Luksemburg','Esch-sur-Alzette'],CY:['Nikozja','Limassol','Larnaka'],IL:['Tel Awiw','Jerozolima','Hajfa'],QA:['Doha','Al Wakrah'],SG:['Singapur'],MY:['Kuala Lumpur','George Town','Johor Bahru'],ID:['Dżakarta','Surabaja','Bandung','Bali'],VN:['Ho Chi Minh','Hanoi','Da Nang'],PH:['Manila','Cebu','Davao'],PK:['Karaczi','Lahaur','Islamabad'],BD:['Dhaka','Ćottogram','Khulna'],NG:['Lagos','Abudża','Kano'],GH:['Akra','Kumasi','Tamale'],KE:['Nairobi','Mombasa','Kisumu'],TN:['Tunis','Susa','Sfax'],DZ:['Algier','Oran','Konstantyna'],PE:['Lima','Arequipa','Cusco'],UY:['Montevideo','Salto','Punta del Este'],EC:['Quito','Guayaquil','Cuenca'],CR:['San José','Liberia','Alajuela'],JM:['Kingston','Montego Bay'],PA:['Panama City','Colón'],DO:['Santo Domingo','Santiago de los Caballeros']};
-Object.assign(COUNTRY_CITIES,EXTRA_COUNTRY_CITIES);
-function worldCountry(){return COUNTRY_WORLD[S.calendarConfig?.country||S.world?.calendarCountry||'PL']||COUNTRY_WORLD.PL}
 function addWorldItem(type,item){
   if(!S.world[type])S.world[type]=[];
   S.world[type].push({...clone(item),boughtAt:S.day.date});
 }
 function buyWorldItem(type,id){
-  const list=(type==='charity'?(CHARITY_CATALOG||[]):getStoreCatalog(type));
+  const list=(type==='charity'?(CHARITY_CATALOG||[]):(['food','cafes','entertainment','sport','services','health','gifts','education','daily'].includes(type)?(WORLD_CATALOG[type]||[]):getStoreCatalog(type)));
   const item=list.find(x=>x.id===id); if(!item)return;
+  if(item.minAge && S.player.age<item.minAge){toast(`Ta opcja jest dostępna od ${item.minAge} lat.`);return;}
   const price=item.price||item.cost||0;
   let discount=0;
   if(item.deal && S.world.brandDeals.includes(item.deal)) discount=.15;
@@ -2477,12 +1476,6 @@ function closeModal(){
 }
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 document.getElementById('modal').addEventListener('click',e=>{
-  const eventChoice=e.target.closest('.event-choice');
-  if(eventChoice){
-    e.preventDefault(); e.stopPropagation();
-    const id=eventChoice.dataset.eventId; const i=Number(eventChoice.dataset.choiceIndex);
-    chooseEvent(id,i); return;
-  }
   if(e.target.id==='modal' && !window.pendingEvent) closeModal();
 });
 render();
