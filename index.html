@@ -127,7 +127,7 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY='fl-life-27-etap5';
+const KEY='fl-life-27-etap6';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const initial={
   version:2,
@@ -266,7 +266,11 @@ function setTabs(){
 function renderMenu(){
   document.getElementById('menuGrid').innerHTML=menu.map(([id,ic,n,d])=>`<button class="menu-item" onclick="go('${id}');closeDrawer()"><div class="ico">${ic}</div><b>${n}</b><span>${d}</span></button>`).join('');
 }
-function go(tab){current=tab;render();window.scrollTo({top:0,behavior:'smooth'})}
+function go(tab){current=tab;if(!S.worldFlags?.startGenerated){
+  applyGeneratedWorld(generateWorld());
+}
+ensurePreCareerNoScout();
+render();window.scrollTo({top:0,behavior:'smooth'})}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
 
@@ -478,12 +482,14 @@ function eventScore(source){
   return Math.min(85,score);
 }
 function maybeEvent(source){
+  if(['club','tech','speed','strength','analysis'].includes(source)) markStartedPlaying();
   if(!canEventAppear()) return;
   const score=eventScore(source);
   // wydarzenia są częstsze niż w prototypie, ale nadal mają przerwy
   if(Math.random()*100 < score) triggerContextEvent(source);
 }
 function maybeDailyEvent(){
+  ensurePreCareerNoScout();
   if(!canEventAppear() && Math.random()<0.75) return;
   const c=eventContext();
   let source='daily';
@@ -1172,6 +1178,121 @@ function setGameMode(mode){
   save();
 }
 
+
+/* ===== ETAP 6: LOSOWANIE ŚWIATA STARTOWEGO + REALNY START KARIERY ===== */
+const WORLD_POOL=[
+ {countryCode:'PL',country:'Polska',cities:['Warszawa','Poznań','Kraków','Wrocław','Gdańsk','Łódź','Szczecin','Katowice','Lublin','Białystok'],names:['Nowak','Kowalski','Wiśniewski','Wójcik','Kamiński']},
+ {countryCode:'ES',country:'Hiszpania',cities:['Madryt','Barcelona','Walencja','Sewilla','Bilbao','Malaga','Palma'],names:['García','Fernández','López','Martínez','Sánchez']},
+ {countryCode:'BR',country:'Brazylia',cities:['São Paulo','Rio de Janeiro','Curitiba','Belo Horizonte','Salvador','Porto Alegre'],names:['Silva','Santos','Oliveira','Souza','Pereira']},
+ {countryCode:'US',country:'USA',cities:['New York','Los Angeles','Miami','Chicago','Dallas','Boston','Seattle','Atlanta'],names:['Johnson','Williams','Brown','Davis','Miller']},
+ {countryCode:'DE',country:'Niemcy',cities:['Berlin','Monachium','Hamburg','Kolonia','Frankfurt','Dortmund'],names:['Müller','Schmidt','Schneider','Fischer','Weber']},
+ {countryCode:'FR',country:'Francja',cities:['Paryż','Marsylia','Lyon','Tuluza','Nicea','Bordeaux'],names:['Martin','Bernard','Dubois','Thomas','Robert']},
+ {countryCode:'IT',country:'Włochy',cities:['Rzym','Mediolan','Neapol','Turyn','Bolonia','Florencja'],names:['Rossi','Russo','Ferrari','Esposito','Bianchi']},
+ {countryCode:'GB',country:'Wielka Brytania',cities:['Londyn','Manchester','Liverpool','Birmingham','Leeds','Glasgow'],names:['Smith','Jones','Taylor','Brown','Wilson']},
+ {countryCode:'PT',country:'Portugalia',cities:['Lizbona','Porto','Braga','Coimbra','Funchal'],names:['Silva','Santos','Ferreira','Pereira','Costa']},
+ {countryCode:'NL',country:'Holandia',cities:['Amsterdam','Rotterdam','Utrecht','Eindhoven','Groningen'],names:['De Jong','Jansen','De Vries','Van Dijk','Bakker']}
+];
+const FIRST_NAMES={
+ PL:['Jakub','Mateusz','Antoni','Michał','Kacper','Oliwia','Zuzanna','Maja','Julia','Wiktoria'],
+ ES:['Lucas','Hugo','Mateo','Sofia','Lucía','Martina','Valeria','Daniel'],
+ BR:['João','Pedro','Gabriel','Lucas','Miguel','Ana','Julia','Beatriz'],
+ US:['Noah','Liam','Ethan','Mason','Olivia','Emma','Ava','Mia'],
+ DE:['Leon','Paul','Finn','Emilia','Hannah','Mia','Lena'],
+ FR:['Louis','Gabriel','Arthur','Emma','Jade','Louise'],
+ IT:['Luca','Matteo','Marco','Sofia','Giulia','Aurora'],
+ GB:['Oliver','George','Harry','Amelia','Olivia','Isla'],
+ PT:['João','Miguel','Tiago','Inês','Beatriz','Matilde'],
+ NL:['Daan','Lucas','Milan','Emma','Sophie','Julia']
+};
+const PARENT_JOBS=[
+ {name:'nauczyciel',income:[4200,8500],use:['education','school'],effect:'ułatwia naukę i kontakty edukacyjne'},
+ {name:'lekarz',income:[9000,25000],use:['health'],effect:'łatwiejszy dostęp do specjalistów'},
+ {name:'fizjoterapeuta',income:[5000,14000],use:['health','sport'],effect:'łatwiejszy dostęp do regeneracji'},
+ {name:'prawnik',income:[7000,22000],use:['legal'],effect:'łatwiejszy dostęp do pomocy prawnej'},
+ {name:'agent sportowy',income:[8000,30000],use:['career'],effect:'większa wiedza o rynku sportowym'},
+ {name:'trener',income:[4500,16000],use:['sport'],effect:'łatwiejszy rozwój sportowy'},
+ {name:'przedsiębiorca',income:[5000,40000],use:['money','business'],effect:'większe możliwości biznesowe'},
+ {name:'inżynier',income:[7000,18000],use:['education'],effect:'wsparcie techniczne i edukacyjne'},
+ {name:'policjant',income:[5000,10000],use:['legal'],effect:'większa znajomość procedur'},
+ {name:'kierowca',income:[4000,9000],use:['transport'],effect:'pomoc w logistyce i transporcie'},
+ {name:'pracownik biurowy',income:[4200,9000],use:['money'],effect:'stabilne wsparcie finansowe'},
+ {name:'artysta/muzyk',income:[3000,18000],use:['music','media'],effect:'kontakty w branży kreatywnej'}
+];
+const POSITIONS=['bramkarz','stoper','boczny obrońca','defensywny pomocnik','środkowy pomocnik','ofensywny pomocnik','skrzydłowy','napastnik'];
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function makeParent(gender,country){
+  const job=pick(PARENT_JOBS);
+  const surname=pick(country.names);
+  const first=pick(FIRST_NAMES[country.countryCode]||FIRST_NAMES.US);
+  const income=rand(job.income[0],job.income[1]);
+  const expense=Math.round(income*(rand(42,78)/100));
+  const ownsHome=Math.random()<.62;
+  return {gender,firstName:first,lastName:surname,age:rand(34,55),job:job.name,income,expenses:expense,
+    housing:ownsHome?'własny dom/mieszkanie':'wynajem',cars:rand(0,2),country:country.country,city:pick(country.cities),
+    relationshipStatus:'w związku',partner:null,interest:rand(45,95),skills:job.use,jobEffect:job.effect};
+}
+function generateWorld(){
+  const country=pick(WORLD_POOL);
+  const father=makeParent('ojciec',country), mother=makeParent('matka',country);
+  father.lastName=mother.lastName;
+  const first=pick(FIRST_NAMES[country.countryCode]||FIRST_NAMES.US);
+  const surname=father.lastName;
+  const age=rand(14,17);
+  const position=pick(POSITIONS);
+  const starterOVR=rand(32,52);
+  const potential=rand(65,92);
+  const familyIncome=father.income+mother.income;
+  const homeType=familyIncome>18000?'duży dom':familyIncome>10000?'dom/mieszkanie':'mieszkanie';
+  return {
+    countryCode:country.countryCode,country:country.country,city:pick(country.cities),
+    player:{firstName:first,lastName:surname,age,position,ovr:starterOVR,potential,club:'Szkoła / brak klubu',popularity:0,reputation:0,
+      money:rand(20,250),energy:rand(75,100),health:rand(85,100),mental:rand(60,90),happiness:rand(55,90),form:rand(45,70),education:rand(40,65)},
+    family:{
+      father,mother,originCountry:country.country,originCity:pick(country.cities),familyIncome,
+      home:{type:homeType,owner:father.housing.includes('własny')||mother.housing.includes('własny'),rooms:rand(3,7)},
+      familySupport:rand(45,90)
+    }
+  };
+}
+function applyGeneratedWorld(w){
+  S.player={...S.player,...w.player,country:w.country,city:w.city,countryCode:w.countryCode};
+  S.family=S.family||{};
+  S.family.father=w.family.father;S.family.mother=w.family.mother;
+  S.family.originCountry=w.family.originCountry;S.family.originCity=w.family.originCity;
+  S.family.familyIncome=w.family.familyIncome;S.family.home=w.family.home;S.family.familySupport=w.family.familySupport;
+  S.worldFlags.startGenerated=true;
+  S.worldFlags.startedPlaying=false;
+  S.scouting=[];
+  S.calendarConfig={country:w.countryCode,schoolYear:true};
+}
+function ensurePreCareerNoScout(){
+  if(!S.worldFlags?.startedPlaying){
+    S.scouting=(S.scouting||[]).filter(x=>x.status!=='new'&&x.type!=='trial');
+  }
+}
+function markStartedPlaying(){
+  S.worldFlags.startedPlaying=true;
+  S.worldFlags.firstFootballActivity=true;
+  save();
+}
+function initializeRandomCareer(){
+  const w=generateWorld(); applyGeneratedWorld(w); markStartedPlaying();
+}
+
+function familyProfileGenerated(){
+  const f=S.family||{},fa=f.father||{},mo=f.mother||{};
+  return `<div class="card">
+    <div class="eyebrow">👨‍👩‍👧 RODZINA</div>
+    <h2>${esc(f.originCountry||'—')} • ${esc(f.originCity||'—')}</h2>
+    <div class="grid2">
+      <div><b>Ojciec</b><div class="muted">${esc(fa.firstName||'—')} ${esc(fa.lastName||'')} • ${esc(fa.job||'—')}</div><div>💰 ${fa.income||0} / mies. • wydatki ${fa.expenses||0}</div><div>🏠 ${esc(fa.housing||'—')} • 🚗 ${fa.cars||0}</div></div>
+      <div><b>Matka</b><div class="muted">${esc(mo.firstName||'—')} ${esc(mo.lastName||'')} • ${esc(mo.job||'—')}</div><div>💰 ${mo.income||0} / mies. • wydatki ${mo.expenses||0}</div><div>🏠 ${esc(mo.housing||'—')} • 🚗 ${mo.cars||0}</div></div>
+    </div>
+    <div class="muted small" style="margin-top:10px">Zawody rodziców mogą odblokowywać pomoc, kontakty, specjalistów i ułatwienia w późniejszym życiu.</div>
+  </div>`;
+}
 function render(){
  document.body.classList.remove('busy');
  renderTop();renderMenu();setTabs();
@@ -1201,7 +1322,17 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSideMenu()})
 function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'sidecareer',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el)el.click()}
 </script>
 <script id="game-mode-fixes">
-function startNewGame(){S.gameMode='auto';if(!confirm('Rozpocząć zupełnie nową karierę?'))return;localStorage.removeItem('fl-life-27-etap3');location.reload()}
-function startNewGamePlus(){S.gameMode='plus';if(!confirm('Rozpocząć Nową Grę+? Zachowamy wybrane dziedzictwo poprzedniej kariery.'))return;const old=localStorage.getItem('fl-life-27-etap3');let legacy={};try{legacy=old?JSON.parse(old):{}}catch(e){}localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify({savedAt:Date.now(),history:legacy.history||[],consequenceLedger:legacy.consequenceLedger||[],worldFlags:legacy.worldFlags||{},lifeTags:legacy.lifeTags||[]}));localStorage.removeItem('fl-life-27-etap3');location.reload()}
+function startNewGame(){
+  if(!confirm('Rozpocząć zupełnie nową, losową karierę?'))return;
+  localStorage.removeItem('fl-life-27-etap6');
+  location.reload();
+}
+function startNewGamePlus(){
+  if(!confirm('Rozpocząć Nową Grę+? Możesz ustalić zawodnika, ale świat rodziny pozostanie losowany.'))return;
+  const legacy={history:S.history||[],consequenceLedger:S.consequenceLedger||[],lifeTags:S.lifeTags||[]};
+  localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify(legacy));
+  localStorage.removeItem('fl-life-27-etap6');
+  location.reload();
+}
 </script></body>
 </html>
