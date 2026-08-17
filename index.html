@@ -159,7 +159,22 @@ const initial={
   education:{
     courses:[], skills:{language:18,music:0,media:0,business:0,coaching:0,agent:0}
   },
-  licenses:{car:{name:'Prawo jazdy B',requiredAge:18,progress:0,passed:false},boat:{name:'Licencja żeglarska',requiredAge:18,progress:0,passed:false},plane:{name:'Licencja pilota',requiredAge:18,progress:0,passed:false}},
+  licenses:{
+  car_b:{name:'Prawo jazdy B — samochód',requiredAge:18,progress:0,passed:false},
+  scooter_am:{name:'Prawo jazdy AM — motorower / skuter',requiredAge:14,progress:0,passed:false},
+  motorcycle_a1:{name:'Prawo jazdy A1 — motocykl',requiredAge:16,progress:0,passed:false},
+  motorcycle_a2:{name:'Prawo jazdy A2 — motocykl',requiredAge:18,progress:0,passed:false},
+  motorcycle_a:{name:'Prawo jazdy A — motocykl bez ograniczeń',requiredAge:24,progress:0,passed:false},
+  trailer_be:{name:'Prawo jazdy B+E — przyczepa',requiredAge:18,progress:0,passed:false},
+  truck_c:{name:'Prawo jazdy C — ciężarowe',requiredAge:21,progress:0,passed:false},
+  truck_ce:{name:'Prawo jazdy C+E — ciężarowe z przyczepą',requiredAge:21,progress:0,passed:false},
+  bus_d:{name:'Prawo jazdy D — autobus',requiredAge:24,progress:0,passed:false},
+  boat:{name:'Licencja na łódź / jacht motorowy',requiredAge:16,progress:0,passed:false},
+  sailing:{name:'Licencja żeglarska',requiredAge:16,progress:0,passed:false},
+  plane:{name:'Licencja pilota samolotu',requiredAge:18,progress:0,passed:false},
+  helicopter:{name:'Licencja pilota śmigłowca',requiredAge:18,progress:0,passed:false},
+  instructor:{name:'Uprawnienia instruktorskie sportowe',requiredAge:18,progress:0,passed:false}
+},
   specialists:[
     {id:'sportpsych',name:'Psycholog sportowy',price:90,effect:'mental +8',available:true},
     {id:'physio',name:'Fizjoterapeuta',price:70,effect:'zdrowie +6 / regeneracja',available:true},
@@ -218,8 +233,10 @@ const initial={
     familyWealth:[], familyHousing:[], familyAssets:[],
     relationships:{}, contacts:{}, brandDeals:[],
     sideCareers:{music:null,film:null,creator:null,influencer:null},
-    calendarCountry:'PL'
-  }
+    calendarCountry:'PL',
+    vacation:{trips:[],ownedPlane:false,ownedBoat:false,security:false,travelHistory:[]}
+  },
+  vacations:{active:null,history:[]}
 };
 
 let S=load();
@@ -638,17 +655,33 @@ function makeEvent(source){
   const valid=pool.filter(e=>e.when.includes(source)||e.when.includes('daily'));
   return valid[Math.floor(Math.random()*valid.length)];
 }
-function triggerEvent(e){
-  if(!e)return;
+/* ===== EVENT QUEUE FIX =====
+   Kilka systemów może wygenerować wydarzenie w tym samym momencie (np.
+   konsekwencja + szkoła + rodzina + wydarzenie dnia). Wcześniej każde kolejne
+   wydarzenie nadpisywało pendingEvent i modal, przez co przyciski poprzedniego
+   wydarzenia przestawały działać. Teraz wydarzenia są kolejkowane i pokazują
+   się jedno po drugim.
+*/
+window.eventQueue = window.eventQueue || [];
+window.pendingEvent = window.pendingEvent || null;
+function showNextEvent(){
+  if(window.pendingEvent || !window.eventQueue.length) return;
+  const e=window.eventQueue.shift();
   const id='ev'+(++S.eventCounter);
+  window.pendingEvent={id,e};
   openModal(`<div class="modal-head"><div><div class="eyebrow">⚡ WYDARZENIE</div><h2>${esc(e.title)}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
     <div class="card" style="margin-top:12px;background:#171b22">${esc(e.text)}</div>
-    <div class="modal-actions">${e.choices.map((c,i)=>`<button class="choice" onclick="chooseEvent(${JSON.stringify(id)},${i})"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
-  window.pendingEvent={id,e};
+    <div class="modal-actions">${e.choices.map((c,i)=>`<button class="choice event-choice" data-event-id="${esc(id)}" data-choice-index="${i}" onclick="chooseEvent(${JSON.stringify(id)},${i})"><b>${i+1}. ${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`,true);
+}
+function triggerEvent(e){
+  if(!e)return;
+  window.eventQueue.push(e);
+  showNextEvent();
 }
 function chooseEvent(id,i){
   const p=window.pendingEvent;if(!p||p.id!==id)return;
   const c=p.e.choices[i];
+  if(!c)return;
   for(const [k,v] of Object.entries(c[2])){if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);else if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);else S.player[k]=clamp((S.player[k]||0)+v,0,100)}
   const tags=[];
   const title=p.e.title||'Wydarzenie';
@@ -659,7 +692,13 @@ function chooseEvent(id,i){
   const memoryId=applyDecisionMemory(title,c[0],c[2],tags);
   S.tutorial.steps[3]=true;
   addHistory('Decyzja: '+p.e.title,c[0],c[1]+' • pamięć #'+memoryId.slice(-5));
-  closeModal();save();render();toast('Decyzja zapisana w historii.');
+  // Zakończ tylko aktualne wydarzenie. Kolejne czeka w kolejce.
+  document.getElementById('modal').classList.remove('show');
+  window.pendingEvent=null;
+  save();render();
+  toast('Decyzja zapisana w historii.');
+  // Następne wydarzenie pokazujemy dopiero po wyrenderowaniu poprzedniej decyzji.
+  setTimeout(showNextEvent,80);
 }
 function addHistory(title,desc,effect){S.history.unshift({date:S.day.date,time:timePL(S.day.time),dayNo:S.day.dayNo,title,desc,effect});S.history=S.history.slice(0,120)}
 
@@ -786,14 +825,19 @@ function renderRelations(){
 function relationActions(id){
  const r=S.relations.find(x=>x.id===id);if(!r)return;
  const actions=r.type==='koleżanka'||r.type==='partner'?['💬 Rozmowa','🚶 Spacer','🍦 Lody','🎬 Kino','🎁 Prezent','❤️ Randka']:['💬 Rozmowa','🚶 Spacer','☕ Kawa','🎁 Prezent','🤝 Pomoc','📞 Telefon'];
- openModal(`<div class="modal-head"><div><div class="eyebrow">RELACJA</div><h2>${esc(r.name)}</h2><div class="muted">${esc(r.type)} • ${r.relation}/100</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${actions.map(a=>`<button class="choice" onclick="relationDo('${id}',${JSON.stringify(a)})"><b>${a}</b><span>Wpływa na relację, czas, pieniądze i może generować nowe wydarzenia.</span></button>`).join('')}</div>`,true)
+ openModal(`<div class="modal-head"><div><div class="eyebrow">❤️ RELACJA</div><h2>${esc(r.name)}</h2><div class="muted">${esc(r.type)} • ${r.relation}/100</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${actions.map(a=>`<button class="choice relation-choice" onclick="relationDo(${JSON.stringify(id)},${JSON.stringify(a)})"><b>${esc(a)}</b><span>Wpływa na relację, czas, pieniądze i może generować nowe wydarzenia.</span></button>`).join('')}</div>`,true)
 }
 function relationDo(id,a){
- const r=S.relations.find(x=>x.id===id);if(!r)return;r.relation=clamp(r.relation+(a.includes('Prezent')?8:a.includes('Randka')?12:6),0,100);
- S.player.money-=a.includes('Kawa')?6:a.includes('Lody')?5:a.includes('Kino')?15:a.includes('Prezent')?25:0;
+ const r=S.relations.find(x=>x.id===id);if(!r)return;
+ const cost=a.includes('Kawa')?6:a.includes('Lody')?5:a.includes('Kino')?15:a.includes('Prezent')?25:0;
+ if(S.player.money<cost){toast('Za mało pieniędzy na tę aktywność.');return;}
+ const gain=a.includes('Randka')?12:a.includes('Prezent')?8:6;
+ r.relation=clamp(r.relation+gain,0,100);
+ S.player.money-=cost;
  S.day.time+=a.includes('Telefon')?30:60;
- addHistory('Relacja: '+r.name,a,`❤️ +${a.includes('Randka')?12:a.includes('Prezent')?8:6}`);
- closeModal();save();render();toast('Relacja zaktualizowana.');
+ addHistory('Relacja: '+r.name,a,`❤️ +${gain}${cost?' • -'+money(cost):''}`);
+ document.getElementById('modal').classList.remove('show');window.pendingEvent=null;
+ save();render();toast('Relacja zaktualizowana.');
 }
 
 function renderHistory(){
@@ -834,32 +878,66 @@ function charity(){openModal(`<div class="modal-head"><div><div class="eyebrow">
 function doCharity(n,a){if(S.player.money<a){toast('Za mało pieniędzy.');return}S.player.money-=a;S.player.reputation=clamp(S.player.reputation+2,0,100);S.charity.push({name:n,amount:a,date:S.day.date});addHistory('Wpłata charytatywna',n,'REP +2 • '+money(a));closeModal();save();render()}
 
 function renderShop(){
- return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>Miasto życia</h1><div class="muted">Zakupy, usługi, nieruchomości, transport, lekarze, prezenty i luksus. Każdy zakup może wpływać na statystyki, relacje, popularność, czas i finanse.</div></section>
- ${[['🍽️','Jedzenie i wyjścia','Restauracje, kawa, kino, lody'],['👕','Ubrania i sprzęt','ubrania, buty, korki, gadżety'],['🏠','Domy i mieszkania','kupno, sprzedaż, wynajem, rozbudowa'],['🚗','Transport','rowery, auta, pociągi, samoloty'],['🏝️','Luksus','wyspy, jachty, helikoptery'],['🎁','Prezenty','zegarki, biżuteria, auta, nieruchomości'],['🩺','Zdrowie','lekarze, specjaliści, zabiegi'],['✈️','Wakacje','wyjazdy zależne od budżetu i możliwości']].map((x,i)=>`<button class="action" onclick="shopCategory(${i})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">${x[2]}</div></div><div>›</div></button>`).join('')}`;
+ return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>Miasto życia</h1><div class="muted">Duży katalog codziennych zakupów, sprzętu, transportu, nieruchomości, usług, luksusu i podróży. Dostępność i ceny mogą zależeć od wieku, kraju, pieniędzy i popularności.</div></section>
+ ${[['🍽️','Jedzenie i rozrywka','restauracje, fast food, kawa, kino, koncerty, atrakcje'],['👟','Sport i sprzęt','korki, stroje, piłki, plecaki, zegarki sportowe, regeneracja'],['📱','Elektronika','telefon, laptop, konsola, VR, kamera, aparat, audio, streaming'],['👕','Moda','codzienne, treningowe, wyjściowe, garnitury, luksus, dodatki'],['🏠','Nieruchomości','wynajem, mieszkania, domy, wille, działki, inwestycje'],['🚗','Transport','rowery, auta, leasing, pociągi, loty, wynajem'],['🛥️','Luksus i pojazdy specjalne','łodzie, jachty, helikoptery, samoloty, luksusowe aktywa'],['🎁','Prezenty','rodzina, partner, znajomi, zegarki, biżuteria, większe prezenty'],['🩺','Zdrowie i usługi','lekarze, psycholog, fizjo, dentysta, dietetyk, badania'],['🏖️','Wakacje i podróże','wiele kierunków, standardów i sposobów podróży']].map((x,i)=>`<button class="action" onclick="shopCategory(${i})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">${x[2]}</div></div><div>›</div></button>`).join('')}`;
 }
 function shopCategory(i){
+ if(i===9){openVacationPlanner();return;}
  const cats=[
-  [['☕ Kawa','€4'],['🍦 Lody','€5'],['🍽️ Restauracja','€25'],['🎬 Kino','€15']],
-  [['👟 Korki podstawowe','€60'],['👟 Korki premium','€180'],['👕 Ubrania klubowe','€80'],['📱 Telefon','€400']],
-  [['🏠 Mieszkanie — Curitiba','€80000'],['🏡 Dom — Porto','€310000'],['🏠 Wynajem mieszkania','€700/mies.']],
-  [['🚲 Rower','€250'],['🚗 Volkswagen Golf','€14000'],['🚆 Pociąg','€20'],['✈️ Lot','€120']],
-  [['🛥️ Jacht','€250000'],['🚁 Helikopter','€1500000'],['🏝️ Wyspa','€5000000']],
-  [['⌚ Zegarek','€500'],['💎 Biżuteria','€800'],['🚗 Auto na prezent','€14000'],['🏠 Mieszkanie na prezent','€80000']],
-  [['🩺 Lekarz','€120'],['🧠 Psycholog sportowy','€90'],['💆 Fizjoterapia','€70'],['🧬 Badanie predyspozycji','€180']],
-  [['🏖️ Tydzień na wakacjach','€500'],['✈️ Luksusowy wyjazd','€2500']]
+  [['☕ Kawa','€4'],['🥐 Śniadanie','€8'],['🍔 Fast food','€12'],['🍽️ Restauracja','€25'],['🍿 Kino','€15'],['🎳 Kręgle','€18'],['🎟️ Koncert','€60'],['🎢 Atrakcja / park','€35'],['☕ Kawiarnia premium','€12']],
+  [['👟 Korki podstawowe','€60'],['👟 Korki premium','€180'],['👟 Korki Elite','€320'],['⚽ Piłka treningowa','€25'],['🎒 Plecak sportowy','€55'],['⌚ Zegarek sportowy','€180'],['🧘 Mata / sprzęt regeneracyjny','€45'],['🏋️ Domowy sprzęt treningowy','€250'],['🎽 Komplet treningowy','€90']],
+  [['📱 Telefon budżetowy','€180'],['📱 Flagowy telefon','€900'],['💻 Laptop','€900'],['🖥️ Komputer gamingowy','€1400'],['🎮 Konsola','€500'],['🥽 VR','€450'],['📷 Aparat','€700'],['🎥 Kamera','€1000'],['🎙️ Mikrofon / studio','€350'],['🎧 Słuchawki premium','€300']],
+  [['👕 Ubrania codzienne','€80'],['👕 Streetwear','€180'],['👔 Garnitur','€400'],['👟 Buty lifestyle','€150'],['🧥 Kurtka','€180'],['🕶️ Okulary','€180'],['⌚ Zegarek','€500'],['💎 Biżuteria','€800'],['👜 Dodatek premium','€600']],
+  [['🏠 Wynajem pokoju','€350/mies.'],['🏠 Wynajem mieszkania','€700/mies.'],['🏢 Kawalerka','€80000'],['🏠 Mieszkanie 2-pokojowe','€180000'],['🏡 Mieszkanie rodzinne','€320000'],['🏡 Dom','€760000'],['🏰 Willa','€1450000'],['🌳 Działka','€120000'],['🏢 Lokal inwestycyjny','€400000']],
+  [['🚲 Rower','€250'],['🛵 Skuter','€2500'],['🚗 Auto używane','€9000'],['🚗 Volkswagen Golf','€14000'],['🚙 SUV rodzinny','€240000'],['🏎️ Sportowe coupe','€180000'],['🚆 Pociąg','€20'],['✈️ Zwykły lot','€120'],['🚐 Kamper / wynajem','€180/dzień']],
+  [['🛥️ Łódź','€60000'],['🛥️ Jacht','€250000'],['🚤 Luksusowy jacht','€1200000'],['🚁 Helikopter','€1500000'],['✈️ Prywatny samolot','€4000000'],['🏝️ Wyspa','€5000000']],
+  [['🎁 Mały prezent rodzinny','€25'],['🎁 Prezent dla partnera','€180'],['🎁 Prezent dla rodzica','€250'],['⌚ Zegarek premium','€1200'],['💎 Biżuteria','€1500'],['🚗 Auto na prezent','€14000'],['🏠 Mieszkanie na prezent','€80000']],
+  [['🩺 Lekarz','€120'],['🧠 Psycholog sportowy','€90'],['💆 Fizjoterapia','€70'],['🧬 Badanie predyspozycji','€180'],['🦷 Dentysta','€100'],['🥗 Dietetyk','€80'],['👁️ Okulista','€90'],['🧪 Badania kontrolne','€150']]
  ];
- openModal(`<div class="modal-head"><div><div class="eyebrow">🏙️ SKLEP</div><h2>Oferta</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${cats[i].map((x,j)=>`<button class="choice" onclick="buyItem(${i},${j})"><b>${x[0]}</b><span>${x[1]} • zakup może zmienić Twoje życie, relacje lub popularność.</span></button>`).join('')}</div>`,true)
+ const items=cats[i]||[];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🏙️ SKLEP</div><h2>Oferta</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${items.map((x,j)=>`<button class="choice" onclick="buyItem(${i},${j})"><b>${x[0]}</b><span>${x[1]} • zakup może wpłynąć na życie, relacje, popularność lub możliwości.</span></button>`).join('')}</div>`,true)
 }
 function buyItem(cat,j){
- const prices=[[4,5,25,15],[60,180,80,400],[80000,310000,700],[250,14000,20,120],[250000,1500000,5000000],[500,800,14000,80000],[120,90,70,180],[500,2500]];
- const names=[['Kawa','Lody','Restauracja','Kino'],['Korki podstawowe','Korki premium','Ubrania klubowe','Telefon'],['Mieszkanie — Curitiba','Dom — Porto','Wynajem mieszkania'],['Rower','Volkswagen Golf','Pociąg','Lot'],['Jacht','Helikopter','Wyspa'],['Zegarek','Biżuteria','Auto na prezent','Mieszkanie na prezent'],['Lekarz','Psycholog sportowy','Fizjoterapia','Badanie predyspozycji'],['Wakacje','Luksusowy wyjazd']];
- const a=prices[cat][j],n=names[cat][j]; if(S.player.money<a){toast('Za mało pieniędzy.');return}
- S.player.money-=a;S.inventory.push({name:n,price:a,date:S.day.date});
- if(n.includes('Korki'))S.player.ovr=clamp(S.player.ovr+(n.includes('premium')?.8:.3),1,99);
- if(n==='Telefon')S.player.popularity=clamp(S.player.popularity+.3,0,100);
- if(n==='Ubrania klubowe')S.player.reputation=clamp(S.player.reputation+1,0,100);
+ const priceLists=[[4,8,12,25,15,18,60,35,12],[60,180,320,25,55,180,45,250,90],[180,900,900,1400,500,450,700,1000,350,300],[80,180,400,150,180,180,500,800,600],[350,700,80000,180000,320000,760000,1450000,120000,400000],[250,2500,9000,14000,240000,180000,20,120,180],[60000,250000,1200000,1500000,4000000,5000000],[25,180,250,1200,1500,14000,80000],[120,90,70,180,100,80,90,150]];
+ const names=[['Kawa','Śniadanie','Fast food','Restauracja','Kino','Kręgle','Koncert','Atrakcja / park','Kawiarnia premium'],['Korki podstawowe','Korki premium','Korki Elite','Piłka treningowa','Plecak sportowy','Zegarek sportowy','Mata / sprzęt regeneracyjny','Domowy sprzęt treningowy','Komplet treningowy'],['Telefon budżetowy','Flagowy telefon','Laptop','Komputer gamingowy','Konsola','VR','Aparat','Kamera','Mikrofon / studio','Słuchawki premium'],['Ubrania codzienne','Streetwear','Garnitur','Buty lifestyle','Kurtka','Okulary','Zegarek','Biżuteria','Dodatek premium'],['Wynajem pokoju','Wynajem mieszkania','Kawalerka','Mieszkanie 2-pokojowe','Mieszkanie rodzinne','Dom','Willa','Działka','Lokal inwestycyjny'],['Rower','Skuter','Auto używane','Volkswagen Golf','SUV rodzinny','Sportowe coupe','Pociąg','Zwykły lot','Kamper / wynajem'],['Łódź','Jacht','Luksusowy jacht','Helikopter','Prywatny samolot','Wyspa'],['Mały prezent rodzinny','Prezent dla partnera','Prezent dla rodzica','Zegarek premium','Biżuteria','Auto na prezent','Mieszkanie na prezent'],['Lekarz','Psycholog sportowy','Fizjoterapia','Badanie predyspozycji','Dentysta','Dietetyk','Okulista','Badania kontrolne']];
+ let a=priceLists[cat][j]; if(typeof a!=='number'){toast('Ta opcja jest usługą cykliczną — wybierz ją w odpowiednim systemie.');return} let n=names[cat][j];
+ if(S.player.money<a){toast('Za mało pieniędzy.');return} S.player.money-=a;S.inventory.push({name:n,price:a,date:S.day.date});
+ if(n.includes('Korki'))S.player.ovr=clamp(S.player.ovr+(n.includes('Elite')?1:n.includes('premium')?.8:.3),1,99);
+ if(n.includes('Telefon')||n.includes('Kamera')||n.includes('Aparat'))S.player.popularity=clamp(S.player.popularity+.3,0,100);
+ if(n==='Garnitur'||n==='Zegarek premium')S.player.reputation=clamp(S.player.reputation+1,0,100);
+ if(n==='Koncert'||n==='Kino'||n==='Kręgle'||n==='Atrakcja / park')S.player.happiness=clamp(S.player.happiness+3,0,100);
  addHistory('Zakup',n,money(a));closeModal();save();render();toast('Zakup zapisany.');
 }
+function openVacationPlanner(){
+ const countries=[['ES','🇪🇸 Hiszpania'],['PT','🇵🇹 Portugalia'],['IT','🇮🇹 Włochy'],['GR','🇬🇷 Grecja'],['HR','🇭🇷 Chorwacja'],['FR','🇫🇷 Francja'],['US','🇺🇸 USA'],['JP','🇯🇵 Japonia'],['AE','🇦🇪 ZEA'],['TH','🇹🇭 Tajlandia'],['MX','🇲🇽 Meksyk'],['BR','🇧🇷 Brazylia'],['AU','🇦🇺 Australia']];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🏖️ WAKACJE</div><h2>Zaplanuj wyjazd</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${countries.map(x=>`<button class="choice" onclick="vacationDestination('${x[0]}')"><b>${x[1]}</b><span>Wybierz kierunek i sposób podróży</span></button>`).join('')}</div>`,true);
+}
+function vacationDestination(code){
+ const modes=[['flight_economy','✈️ Zwykły lot — ekonomiczna',120],['flight_business','💺 Business class',650],['train','🚆 Pociąg / transport lądowy',90],['car','🚗 Własne / wynajęte auto',180],['boat','🛥️ Łódź / jacht',700],['private_jet','🛩️ Prywatny samolot',9000],['own_plane','✈️ Własny samolot',0],['own_boat','🛥️ Własna łódź / jacht',0]];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🌍 ${esc((COUNTRY_WORLD[code]||{name:code}).name)}</div><h2>Jak podróżujesz?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${modes.map(m=>`<button class="choice" onclick="vacationTransport('${code}','${m[0]}',${m[2]})"><b>${m[1]}</b><span>od ${money(m[2])}</span></button>`).join('')}</div>`,true);
+}
+function vacationTransport(code,mode,cost){
+ const w=S.world.vacation||{}; const lic=S.licenses||{};
+ if(mode==='own_plane' && !w.ownedPlane && !(lic.plane&&lic.plane.passed)){toast('Nie masz własnego samolotu ani licencji pilota.');return}
+ if(mode==='own_boat' && !w.ownedBoat && !(lic.boat&&lic.boat.passed)){toast('Nie masz własnej łodzi ani licencji.');return}
+ if(mode==='boat' && !(lic.boat&&lic.boat.passed)){cost+=250;}
+ if(S.player.money<cost){toast('Za mało pieniędzy na ten sposób podróży.');return}
+ S.player.money-=cost;
+ const country=COUNTRY_WORLD[code]||{name:code};
+ const privateTrip=mode==='private_jet'||mode==='own_plane';
+ if(S.player.popularity>=60 && mode==='flight_economy'){
+   closeModal();triggerEvent({title:'Kibice rozpoznali Cię na lotnisku',text:'Masz wysoką popularność, ale lecisz zwykłym lotem. Ktoś robi zdjęcie, a sytuacja trafia do FLgramu.',choices:[['Pozuj do zdjęć','Budujesz bliskość z kibicami.',{popularity:.8,happiness:2}],['Poproś o trochę prywatności','Unikasz większego zamieszania.',{mental:2}],['Zmień klasę na business','Płacisz więcej za większy komfort.',{mental:3}] ]});
+ }
+ const trip={country:country.name,code,mode,date:S.day.date,cost};
+ S.vacations=S.vacations||{active:null,history:[]};S.vacations.active=trip;S.vacations.history.unshift(trip);w.travelHistory.push(trip);
+ addHistory('Wakacje',`Wyjazd do ${country.name}`,`podróż: ${mode}`);save();render();
+ setTimeout(()=>openVacationActivities(code),100);
+}
+function openVacationActivities(code){
+ const acts=[['🏖️ Plaża / odpoczynek',0],['🤿 Nurkowanie',90],['🏄 Surfing',80],['🛥️ Rejs',150],['🚗 Zwiedzanie autem',120],['🥾 Trekking',40],['🎢 Atrakcja turystyczna',60],['🍽️ Lokalne restauracje',70],['🛍️ Zakupy',150],['📸 Tworzenie contentu',0],['🎉 Impreza / nocne życie',80],['❤️ Romantyczny dzień',100]];
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🏖️ WAKACJE</div><h2>Co robisz na miejscu?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions">${acts.map((a,i)=>`<button class="choice" onclick="vacationActivity('${a[0]}',${a[1]})"><b>${a[0]}</b><span>${a[1]?'€'+a[1]:'bez dodatkowej opłaty'}</span></button>`).join('')}</div>`,true);
+}
+function vacationActivity(name,cost){if(S.player.money<cost){toast('Za mało pieniędzy.');return}S.player.money-=cost;S.player.happiness=clamp(S.player.happiness+5,0,100);if(name.includes('content'))S.player.popularity=clamp(S.player.popularity+.5,0,100);if(name.includes('Romantyczny')){const r=S.relations.find(x=>/partner|dziew|chłopak/i.test(x.type+' '+x.name));if(r)r.relation=clamp(r.relation+6,0,100)}addHistory('Wakacje — aktywność',name,'dzień wyjazdu');save();closeModal();render();toast('Aktywność zapisana.');}
 
 function renderEducation(){
  return `<section class="section card gold-card"><div class="eyebrow">🎓 EDUKACJA</div><h1>Szkoła i kwalifikacje</h1><div class="muted">Nie wystarczy zapłacić. Kurs wymaga czasu, nauki i zaliczenia.</div><div class="metric" style="margin-top:14px"><span>Postęp edukacyjny</span><b>${Math.round(S.player.education)}/100</b></div></section>
@@ -867,10 +945,20 @@ function renderEducation(){
 }
 function startCourse(n,req,cost){if(S.player.education<req){toast('Brakuje wymaganego poziomu edukacji.');return}if(S.player.money<cost){toast('Za mało pieniędzy.');return}S.player.money-=cost;S.player.education=clamp(S.player.education+5,0,100);S.education.courses.push({name:n,progress:5,passed:false});S.day.time+=60;addHistory('Kurs',n,'nauka +5 • czas 1h');save();render();toast('Kurs rozpoczęty — trzeba go kontynuować i zaliczyć.')}
 function renderLicenses(){
- const rows=Object.entries(S.licenses).map(([id,l])=>`<div class="job"><div class="row"><h3>🪪 ${esc(l.name)}</h3><span class="badge">${l.passed?'ZALICZONA':l.progress+'%'}</span></div><div class="muted">${l.requiredAge}+ lat • nauka, czas i egzamin</div><div class="progress" style="margin:10px 0"><i style="width:${l.progress}%"></i></div><button class="btn" onclick="licenseStudy('${id}')">${l.passed?'Powtórz / rozwijaj':'Ucz się / przygotuj do egzaminu'}</button></div>`).join('');
- return `<section class="section card gold-card"><div class="eyebrow">🪪 LICENCJE</div><h1>Uprawnienia</h1><div class="muted">Nie wszystko da się kupić. Musisz mieć odpowiedni wiek, czas na naukę i zdać egzamin. Rodzice mogą pomóc finansowo, ale nie zdają za Ciebie.</div></section><section class="section card">${rows}</section>`;
+ const catalog=WORLD_CATALOG.licenses||[];
+ const rows=catalog.map(l=>{const st=S.licenses[l.id]||{name:l.name,requiredAge:l.requiresAge,progress:0,passed:false};return `<div class="job"><div class="row"><h3>🪪 ${esc(l.name)}</h3><span class="badge ${st.passed?'gold':''}">${st.passed?'ZALICZONA':st.progress+'%'}</span></div><div class="muted">${l.category} • wymagany wiek: ${l.requiresAge}+ • kurs + przygotowanie + egzamin</div><div class="progress" style="margin:10px 0"><i style="width:${st.passed?100:st.progress}%"></i></div><button class="btn" onclick="licenseAction('${l.id}')">${st.passed?'Informacje':'Rozpocznij / kontynuuj'}</button></div>`}).join('');
+ return `<section class="section card gold-card"><div class="eyebrow">🪪 LICENCJE I UPRAWNIENIA</div><h1>Uprawnienia na całe życie</h1><div class="muted">Wymagania są ogólne i zależne od kraju. Licencja może odblokować pojazdy, podróże, pracę i nowe wydarzenia.</div></section><section class="section card"><div class="list">${rows}</div></section>`;
 }
-function licenseStudy(id){const l=S.licenses[id];if(S.player.age<l.requiredAge){toast(`Wymagany wiek: ${l.requiredAge} lat.`);return}if(S.player.energy<5){toast('Za mało energii.');return}S.day.time+=60;S.player.energy-=5;l.progress=clamp(l.progress+Math.floor(10+Math.random()*18),0,100);if(l.progress>=100){const pass=Math.random()<.78;l.passed=pass;l.progress=pass?100:Math.floor(55+Math.random()*25);addHistory('Egzamin — '+l.name,pass?'Zdałeś egzamin!':'Nie zdałeś — potrzebujesz kolejnych przygotowań.',pass?'licencja zdobyta':'spróbuj ponownie')}save();render();toast(l.passed?'🪪 Licencja zdobyta!':'Postęp nauki zapisany.')}
+function licenseAction(id){
+ const l=(WORLD_CATALOG.licenses||[]).find(x=>x.id===id);if(!l)return;
+ if(S.player.age<l.requiresAge){toast('Jeszcze za wcześnie na tę licencję.');return}
+ const st=S.licenses[id]||(S.licenses[id]={name:l.name,requiredAge:l.requiresAge,progress:0,passed:false});
+ if(st.passed){toast('Ta licencja jest już zaliczona.');return}
+ if(S.player.money<l.cost){toast('Za mało pieniędzy na kurs i egzamin.');return}
+ S.player.money-=l.cost;st.progress=Math.min(100,st.progress+Math.round(100/l.steps));S.day.time+=l.time;
+ if(st.progress>=100){st.passed=true;addHistory('Licencja zdobyta',l.name,'uprawnienie uzyskane');triggerEvent({title:'Nowe uprawnienie',text:'Zdobywasz '+l.name+'. To może otworzyć nowe możliwości podróży i życia.',choices:[['Korzystaj z nowej możliwości','Planujesz wykorzystać uprawnienie.',{happiness:4,mental:2}],['Zachowaj je na przyszłość','Masz nowe możliwości, ale na razie z nich nie korzystasz.',{mental:2}],['Pochwal się na FLgramie','Informujesz obserwujących o nowym uprawnieniu.',{popularity:.4,reputation:1}] ]});}
+ else addHistory('Kurs licencyjny',l.name,'postęp +'+Math.round(100/l.steps)+'%');save();render();
+}
 function renderSpecialists(){
  return `<section class="section card gold-card"><div class="eyebrow">🩺 SPECJALIŚCI</div><h1>Zdrowie i predyspozycje</h1><div class="muted">Specjaliści kosztują, mają różne efekty i nie każdy problem znika od razu.</div></section><section class="section card">${S.specialists.map(x=>`<div class="job"><div class="row"><h3>${esc(x.name)}</h3><span class="badge">${money(x.price)}</span></div><div class="muted">${esc(x.effect)}</div><button class="btn" style="margin-top:10px" onclick="specialist('${x.id}')">Umów wizytę</button></div>`).join('')}</section>`;
 }
@@ -896,9 +984,22 @@ function renderSettings(){
 function setDating(v){S.dating.preference=v;save();toast('Preferencje randkowania zapisane.')}
 function repair(){document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));closeDrawer();render();window.scrollTo({top:0});toast('🛠️ Gra zsynchronizowana — kariera nie została usunięta.')}
 function restartCareer(){if(confirm('Restart kariery zachowa dane rodziców, ale wyzeruje przebieg?')){const keep={...clone(initial),family:S.family,player:{...clone(initial).player, name:S.player.name,first:S.player.first,last:S.player.last, country:S.player.country,city:S.player.city}};S=keep;save();current='day';render();toast('Kariera uruchomiona od nowa.')}}
-function newGame(){if(confirm('Rozpocząć całkowicie nową grę?')){S=clone(initial);S.player.name=['Alex Nowak','Milan Costa','Liam Silva','Mateo Rossi'][Math.floor(Math.random()*4)];save();current='day';render()}}
-function newGamePlus(){openModal(`<div class="modal-head"><div><div class="eyebrow">✨ NOWA GRA+</div><h2>Ustal zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form" style="margin-top:12px"><input class="input" id="ngname" placeholder="Imię i nazwisko" value="${esc(S.player.name)}"><input class="input" id="ngcity" placeholder="Miasto"><input class="input" id="ngpos" placeholder="Pozycja" value="${esc(S.player.position)}"><button class="btn goldbtn" onclick="applyNG()">Rozpocznij</button></div>`,true)}
-function applyNG(){const n=document.getElementById('ngname').value.trim();if(!n)return;S.player.name=n;S.player.city=document.getElementById('ngcity').value.trim()||S.player.city;S.player.position=document.getElementById('ngpos').value.trim()||S.player.position;closeModal();save();render();toast('Nowa gra+ rozpoczęta.')}
+const PLAYER_POSITIONS=['Bramkarz','Prawy obrońca','Lewy obrońca','Środkowy obrońca','Defensywny pomocnik','Środkowy pomocnik','Ofensywny pomocnik','Prawy skrzydłowy','Lewy skrzydłowy','Napastnik'];
+const NG_FIRST=['Alex','Noah','Liam','Mateo','Leo','Lucas','Milan','Oliver','Ethan','Daniel','Adrian','Kacper','Jakub','Antoine','Marco','Hugo','Tiago','João','Gabriel','Rafael'];
+const NG_LAST=['Silva','Costa','Pereira','Santos','Rossi','Martins','Nowak','Kowalski','Garcia','Gonzalez','Fernandez','Muller','Schmidt','Dubois','Martin','Bianchi','Sato','Kim','Williams','Brown'];
+const COUNTRY_CITIES={PL:['Warszawa','Kraków','Poznań','Wrocław','Gdańsk'],ES:['Madryt','Barcelona','Walencja','Sewilla','Bilbao'],PT:['Lizbona','Porto','Braga','Faro'],FR:['Paryż','Marsylia','Lyon','Nicea'],IT:['Rzym','Mediolan','Turyn','Neapol'],DE:['Berlin','Monachium','Hamburg','Kolonia'],GB:['Londyn','Manchester','Liverpool','Birmingham'],US:['Nowy Jork','Los Angeles','Miami','Chicago','Dallas'],BR:['São Paulo','Rio de Janeiro','Curitiba','Brasília','Salvador'],AR:['Buenos Aires','Córdoba','Rosario'],MX:['Meksyk','Guadalajara','Monterrey'],JP:['Tokio','Osaka','Kioto','Yokohama'],KR:['Seul','Busan','Incheon'],CN:['Pekin','Szanghaj','Guangzhou','Shenzhen'],IN:['Mumbaj','Delhi','Bengaluru','Kolkata'],TR:['Stambuł','Ankara','Izmir'],GR:['Ateny','Saloniki'],HR:['Zagrzeb','Split','Dubrownik'],NL:['Amsterdam','Rotterdam','Utrecht'],BE:['Bruksela','Antwerpia'],CH:['Zurych','Genewa','Bazylea'],AT:['Wiedeń','Salzburg'],CZ:['Praga','Brno'],SK:['Bratysława','Koszyce'],HU:['Budapeszt'],SE:['Sztokholm','Göteborg'],NO:['Oslo','Bergen'],DK:['Kopenhaga'],FI:['Helsinki','Tampere'],AU:['Sydney','Melbourne','Brisbane'],CA:['Toronto','Montreal','Vancouver'],ZA:['Johannesburg','Kapsztad'],AE:['Dubaj','Abu Zabi'],SA:['Rijad','Dżudda'],EG:['Kair','Aleksandria'],MA:['Casablanca','Marrakesz']};
+function randomFrom(a){return a[Math.floor(Math.random()*a.length)]}
+function randomBirthDate(){const y=2009+Math.floor(Math.random()*5);const m=1+Math.floor(Math.random()*12);const d=1+Math.floor(Math.random()*28);return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function ageFromBirthDate(date){if(!date)return 15;const b=new Date(date+'T12:00:00'), now=new Date(S.day.date+'T12:00:00');let a=now.getFullYear()-b.getFullYear();if(now.getMonth()<b.getMonth()||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))a--;return Math.max(10,Math.min(19,a))}
+function countryOptions(selected){return Object.entries(COUNTRY_WORLD).filter(([k,v])=>v&&v.name).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${esc(v.name)}</option>`).join('')}
+function positionOptions(selected){return PLAYER_POSITIONS.map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join('')}
+function questionFields(values){return `<section class="card" style="margin-top:12px"><div class="eyebrow">🧠 PYTANIA STARTOWE</div><div class="muted small">Odpowiedzi wpływają na początkowe statystyki i historię zawodnika.</div><label class="field"><span>👨‍👩‍👦 Jak duże wsparcie daje rodzina?</span><select class="select" id="ngsupport"><option value="low">Niewielkie</option><option value="normal" selected>Normalne</option><option value="high">Bardzo duże</option></select></label><label class="field"><span>💰 Jak wygląda sytuacja finansowa rodziny?</span><select class="select" id="ngwealth"><option value="low">Skromna</option><option value="normal" selected>Normalna</option><option value="high">Zamożna</option></select></label><label class="field"><span>⚽ Jak długo trenujesz piłkę?</span><select class="select" id="ngfootball"><option value="new">Dopiero zaczynam</option><option value="regular" selected>Od kilku lat</option><option value="serious">Od dziecka bardzo poważnie</option></select></label><label class="field"><span>🧠 Jaki masz charakter?</span><select class="select" id="ngcharacter"><option value="calm">Spokojny i rozsądny</option><option value="balanced" selected>Zrównoważony</option><option value="ambitious">Bardzo ambitny i ryzykowny</option></select></label><label class="field"><span>🎓 Jak podchodzisz do szkoły?</span><select class="select" id="ngschool"><option value="weak">Sport jest najważniejszy</option><option value="balanced" selected>Staram się łączyć szkołę i sport</option><option value="strong">Bardzo dbam o naukę</option></select></label></section>`}
+function randomProfile(){const code=randomFrom(Object.keys(COUNTRY_WORLD));const country=COUNTRY_WORLD[code];const city=randomFrom(COUNTRY_CITIES[code]||['Stolica kraju']);const birth=randomBirthDate();return {name:randomFrom(NG_FIRST)+' '+randomFrom(NG_LAST),countryCode:code,country:country.name,city,birthDate:birth,position:randomFrom(PLAYER_POSITIONS),answers:{support:randomFrom(['low','normal','high']),wealth:randomFrom(['low','normal','high']),football:randomFrom(['new','regular','serious']),character:randomFrom(['calm','balanced','ambitious']),school:randomFrom(['weak','balanced','strong'])}}}
+function renderNewGameSetup(mode){const base=mode==='plus'?randomProfile():randomProfile();openModal(`<div class="modal-head"><div><div class="eyebrow">${mode==='plus'?'✨ NOWA GRA+':'🆕 NOWA GRA'}</div><h2>Utwórz zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="card" style="margin-top:12px"><button class="btn" onclick="fillRandomNG('${mode}')">🎲 Wylosuj zawodnika</button><div class="muted small" style="margin-top:8px">Możesz wylosować cały profil albo ręcznie zmienić dowolne pole.</div></div><label class="field"><span>👤 Imię i nazwisko</span><input class="input" id="ngname" value="${esc(base.name)}" placeholder="Imię i nazwisko"></label><label class="field"><span>🌍 Kraj</span><select class="select" id="ngcountry">${countryOptions(base.countryCode)}</select></label><label class="field"><span>📍 Miasto</span><input class="input" id="ngcity" value="${esc(base.city)}" placeholder="Miasto"></label><label class="field"><span>⚽ Pozycja</span><select class="select" id="ngpos">${positionOptions(base.position)}</select></label><label class="field"><span>🎂 Data urodzenia</span><input class="input" type="date" id="ngbirth" value="${base.birthDate}"></label>${questionFields(base.answers)}<button class="btn goldbtn" style="margin-top:14px" onclick="applyNewProfile('${mode}')">Rozpocznij karierę</button>`,true)}
+function fillRandomNG(mode){const r=randomProfile();document.getElementById('ngname').value=r.name;document.getElementById('ngcountry').value=r.countryCode;document.getElementById('ngcity').value=r.city;document.getElementById('ngpos').value=r.position;document.getElementById('ngbirth').value=r.birthDate;document.getElementById('ngsupport').value=r.answers.support;document.getElementById('ngwealth').value=r.answers.wealth;document.getElementById('ngfootball').value=r.answers.football;document.getElementById('ngcharacter').value=r.answers.character;document.getElementById('ngschool').value=r.answers.school}
+function applyNewProfile(mode){const name=document.getElementById('ngname').value.trim();const code=document.getElementById('ngcountry').value;const country=COUNTRY_WORLD[code];const city=document.getElementById('ngcity').value.trim()||randomFrom(COUNTRY_CITIES[code]||['Stolica kraju']);const birth=document.getElementById('ngbirth').value;if(!name||!birth||!country){toast('Uzupełnij imię, kraj i datę urodzenia.');return}const age=ageFromBirthDate(birth);if(age<10||age>19){toast('Wybierz datę dającą wiek 10–19 lat.');return}const answers={support:document.getElementById('ngsupport').value,wealth:document.getElementById('ngwealth').value,football:document.getElementById('ngfootball').value,character:document.getElementById('ngcharacter').value,school:document.getElementById('ngschool').value};let base=clone(initial);if(mode==='plus'){const oldFamily=clone(S.family);base.family=oldFamily}base.player.name=name;base.player.first=name.split(/\s+/)[0];base.player.last=name.split(/\s+/).slice(1).join(' ');base.player.country=country.name;base.player.countryCode=code;base.player.city=city;base.player.birthCountry=country.name;base.player.birthDate=birth;base.player.age=age;base.player.position=document.getElementById('ngpos').value;base.player.club='Akademia '+city;base.day.date=birth;let dt=new Date(birth+'T12:00:00');dt.setFullYear(dt.getFullYear()+age);base.day.date=dt.toISOString().slice(0,10);base.calendarConfig.country=code;base.world.calendarCountry=code;base.family.familyWealth=answers.wealth;base.family.stability=answers.support==='high'?'stabilna':answers.support==='low'?'niestabilna':'stabilna';base.player.character=answers.character==='ambitious'?75:answers.character==='calm'?58:65;base.player.education=answers.school==='strong'?35:answers.school==='weak'?10:22;base.player.mental=answers.support==='high'?78:answers.support==='low'?62:72;base.player.form=answers.football==='serious'?75:answers.football==='new'?58:68;base.player.ovr=answers.football==='serious'?58:answers.football==='new'?45:52;base.player.potential=answers.football==='serious'?90:answers.football==='new'?82:86;base.player.happiness=answers.support==='high'?88:answers.support==='low'?70:82;base.player.reputation=0;base.player.popularity=0;base.history=[];base.consequenceLedger=[];base.lifeTags=[];base.scouting=[];base.calendar.matches=[];base.gameMode=mode;S=base;save();closeModal();current='day';render();toast(mode==='plus'?'✨ Nowa gra+ rozpoczęta.':'🆕 Nowa kariera rozpoczęta.')}
+function newGame(){if(confirm('Rozpocząć nową karierę? Wszystkie dane bieżącej kariery zostaną zastąpione.'))renderNewGameSetup('new')}
+function newGamePlus(){renderNewGameSetup('plus')}
 function renderCode(){
  const sections=[
  ['🧭 Jak działa dzień','Każda aktywność ma czas, koszt i efekty. Nie można wykonać rzeczy, na które nie pozwala godzina, energia, wiek lub zasoby. Sen natychmiast przechodzi do kolejnego dnia i zapisuje stan.'],
@@ -912,6 +1013,7 @@ function renderCode(){
  ['💰 Finanse i miasto','Pieniądze można wydawać, inwestować, przeznaczać na biznes lub cele charytatywne. Nieruchomości można kupować, wynajmować, sprzedawać i rozbudowywać.'],
  ['🎓 Edukacja i licencje','Kursy wymagają czasu i nauki. Licencje wymagają wieku, przygotowania i egzaminu. Samo zapłacenie nie daje automatycznie uprawnienia.'],
  ['🚀 Kariera poboczna','Muzyk, twórca filmowy, twórca internetowy, influencer i DJ mogą rozwijać się równolegle. Potrzebują czasu, sprzętu, nauki i często kursów.'],
+ ['🏖️ Wakacje i podróże','Wyjazdy mają kierunek, budżet, sposób podróży, licencje i poziom prywatności. Własny samolot lub łódź wymagają odpowiednich zasobów/uprawnień. Wysoka popularność może powodować wydarzenia nawet podczas zwykłego lotu.'],
  ['🧬 Predyspozycje i specjaliści','Badania są płatne i ujawniają przybliżony potencjał oraz ryzyka. Psycholog sportowy, fizjoterapeuta i lekarze wpływają na stan zawodnika.'],
  ['🔗 Najważniejsza zasada','Wszystkie systemy są połączone. Zakup, relacja, przeprowadzka, kurs, sponsor, popularność, pieniądze, rodzina i kariera mogą powodować kolejne wydarzenia. Gra zapisuje konsekwencje w historii.']
  ];
@@ -1240,10 +1342,50 @@ const WORLD_CATALOG={
     {id:'performance',name:'Trener przygotowania motorycznego',price:85,effects:{form:3,ovr:.3}}
   ],
   languages:[
-    {id:'english',name:'Angielski',difficulty:2,career:['football','creator','music'],countries:['GB','US','ES','DE']},
-    {id:'spanish',name:'Hiszpański',difficulty:2,career:['football','creator'],countries:['ES','MX','AR']},
-    {id:'german',name:'Niemiecki',difficulty:3,career:['football'],countries:['DE','AT','CH']},
-    {id:'french',name:'Francuski',difficulty:3,career:['football','creator'],countries:['FR','BE','CH']}
+    {id:'english',name:'Angielski',difficulty:2,career:['football','creator','music'],countries:['GB','US','CA','AU','IE','MT','ZA']},
+    {id:'spanish',name:'Hiszpański',difficulty:2,career:['football','creator'],countries:['ES','MX','AR','CO','CL','PE','UY','CR','PA']},
+    {id:'portuguese',name:'Portugalski',difficulty:2,career:['football','creator'],countries:['BR','PT','AO','MZ']},
+    {id:'french',name:'Francuski',difficulty:3,career:['football','creator'],countries:['FR','BE','CH','CA','LU','MC']},
+    {id:'german',name:'Niemiecki',difficulty:3,career:['football'],countries:['DE','AT','CH','LI']},
+    {id:'italian',name:'Włoski',difficulty:2,countries:['IT','SM','CH']},
+    {id:'dutch',name:'Niderlandzki',difficulty:3,countries:['NL','BE']},
+    {id:'flemish',name:'Niderlandzki belgijski',difficulty:3,countries:['BE']},
+    {id:'catalan',name:'Kataloński',difficulty:2,countries:['ES','AD']},
+    {id:'basque',name:'Baskijski',difficulty:5,countries:['ES','FR']},
+    {id:'galician',name:'Galicyjski',difficulty:2,countries:['ES']},
+    {id:'polish',name:'Polski',difficulty:4,countries:['PL']},
+    {id:'czech',name:'Czeski',difficulty:3,countries:['CZ']},
+    {id:'slovak',name:'Słowacki',difficulty:3,countries:['SK']},
+    {id:'ukrainian',name:'Ukraiński',difficulty:3,countries:['UA']},
+    {id:'russian',name:'Rosyjski',difficulty:3,countries:['RU','BY','KZ']},
+    {id:'hungarian',name:'Węgierski',difficulty:5,countries:['HU']},
+    {id:'romanian',name:'Rumuński',difficulty:3,countries:['RO','MD']},
+    {id:'bulgarian',name:'Bułgarski',difficulty:3,countries:['BG']},
+    {id:'greek',name:'Grecki',difficulty:4,countries:['GR','CY']},
+    {id:'turkish',name:'Turecki',difficulty:3,countries:['TR','CY']},
+    {id:'swedish',name:'Szwedzki',difficulty:3,countries:['SE']},
+    {id:'norwegian',name:'Norweski',difficulty:3,countries:['NO']},
+    {id:'danish',name:'Duński',difficulty:3,countries:['DK']},
+    {id:'finnish',name:'Fiński',difficulty:5,countries:['FI']},
+    {id:'icelandic',name:'Islandzki',difficulty:5,countries:['IS']},
+    {id:'serbian',name:'Serbski',difficulty:3,countries:['RS','BA','ME']},
+    {id:'croatian',name:'Chorwacki',difficulty:3,countries:['HR','BA']},
+    {id:'slovenian',name:'Słoweński',difficulty:3,countries:['SI']},
+    {id:'albanian',name:'Albański',difficulty:4,countries:['AL','XK']},
+    {id:'arabic',name:'Arabski',difficulty:5,countries:['AE','SA','QA','EG','MA','TN']},
+    {id:'hebrew',name:'Hebrajski',difficulty:5,countries:['IL']},
+    {id:'persian',name:'Perski',difficulty:5,countries:['IR']},
+    {id:'hindi',name:'Hindi',difficulty:5,countries:['IN']},
+    {id:'bengali',name:'Bengalski',difficulty:5,countries:['BD','IN']},
+    {id:'urdu',name:'Urdu',difficulty:5,countries:['PK','IN']},
+    {id:'mandarin',name:'Chiński mandaryński',difficulty:5,countries:['CN','TW','SG']},
+    {id:'japanese',name:'Japoński',difficulty:5,countries:['JP']},
+    {id:'korean',name:'Koreański',difficulty:5,countries:['KR']},
+    {id:'vietnamese',name:'Wietnamski',difficulty:5,countries:['VN']},
+    {id:'thai',name:'Tajski',difficulty:5,countries:['TH']},
+    {id:'indonesian',name:'Indonezyjski',difficulty:4,countries:['ID']},
+    {id:'malay',name:'Malajski',difficulty:4,countries:['MY','BN','SG']},
+    {id:'filipino',name:'Filipiński',difficulty:4,countries:['PH']}
   ],
   education:[
     {id:'school',name:'Szkoła ogólna',time:1,requires:0},
@@ -1253,10 +1395,20 @@ const WORLD_CATALOG={
     {id:'coaching_course',name:'Kurs trenerski',time:8,cost:600,requires:55}
   ],
   licenses:[
-    {id:'car_b',name:'Prawo jazdy B',cost:900,time:12,requiresAge:18},
-    {id:'motorcycle',name:'Prawo jazdy A',cost:1200,time:16,requiresAge:18},
-    {id:'boat',name:'Licencja żeglarska',cost:700,time:8,requiresAge:16},
-    {id:'pilot',name:'Licencja pilota',cost:25000,time:60,requiresAge:18}
+    {id:'scooter_am',name:'AM — motorower / skuter',category:'🛵 drogi',cost:250,time:6,requiresAge:14,steps:3},
+    {id:'motorcycle_a1',name:'A1 — motocykl',category:'🏍️ drogi',cost:600,time:10,requiresAge:16,steps:4},
+    {id:'car_b',name:'B — samochód',category:'🚗 drogi',cost:900,time:12,requiresAge:18,steps:4},
+    {id:'motorcycle_a2',name:'A2 — motocykl',category:'🏍️ drogi',cost:1100,time:14,requiresAge:18,steps:4},
+    {id:'motorcycle_a',name:'A — motocykl bez ograniczeń',category:'🏍️ drogi',cost:1400,time:16,requiresAge:24,steps:4},
+    {id:'trailer_be',name:'B+E — przyczepa',category:'🚗 drogi',cost:800,time:8,requiresAge:18,steps:3},
+    {id:'truck_c',name:'C — samochód ciężarowy',category:'🚚 zawodowe',cost:1800,time:20,requiresAge:21,steps:5},
+    {id:'truck_ce',name:'C+E — ciężarowy z przyczepą',category:'🚚 zawodowe',cost:2200,time:24,requiresAge:21,steps:5},
+    {id:'bus_d',name:'D — autobus',category:'🚌 zawodowe',cost:2200,time:24,requiresAge:24,steps:5},
+    {id:'boat',name:'Łódź / jacht motorowy',category:'🛥️ woda',cost:700,time:8,requiresAge:16,steps:3},
+    {id:'sailing',name:'Jacht żaglowy',category:'⛵ woda',cost:900,time:10,requiresAge:16,steps:3},
+    {id:'plane',name:'Samolot',category:'✈️ lotnictwo',cost:25000,time:60,requiresAge:18,steps:6},
+    {id:'helicopter',name:'Helikopter',category:'🚁 lotnictwo',cost:35000,time:70,requiresAge:18,steps:6},
+    {id:'instructor',name:'Instruktor sportowy',category:'🏅 sport',cost:1800,time:20,requiresAge:18,steps:4}
   ],
   property:[
     {id:'room',name:'Pokój / wynajem',price:350,rooms:1,type:'rental'},
@@ -1287,12 +1439,48 @@ const WORLD_CATALOG={
   ]
 };
 const COUNTRY_WORLD={
-  PL:{name:'Polska',currency:'PLN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski','angielski']},
-  ES:{name:'Hiszpania',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański','angielski']},
-  GB:{name:'Wielka Brytania',currency:'GBP',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
-  US:{name:'USA',currency:'USD',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['angielski']},
-  BR:{name:'Brazylia',currency:'BRL',schoolMonths:[2,3,4,5,6,7,8,9,10,11],summer:[12,1],languages:['portugalski','angielski']},
-  DE:{name:'Niemcy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niemiecki','angielski']}
+ PL:{name:'Polska',currency:'PLN',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['polski','angielski']},
+ ES:{name:'Hiszpania',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['hiszpański','kataloński','galicyjski','baskijski','angielski']},
+ PT:{name:'Portugalia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski','angielski']},
+ FR:{name:'Francja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['francuski','angielski']},
+ IT:{name:'Włochy',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['włoski','angielski']},
+ DE:{name:'Niemcy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niemiecki','angielski']},
+ AT:{name:'Austria',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki','angielski']},
+ CH:{name:'Szwajcaria',currency:'CHF',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niemiecki','francuski','włoski','angielski']},
+ NL:{name:'Niderlandy',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['niderlandzki','angielski']},
+ BE:{name:'Belgia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['niderlandzki','francuski','niemiecki','angielski']},
+ GB:{name:'Wielka Brytania',currency:'GBP',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[8],languages:['angielski']},
+ IE:{name:'Irlandia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski','irlandzki']},
+ US:{name:'USA',currency:'USD',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['angielski','hiszpański']},
+ CA:{name:'Kanada',currency:'CAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['angielski','francuski']},
+ BR:{name:'Brazylia',currency:'BRL',schoolMonths:[2,3,4,5,6,7,8,9,10,11],summer:[12,1],languages:['portugalski','angielski']},
+ AR:{name:'Argentyna',currency:'ARS',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
+ MX:{name:'Meksyk',currency:'MXN',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['hiszpański','angielski']},
+ CL:{name:'Chile',currency:'CLP',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[1,2],languages:['hiszpański','angielski']},
+ CO:{name:'Kolumbia',currency:'COP',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['hiszpański','angielski']},
+ JP:{name:'Japonia',currency:'JPY',schoolMonths:[4,5,6,7,8,9,10,11,12,1,2,3],summer:[7,8],languages:['japoński','angielski']},
+ KR:{name:'Korea Południowa',currency:'KRW',schoolMonths:[3,4,5,6,7,8,9,10,11,12],summer:[7,8],languages:['koreański','angielski']},
+ CN:{name:'Chiny',currency:'CNY',schoolMonths:[9,10,11,12,1,2,3,4,5,6,7],summer:[7,8],languages:['chiński mandaryński','angielski']},
+ IN:{name:'Indie',currency:'INR',schoolMonths:[6,7,8,9,10,11,12,1,2,3],summer:[4,5],languages:['hindi','angielski','bengalski','urdu']},
+ TH:{name:'Tajlandia',currency:'THB',schoolMonths:[5,6,7,8,9,10,11,12,1,2,3],summer:[4],languages:['tajski','angielski']},
+ AE:{name:'ZEA',currency:'AED',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['arabski','angielski']},
+ SA:{name:'Arabia Saudyjska',currency:'SAR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['arabski','angielski']},
+ TR:{name:'Turcja',currency:'TRY',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['turecki','angielski']},
+ GR:{name:'Grecja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['grecki','angielski']},
+ HR:{name:'Chorwacja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['chorwacki','angielski']},
+ CZ:{name:'Czechy',currency:'CZK',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['czeski','angielski']},
+ SK:{name:'Słowacja',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['słowacki','angielski']},
+ HU:{name:'Węgry',currency:'HUF',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['węgierski','angielski']},
+ SE:{name:'Szwecja',currency:'SEK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['szwedzki','angielski']},
+ NO:{name:'Norwegia',currency:'NOK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['norweski','angielski']},
+ DK:{name:'Dania',currency:'DKK',schoolMonths:[8,9,10,11,12,1,2,3,4,5,6],summer:[7],languages:['duński','angielski']},
+ FI:{name:'Finlandia',currency:'EUR',schoolMonths:[8,9,10,11,12,1,2,3,4,5],summer:[6,7],languages:['fiński','szwedzki','angielski']},
+ AU:{name:'Australia',currency:'AUD',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11,12],summer:[12,1,2],languages:['angielski']},
+ NZ:{name:'Nowa Zelandia',currency:'NZD',schoolMonths:[2,3,4,5,6,7,8,9,10,11,12],summer:[12,1],languages:['angielski']},
+ ZA:{name:'Republika Południowej Afryki',currency:'ZAR',schoolMonths:[1,2,3,4,5,6,7,8,9,10,11],summer:[12],languages:['angielski','afrikaans']},
+ EG:{name:'Egipt',currency:'EGP',schoolMonths:[9,10,11,12,1,2,3,4,5],summer:[6,7,8],languages:['arabski','angielski']},
+ MA:{name:'Maroko',currency:'MAD',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['arabski','francuski','angielski']},
+ PT2:{name:'Portugalia',currency:'EUR',schoolMonths:[9,10,11,12,1,2,3,4,5,6],summer:[7,8],languages:['portugalski','angielski']}
 };
 function worldCountry(){return COUNTRY_WORLD[S.calendarConfig?.country||S.world?.calendarCountry||'PL']||COUNTRY_WORLD.PL}
 function addWorldItem(type,item){
@@ -1379,7 +1567,12 @@ function render(){
  document.getElementById('main').innerHTML=out;
 }
 function openModal(html,full=false){const m=document.getElementById('modal'),s=document.getElementById('modalSheet');s.innerHTML=html;m.classList.toggle('full',full);m.classList.add('show')}
-function closeModal(){document.getElementById('modal').classList.remove('show');window.pendingEvent=null}
+function closeModal(){
+  const wasEvent=!!window.pendingEvent;
+  document.getElementById('modal').classList.remove('show');
+  window.pendingEvent=null;
+  if(wasEvent) setTimeout(showNextEvent,80);
+}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 render();
