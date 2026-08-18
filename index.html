@@ -180,6 +180,129 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
 .fl-start-brand{gap:12px!important}
 .fl-start-logo{width:min(430px,78vw)!important;max-height:270px!important}
 </style>
+
+<style id="fl-life-startscreen-v21">
+#flStartScreen .fl-start-inner{
+  width:min(680px,94vw);
+  min-height:72vh;
+  justify-content:center;
+}
+#flStartScreen .fl-start-brand{
+  gap:0!important;
+  transform:translateY(18px) scale(.82);
+  animation:flLogoLandV21 1.15s cubic-bezier(.2,.85,.2,1) .08s forwards;
+}
+#flStartScreen .fl-start-logo{
+  width:min(500px,86vw)!important;
+  max-height:330px!important;
+  filter:drop-shadow(0 24px 55px rgba(0,0,0,.62))
+         drop-shadow(0 0 22px rgba(214,173,69,.13));
+}
+
+/* Loading: no generic "bar" look — a refined football pitch line */
+#flStartScreen .fl-loading{
+  width:min(470px,80vw);
+  margin-top:34px;
+  opacity:1;
+  animation:none;
+  transition:opacity .42s ease,transform .42s ease;
+}
+#flStartScreen .fl-loading.complete{
+  opacity:0;
+  transform:translateY(7px) scale(.985);
+  pointer-events:none;
+}
+#flStartScreen .fl-loading-line{
+  position:relative!important;
+  height:28px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+#flStartScreen .fl-loading-line:before{
+  content:"";
+  position:absolute;
+  left:7px;right:7px;top:15px;
+  height:3px;
+  border-radius:99px;
+  background:rgba(255,255,255,.10);
+  box-shadow:0 0 0 1px rgba(214,173,69,.06),0 4px 14px rgba(0,0,0,.35);
+}
+#flStartScreen .fl-loading-line:after{
+  content:"";
+  position:absolute;
+  left:7px;top:15px;
+  width:calc(var(--fl-progress,0%));
+  height:3px;
+  border-radius:99px;
+  background:linear-gradient(90deg,#8c6927,#d6ad45,#f4d979);
+  box-shadow:0 0 12px rgba(214,173,69,.28);
+  transition:width .18s ease;
+}
+#flStartScreen .fl-loading-line i{
+  display:none!important;
+}
+
+/* Small runner, visually integrated with the line */
+#flStartScreen .fl-load-runner{
+  width:54px!important;height:62px!important;
+  transform:translate(-27px,-68%)!important;
+  filter:drop-shadow(0 5px 7px rgba(0,0,0,.55))!important;
+  transition:left .22s linear!important;
+}
+#flStartScreen .fl-load-person{
+  position:absolute!important;inset:0!important;
+  width:54px!important;height:62px!important;
+  display:block!important;font-size:0!important;
+  animation:flRunnerBounceV21 .18s infinite alternate!important;
+}
+#flStartScreen .fl-run-head{
+  position:absolute;left:21px;top:0;width:13px;height:13px;border-radius:50%;
+  background:#e7ebf0;
+}
+#flStartScreen .fl-run-body{
+  position:absolute;left:19px;top:13px;width:19px;height:27px;border-radius:7px 7px 5px 5px;
+  background:linear-gradient(145deg,#f0cf68,#a27d2f);
+}
+#flStartScreen .fl-run-arm,#flStartScreen .fl-run-leg{
+  position:absolute;display:block;width:5px;border-radius:8px;
+  background:#d9dde4;transform-origin:top center;
+}
+#flStartScreen .fl-run-arm{height:20px;top:15px}
+#flStartScreen .fl-run-arm.a1{left:15px;transform:rotate(38deg);animation:flArmV21A .27s infinite alternate}
+#flStartScreen .fl-run-arm.a2{left:35px;transform:rotate(-35deg);animation:flArmV21B .27s infinite alternate}
+#flStartScreen .fl-run-leg{height:23px;top:38px}
+#flStartScreen .fl-run-leg.l1{left:20px;transform:rotate(25deg);animation:flLegV21A .27s infinite alternate}
+#flStartScreen .fl-run-leg.l2{left:30px;transform:rotate(-25deg);animation:flLegV21B .27s infinite alternate}
+#flStartScreen .fl-run-ball{
+  position:absolute;left:45px;top:47px;width:9px;height:9px;border-radius:50%;
+  background:#f4f4f4;border:1px solid #222;
+  box-shadow:0 0 7px rgba(255,255,255,.22);
+  animation:flBallV21 .48s ease-in-out infinite alternate;
+}
+#flStartScreen .fl-start-menu{margin-top:22px!important}
+#flStartScreen .fl-start-foot,
+#flStartScreen .fl-start-subtitle,
+#flStartScreen .fl-loading-row{display:none!important}
+
+@keyframes flLogoLandV21{
+  0%{opacity:0;transform:translateY(35px) scale(.62)}
+  65%{opacity:1;transform:translateY(-4px) scale(1.035)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes flRunnerBounceV21{from{transform:translateY(1px)}to{transform:translateY(-2px)}}
+@keyframes flArmV21A{to{transform:rotate(-30deg)}}
+@keyframes flArmV21B{to{transform:rotate(30deg)}}
+@keyframes flLegV21A{to{transform:rotate(-32deg)}}
+@keyframes flLegV21B{to{transform:rotate(32deg)}}
+@keyframes flBallV21{from{transform:translateY(0) rotate(0)}to{transform:translateY(-3px) rotate(25deg)}}
+
+@media(max-width:520px){
+  #flStartScreen .fl-start-logo{width:min(390px,88vw)!important;max-height:260px!important}
+  #flStartScreen .fl-loading{width:min(390px,82vw);margin-top:24px}
+}
+</style>
 </head>
 <body><button class="fl-quick-save" onclick="flSaveAs()" title="Zapisz karierę">💾 Zapisz</button>
 
@@ -189,10 +312,19 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
   <div class="fl-start-inner">
     <div class="fl-start-brand">
       <img id="flStartLogo" class="fl-start-logo" alt="FL Life 27">
-      <div class="fl-start-subtitle">Football Life • Your story, your career</div>
-    </div><div class="fl-loading">
-      <div class="fl-loading-line fl-run-loading"><i id="flLoadBar"></i><div id="flLoadRunner" class="fl-load-runner"><span class="fl-load-person">⚽</span></div></div>
-      <div class="fl-loading-row"><span id="flLoadStatus">Ładowanie świata…</span><span id="flLoadPct">0%</span></div>
+    </div>
+    <div class="fl-loading" id="flLoading">
+      <div class="fl-loading-line fl-run-loading" aria-hidden="true">
+        <i id="flLoadBar"></i>
+        <div id="flLoadRunner" class="fl-load-runner">
+          <span class="fl-load-person">
+            <span class="fl-run-head"></span><span class="fl-run-body"></span>
+            <span class="fl-run-arm a1"></span><span class="fl-run-arm a2"></span>
+            <span class="fl-run-leg l1"></span><span class="fl-run-leg l2"></span>
+            <span class="fl-run-ball"></span>
+          </span>
+        </div>
+      </div>
     </div>
     <div class="fl-start-menu" id="flStartMenu">
       <button class="fl-start-btn primary" onclick="flStartContinue()"><div class="sico">▶️</div><div><b>Kontynuuj</b><span id="flContinueDesc">Wznów ostatnią karierę</span></div></button>
@@ -201,7 +333,6 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
       <button class="fl-start-btn" onclick="flOpenSlots()"><div class="sico">💾</div><div><b>Wczytaj grę</b><span>Wczytaj zapis z urządzenia lub kopię zapasową</span></div></button>
       <button class="fl-start-btn" onclick="flStartSettings()"><div class="sico">⚙️</div><div><b>Ustawienia</b><span>Opcje gry i konfiguracja</span></div></button>
     </div>
-    <div class="fl-start-foot">ŁADOWANIE ŚWIATA • BAZA KRAJÓW • KARIERA • ŻYCIE • WYDARZENIA</div>
   </div>
 </div>
 
@@ -1330,6 +1461,47 @@ function renderFlgram(){
  <section class="section card"><div class="eyebrow">💬 WIADOMOŚCI</div>${f.messages.length?f.messages.map((m,i)=>`<div class="post"><div class="row"><b>${esc(m.from)}</b><button class="btn" style="width:auto;padding:7px 10px" onclick="replyMessage(${i})">↩ Odpisz</button></div><div class="muted" style="margin-top:6px">${esc(m.text)}</div></div>`).join(''):'<div class="muted">Brak wiadomości.</div>'}</section>
  <section class="section card"><div class="eyebrow">🔔 POWIADOMIENIA</div>${f.notifications.length?f.notifications.map(n=>`<div class="history-item"><b>${esc(n.title)}</b><div class="muted small">${esc(n.text)}</div></div>`).join(''):'<div class="muted">Brak nowych powiadomień.</div>'}</section>`;
 }
+function flgramProfile(){
+ const f=S.flgram||{};
+ openModal(`<div class="modal-head"><div><div class="eyebrow">📱 FLGRAM</div><h2>${esc(f.handle||'Twój profil')}</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+ <div class="grid2" style="margin-top:14px"><div class="metric"><span>Obserwujący</span><b>${f.followers||0}</b></div><div class="metric"><span>Obserwowani</span><b>${f.following||0}</b></div><div class="metric"><span>Polubienia</span><b>${f.likes||0}</b></div><div class="metric"><span>Posty</span><b>${(f.posts||[]).length}</b></div></div>
+ <div class="muted small" style="margin-top:12px">Twój profil rozwija się wraz z aktywnością, wynikami i popularnością zawodnika.</div>`,true);
+}
+function followStar(i){
+ const f=S.flgram; const star=f?.stars?.[i]; if(!star)return;
+ star.following=!star.following;
+ f.followers=Math.max(0,(f.followers||0)+(star.following?1:-1));
+ f.following=Math.max(0,(f.following||0)+(star.following?1:-1));
+ f.notifications=f.notifications||[];
+ f.notifications.unshift({title:star.following?'Nowe obserwowanie':'Przestano obserwować',text:`${star.name}: ${star.following?'obserwujesz to konto.':'konto usunięte z obserwowanych.'}`});
+ save(); render(); toast(star.following?'⭐ Obserwujesz konto.':'Nie obserwujesz już tego konta.');
+}
+function likePost(id){
+ const p=S.flgram.posts.find(x=>x.id===id); if(!p)return;
+ p.likes=(p.likes||0)+1;
+ S.flgram.likes=(S.flgram.likes||0)+1;
+ S.player.popularity=clamp(S.player.popularity+.03,0,100);
+ save(); render(); toast('❤️ Polubiono wpis.');
+}
+function newPost(){
+ openModal(`<div class="modal-head"><div><div class="eyebrow">📱 FLGRAM</div><h2>Nowy wpis</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+ <textarea class="textarea" id="newPostText" placeholder="Co chcesz opublikować?"></textarea>
+ <button class="btn goldbtn" style="margin-top:10px" onclick="publishPost()">Opublikuj wpis</button>`,true);
+}
+function publishPost(){
+ const el=document.getElementById('newPostText'); const t=el?.value.trim(); if(!t)return;
+ S.flgram.posts=S.flgram.posts||[];
+ S.flgram.posts.unshift({id:'post'+Date.now(),author:'Ty',text:t,likes:0,comments:0,shares:0,following:true,star:false});
+ S.player.popularity=clamp(S.player.popularity+.15,0,100);
+ addHistory('FLgram — nowy wpis','Opublikowano własny wpis.','popularność +0.15');
+ closeModal(); save(); render(); toast('📱 Wpis opublikowany.');
+}
+function inspectLifeMemory(){
+ const h=(S.history||[]).slice(0,18);
+ openModal(`<div class="modal-head"><div><div class="eyebrow">🧠 PAMIĘĆ DECYZJI</div><h2>Historia Twojego życia</h2></div><button class="close" onclick="closeModal()">✕</button></div>
+ <div class="list" style="margin-top:14px">${h.length?h.map(x=>`<div class="history-item"><b>${esc(x.title||'Wydarzenie')}</b><div class="muted small" style="margin-top:4px">${esc(x.date||'')} ${esc(x.time||'')}</div><div style="margin-top:5px">${esc(x.desc||'')}</div>${x.effect?`<div class="badge gold" style="display:inline-block;margin-top:7px">${esc(x.effect)}</div>`:''}</div>`).join(''):'<div class="muted">Pamięć decyzji jest jeszcze pusta.</div>'}</div>`,true);
+}
+
 function refreshFeed(){
  const pool=[
   {author:'FL Sport',text:'Nowy trening młodzieżowy pojawił się dziś w Twojej okolicy.',likes:Math.floor(Math.random()*900),comments:Math.floor(Math.random()*80),following:false},
@@ -1602,86 +1774,229 @@ function toggleSideMenu(){const m=document.getElementById('sideMenu'),b=document
 function closeSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.remove('open');if(b)b.classList.remove('open')}
 function toggleZone(btn){const z=btn.closest('.side-zone');if(z)z.classList.toggle('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSideMenu()})
-function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'sidecareer',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el)el.click()}
+function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el)el.click()}
 </script>
 <script id="game-mode-fixes">
-function startNewGame(){S.gameMode='auto';if(!confirm('Rozpocząć zupełnie nową karierę?'))return;localStorage.removeItem('fl-life-27-etap3');location.reload()}
-function startNewGamePlus(){S.gameMode='plus';if(!confirm('Rozpocząć Nową Grę+? Zachowamy wybrane dziedzictwo poprzedniej kariery.'))return;const old=localStorage.getItem('fl-life-27-etap3');let legacy={};try{legacy=old?JSON.parse(old):{}}catch(e){}localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify({savedAt:Date.now(),history:legacy.history||[],consequenceLedger:legacy.consequenceLedger||[],worldFlags:legacy.worldFlags||{},lifeTags:legacy.lifeTags||[]}));localStorage.removeItem('fl-life-27-etap3');location.reload()}
+function startNewGame(){
+  if(typeof flStartNewGame==='function'){ flStartNewGame(); return; }
+  if(!confirm('Rozpocząć zupełnie nową karierę?'))return;
+  const fresh=clone(initial);
+  fresh.gameMode='auto';
+  migrateSave(fresh);
+  localStorage.setItem(KEY,JSON.stringify(fresh));
+  S=fresh;
+  current='day';
+  render();
+}
+function startNewGamePlus(){
+  S.gameMode='plus';
+  if(!confirm('Rozpocząć Nową Grę+? Zachowamy wybrane dziedzictwo poprzedniej kariery.'))return;
+  const old=localStorage.getItem(KEY);
+  let legacy={};
+  try{legacy=old?JSON.parse(old):{}}catch(e){}
+  localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify({
+    savedAt:Date.now(),
+    history:legacy.history||[],
+    consequenceLedger:legacy.consequenceLedger||[],
+    worldFlags:legacy.worldFlags||{},
+    lifeTags:legacy.lifeTags||{}
+  }));
+  const fresh=clone(initial);
+  fresh.gameMode='plus';
+  migrateSave(fresh);
+  localStorage.setItem(KEY,JSON.stringify(fresh));
+  S=fresh;
+  current='day';
+  render();
+}
 </script>
 <script id="fl-life-startscreen-js">
 (function(){
   const SLOT_PREFIX='FL_LIFE_27_SLOT_';
+  const LAST_SLOT_KEY='FL_LIFE_27_LAST_SLOT';
   const start=document.getElementById('flStartScreen');
   const logo=document.querySelector('.topbar .logo');
   const startLogo=document.getElementById('flStartLogo');
+  const loading=document.getElementById('flLoading');
+  const menu=document.getElementById('flStartMenu');
+
   if(startLogo && logo) startLogo.src=logo.src;
 
-  const hasSave=!!localStorage.getItem(SLOT_PREFIX + (localStorage.getItem('FL_LIFE_27_LAST_SLOT')||'1')) || !!localStorage.getItem(KEY);
-  const continueBtn=start?.querySelector('.fl-start-btn.primary');
-  if(continueBtn && !hasSave){
-    continueBtn.disabled=true;
-    const d=document.getElementById('flContinueDesc');
-    if(d)d.textContent='Brak zapisanej kariery — rozpocznij nową grę';
+  function getSlot(n){
+    try{
+      const raw=localStorage.getItem(SLOT_PREFIX+n);
+      return raw?JSON.parse(raw):null;
+    }catch(e){return null;}
   }
 
-  const stages=[
-    [8,'Uruchamianie silnika gry…'],
-    [20,'Ładowanie świata…'],
-    [34,'Wczytywanie krajów i miejscowości…'],
-    [49,'Przygotowywanie bazy postaci…'],
-    [63,'Ładowanie kariery i reprezentacji…'],
-    [77,'Ładowanie relacji i wydarzeń…'],
-    [89,'Przygotowywanie miasta i rynku…'],
-    [97,'Sprawdzanie zapisów…'],
-    [100,'Gotowe']
-  ];
-  let i=0;
-  function stage(){
-    if(!start)return;
-    const [pct,msg]=stages[i++];
-    const bar=document.getElementById('flLoadBar'), p=document.getElementById('flLoadPct'), s=document.getElementById('flLoadStatus');
-    if(bar)bar.style.width=pct+'%';
-    const runner=document.getElementById('flLoadRunner');
-    if(runner){
-      const safePct=Math.max(2,Math.min(98,pct));
-      runner.style.left=safePct+'%';
+  function getLastSave(){
+    const last=Number(localStorage.getItem(LAST_SLOT_KEY)||0);
+    if(last){
+      const slot=getSlot(last);
+      if(slot) return {slot,lastData:slot};
     }
-    if(p)p.textContent=pct+'%';
-    if(s)s.textContent=msg;
-    if(pct<100){setTimeout(stage,150+Math.random()*230)}
-    else{
-      setTimeout(()=>{
-        document.getElementById('flStartMenu')?.classList.add('ready');
-      },420);
+    try{
+      const local=localStorage.getItem(KEY);
+      if(local) return {slot:0,lastData:JSON.parse(local)};
+    }catch(e){}
+    return null;
+  }
+
+  function refreshContinueState(){
+    const info=getLastSave();
+    const continueBtn=start?.querySelector('.fl-start-btn.primary');
+    const d=document.getElementById('flContinueDesc');
+    if(!continueBtn) return;
+
+    continueBtn.disabled=!info;
+    if(d){
+      if(!info) d.textContent='Brak zapisanej kariery — rozpocznij nową grę';
+      else{
+        const p=info.lastData?.player||{};
+        const label=[p.name,p.club].filter(Boolean).join(' • ');
+        d.textContent=label || 'Wznów ostatnią karierę';
+      }
     }
   }
+
+  refreshContinueState();
+
+  const stages=[
+    [10],[24],[40],[58],[76],[90],[100]
+  ];
+  let i=0;
+
+  function stage(){
+    if(!start)return;
+    const [pct]=stages[i++];
+    const bar=document.getElementById('flLoadBar');
+    const runner=document.getElementById('flLoadRunner');
+
+    if(bar)bar.style.width=pct+'%'; if(start)start.style.setProperty('--fl-progress',pct+'%');
+    if(runner){
+      const safePct=Math.max(4,Math.min(96,pct));
+      runner.style.left=safePct+'%';
+    }
+
+    if(pct<100){
+      setTimeout(stage,180+Math.random()*190);
+    }else{
+      setTimeout(()=>{
+        if(loading){
+          loading.classList.add('complete');
+          setTimeout(()=>{loading.style.display='none'},380);
+        }
+        refreshContinueState();
+        menu?.classList.add('ready');
+      },260);
+    }
+  }
+
   window.flCloseStart=function(){
     start?.classList.add('hidden');
     setTimeout(()=>{if(start)start.style.display='none'},700);
   };
+
   window.flStartContinue=function(){
-    const last=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
-    if(last && localStorage.getItem(SLOT_PREFIX+last)){flLoadSlot(last);return;}
-    if(!localStorage.getItem(KEY)){toast('Nie masz jeszcze zapisanej kariery.');return;}
-    flCloseStart(); current='day'; render();
+    const info=getLastSave();
+    if(!info){
+      if(typeof toast==='function')toast('Nie masz jeszcze zapisanej kariery.');
+      return;
+    }
+
+    if(info.slot){
+      if(typeof flLoadSlot==='function'){
+        flLoadSlot(info.slot);
+        return;
+      }
+    }
+
+    try{
+      const data=JSON.parse(localStorage.getItem(KEY));
+      if(data){
+        S=deepMerge(clone(initial),data);
+        migrateSave(S);
+        save();
+        current='day';
+        flCloseStart();
+        render();
+        if(typeof toast==='function')toast('💾 Wczytano ostatnią karierę.');
+        return;
+      }
+    }catch(e){}
+
+    if(typeof toast==='function')toast('Nie udało się wczytać zapisu.');
   };
+
   window.flStartNewGame=function(){
-    flCloseStart();
-    setTimeout(()=>startNewGame(),150);
+    openModal(`
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow">✨ NOWA KARIERA</div>
+          <h2>Rozpocząć nową grę?</h2>
+        </div>
+        <button class="close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="history-item" style="margin-top:14px">
+        <b>Utworzymy zupełnie nowy zapis.</b>
+        <div class="muted small" style="margin-top:6px">
+          Obecna kariera pozostanie bez zmian w swoich slotach. Nowa gra zacznie się od początku.
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Anuluj</button>
+        <button class="btn goldbtn" onclick="flConfirmNewGame()">✨ Rozpocznij nową grę</button>
+      </div>
+    `,true);
   };
+
+  window.flConfirmNewGame=function(){
+    try{
+      const fresh=clone(initial);
+      fresh.gameMode='auto';
+      fresh.meta={
+        ...(fresh.meta||{}),
+        careerId:'career_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+        createdAt:new Date().toISOString(),
+        lastPlayedAt:new Date().toISOString()
+      };
+      migrateSave(fresh);
+
+      // Zachowujemy istniejące sloty. Tylko główny aktywny stan zostaje zastąpiony
+      // nową karierą, aby po wejściu do gry wszystko było świeże.
+      localStorage.setItem(KEY,JSON.stringify(fresh));
+
+      // Nowa kariera staje się aktywnym zapisem dopiero po potwierdzeniu.
+      // Nie kasujemy żadnego starego slotu.
+      localStorage.removeItem(LAST_SLOT_KEY);
+
+      S=fresh;
+      current='day';
+      closeModal();
+      flCloseStart();
+      render();
+      if(typeof toast==='function')toast('✨ Rozpoczęto nową karierę.');
+    }catch(e){
+      if(typeof toast==='function')toast('Nie udało się utworzyć nowej kariery.');
+      console.error(e);
+    }
+  };
+
   window.flStartNewGamePlus=function(){
     flCloseStart();
     setTimeout(()=>startNewGamePlus(),150);
   };
+
   window.flStartSettings=function(){
     flCloseStart();
     setTimeout(()=>{current='settings';render()},200);
   };
+
   window.flOpenLoad=function(){
     const saved=localStorage.getItem(KEY);
     openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISY GRY</div><h2>Wczytaj grę</h2></div><button class="close" onclick="closeModal()">✕</button></div>
       <div class="history-item" style="margin-top:14px">
-        <div class="row"><b>📁 Ostatni zapis na tym urządzeniu</b><span class="badge">${saved?'Dostępny':'Brak'}</span></div>
+        <div class="row"><b>📁 Ostatni aktywny zapis</b><span class="badge">${saved?'Dostępny':'Brak'}</span></div>
         <div class="muted small" style="margin-top:6px">${saved?'Możesz wrócić do ostatniej zapisanej kariery.':'Nie znaleziono zapisu.'}</div>
         ${saved?'<button class="btn goldbtn" style="margin-top:10px" onclick="flLoadLocalSave()">▶️ Wczytaj ostatni zapis</button>':''}
       </div>
@@ -1692,25 +2007,38 @@ function startNewGamePlus(){S.gameMode='plus';if(!confirm('Rozpocząć Nową Gr�
         <input id="flSaveFile" type="file" accept=".json,application/json" class="input" style="margin-top:10px" onchange="flImportSave(event)">
       </div>`,true);
   };
+
   window.flLoadLocalSave=function(){
-    if(!localStorage.getItem(KEY)){toast('Brak zapisu.');return;}
-    closeModal();flCloseStart();current='day';render();toast('💾 Wczytano ostatnią karierę.');
+    if(!localStorage.getItem(KEY)){
+      toast('Brak zapisu.');
+      return;
+    }
+    closeModal();
+    flCloseStart();
+    current='day';
+    render();
+    toast('💾 Wczytano ostatnią karierę.');
   };
+
   window.flImportSave=function(e){
-    const file=e.target.files?.[0]; if(!file)return;
+    const file=e.target.files?.[0];
+    if(!file)return;
     const reader=new FileReader();
     reader.onload=function(){
       try{
         const data=JSON.parse(reader.result);
         if(!data || !data.player || !data.day) throw new Error('invalid');
         localStorage.setItem(KEY,JSON.stringify(data));
-        closeModal();
+        localStorage.removeItem(LAST_SLOT_KEY);
         location.reload();
-      }catch(err){toast('Nieprawidłowy plik zapisu FL Life 27.');}
+      }catch(err){
+        toast('Nieprawidłowy plik zapisu FL Life 27.');
+      }
     };
     reader.readAsText(file);
   };
-  window.addEventListener('load',()=>setTimeout(stage,520),{once:true});
+
+  window.addEventListener('load',()=>setTimeout(stage,420),{once:true});
 })();
 </script>
 
@@ -1759,6 +2087,177 @@ function startNewGamePlus(){S.gameMode='plus';if(!confirm('Rozpocząć Nową Gr�
     <div class="list">${slots.map(s=>`<div class="history-item"><div class="row"><b>Slot ${s.slot}</b><span class="badge">${s.data?'ZAJĘTY':'PUSTY'}</span></div>${s.data?`<div style="margin-top:6px"><b>${esc(s.meta?.name||s.data.player?.name||'Kariera')}</b><div class="muted small">${esc(s.meta?.city||s.data.player?.city||'')} • wiek ${s.meta?.age||s.data.player?.age||'?'} • ${s.meta?.updated||''}</div></div><div style="display:flex;gap:7px;margin-top:9px"><button class="btn goldbtn" onclick="flLoadSlot(${s.slot})">▶️ Wczytaj</button><button class="btn" onclick="flDeleteSlot(${s.slot})">🗑️ Usuń</button></div>`:'<div class="muted small" style="margin-top:6px">Ten slot jest wolny.</div>'}</div>`).join('')}</div>`,true);
   };
   window.flLastPlayedSlot=function(){return Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0)};
+})();
+</script>
+
+<script id="fl-life-persistence-v20">
+(function(){
+  if(window.__flPersistenceV20)return;
+  window.__flPersistenceV20=true;
+  const originalSave=window.save;
+  if(typeof originalSave==='function'){
+    window.save=function(){
+      try{
+        if(S && S.meta){
+          S.meta.lastPlayedAt=new Date().toISOString();
+        }
+      }catch(e){}
+      return originalSave.apply(this,arguments);
+    };
+  }
+})();
+</script>
+
+<style id="fl-life-v23-city-careers">
+.fl-v23-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fl-v23-card{background:#171b22;border:1px solid #293240;border-radius:18px;padding:14px}.fl-v23-card .badge{margin-left:4px}.fl-v23-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.fl-v23-price{color:var(--gold2);font-weight:900}.fl-v23-note{font-size:11px;color:var(--muted);margin-top:6px}@media(max-width:520px){.fl-v23-grid{grid-template-columns:1fr}}
+</style>
+<script id="fl-life-v23-city-careers">
+(function(){
+  const LANGUAGES=[
+    ['Angielski','English','A1–C2'],['Niemiecki','Deutsch','A1–C2'],['Hiszpański','Español','A1–C2'],['Francuski','Français','A1–C2'],['Włoski','Italiano','A1–C2'],['Portugalski','Português','A1–C2'],['Niderlandzki','Nederlands','A1–C2'],['Szwedzki','Svenska','A1–C2'],['Norweski','Norsk','A1–C2'],['Duński','Dansk','A1–C2'],['Fiński','Suomi','A1–C2'],['Islandzki','Íslenska','A1–C1'],['Czeski','Čeština','A1–C2'],['Słowacki','Slovenčina','A1–C2'],['Ukraiński','Українська','A1–C2'],['Rosyjski','Русский','A1–C2'],['Białoruski','Беларуская','A1–C1'],['Litewski','Lietuvių','A1–C1'],['Łotewski','Latviešu','A1–C1'],['Rumuński','Română','A1–C2'],['Węgierski','Magyar','A1–C1'],['Grecki','Ελληνικά','A1–C2'],['Turecki','Türkçe','A1–C2'],['Arabski','العربية','A1–C2'],['Hebrajski','עברית','A1–C2'],['Perski','فارسی','A1–C1'],['Hindi','हिन्दी','A1–C1'],['Urdu','اردو','A1–C1'],['Chiński mandaryński','普通话','A1–C2'],['Japoński','日本語','A1–C2'],['Koreański','한국어','A1–C2'],['Wietnamski','Tiếng Việt','A1–C1'],['Tajski','ไทย','A1–C1'],['Indonezyjski','Bahasa Indonesia','A1–C1'],['Malajski','Bahasa Melayu','A1–C1'],['Tagalog','Filipino','A1–C1'],['Suahili','Kiswahili','A1–C1'],['Łacina','Latina','A1–C1'],['Esperanto','Esperanto','A1–C1'],['Polski','Polski','A1–C2']
+  ];
+  const LEVELS=[
+    {name:'A1 — podstawy',cost:180,duration:18,gain:12},
+    {name:'A2 — komunikacja',cost:260,duration:24,gain:12},
+    {name:'B1 — samodzielność',cost:390,duration:32,gain:13},
+    {name:'B2 — swobodna komunikacja',cost:560,duration:40,gain:13},
+    {name:'C1 — zaawansowany',cost:780,duration:52,gain:12},
+    {name:'C2 — biegłość',cost:1050,duration:64,gain:12}
+  ];
+  const COURSES=[
+    ['Fotografia sportowa','media',420,28,12,'aparat / telefon'],['Montaż wideo','media',620,42,14,'laptop + program'],['Produkcja muzyczna','music',750,48,14,'komputer + słuchawki'],['DJ / miksowanie','music',680,36,13,'kontroler DJ'],['Wokal i praca z głosem','music',390,30,11,'mikrofon opcjonalnie'],['Marketing cyfrowy','business',520,34,13,'telefon lub laptop'],['Social media / content','media',450,28,13,'smartfon'],['Podstawy biznesu','business',500,36,12,'brak'],['Zarządzanie marką osobistą','business',700,40,14,'smartfon'],['Trener personalny — podstawy','coaching',850,60,15,'sprzęt treningowy'],['Analityka sportowa','coaching',900,56,14,'laptop'],['Skauting piłkarski','coaching',1100,72,16,'laptop'],['Agent sportowy — podstawy','agent',1250,80,15,'kurs + praktyka'],['Prawo i kontrakty sportowe','agent',980,52,13,'brak'],['Pierwsza pomoc','coaching',260,12,8,'brak'],['Fotografia portretowa','media',480,32,12,'aparat / telefon'],['Projektowanie graficzne','media',590,44,13,'laptop'],['Programowanie — podstawy','business',800,64,14,'laptop'],['Tworzenie stron WWW','business',900,70,15,'laptop'],['Przedsiębiorczość','business',650,48,13,'brak']
+  ].map((x,i)=>({id:'course_'+i,name:x[0],skill:x[1],price:x[2],hours:x[3],gain:x[4],needs:x[5]}));
+
+  function ensureV23(){
+    S.world=S.world||{}; S.world.sideGear=S.world.sideGear||[]; S.world.courses=S.world.courses||[];
+    S.education=S.education||{courses:[],skills:{language:18,music:0,media:0,business:0,coaching:0,agent:0}};
+    S.education.courses=S.education.courses||[]; S.education.skills=S.education.skills||{};
+    S.player.languages=S.player.languages||{};
+  }
+  function gearCatalog(){
+    const q=(name,cat,price,quality,effects,needs)=>({id:'gear_'+cat+'_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_'),name,category:cat,price,quality,effects,needs});
+    return [
+      gearCatalog.q('Mikrofon USB Basic','music',120,1,{music:2},'wokal / podcast'),
+      gearCatalog.q('Mikrofon Studio Pro','music',620,3,{music:5,popularity:.15},'wokal / nagrania'),
+      gearCatalog.q('Mikrofon Premium XLR','music',1450,5,{music:8,popularity:.3},'studio / live'),
+      gearCatalog.q('Gitara akustyczna Basic','music',450,1,{music:4},'nauka instrumentu'),
+      gearCatalog.q('Gitara profesjonalna','music',2200,4,{music:9,popularity:.2},'nagrania / koncerty'),
+      gearCatalog.q('Keyboard Basic','music',550,1,{music:4},'nauka'),
+      gearCatalog.q('Keyboard Stage Pro','music',2600,5,{music:10,popularity:.25},'produkcja / występy'),
+      gearCatalog.q('Kontroler DJ Basic','dj',700,1,{music:5},'DJ / miksowanie'),
+      gearCatalog.q('Kontroler DJ Pro','dj',2400,4,{music:10,popularity:.2},'DJ / live'),
+      gearCatalog.q('CDJ + mikser klubowy','dj',6500,5,{music:15,popularity:.4},'profesjonalne granie'),
+      gearCatalog.q('Kamera vlog Basic','creator',900,1,{media:5},'tworzenie treści'),
+      gearCatalog.q('Kamera 4K Creator','creator',3200,4,{media:10,popularity:.25},'video / FLgram'),
+      gearCatalog.q('Kamera Cinema Pro','film',11000,5,{media:18,popularity:.4},'produkcje filmowe'),
+      gearCatalog.q('Aparat Basic','film',1400,2,{media:6},'fotografia / film'),
+      gearCatalog.q('Aparat Full Frame Pro','film',6500,5,{media:15,popularity:.35},'profesjonalna produkcja'),
+      gearCatalog.q('Obiektyw sportowy','film',4800,5,{media:12},'sport / fotografia'),
+      gearCatalog.q('Laptop Creator Basic','creator',1800,1,{media:4,business:2},'montaż / publikacja'),
+      gearCatalog.q('Laptop Creator Pro','creator',5200,4,{media:9,business:5},'montaż / grafika'),
+      gearCatalog.q('Stacja robocza Studio','film',12500,5,{media:18,business:8},'film / muzyka'),
+      gearCatalog.q('Słuchawki studyjne','music',420,2,{music:4,media:2},'muzyka / montaż'),
+      gearCatalog.q('Słuchawki studyjne Pro','music',1500,5,{music:8,media:5},'profesjonalne audio'),
+      gearCatalog.q('Green screen','film',500,2,{media:4},'video'),
+      gearCatalog.q('Oświetlenie Basic','film',380,1,{media:3},'video'),
+      gearCatalog.q('Oświetlenie Studio Pro','film',1900,4,{media:8,popularity:.15},'produkcja'),
+      gearCatalog.q('Statyw Basic','creator',160,1,{media:2},'nagrywanie'),
+      gearCatalog.q('Gimbal Pro','creator',1200,4,{media:7,popularity:.15},'vlog / sport'),
+      gearCatalog.q('Tablet graficzny','creator',900,2,{media:5},'grafika'),
+      gearCatalog.q('Smartfon Creator Basic','creator',1100,1,{media:4,popularity:.08},'FLgram / video'),
+      gearCatalog.q('Smartfon Flagship Creator','creator',5200,5,{media:12,popularity:.35},'FLgram / live / video'),
+      gearCatalog.q('Kamera sportowa Pro','film',2400,4,{media:8,popularity:.2},'sport / outdoor')
+    ];
+  }
+  gearCatalog.q=function(name,cat,price,quality,effects,needs){return {id:'gear_'+cat+'_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_'),name,category:cat,price,quality,effects,needs};};
+
+  function getGear(){ if(!window.FL_V23_GEAR) window.FL_V23_GEAR=gearCatalog(); return window.FL_V23_GEAR; }
+
+  window.renderEducation=function(){
+    ensureV23();
+    const langRows=Object.entries(S.player.languages).map(([n,v])=>({name:n,value:typeof v==='number'?v:(v?.percent||v?.level||0)}));
+    return `<section class="section card gold-card"><div class="eyebrow">🎓 EDUKACJA</div><h1>Kursy i języki</h1><div class="muted">Każdy kurs ma konkretną cenę, liczbę godzin i efekt. Płacisz za naukę, ale rozwój wymaga czasu.</div><div class="badges" style="margin-top:10px"><span class="badge gold">💰 ${money(S.player.money||0)}</span><span class="badge">⏱️ czas liczony w godzinach</span></div></section>
+    <section class="section card"><div class="eyebrow">🗣️ JĘZYKI</div><h2>Wybierz dowolny język</h2><div class="muted small">Możesz rozwijać wiele języków równolegle. Każdy ma poziomy A1–C2, osobne koszty i czas nauki.</div><button class="btn goldbtn" style="margin-top:12px" onclick="openLanguageSchool()">🌍 Otwórz katalog języków</button>${langRows.length?`<div class="list" style="margin-top:12px">${langRows.map(x=>`<div class="history-item"><div class="row"><b>🗣️ ${esc(x.name)}</b><span class="badge gold">${Math.round(x.value)}%</span></div><div class="progress" style="margin-top:7px"><i style="width:${clamp(x.value,0,100)}%"></i></div></div>`).join('')}</div>`:''}</section>
+    <section class="section card"><div class="eyebrow">📚 KURSY ZAWODOWE I HOBBY</div><div class="list">${COURSES.map(c=>`<div class="history-item"><div class="row"><b>${esc(c.name)}</b><span class="badge gold">${money(c.price)}</span></div><div class="fl-v23-meta"><span class="badge">⏱️ ${c.hours} h</span><span class="badge">📈 +${c.gain} ${esc(c.skill)}</span><span class="badge">🎒 ${esc(c.needs)}</span></div><button class="btn" style="margin-top:9px" onclick="buyCourse('${c.id}')">Zapisz się na kurs</button></div>`).join('')}</div></section>
+    <section class="section card"><div class="eyebrow">📜 TWOJE KURSY</div>${S.education.courses.length?`<div class="list">${S.education.courses.map(c=>`<div class="history-item"><div class="row"><b>${esc(c.name)}</b><span class="badge gold">ukończony</span></div><div class="muted small">${c.hours} h • ${money(c.price)}</div></div>`).join('')}</div>`:'<div class="muted">Nie ukończyłeś jeszcze żadnego kursu.</div>'}</section>`;
+  };
+
+  window.openLanguageSchool=function(){
+    ensureV23();
+    openModal(`<div class="modal-head"><div><div class="eyebrow">🌍 AKADEMIA JĘZYKÓW</div><h2>Wybierz język</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="list" style="margin-top:12px">${LANGUAGES.map((l,i)=>`<div class="history-item"><div class="row"><b>${esc(l[0])}</b><span class="badge">${esc(l[2])}</span></div><div class="muted small">${esc(l[1])}</div><button class="btn" style="margin-top:8px" onclick="openLanguageLevels(${i})">Wybierz język</button></div>`).join('')}</div>`,true);
+  };
+  window.openLanguageLevels=function(i){
+    const l=LANGUAGES[i]; if(!l)return;
+    const current=typeof S.player.languages[l[0]]==='number'?S.player.languages[l[0]]:(S.player.languages[l[0]]?.percent||0);
+    openModal(`<div class="modal-head"><div><div class="eyebrow">🗣️ ${esc(l[0])}</div><h2>Poziom: ${Math.round(current)}%</h2></div><button class="close" onclick="openLanguageSchool()">←</button></div><div class="list" style="margin-top:12px">${LEVELS.map((x,j)=>`<div class="history-item"><div class="row"><b>${x.name}</b><span class="badge gold">${money(x.cost)}</span></div><div class="fl-v23-meta"><span class="badge">⏱️ ${x.duration} h</span><span class="badge">📈 +${x.gain}%</span></div><button class="btn" style="margin-top:8px" ${current>=j*16+12?'disabled':''} onclick="buyLanguage(${i},${j})">${current>=j*16+12?'Poziom już osiągnięty':'Rozpocznij kurs'}</button></div>`).join('')}</div>`,true);
+  };
+  window.buyLanguage=function(i,j){
+    ensureV23(); const l=LANGUAGES[i],x=LEVELS[j]; if(!l||!x)return;
+    const cur=typeof S.player.languages[l[0]]==='number'?S.player.languages[l[0]]:(S.player.languages[l[0]]?.percent||0);
+    if(cur>=j*16+12){toast('Ten poziom jest już zaliczony.');return;}
+    if(S.player.money<x.cost){toast('Brakuje pieniędzy na kurs.');return;}
+    if(S.player.energy<5){toast('Brakuje energii na naukę.');return;}
+    S.player.money-=x.cost; S.player.energy=Math.max(0,S.player.energy-5); S.day.time+=x.duration*60;
+    S.player.languages[l[0]]=Math.min(100,cur+x.gain); S.education.courses.push({name:`${l[0]} — ${x.name}`,price:x.cost,hours:x.duration,date:S.day.date});
+    addHistory('Kurs językowy',`${l[0]} — ${x.name}.`,`-${x.cost} • ${x.duration} h • język +${x.gain}%`); closeModal(); save(); render(); toast(`🗣️ ${l[0]}: kurs ukończony.`);
+  };
+  window.buyCourse=function(id){
+    ensureV23(); const c=COURSES.find(x=>x.id===id); if(!c)return;
+    if(S.player.money<c.price){toast('Brakuje pieniędzy na ten kurs.');return;}
+    if(S.player.energy<5){toast('Brakuje energii na naukę.');return;}
+    S.player.money-=c.price; S.player.energy=Math.max(0,S.player.energy-5); S.day.time+=c.hours*60;
+    S.education.skills[c.skill]=Math.min(100,(S.education.skills[c.skill]||0)+c.gain); S.education.courses.push({name:c.name,price:c.price,hours:c.hours,date:S.day.date});
+    addHistory('Kurs ukończony',c.name,`-${c.price} • ${c.hours} h • ${c.skill} +${c.gain}`); save(); render(); toast(`🎓 Ukończono: ${c.name}`);
+  };
+
+  const oldRenderShop=window.renderShop;
+  window.renderShop=function(){
+    return `<section class="section card gold-card"><div class="eyebrow">🏙️ MIASTO / SKLEP</div><h1>${esc(S.player.city||'Twoje miasto')}</h1><div class="muted">Duży rynek: sprzęt, moda, technologia, korki, nieruchomości, auta oraz wyposażenie wszystkich pobocznych karier. Jakość i cena wpływają na możliwości.</div></section><section class="section card"><div class="grid2">${[
+      ['👟','Korki i obuwie',0],['👕','Ubrania i moda',1],['📱','Elektronika',2],['🎤','Sprzęt karier pobocznych',16],['🎮','Sprzęt i hobby',3],['🏠','Nieruchomości',4],['🚗','Samochody',5],['🍔','Jedzenie',6],['☕','Kawiarnie',7],['🎬','Rozrywka',8],['🏊','Sport i rekreacja',9],['💇','Usługi i uroda',10],['🩺','Zdrowie',11],['🎁','Prezenty',12],['📚','Nauka i kursy',13],['🛍️','Zakupy codzienne',14],['🏖️','Wakacje i podróże',15]
+    ].map(x=>`<button class="action" onclick="shopCategory(${x[2]})"><div class="ico">${x[0]}</div><div class="body"><div class="title">${x[1]}</div><div class="desc">Otwórz katalog</div></div><div>›</div></button>`).join('')}</div></section>`;
+  };
+
+  const oldShopCategory=window.shopCategory;
+  window.shopCategory=function(i){
+    if(i===16){openSideGearStore();return;}
+    return oldShopCategory(i);
+  };
+  window.openSideGearStore=function(){
+    ensureV23(); const list=getGear();
+    const cats={music:'🎤 Muzyka / wokal',dj:'🎧 DJ',creator:'📹 Twórca internetowy',film:'🎬 Film / fotografia'};
+    openModal(`<div class="modal-head"><div><div class="eyebrow">🛒 SPRZĘT DO KARIER</div><h2>Wyposażenie poboczne</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="muted small">Tańszy sprzęt wystarcza na start. Lepsza jakość zwiększa rozwój, jakość publikacji i potencjał popularności.</div><div class="list" style="margin-top:12px">${list.map(x=>`<div class="history-item"><div class="row"><b>${esc(x.name)}</b><span class="badge gold">${money(x.price)}</span></div><div class="fl-v23-meta"><span class="badge">⭐ jakość ${x.quality}/5</span><span class="badge">${esc(cats[x.category]||x.category)}</span></div><div class="muted small" style="margin-top:6px">${esc(x.needs)}</div><button class="btn" style="margin-top:8px" onclick="buySideGear('${x.id}')">Kup</button></div>`).join('')}</div>`,true);
+  };
+  window.buySideGear=function(id){
+    ensureV23(); const item=getGear().find(x=>x.id===id); if(!item)return;
+    if(S.player.money<item.price){toast('Brakuje pieniędzy na ten sprzęt.');return;}
+    S.player.money-=item.price; const owned=clone(item); owned.boughtAt=S.day.date; S.world.sideGear.push(owned);
+    for(const [k,v] of Object.entries(item.effects||{})){ if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100); else if(S.education?.skills)S.education.skills[k]=Math.min(100,(S.education.skills[k]||0)+v); }
+    const sec=S.secondary||[];
+    if(['music','dj'].includes(item.category)){const m=sec.find(x=>x.id==='music');if(m)m.unlocked=true; if(item.category==='dj'){const d=sec.find(x=>x.id==='dj');if(d)d.unlocked=true;}}
+    if(item.category==='film'){const f=sec.find(x=>x.id==='film');if(f)f.unlocked=true;}
+    if(item.category==='creator'){const c=sec.find(x=>x.id==='creator');if(c)c.unlocked=true;}
+    addHistory('Zakup sprzętu kariery',item.name,`-${item.price} • jakość ${item.quality}/5`); save(); closeModal(); render(); toast(`🛒 Kupiono: ${item.name}`);
+  };
+
+  const oldSecondaryWork=window.secondaryWork;
+  window.secondaryWork=function(id,fromButton){
+    ensureV23(); const j=S.secondary.find(x=>x.id===id); if(!j)return;
+    const category=(id==='music'||id==='dj')?'music':id;
+    const relevant=S.world.sideGear.filter(g=>g.category===category || (category==='music'&&g.category==='dj') || (category==='creator'&&g.category==='film'));
+    const quality=relevant.reduce((a,g)=>Math.max(a,g.quality||0),0);
+    if(!j.unlocked){toast('Najpierw spełnij wymagania tej ścieżki.');return;}
+    if(quality===0 && ['music','film','creator','dj'].includes(id)){openSideGearStore();toast('🎒 Przyda Ci się sprzęt z miasta — możesz zacząć od najtańszego.');return;}
+    if(quality<3 && j.level>=30){toast('Potrzebujesz lepszego sprzętu, aby rozwijać tę karierę dalej.');return;}
+    const oldMoney=S.player.money; oldSecondaryWork(id,fromButton);
+    if(S.player.money<oldMoney && quality>=4){S.player.popularity=clamp(S.player.popularity+.05,0,100);save();}
+  };
+
+  // Fix navigation mismatch: the side-career menu uses "secondary" while mobile routing used "sidecareer".
+  const oldNavigateTo=window.navigateTo;
+  window.navigateTo=function(k){ if(k==='sidecareer')k='secondary'; return oldNavigateTo(k); };
+
+  // Ensure the v23 state exists before the first render.
+  try{ensureV23();}catch(e){console.warn(e)}
 })();
 </script>
 </body>
