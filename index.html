@@ -181,7 +181,8 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
 .fl-start-logo{width:min(430px,78vw)!important;max-height:270px!important}
 </style>
 
-<style id="fl-life-startscreen-v21">
+<style id="fl-life-startscreen-v25">
+/* V25 — stable, clean loading animation */
 #flStartScreen .fl-start-inner{
   width:min(680px,94vw);
   min-height:72vh;
@@ -190,117 +191,211 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
 #flStartScreen .fl-start-brand{
   gap:0!important;
   transform:translateY(18px) scale(.82);
-  animation:flLogoLandV21 1.15s cubic-bezier(.2,.85,.2,1) .08s forwards;
+  animation:flLogoLandV25 1.1s cubic-bezier(.2,.85,.2,1) .08s forwards;
 }
 #flStartScreen .fl-start-logo{
   width:min(500px,86vw)!important;
   max-height:330px!important;
+  object-fit:contain!important;
   filter:drop-shadow(0 24px 55px rgba(0,0,0,.62))
-         drop-shadow(0 0 22px rgba(214,173,69,.13));
+          drop-shadow(0 0 22px rgba(214,173,69,.13));
 }
 
-/* Loading: no generic "bar" look — a refined football pitch line */
+/* The loader is a single visual component. No percentage text, no second bar. */
 #flStartScreen .fl-loading{
-  width:min(470px,80vw);
-  margin-top:34px;
-  opacity:1;
-  animation:none;
-  transition:opacity .42s ease,transform .42s ease;
+  width:min(470px,80vw)!important;
+  height:52px!important;
+  margin-top:30px!important;
+  opacity:1!important;
+  animation:none!important;
+  position:relative!important;
+  transition:opacity .35s ease,transform .35s ease!important;
 }
 #flStartScreen .fl-loading.complete{
-  opacity:0;
-  transform:translateY(7px) scale(.985);
-  pointer-events:none;
-}
-#flStartScreen .fl-loading-line{
-  position:relative!important;
-  height:28px!important;
-  border:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  overflow:visible!important;
-}
-#flStartScreen .fl-loading-line:before{
-  content:"";
-  position:absolute;
-  left:7px;right:7px;top:15px;
-  height:3px;
-  border-radius:99px;
-  background:rgba(255,255,255,.10);
-  box-shadow:0 0 0 1px rgba(214,173,69,.06),0 4px 14px rgba(0,0,0,.35);
-}
-#flStartScreen .fl-loading-line:after{
-  content:"";
-  position:absolute;
-  left:7px;top:15px;
-  width:calc(var(--fl-progress,0%));
-  height:3px;
-  border-radius:99px;
-  background:linear-gradient(90deg,#8c6927,#d6ad45,#f4d979);
-  box-shadow:0 0 12px rgba(214,173,69,.28);
-  transition:width .18s ease;
-}
-#flStartScreen .fl-loading-line i{
-  display:none!important;
+  opacity:0!important;
+  transform:translateY(8px)!important;
+  pointer-events:none!important;
 }
 
-/* Small runner, visually integrated with the line */
+/* Neutral track */
+#flStartScreen .fl-loading-line{
+  position:absolute!important;
+  left:0!important;right:0!important;top:22px!important;
+  height:4px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.09)!important;
+  box-shadow:0 1px 5px rgba(0,0,0,.45)!important;
+  overflow:visible!important;
+}
+/* Filled track is controlled ONLY by --fl-progress */
+#flStartScreen .fl-loading-line:after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;top:0!important;
+  width:var(--fl-progress,0%)!important;
+  height:4px!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#9b772c,#d6ad45,#f3d87b)!important;
+  box-shadow:0 0 13px rgba(214,173,69,.32)!important;
+  transition:width .20s linear!important;
+}
+#flStartScreen .fl-loading-line:before{display:none!important}
+#flStartScreen .fl-loading-line i{display:none!important}
+
+/* Small player */
 #flStartScreen .fl-load-runner{
-  width:54px!important;height:62px!important;
-  transform:translate(-27px,-68%)!important;
-  filter:drop-shadow(0 5px 7px rgba(0,0,0,.55))!important;
-  transition:left .22s linear!important;
+  position:absolute!important;
+  left:var(--fl-progress,0%)!important;
+  top:15px!important;
+  width:50px!important;height:58px!important;
+  transform:translate(-25px,-72%)!important;
+  margin:0!important;
+  filter:drop-shadow(0 5px 7px rgba(0,0,0,.5))!important;
+  transition:left .20s linear!important;
+  z-index:4!important;
 }
 #flStartScreen .fl-load-person{
   position:absolute!important;inset:0!important;
-  width:54px!important;height:62px!important;
+  width:50px!important;height:58px!important;
   display:block!important;font-size:0!important;
-  animation:flRunnerBounceV21 .18s infinite alternate!important;
+  animation:flRunnerV25 .18s ease-in-out infinite alternate!important;
 }
 #flStartScreen .fl-run-head{
-  position:absolute;left:21px;top:0;width:13px;height:13px;border-radius:50%;
-  background:#e7ebf0;
+  position:absolute;left:20px;top:0;width:12px;height:12px;border-radius:50%;
+  background:#e8ecf1;
 }
 #flStartScreen .fl-run-body{
-  position:absolute;left:19px;top:13px;width:19px;height:27px;border-radius:7px 7px 5px 5px;
-  background:linear-gradient(145deg,#f0cf68,#a27d2f);
+  position:absolute;left:18px;top:12px;width:18px;height:26px;border-radius:7px 7px 5px 5px;
+  background:linear-gradient(145deg,#f0cf68,#a17d2f);
 }
 #flStartScreen .fl-run-arm,#flStartScreen .fl-run-leg{
   position:absolute;display:block;width:5px;border-radius:8px;
   background:#d9dde4;transform-origin:top center;
 }
-#flStartScreen .fl-run-arm{height:20px;top:15px}
-#flStartScreen .fl-run-arm.a1{left:15px;transform:rotate(38deg);animation:flArmV21A .27s infinite alternate}
-#flStartScreen .fl-run-arm.a2{left:35px;transform:rotate(-35deg);animation:flArmV21B .27s infinite alternate}
-#flStartScreen .fl-run-leg{height:23px;top:38px}
-#flStartScreen .fl-run-leg.l1{left:20px;transform:rotate(25deg);animation:flLegV21A .27s infinite alternate}
-#flStartScreen .fl-run-leg.l2{left:30px;transform:rotate(-25deg);animation:flLegV21B .27s infinite alternate}
-#flStartScreen .fl-run-ball{
-  position:absolute;left:45px;top:47px;width:9px;height:9px;border-radius:50%;
-  background:#f4f4f4;border:1px solid #222;
-  box-shadow:0 0 7px rgba(255,255,255,.22);
-  animation:flBallV21 .48s ease-in-out infinite alternate;
-}
-#flStartScreen .fl-start-menu{margin-top:22px!important}
-#flStartScreen .fl-start-foot,
-#flStartScreen .fl-start-subtitle,
-#flStartScreen .fl-loading-row{display:none!important}
+#flStartScreen .fl-run-arm{height:19px;top:14px}
+#flStartScreen .fl-run-arm.a1{left:14px;transform:rotate(38deg);animation:flA25 .27s infinite alternate}
+#flStartScreen .fl-run-arm.a2{left:34px;transform:rotate(-35deg);animation:flB25 .27s infinite alternate}
+#flStartScreen .fl-run-leg{height:22px;top:37px}
+#flStartScreen .fl-run-leg.l1{left:19px;transform:rotate(25deg);animation:flC25 .27s infinite alternate}
+#flStartScreen .fl-run-leg.l2{left:29px;transform:rotate(-25deg);animation:flD25 .27s infinite alternate}
 
-@keyframes flLogoLandV21{
+/* Tiny ball — deliberately separate and small */
+#flStartScreen .fl-run-ball{
+  position:absolute!important;
+  left:42px!important;top:45px!important;
+  width:8px!important;height:8px!important;
+  border-radius:50%!important;
+  background:#f5f5f5!important;
+  border:1px solid #242424!important;
+  box-shadow:0 0 6px rgba(255,255,255,.22)!important;
+  animation:flBall25 .42s ease-in-out infinite alternate!important;
+}
+
+/* Hide every old status/progress label */
+#flStartScreen .fl-loading-row,
+#flStartScreen .fl-start-subtitle,
+#flStartScreen .fl-start-foot{display:none!important}
+
+#flStartScreen .fl-start-menu{
+  margin-top:18px!important;
+}
+
+@keyframes flLogoLandV25{
   0%{opacity:0;transform:translateY(35px) scale(.62)}
   65%{opacity:1;transform:translateY(-4px) scale(1.035)}
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
-@keyframes flRunnerBounceV21{from{transform:translateY(1px)}to{transform:translateY(-2px)}}
-@keyframes flArmV21A{to{transform:rotate(-30deg)}}
-@keyframes flArmV21B{to{transform:rotate(30deg)}}
-@keyframes flLegV21A{to{transform:rotate(-32deg)}}
-@keyframes flLegV21B{to{transform:rotate(32deg)}}
-@keyframes flBallV21{from{transform:translateY(0) rotate(0)}to{transform:translateY(-3px) rotate(25deg)}}
+@keyframes flRunnerV25{from{transform:translateY(1px)}to{transform:translateY(-2px)}}
+@keyframes flA25{to{transform:rotate(-30deg)}}
+@keyframes flB25{to{transform:rotate(30deg)}}
+@keyframes flC25{to{transform:rotate(-32deg)}}
+@keyframes flD25{to{transform:rotate(32deg)}}
+@keyframes flBall25{from{transform:translateY(0) rotate(0)}to{transform:translateY(-3px) rotate(25deg)}}
 
 @media(max-width:520px){
-  #flStartScreen .fl-start-logo{width:min(390px,88vw)!important;max-height:260px!important}
-  #flStartScreen .fl-loading{width:min(390px,82vw);margin-top:24px}
+  #flStartScreen .fl-start-logo{
+    width:min(390px,88vw)!important;
+    max-height:260px!important;
+  }
+  #flStartScreen .fl-loading{
+    width:min(390px,82vw)!important;
+    margin-top:22px!important;
+  }
+}
+</style>
+
+<style id="fl-start-interaction-fix-v24">
+#modal{z-index:21000!important}
+#modal .modal-sheet{position:relative;z-index:21001}
+#flStartScreen{z-index:20000!important}
+#flStartMenu{position:relative;z-index:20002}
+#flStartScreen .fl-start-btn{pointer-events:auto!important}
+</style>
+
+<style id="fl-mobile-menu-v26">
+@media(max-width:760px){
+  #mobileMenuBtn{
+    display:flex!important;
+    position:fixed!important;
+    z-index:30001!important;
+    left:12px!important;
+    top:max(12px,env(safe-area-inset-top))!important;
+    width:46px!important;height:46px!important;
+    align-items:center!important;justify-content:center!important;
+    border:1px solid rgba(212,175,69,.38)!important;
+    border-radius:14px!important;
+    background:#101319!important;color:#e9c85b!important;
+    pointer-events:auto!important;
+  }
+  #mobileMenuBackdrop{
+    display:block!important;
+    position:fixed!important;inset:0!important;
+    z-index:29998!important;
+    background:rgba(0,0,0,.62)!important;
+    opacity:0!important;visibility:hidden!important;
+    pointer-events:none!important;
+    transition:opacity .2s ease,visibility .2s ease!important;
+  }
+  #mobileMenuBackdrop.open{
+    opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  }
+  #sideMenu{
+    display:block!important;
+    position:fixed!important;
+    z-index:30000!important;
+    left:0!important;top:0!important;bottom:0!important;
+    width:min(88vw,350px)!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    transform:translate3d(-105%,0,0)!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    padding:calc(18px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))!important;
+    background:linear-gradient(180deg,#101319,#151922)!important;
+    border-right:1px solid rgba(212,175,69,.24)!important;
+    box-shadow:18px 0 50px rgba(0,0,0,.48)!important;
+    transition:transform .25s ease,visibility 0s linear .25s!important;
+  }
+  #sideMenu.open{
+    transform:translate3d(0,0,0)!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    transition:transform .25s ease,visibility 0s!important;
+  }
+  #sideMenu button,
+  #sideMenu .zone-title,
+  #sideMenu .zone-items button,
+  #sideMenu .side-close{
+    position:relative!important;
+    z-index:30002!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+    -webkit-tap-highlight-color:transparent!important;
+  }
+  body.fl-menu-open{overflow:hidden!important;touch-action:none!important}
 }
 </style>
 </head>
@@ -1774,7 +1869,7 @@ function toggleSideMenu(){const m=document.getElementById('sideMenu'),b=document
 function closeSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.remove('open');if(b)b.classList.remove('open')}
 function toggleZone(btn){const z=btn.closest('.side-zone');if(z)z.classList.toggle('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSideMenu()})
-function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el)el.click()}
+function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el){el.click();return true}return false}
 </script>
 <script id="game-mode-fixes">
 function startNewGame(){
@@ -1810,7 +1905,7 @@ function startNewGamePlus(){
   render();
 }
 </script>
-<script id="fl-life-startscreen-js">
+<script id="fl-life-startscreen-js-legacy">
 (function(){
   const SLOT_PREFIX='FL_LIFE_27_SLOT_';
   const LAST_SLOT_KEY='FL_LIFE_27_LAST_SLOT';
@@ -1983,8 +2078,18 @@ function startNewGamePlus(){
   };
 
   window.flStartNewGamePlus=function(){
-    flCloseStart();
-    setTimeout(()=>startNewGamePlus(),150);
+    if(typeof startNewGamePlus==='function'){
+      startNewGamePlus();
+      return;
+    }
+    if(!confirm('Rozpocząć Nową Grę+? Zachowamy wybrane dziedzictwo poprzedniej kariery.')) return;
+    const legacy={history:S?.history||[],consequenceLedger:S?.consequenceLedger||[],worldFlags:S?.worldFlags||{},lifeTags:S?.lifeTags||{}};
+    localStorage.setItem('fl-life-27-ngplus-legacy',JSON.stringify({savedAt:Date.now(),...legacy}));
+    const fresh=clone(initial);
+    fresh.gameMode='plus';
+    migrateSave(fresh);
+    localStorage.setItem(KEY,JSON.stringify(fresh));
+    S=fresh; current='day'; flCloseStart(); render();
   };
 
   window.flStartSettings=function(){
@@ -2258,6 +2363,110 @@ function startNewGamePlus(){
 
   // Ensure the v23 state exists before the first render.
   try{ensureV23();}catch(e){console.warn(e)}
+})();
+</script>
+
+<script id="fl-start-click-bridge-v24">
+(function(){
+  function bind(){
+    const menu=document.getElementById('flStartMenu');
+    if(!menu || menu.dataset.boundV24) return;
+    menu.dataset.boundV24='1';
+    const actions=['flStartContinue','flStartNewGame','flStartNewGamePlus','flOpenSlots','flStartSettings'];
+    [...menu.querySelectorAll('button')].forEach((btn,i)=>{
+      btn.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        const fn=window[actions[i]];
+        if(typeof fn==='function') fn();
+        else console.error('FL Life: brak funkcji '+actions[i]);
+      },true);
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
+  else bind();
+})();
+</script>
+<script id="fl-life-loader-v25">
+(function(){
+  const start=document.getElementById('flStartScreen');
+  const loading=document.getElementById('flLoading');
+  const menu=document.getElementById('flStartMenu');
+  if(!start || !loading) return;
+
+  let finished=false;
+  const points=[0,8,18,31,45,60,75,88,100];
+
+  function setProgress(p){
+    start.style.setProperty('--fl-progress',Math.max(0,Math.min(100,p))+'%');
+  }
+
+  function finish(){
+    if(finished)return;
+    finished=true;
+    setProgress(100);
+    setTimeout(()=>{
+      loading.classList.add('complete');
+      setTimeout(()=>{
+        loading.style.display='none';
+        if(menu)menu.classList.add('ready');
+        if(typeof refreshContinueState==='function')refreshContinueState();
+      },360);
+    },260);
+  }
+
+  function step(i){
+    if(finished)return;
+    if(i>=points.length){finish();return;}
+    setProgress(points[i]);
+    setTimeout(()=>step(i+1),120+i*18);
+  }
+
+  setProgress(0);
+  window.addEventListener('load',()=>setTimeout(()=>step(1),300),{once:true});
+})();
+</script>
+<script id="fl-mobile-menu-v26">
+(function(){
+  const btn=document.getElementById('mobileMenuBtn');
+  const menu=document.getElementById('sideMenu');
+  const backdrop=document.getElementById('mobileMenuBackdrop');
+  if(!btn || !menu || !backdrop)return;
+
+  function open(){
+    menu.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.classList.add('fl-menu-open');
+    btn.setAttribute('aria-expanded','true');
+  }
+  function close(){
+    menu.classList.remove('open');
+    backdrop.classList.remove('open');
+    document.body.classList.remove('fl-menu-open');
+    btn.setAttribute('aria-expanded','false');
+  }
+  window.toggleSideMenu=function(){
+    menu.classList.contains('open') ? close() : open();
+  };
+  window.closeSideMenu=close;
+
+  btn.addEventListener('click',function(e){
+    e.preventDefault();e.stopPropagation();window.toggleSideMenu();
+  });
+  backdrop.addEventListener('click',function(e){
+    e.preventDefault();close();
+  });
+  menu.addEventListener('click',function(e){
+    const item=e.target.closest('[data-nav],.zone-items button,.menu-item');
+    const closeBtn=e.target.closest('.side-close');
+    if(closeBtn){e.preventDefault();close();return;}
+    if(item){
+      // Give the original navigation handler a chance, then close the drawer.
+      setTimeout(close,40);
+    }
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')close();
+  });
 })();
 </script>
 </body>
