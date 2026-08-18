@@ -445,6 +445,27 @@ pointer-events:none!important;width:0!important;height:0!important;}
   #flStartScreen .flTinyBall{width:16px;height:16px}
 }
 </style>
+
+<style id="fl-start-ready-v29">
+#flStartScreen #flStartMenu{
+  opacity:1!important;
+  transform:none!important;
+  pointer-events:auto!important;
+  position:relative!important;
+  z-index:20002!important;
+}
+#flStartScreen .fl-start-btn{
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+  position:relative!important;
+  z-index:20003!important;
+}
+#flStartScreen #flTinyLoader{
+  position:relative!important;
+  z-index:20001!important;
+}
+</style>
 </head>
 <body><button class="fl-quick-save" onclick="flSaveAs()" title="Zapisz karierę">💾 Zapisz</button>
 
@@ -2516,6 +2537,37 @@ function startNewGamePlus(){
       setTimeout(function(){loader.style.display='none'},360);
     },420);
   },{once:true});
+})();
+</script>
+
+<script id="fl-start-ready-v29">
+(function(){
+  function ready(){
+    const menu=document.getElementById('flStartMenu');
+    if(!menu)return;
+    menu.classList.add('ready');
+    menu.style.pointerEvents='auto';
+    menu.style.opacity='1';
+    menu.style.transform='none';
+
+    const names=['flStartContinue','flStartNewGame','flStartNewGamePlus','flOpenSlots','flStartSettings'];
+    menu.querySelectorAll('button').forEach((btn,i)=>{
+      if(btn.dataset.v29bound)return;
+      btn.dataset.v29bound='1';
+      btn.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        const fn=window[names[i]];
+        if(typeof fn==='function') fn();
+      },false);
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',ready,{once:true});
+  }else{
+    ready();
+  }
+  window.addEventListener('load',ready,{once:true});
 })();
 </script>
 </body>
