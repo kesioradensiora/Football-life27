@@ -398,6 +398,53 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
   body.fl-menu-open{overflow:hidden!important;touch-action:none!important}
 }
 </style>
+<style id="fl-remove-loader-v27">
+#flStartScreen .fl-loading,#flStartScreen .fl-loading-line,#flStartScreen .fl-load-runner,
+#flStartScreen .fl-load-person,#flStartScreen .fl-run-head,#flStartScreen .fl-run-body,
+#flStartScreen .fl-run-arm,#flStartScreen .fl-run-leg,#flStartScreen .fl-run-ball,
+#flStartScreen .fl-loading-row{display:none!important;visibility:hidden!important;opacity:0!important;
+pointer-events:none!important;width:0!important;height:0!important;}
+</style>
+<style id="fl-tiny-loader-v28">
+#flStartScreen #flTinyLoader{
+  width:100%;
+  height:34px;
+  margin:18px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:1;
+  transition:opacity .35s ease, transform .35s ease;
+}
+#flStartScreen #flTinyLoader.hidden{
+  opacity:0;
+  transform:scale(.82);
+  pointer-events:none;
+}
+#flStartScreen .flTinyBall{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 50%, #1b1f25 0 17%, transparent 18%),
+    radial-gradient(circle at 50% 12%, #1b1f25 0 13%, transparent 14%),
+    radial-gradient(circle at 88% 38%, #1b1f25 0 13%, transparent 14%),
+    radial-gradient(circle at 72% 86%, #1b1f25 0 13%, transparent 14%),
+    radial-gradient(circle at 12% 68%, #1b1f25 0 13%, transparent 14%),
+    #f2f2ed;
+  box-shadow:0 3px 10px rgba(0,0,0,.38),0 0 9px rgba(214,173,69,.14);
+  animation:flTinyBallSpin 1s linear infinite;
+}
+@keyframes flTinyBallSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@media(max-width:520px){
+  #flStartScreen #flTinyLoader{margin-top:14px}
+  #flStartScreen .flTinyBall{width:16px;height:16px}
+}
+</style>
 </head>
 <body><button class="fl-quick-save" onclick="flSaveAs()" title="Zapisz karierę">💾 Zapisz</button>
 
@@ -408,20 +455,11 @@ input,select,textarea{max-width:100%;font-size:16px!important}.btn,.action,.acti
     <div class="fl-start-brand">
       <img id="flStartLogo" class="fl-start-logo" alt="FL Life 27">
     </div>
-    <div class="fl-loading" id="flLoading">
-      <div class="fl-loading-line fl-run-loading" aria-hidden="true">
-        <i id="flLoadBar"></i>
-        <div id="flLoadRunner" class="fl-load-runner">
-          <span class="fl-load-person">
-            <span class="fl-run-head"></span><span class="fl-run-body"></span>
-            <span class="fl-run-arm a1"></span><span class="fl-run-arm a2"></span>
-            <span class="fl-run-leg l1"></span><span class="fl-run-leg l2"></span>
-            <span class="fl-run-ball"></span>
-          </span>
-        </div>
-      </div>
-    </div>
-    <div class="fl-start-menu" id="flStartMenu">
+    
+<div id="flTinyLoader" aria-label="Ładowanie">
+  <div class="flTinyBall"></div>
+</div>
+<div class="fl-start-menu" id="flStartMenu">
       <button class="fl-start-btn primary" onclick="flStartContinue()"><div class="sico">▶️</div><div><b>Kontynuuj</b><span id="flContinueDesc">Wznów ostatnią karierę</span></div></button>
       <button class="fl-start-btn" onclick="flStartNewGame()"><div class="sico">✨</div><div><b>Nowa gra</b><span>Stwórz zupełnie nową historię</span></div></button>
       <button class="fl-start-btn" onclick="flStartNewGamePlus()"><div class="sico">♻️</div><div><b>Nowa Gra+</b><span>Rozpocznij nową historię z dziedzictwem</span></div></button>
@@ -2142,8 +2180,6 @@ function startNewGamePlus(){
     };
     reader.readAsText(file);
   };
-
-  window.addEventListener('load',()=>setTimeout(stage,420),{once:true});
 })();
 </script>
 
@@ -2386,7 +2422,7 @@ function startNewGamePlus(){
   else bind();
 })();
 </script>
-<script id="fl-life-loader-v25">
+<script id="fl-life-loader-v25-disabled">
 (function(){
   const start=document.getElementById('flStartScreen');
   const loading=document.getElementById('flLoading');
@@ -2467,6 +2503,19 @@ function startNewGamePlus(){
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape')close();
   });
+})();
+</script>
+
+<script id="fl-tiny-loader-v28">
+(function(){
+  const loader=document.getElementById('flTinyLoader');
+  if(!loader)return;
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      loader.classList.add('hidden');
+      setTimeout(function(){loader.style.display='none'},360);
+    },420);
+  },{once:true});
 })();
 </script>
 </body>
