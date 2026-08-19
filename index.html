@@ -1131,6 +1131,62 @@ body:before{
   .fl-hero-ovr{width:82px;height:82px}
 }
 </style>
+
+<style id="fl-city-module-v39">
+.fl-city-page{padding:18px;max-width:1700px;margin:auto}
+.city-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:16px}
+.city-head h1{font-size:clamp(28px,3vw,48px);margin:4px 0}
+.city-head p{color:#aeb5bf;margin:0}
+.city-head-kpis{display:flex;gap:10px;flex-wrap:wrap}
+.city-head-kpis span{background:linear-gradient(180deg,#161a20,#0d1014);border:1px solid rgba(214,173,69,.35);border-radius:14px;padding:10px 14px;color:#eee}
+.city-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(330px,.72fr);gap:14px;min-height:610px}
+.city-map-card,.city-detail-card,.city-card{background:linear-gradient(145deg,rgba(19,22,27,.96),rgba(6,8,11,.98));border:1px solid rgba(214,173,69,.34);border-radius:20px;box-shadow:0 16px 45px rgba(0,0,0,.3)}
+.city-map-card{overflow:hidden}
+.city-map-toolbar{display:flex;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid #292f38}
+.city-map-toolbar span{font-size:12px;color:#8f98a4}
+.city-map{position:relative;min-height:560px;height:100%;overflow:hidden}
+.city-map>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.9) contrast(1.08) brightness(.78)}
+.city-map:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 20%,rgba(0,0,0,.34) 100%)}
+.city-pin{position:absolute;z-index:3;border:1px solid #d6ad45;background:rgba(8,10,13,.9);color:#f7d879;border-radius:999px;padding:8px 11px;font-weight:800;box-shadow:0 7px 22px rgba(0,0,0,.5);cursor:pointer;touch-action:manipulation;transition:.18s}
+.city-pin:hover{transform:translateY(-3px);background:#1a1710;box-shadow:0 0 20px rgba(214,173,69,.22)}
+.city-pin span{color:#fff;font-size:11px;margin-left:5px}
+.city-pin.home{left:48%;top:49%}.city-pin.training{left:18%;top:28%}.city-pin.restaurant{left:62%;top:15%}.city-pin.gym{left:70%;top:62%}.city-pin.shop{left:22%;top:63%}.city-pin.clinic{left:55%;top:30%}.city-pin.bank{left:76%;top:47%}.city-pin.club{left:82%;top:20%}
+.city-detail-panel{min-height:610px}
+.city-detail-card{height:100%;padding:16px;opacity:.0;transform:translateX(14px);transition:.2s;pointer-events:none}
+.city-detail-panel.show .city-detail-card{opacity:1;transform:none;pointer-events:auto}
+.city-detail-hero{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid #292f38}
+.city-big-icon{width:58px;height:58px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(145deg,#2b2110,#0f1115);border:1px solid #9f7d2f;font-size:30px}
+.city-eyebrow,.eyebrow{font-size:11px;letter-spacing:.12em;color:#d6ad45;font-weight:800}
+.city-detail-hero h2{margin:3px 0 0;font-size:24px}
+.city-detail-hero .btn{margin-left:auto}
+.city-detail-tabs{display:flex;gap:4px;margin:12px 0;border-bottom:1px solid #292f38}
+.city-detail-tabs button{border:0;background:transparent;color:#858e99;padding:9px 7px;font-weight:800;font-size:11px}
+.city-detail-tabs button.active{color:#f3cf69;border-bottom:2px solid #d6ad45}
+.city-desc{color:#aeb5bf;line-height:1.5}
+.city-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}
+.city-stat{padding:11px;background:#0e1115;border:1px solid #252b34;border-radius:12px}
+.city-stat small{display:block;color:#7f8791;font-size:10px}.city-stat b{display:block;margin-top:5px;color:#f0c75f}
+.city-section-title{font-size:11px;letter-spacing:.12em;color:#d6ad45;font-weight:800;margin:18px 0 9px}
+.city-equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.city-equip{display:flex;gap:8px;align-items:center;background:#0e1115;border:1px solid #252b34;border-radius:12px;padding:9px}
+.city-equip>span{font-size:21px}.city-equip small{display:block;color:#7f8791;font-size:10px;margin-top:2px}
+.city-family{display:grid;gap:7px}.city-family-person{display:flex;align-items:center;gap:8px;padding:8px;background:#0e1115;border:1px solid #252b34;border-radius:12px}
+.city-avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#252015}
+.city-family-person div{flex:1}.city-family-person small{display:block;color:#7f8791;font-size:10px}
+.city-family-person strong{color:#75d86a}
+.city-detail-card .wide{width:100%;margin-top:16px}
+.city-bottom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.city-card{padding:18px}.city-card h3{margin:5px 0}.city-card p{color:#9ca4af;line-height:1.45}
+@media(max-width:1000px){.city-layout{grid-template-columns:1fr}.city-detail-panel{min-height:auto}.city-detail-card{min-height:500px}.city-map{min-height:500px}}
+@media(max-width:700px){.fl-city-page{padding:10px}.city-head{display:block}.city-head-kpis{margin-top:10px}.city-layout{display:block}.city-map{min-height:430px}.city-pin{padding:7px 8px;font-size:12px}.city-pin span{display:none}.city-bottom-grid{grid-template-columns:1fr}.city-detail-panel{margin-top:10px}.city-detail-card{display:none}.city-detail-panel.show .city-detail-card{display:block}.city-pin.home{left:46%;top:48%}}
+</style>
+
+<style id="fl-life-complete-ui-css-v40">
+.v40-page{padding:20px;max-width:1650px;margin:auto}.v40-page-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:18px}.v40-page-head h1{font-size:clamp(28px,3vw,46px);margin:4px 0}.v40-page-head p{color:#929ba7;margin:0}.v40-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.v40-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.v40-card{background:linear-gradient(145deg,rgba(18,22,27,.97),rgba(7,9,12,.99));border:1px solid rgba(214,173,69,.28);border-radius:20px;padding:17px;box-shadow:0 14px 35px rgba(0,0,0,.28)}.v40-card-head{display:flex;gap:11px;align-items:center;border-bottom:1px solid #252b33;padding-bottom:12px;margin-bottom:12px}.v40-card-head small{display:block;color:#808994;margin-top:3px}.v40-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#2a2110,#111419);border:1px solid #8e6d29;font-size:23px}.v40-muted{color:#8f98a3;line-height:1.5}.v40-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.v40-match{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;text-align:center;padding:18px 8px;font-size:14px}.v40-match strong{color:#d6ad45;font-size:22px}.v40-list{display:grid;gap:8px}.v40-list div{padding:11px;border:1px solid #242a33;background:#0d1014;border-radius:12px}.v40-statline{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #242a33}.v40-statline strong,.v40-big-number{color:#e6bf5c}.v40-big-number{font-size:38px;font-weight:900;margin:8px 0}.v40-bar,.v40-bars i{display:block;height:7px;background:#262d36;border-radius:99px;overflow:hidden}.v40-bar i,.v40-bars i{display:block;height:100%;background:linear-gradient(90deg,#9d7627,#f0cd6b);border-radius:99px}.v40-bars{display:grid;gap:10px}.v40-bars span{display:grid;gap:5px;color:#adb4be;font-size:12px}.v40-message-list{display:grid;gap:8px}.v40-message{width:100%;display:flex;align-items:center;gap:12px;text-align:left;color:#fff;background:#0d1014;border:1px solid #242a33;border-radius:14px;padding:12px;cursor:pointer}.v40-message>span{font-size:23px}.v40-message div{flex:1}.v40-message small{display:block;color:#808994;margin-top:3px}.v40-message em{color:#d6ad45;font-style:normal}.v40-section-title{margin:18px 0 9px;color:#d6ad45;font-size:11px;font-weight:900;letter-spacing:.12em}
+.v40-home-view{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;height:100%}.v40-home-image{position:relative;min-height:520px;border-radius:18px;overflow:hidden;border:1px solid rgba(214,173,69,.3)}.v40-home-image img{width:100%;height:100%;object-fit:cover;display:block}.v40-home-caption{position:absolute;left:0;right:0;bottom:0;padding:22px;background:linear-gradient(transparent,rgba(0,0,0,.92));display:flex;justify-content:space-between;align-items:end}.v40-home-caption span{font-size:18px;font-weight:900}.v40-home-caption b{color:#d6ad45}.v40-home-info{padding:8px}.v40-home-info h2{margin:5px 0 8px}.v40-home-items,.v40-home-family{display:grid;grid-template-columns:1fr 1fr;gap:8px}.v40-room{display:flex;gap:10px;align-items:center;text-align:left;color:#fff;background:#0d1014;border:1px solid #252b33;border-radius:14px;padding:11px;cursor:pointer}.v40-room>span{font-size:24px}.v40-room div{flex:1}.v40-room small{display:block;color:#7f8791;font-size:10px;margin-top:2px}.v40-room strong{color:#76d96a}.v40-home-info .v40-actions{margin-top:18px}
+@media(max-width:1000px){.v40-grid3{grid-template-columns:1fr 1fr}.v40-home-view{grid-template-columns:1fr}.v40-home-image{min-height:360px}}
+@media(max-width:650px){.v40-page{padding:11px}.v40-page-head{display:block}.v40-page-head .btn{margin-top:10px}.v40-grid2,.v40-grid3{grid-template-columns:1fr}.v40-home-items,.v40-home-family{grid-template-columns:1fr}.v40-home-image{min-height:280px}}
+</style>
 </head>
 <body><button class="fl-quick-save" onclick="flSaveAs()" title="Zapisz karierę">💾 Zapisz</button>
 
@@ -1371,7 +1427,7 @@ const menu=[
  ['history','📜','Historia decyzji','wydarzenia i skutki'],
  ['flgram','📱','FLgram','feed, gwiazdy, wiadomości'],
  ['finance','💰','Finanse','pieniądze, inwestycje, biznes'],
- ['shop','🏙️','Miasto / Sklep','zakupy, domy, auta, lekarze'],
+ ['city','🏙️','Miasto / Sklep','mapa miasta, domy, sklepy, usługi'],
  ['education','🎓','Edukacja','szkoła, kursy, nauka'],
  ['licenses','🪪','Licencje','auto, łódź, samolot'],
  ['specialists','🩺','Specjaliści','lekarze, psycholog, badania'],
@@ -2576,6 +2632,106 @@ function openWorldCatalog(type){
     <button class="btn" style="margin-top:8px" onclick="buyWorldItem('${type}','${x.id}')">Wybierz / kup</button></div>`}).join('')}</div>`,true);
 }
 
+
+function cityProperty(){
+  const props=S.properties||[];
+  return props.find(p=>p.owned||p.status==='własność'||p.status==='mieszkam z rodzicami') || props[0] || {
+    name:'Dom rodzinny',type:'dom',city:S.player.city||'Twoje miasto',value:0,comfort:70,rooms:5
+  };
+}
+function cityFamily(){
+  const f=S.family||{};
+  const out=[];
+  if(f.father)out.push({name:f.father.name||'Tata',role:'Wsparcie',score:f.father.relationship||75});
+  if(f.mother)out.push({name:f.mother.name||'Mama',role:'Wsparcie',score:f.mother.relationship||75});
+  if(Array.isArray(f.siblings))f.siblings.slice(0,3).forEach(x=>out.push({name:x.name||'Rodzeństwo',role:'Rodzeństwo',score:x.relationship||70}));
+  return out.slice(0,4);
+}
+function cityDetail(id){
+  const p=cityProperty();
+  const fam=cityFamily();
+  const details={
+    home:{
+      title:'APARTAMENT',sub:'Twój dom. Twoja przestrzeń.',
+      image:'🏠',desc:'Wejdź do domu i zobacz wszystko, co udało Ci się stworzyć.',
+      stats:[['Wartość',money(p.value||0)],['Poziom',p.level||p.comfort?'2':'1'],['Komfort',Math.round(p.comfort||70)+'/100']],
+      tabs:['PRZEGLĄD','UPGRADE','STATYSTYKI','ZARZĄDZAJ']
+    },
+    training:{title:'CENTRUM TRENINGOWE',sub:'Rozwój umiejętności i forma.',image:'🏟️',desc:'Trening, przygotowanie i regeneracja.',stats:[['Forma',Math.round(S.player.form||80)+'/100'],['Energia',Math.round(S.player.energy||100)+'/100'],['Zmęczenie',Math.round(S.player.fatigue||18)+'%']]},
+    restaurant:{title:'RESTAURACJA',sub:'Jedzenie i czas wolny.',image:'🍽️',desc:'Posiłek może poprawić nastrój i relacje.',stats:[['Koszt','35–120 €'],['Nastrój','+3–10'],['Relacje','+1–5']]},
+    gym:{title:'SIŁOWNIA',sub:'Forma poza klubem.',image:'🏋️',desc:'Dodatkowy trening i poprawa kondycji.',stats:[['Kondycja','+2'],['Energia','-8'],['Koszt','25 €']]},
+    shop:{title:'SKLEP SPORTOWY',sub:'Sprzęt, ubrania i korki.',image:'👟',desc:'Kupuj przedmioty różnej jakości i ceny.',stats:[['Oferta','Dynamiczna'],['Jakość','1–5 ★'],['Ceny','Zależne od miasta']]},
+    bank:{title:'BANK',sub:'Finanse i inwestycje.',image:'🏦',desc:'Zarządzaj pieniędzmi, kredytami i inwestycjami.',stats:[['Gotówka',money(S.player.money||0)],['Reputacja',Math.round(S.player.popularity||0)],['Rynek','Dynamiczny']]},
+    clinic:{title:'GABINET LEKARSKI',sub:'Zdrowie i regeneracja.',image:'🏥',desc:'Badania, leczenie i konsultacje.',stats:[['Zdrowie',Math.round(S.player.health||90)+'/100'],['Zmęczenie',Math.round(S.player.fatigue||18)+'%'],['Koszt','Zależny od usługi']]},
+    club:{title:'KLUB NOCNY',sub:'Życie nocne i popularność.',image:'🌃',desc:'Wyjście ze znajomymi, ale uważaj na konsekwencje.',stats:[['Nastrój','+8'],['Popularność','+1–5'],['Energia','-15']]}
+  };
+  return details[id]||details.home;
+}
+function cityDetailHTML(id){
+  const d=cityDetail(id), p=cityProperty(), fam=cityFamily();
+  const familyHTML=fam.map(x=>`<div class="city-family-person"><span class="city-avatar">👤</span><div><b>${esc(x.name)}</b><small>${esc(x.role)}</small></div><strong>${Math.round(x.score)}</strong></div>`).join('');
+  const stats=d.stats.map(x=>`<div class="city-stat"><small>${esc(x[0])}</small><b>${esc(String(x[1]))}</b></div>`).join('');
+  const homeEquip=[
+    ['🛋️','Salon','Kanapa premium'],
+    ['📺','Technologia','Telewizor / audio'],
+    ['🎮','Gaming Room','Sprzęt gamingowy'],
+    ['🏋️','Siłownia','Wyposażenie'],
+    ['🌿','Taras','Strefa relaksu'],
+    ['🚗','Garaż','Samochód']
+  ];
+  const equip=id==='home'?homeEquip.map(x=>`<div class="city-equip"><span>${x[0]}</span><div><b>${x[1]}</b><small>${x[2]}</small></div></div>`).join(''):'';
+  return `<div class="city-detail-card">
+    <div class="city-detail-hero"><div class="city-big-icon">${d.image}</div><div><div class="city-eyebrow">${esc(d.sub)}</div><h2>${esc(d.title)}</h2></div><button class="btn ghost" onclick="cityCloseDetail()">×</button></div>
+    <div class="city-detail-tabs">${(d.tabs||['PRZEGLĄD','USŁUGI','INFORMACJE']).map((t,i)=>`<button class="${i===0?'active':''}" onclick="toast('${esc(t)}')">${t}</button>`).join('')}</div>
+    <p class="city-desc">${esc(d.desc)}</p>
+    <div class="city-stats">${stats}</div>
+    ${id==='home'?`<div class="city-section-title">TWOJA PRZESTRZEŃ</div><div class="city-equip-grid">${equip}</div>`:''}
+    ${id==='home'?`<div class="city-section-title">RODZINA</div><div class="city-family">${familyHTML||'<div class="muted">Rodzina pojawi się tutaj wraz z historią postaci.</div>'}</div>`:''}
+    <button class="btn gold wide" onclick="cityAction('${id}')">${id==='home'?'WEJDŹ DO DOMU':id==='shop'?'OTWÓRZ SKLEP':id==='training'?'IDŹ NA TRENING':'PRZEJDŹ'}</button>
+  </div>`;
+}
+function cityAction(id){
+  if(id==='home'){toast('🏠 Otwierasz dom — możesz zarządzać wyposażeniem i rodziną.');return;}
+  if(id==='shop'){current='shop';render();return;}
+  if(id==='training'){current='day';render();return;}
+  toast(cityDetail(id).title+' — moduł aktywny');
+}
+function cityCloseDetail(){document.getElementById('cityDetailPanel')?.classList.remove('show')}
+function cityOpen(id){
+  const panel=document.getElementById('cityDetailPanel');
+  if(!panel)return;
+  panel.innerHTML=cityDetailHTML(id);
+  panel.classList.add('show');
+}
+function renderCity(){
+  const p=S.player||{}, city=esc(p.city||'Twoje miasto');
+  return `<section class="fl-city-page">
+    <div class="city-head"><div><div class="eyebrow">🏙️ TWOJE ŻYCIE POZA BOISKIEM</div><h1>${city}</h1><p>Wybieraj miejsca, odwiedzaj budynki i rozwijaj swoje życie.</p></div><div class="city-head-kpis"><span>💰 ${money(p.money||0)}</span><span>⭐ ${Math.round(p.popularity||0)}</span><span>⚡ ${Math.round(p.energy||100)}/100</span></div></div>
+    <div class="city-layout">
+      <div class="city-map-card">
+        <div class="city-map-toolbar"><b>MAPA MIASTA</b><span>Kliknij budynek, aby zobaczyć szczegóły</span></div>
+        <div class="city-map">
+          <img src="data:image/jpeg;base64,${map64}" alt="Mapa miasta">
+          <button class="city-pin home" onclick="cityOpen('home')">⌂ <span>APARTAMENT</span></button>
+          <button class="city-pin training" onclick="cityOpen('training')">⚽ <span>CENTRUM TRENINGOWE</span></button>
+          <button class="city-pin restaurant" onclick="cityOpen('restaurant')">🍽 <span>RESTAURACJA</span></button>
+          <button class="city-pin gym" onclick="cityOpen('gym')">🏋 <span>SIŁOWNIA</span></button>
+          <button class="city-pin shop" onclick="cityOpen('shop')">👟 <span>SKLEP SPORTOWY</span></button>
+          <button class="city-pin clinic" onclick="cityOpen('clinic')">✚ <span>GABINET LEKARSKI</span></button>
+          <button class="city-pin bank" onclick="cityOpen('bank')">€ <span>BANK</span></button>
+          <button class="city-pin club" onclick="cityOpen('club')">★ <span>KLUB NOCNY</span></button>
+        </div>
+      </div>
+      <aside id="cityDetailPanel" class="city-detail-panel"></aside>
+    </div>
+    <div class="city-bottom-grid">
+      <div class="city-card"><div class="eyebrow">ODKRYWAJ</div><h3>Nowe miejsca</h3><p>Budynki mogą odblokowywać się wraz z wiekiem, karierą, pieniędzmi i popularnością.</p></div>
+      <div class="city-card"><div class="eyebrow">TWOJE DOMY</div><h3>${esc(cityProperty().name||'Dom rodzinny')}</h3><p>Wizualny dom zmienia się wraz z zakupionym wyposażeniem i poziomem nieruchomości.</p><button class="btn ghost" onclick="cityOpen('home')">PRZEGLĄD DOMU →</button></div>
+      <div class="city-card"><div class="eyebrow">RODZINA</div><h3>Życie domowe</h3><p>Rodzina, partner, dzieci, goście i atmosfera domu są częścią tego miejsca.</p><button class="btn ghost" onclick="cityOpen('home')">ZOBACZ DOM →</button></div>
+    </div>
+  </section>`;
+}
+
 function render(){
  document.body.classList.remove('busy');
  renderTop();renderMenu();setTabs();
@@ -2584,7 +2740,7 @@ function render(){
   case 'day':out=renderDay();break;case 'career':out=renderCareer();break;case 'stats':out=renderStats();break;
   case 'life':out=renderLife();break;case 'family':out=renderFamily();break;case 'relations':out=renderRelations();break;
   case 'history':out=renderHistory();break;case 'flgram':out=renderFlgram();break;case 'finance':out=renderFinance();break;
-  case 'shop':out=renderShop();break;case 'education':out=renderEducation();break;case 'licenses':out=renderLicenses();break;
+  case 'shop':out=renderShop();break;case 'city':out=renderCity();break;case 'education':out=renderEducation();break;case 'licenses':out=renderLicenses();break;
   case 'specialists':out=renderSpecialists();break;case 'calendar':out=renderCalendar();break;case 'secondary':out=renderSecondary();break;
   case 'settings':out=renderSettings();break;case 'code':out=renderCode();break;
   default:out=renderDay();
@@ -2607,7 +2763,7 @@ function toggleSideMenu(){const m=document.getElementById('sideMenu'),b=document
 function closeSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.remove('open');if(b)b.classList.remove('open')}
 function toggleZone(btn){const z=btn.closest('.side-zone');if(z)z.classList.toggle('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSideMenu()})
-function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'shop',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el){el.click();return true}return false}
+function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'city',city:'city',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el){el.click();return true}return false}
 </script>
 <script id="game-mode-fixes">
 function startNewGame(){
@@ -3324,6 +3480,137 @@ function startNewGamePlus(){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});
   else arm();
   window.addEventListener('load',arm,{once:true});
+})();
+</script>
+
+<script id="fl-life-complete-ui-v40">
+(function(){
+  function escSafe(v){ return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function num(v,d=0){return Math.round(Number(v)||d)}
+  function moneySafe(v){return typeof money==='function'?money(v):`${num(v)} €`}
+
+  const moduleMeta={
+    matches:['⚽','MECZE','Terminarz, przygotowanie i wyniki','career'],
+    scouts:['🔎','SKAUTING','Obserwacja zawodników i raporty','career'],
+    transfers:['↔️','TRANSFERY','Rynek transferowy, oferty i negocjacje','career'],
+    attributes:['📊','ATRYBUTY','Rozwój zawodnika i trening indywidualny','stats'],
+    education:['🎓','EDUKACJA','Szkoła, kursy, języki i certyfikaty','education'],
+    licenses:['🪪','LICENCJE','Prawo jazdy, łódź, samolot i inne uprawnienia','licenses'],
+    property:['🏠','NIERUCHOMOŚCI','Domy, mieszkania, zakup i wyposażenie','city'],
+    cars:['🚗','SAMOCHODY','Zakup, garaż, koszty i kolekcja','city'],
+    messages:['✉️','WIADOMOŚCI','Kontakty, klub, rodzina i świat gry','relations'],
+    settings:['⚙️','USTAWIENIA','Zapis, opcje i konfiguracja gry','settings'],
+    code:['📖','KODEKS FL LIFE','Zasady, systemy i wyjaśnienia','code'],
+    secondary:['🚀','KARIERA POBOCZNA','Muzyka, film, twórca i influencer','secondary'],
+    calendar:['📅','KALENDARZ','Mecze, wydarzenia, kursy i życie prywatne','calendar']
+  };
+
+  function card(title,sub,icon,body,actions=''){
+    return `<article class="v40-card"><div class="v40-card-head"><span class="v40-icon">${icon}</span><div><div class="eyebrow">${title}</div><small>${sub}</small></div></div>${body}${actions?`<div class="v40-actions">${actions}</div>`:''}</article>`;
+  }
+  function action(label,fn,primary=false){return `<button class="btn ${primary?'gold':'ghost'}" onclick="${fn}">${label}</button>`}
+
+  function renderUniversal(key){
+    const m=moduleMeta[key]||['✦',key.toUpperCase(),'Moduł Football Life','day'];
+    const p=S.player||{};
+    let body='', actions='';
+
+    if(key==='matches'){
+      body=`<div class="v40-grid3">
+        ${card('NASTĘPNY MECZ','Najbliższe spotkanie','🏟️',`<div class="v40-match"><b>${escSafe(p.club||'TWÓJ KLUB')}</b><strong>VS</strong><b>RYWAL</b></div><div class="v40-muted">Przygotuj formę, energię i skład.</div>`,action('PRZEJDŹ DO DNIA',"current='day';render()"))}
+        ${card('TERMINARZ','Nadchodzące','📅',`<div class="v40-list"><div>⚽ Liga — następna kolejka</div><div>🏆 Puchar — termin do ustalenia</div><div>✈️ Wyjazd — zależny od terminarza</div></div>`,action('KALENDARZ',"current='calendar';render()"))}
+        ${card('PRZYGOTOWANIE','Mecz','🔥',`<div class="v40-bars"><span>Forma <i style="width:${num(p.form,80)}%"></i></span><span>Energia <i style="width:${num(p.energy,100)}%"></i></span><span>Zdrowie <i style="width:${num(p.health,90)}%"></i></span></div>`) }
+      </div>`;
+    } else if(key==='scouts'){
+      body=`<div class="v40-grid3">${['Młody talent','Zawodnik pierwszego składu','Doświadczony lider'].map((x,i)=>card('RAPORT '+(i+1),x,['🧑‍🎓','⭐','🧔'][i],`<p class="v40-muted">Raport skautingowy zawiera potencjał, cenę i dopasowanie do klubu.</p><div class="v40-statline"><b>Potencjał</b><strong>${70+i*8}–${84+i*5}</strong></div>`,action('OTWÓRZ RAPORT',`toast('Raport: ${x}')`))).join('')}</div>`;
+    } else if(key==='transfers'){
+      body=`<div class="v40-grid2">${card('RYNEK','Transfery','💼',`<div class="v40-statline"><b>Twoja wartość</b><strong>${moneySafe(p.marketValue||2400000)}</strong></div><div class="v40-statline"><b>Klub</b><strong>${escSafe(p.club||'—')}</strong></div>`,action('PRZEJDŹ DO OFERT',`toast('Oferty transferowe zostaną pokazane na podstawie Twojej kariery.')`,true))}${card('KONTRAKT','Negocjacje','📝',`<p class="v40-muted">Pensja, bonusy, długość kontraktu, rola w zespole i klauzule.</p>`,action('SPRAWDŹ KONTRAKT',"current='career';render()"))}</div>`;
+    } else if(key==='attributes'){
+      const attrs=['Szybkość','Strzał','Podania','Drybling','Obrona','Fizyczność'];
+      body=`<div class="v40-grid3">${attrs.map((x,i)=>card('ATRYBUT',x,'◈',`<div class="v40-big-number">${num(65+i*4)}</div><div class="v40-bar"><i style="width:${65+i*4}%"></i></div><small class="v40-muted">Potencjał rozwoju zależy od treningu i historii.</small>`,action('TRENUJ',`toast('Trening ${x} — wybór zapisany.')`))).join('')}</div>`;
+    } else if(key==='education'){
+      body=`<div class="v40-grid3">${['Języki','Kursy','Szkoła / studia'].map((x,i)=>card('EDUKACJA',x,['🌍','🎓','📚'][i],`<p class="v40-muted">${i===0?'Wszystkie dostępne języki i poziomy.':i===1?'Kursy różnej jakości, ceny i czasu trwania.':'Edukacja formalna i kwalifikacje.'}</p>`,action('OTWÓRZ',i===0?"toast('Otwierasz szkołę językową.')":i===1?"toast('Otwierasz katalog kursów.'):"toast('Otwierasz edukację formalną.')",true))).join('')}</div>`;
+    } else if(key==='licenses'){
+      body=`<div class="v40-grid3">${['🚗 Prawo jazdy','🛥️ Licencja na jacht','✈️ Licencja pilota'].map(x=>card('LICENCJA',x.slice(2),'🪪',`<p class="v40-muted">Kurs + egzamin + koszt. Dostępność zależy od wieku i historii.</p>`,action('SPRAWDŹ',`toast('${x}: wymagania i cena')`))).join('')}</div>`;
+    } else if(key==='property'){
+      body=`<div class="v40-grid2">${card('TWOJA NIERUCHOMOŚĆ','Dom','🏠',`<h2>${escSafe((S.properties||[])[0]?.name||'Dom rodzinny')}</h2><p class="v40-muted">Wartość: ${moneySafe((S.properties||[])[0]?.value||0)} · Komfort: ${num((S.properties||[])[0]?.comfort,70)}/100</p>`,action('OTWÓRZ DOM',"current='city';render();setTimeout(()=>cityOpen('home'),50)",true))}${card('RYNEK','Nowa nieruchomość','🏢',`<p class="v40-muted">Kupuj mieszkania, domy i wille. Każda nieruchomość ma lokalizację, poziom, koszty i możliwości rozbudowy.</p>`,action('OTWÓRZ MIASTO',"current='city';render()"))}</div>`;
+    } else if(key==='cars'){
+      body=`<div class="v40-grid3">${['Miejski','Sportowy','Luksusowy'].map((x,i)=>card('GARAŻ',x,['🚗','🏎️','🚘'][i],`<div class="v40-statline"><b>Poziom</b><strong>${i+1}/5</strong></div><p class="v40-muted">Cena i koszty utrzymania zależą od modelu.</p>`,action('OTWÓRZ SALON',"current='city';render()"))).join('')}</div>`;
+    } else if(key==='messages'){
+      body=`<div class="v40-message-list">${['Klub','Agent','Rodzina','Sponsor'].map((x,i)=>`<button class="v40-message" onclick="toast('Otwierasz wiadomość: ${x}')"><span>${['⚽','💼','❤️','⭐'][i]}</span><div><b>${x}</b><small>Nowa wiadomość związana z Twoim życiem.</small></div><em>${i+1}</em></button>`).join('')}</div>`;
+    } else if(key==='settings'){
+      body=`<div class="v40-grid2">${card('ZAPIS','Bezpieczeństwo','💾',`<p class="v40-muted">Gra zapisuje stan w przeglądarce. Możesz tworzyć i wczytywać osobne zapisy.</p>`,action('ZAPISZ TERAZ',"save();toast('Gra została zapisana.')",true)+action('MENU GŁÓWNE',"document.getElementById('flStartScreen')?.classList.remove('hidden')"))}${card('ROZGRYWKA','Opcje','🎮',`<p class="v40-muted">Sterowanie, tempo, informacje i ustawienia świata.</p>`,action('KODEKS',"current='code';render()"))}</div>`;
+    } else if(key==='code'){
+      body=`<div class="v40-grid2">${[['🏙️','Miasto','Budynki i usługi są zależne od miasta, wieku, pieniędzy i popularności.'],['🏠','Dom','Wyposażenie zmienia wygląd i komfort domu. Rodzina jest częścią życia domowego.'],['🛍️','Sklep','Produkty mają markę, jakość, cenę i wpływ na styl/popularność.'],['🚀','Kariera poboczna','Sprzęt, kursy, czas i poziom jakości wpływają na rozwój.'],['🌍','Języki','Kursy mają poziom, cenę i czas trwania.'],['📱','FLgram','Aktywność, posty i współprace wpływają na popularność.']].map(x=>card('SYSTEM',x[1],x[0],`<p class="v40-muted">${x[2]}</p>`)).join('')}</div>`;
+    } else if(key==='secondary'){
+      body=`<div class="v40-grid2">${['Muzyka','Film','Twórca','Influencer'].map((x,i)=>card('KARIERA POBOCZNA',x,['🎵','🎬','🎥','📱'][i],`<p class="v40-muted">Kupujesz sprzęt, robisz kursy, rozwijasz poziom i budujesz popularność.</p><div class="v40-statline"><b>Poziom</b><strong>${num(1+i)}</strong></div>`,action('ROZWIJAJ',`toast('${x}: wybierz sprzęt lub kurs.')`,true))).join('')}</div>`;
+    } else if(key==='calendar'){
+      body=`<div class="v40-grid2">${card('DZISIAJ','Plan dnia','🗓️',`<div class="v40-list"><div>⚽ Trening / mecz</div><div>👥 Relacje i rodzina</div><div>🏙️ Miasto i zakupy</div></div>`,action('WRÓĆ DO DNIA',"current='day';render()",true))}${card('PRZYSZŁOŚĆ','Wydarzenia','⏱️',`<p class="v40-muted">Mecze, kursy, wyjazdy, wydarzenia rodzinne i losowe pojawiają się w historii.</p>`,action('HISTORIA',"current='history';render()"))}</div>`;
+    }
+    return `<section class="v40-page"><div class="v40-page-head"><div><div class="eyebrow">${m[0]} ${m[1]}</div><h1>${m[1]}</h1><p>${m[2]}</p></div><button class="btn ghost" onclick="current='${m[3]}';render()">← POWRÓT</button></div>${body}</section>`;
+  }
+
+  // Pełny widok domu: osobny ekran otwierany z mapy miasta.
+  window.openHomeView=function(){
+    const p=cityProperty(), fam=cityFamily();
+    const items=[
+      ['🛋️','Salon',p.livingRoom||'Wyposażenie podstawowe'],
+      ['📺','TV / Audio',p.tv||'Brak ulepszenia'],
+      ['🎮','Gaming Room',p.gaming||'Brak ulepszenia'],
+      ['🏋️','Siłownia',p.gym||'Brak ulepszenia'],
+      ['🌿','Taras',p.terrace||'Standard'],
+      ['🚗','Garaż',p.garage||'Standard']
+    ];
+    const panel=document.getElementById('cityDetailPanel');
+    if(!panel)return;
+    panel.innerHTML=`<div class="v40-home-view">
+      <div class="v40-home-image"><img src="data:image/jpeg;base64,${home64}" alt="Wnętrze domu"><div class="v40-home-caption"><span>🏠 ${escSafe(p.name||'TWÓJ DOM')}</span><b>${escSafe(p.city||S.player.city||'Miasto')}</b></div></div>
+      <div class="v40-home-info"><div class="eyebrow">PRZEGLĄD DOMU</div><h2>Twoje życie tutaj</h2><p class="v40-muted">Wygląd domu rozwija się razem z zakupami, majątkiem i historią postaci.</p>
+      <div class="v40-home-items">${items.map(x=>`<button onclick="toast('${x[1]}: ${x[2]}')" class="v40-room"><span>${x[0]}</span><div><b>${x[1]}</b><small>${x[2]}</small></div></button>`).join('')}</div>
+      <div class="v40-section-title">RODZINA</div><div class="v40-home-family">${fam.map(x=>`<button class="v40-room" onclick="toast('Czas z ${escSafe(x.name)}')"><span>👤</span><div><b>${escSafe(x.name)}</b><small>${escSafe(x.role)}</small></div><strong>${num(x.score)}</strong></button>`).join('')||'<span class="v40-muted">Rodzina pojawi się wraz z historią postaci.</span>'}</div>
+      <div class="v40-actions">${action('WRÓĆ DO MAPY',"cityCloseDetail()",true)}${action('ZARZĄDZAJ DOMEM',"current='city';render();setTimeout(()=>cityOpen('home'),50)")}</div></div>
+    </div>`;
+    panel.classList.add('show');
+  };
+
+  // Podmień akcję domu w module miasta na prawdziwy widok wnętrza.
+  const oldCityOpen=window.cityOpen;
+  window.cityOpen=function(id){
+    if(id==='home'){openHomeView();return;}
+    oldCityOpen(id);
+  };
+
+  // Wszystkie pozycje bocznego menu dostają konkretny ekran; brakujące wcześniej routy nie wracają do "Głównej".
+  const originalRender=window.render;
+  window.render=function(){
+    if(typeof current!=='undefined' && moduleMeta[current]){
+      const main=document.getElementById('main');
+      if(main)main.innerHTML=renderUniversal(current);
+      if(typeof renderTop==='function')renderTop();
+      if(typeof renderMenu==='function')renderMenu();
+      if(typeof setTabs==='function')setTabs();
+      return;
+    }
+    return originalRender();
+  };
+
+  const oldNav=window.navigateTo;
+  window.navigateTo=function(k){
+    const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finance',shop:'city',city:'city',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};
+    const key=map[k]||k;
+    if(moduleMeta[key]||key==='day'||key==='career'||key==='stats'||key==='life'||key==='family'||key==='relations'||key==='history'||key==='flgram'||key==='finance'||key==='shop'){
+      closeSideMenu(); current=key; render(); return true;
+    }
+    return oldNav?oldNav(key):false;
+  };
+
+  // Przejście do domu z miasta korzysta z osobnego widoku.
+  window.cityAction=function(id){
+    if(id==='home'){openHomeView();return;}
+    if(id==='shop'){current='shop';render();return;}
+    if(id==='training'){current='day';render();return;}
+    toast((cityDetail(id)||{title:'Miejsce'}).title+' — moduł aktywny');
+  };
 })();
 </script>
 </body>
