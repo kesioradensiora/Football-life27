@@ -2542,11 +2542,11 @@ function randomIdentity(){
     const title=mode==='plus'?'NOWA GRA+':'NOWA GRA';
     let html='';
     if(step===0){
-      html='<div class="modal-head"><div><div class="eyebrow">✨ '+title+'</div><h2>Stwórz swoją karierę</h2><div class="muted small">Najpierw wybierz, ile decyzji chcesz zostawić losowi.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
-      '<div class="modal-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">'+
-      '<button type="button" class="choice '+(!w.manual?'goldbtn':'')+'" id="fwAuto"><b>✨ AUTOMATYCZNIE</b><span>Gra losuje pochodzenie, rodzinę, płeć, imię, wiek 15–17, dom i pozycję.</span></button>'+
-      '<button type="button" class="choice '+(w.manual?'goldbtn':'')+'" id="fwManual"><b>⚙ RĘCZNIE</b><span>Samodzielnie ustawiasz zawodnika, rodziców, miejsce zamieszkania i pozycję.</span></button>'+
-      '</div><div class="history-item" style="margin-top:12px"><b>Losowość rodziny jest prawdziwą częścią historii.</b><div class="muted small" style="margin-top:5px">Rodzice mogą być razem, po rozwodzie, mieszkać osobno, a zawodnik może mieszkać z obojgiem, jednym rodzicem, rodziną lub w innej sytuacji opiekuńczej.</div></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      w.manual=false;
+      html='<div class="modal-head"><div><div class="eyebrow">✨ NOWA GRA</div><h2>Automatyczne rozpoczęcie kariery</h2><div class="muted small">Gra sama stworzy spójną historię Twojego zawodnika. Nie wybierasz tutaj trybu ręcznego.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+      '<div class="history-item" style="margin-top:14px"><b>🎲 Wszystko zostanie wygenerowane automatycznie</b><div class="muted small" style="margin-top:7px">Kraj i miasto, rodzina, rodzice, sytuacja mieszkaniowa, finanse, szkoła, języki, klub/szkółka, pozycja i pozostałe elementy historii zostaną dobrane ze sobą logicznie.</div></div>'+
+      '<div class="history-item" style="margin-top:10px"><b>✏️ Możesz później zmienić tylko:</b><div class="muted small" style="margin-top:7px">imię • nazwisko • pochodzenie • wiek 15–17</div></div>'+
+      '<div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">GENERUJ ZAWODNIKA →</button></div>';
     }else if(step===1){
       if(!w.manual){
         randomIdentity();
