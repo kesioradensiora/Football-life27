@@ -2567,7 +2567,7 @@ function flEnsureFamilyConsistency(){
 function finish(){
     try{flNormalizeModeBeforeFinish();flEnsureFamilyConsistency();
       const base=(typeof initial!=='undefined'&&typeof clone==='function')?clone(initial):null;
-      if(!base||typeof setState!=='function'){toast('Gra nie udostępniła mechanizmu tworzenia zapisu.');return}
+      if(!base){toast('Nie udało się przygotować nowej kariery.');return}
       randomIdentity();
       if(!w.fatherName||!w.motherName)randomFamily();
       const p=base.player,c=cdata(w.country);
@@ -2591,8 +2591,8 @@ function finish(){
       base.family.roots=[{label:'Ojciec',country:w.fatherCountry||w.country,city:w.city},{label:'Matka',country:w.motherCountry||w.country,city:w.city}];
       base.history=(base.history||[]).concat([{date:base.day?.date||'2026-09-01',type:'start',title:'Początek historii',text:p.name+' rozpoczyna drogę jako '+p.position+' w '+p.city+'. Start: '+p.club+' • '+p.academy+'. '+familySummary()}]);
       base.meta={...(base.meta||{}),careerId:'career_'+Date.now(),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
-      setState(base);
-      if(typeof migrateSave==='function')migrateSave(base);
+      S=base;
+      if(typeof migrateSave==='function')migrateSave(S);
       if(typeof save==='function')save();
       if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
       close();hide();if(typeof render==='function')render();
