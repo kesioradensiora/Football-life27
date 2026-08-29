@@ -1852,22 +1852,64 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 
 <script id="fl-life-start-controller">
 (function(){
-  /* START SCREEN: one clean controller. It talks directly to the game's
-     existing modal functions — no second router and no overlay system. */
   const root=document.getElementById('flStartScreen');
   const pick=a=>a[Math.floor(Math.random()*a.length)];
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const countries=[
-    ['Polska','Warszawa','Kowalski','Nowak'],['Brazylia','São Paulo','Silva','Santos'],
-    ['Portugalia','Porto','Pereira','Costa'],['Hiszpania','Madryt','Garcia','Martinez'],
-    ['Argentyna','Buenos Aires','Gonzalez','Fernandez'],['Francja','Paryż','Martin','Bernard'],
-    ['Anglia','Londyn','Smith','Brown'],['Włochy','Mediolan','Rossi','Romano'],
-    ['Niemcy','Berlin','Müller','Schneider'],['Chorwacja','Zagrzeb','Horvat','Kovač'],
-    ['Serbia','Belgrad','Jovanović','Nikolić'],['Nigeria','Lagos','Okafor','Adeyemi']
+    ['Polska','Warszawa',['Kowalski','Nowak','Wójcik','Kamiński','Lewandowski','Zieliński']],
+    ['Brazylia','São Paulo',['Silva','Santos','Oliveira','Costa','Souza','Pereira']],
+    ['Portugalia','Porto',['Pereira','Costa','Silva','Santos','Ferreira','Almeida']],
+    ['Hiszpania','Madryt',['Garcia','Martinez','Lopez','Sanchez','Fernandez','Navarro']],
+    ['Argentyna','Buenos Aires',['Gonzalez','Fernandez','Rodriguez','Martinez','Romero','Diaz']],
+    ['Francja','Paryż',['Martin','Bernard','Dubois','Thomas','Robert','Petit']],
+    ['Anglia','Londyn',['Smith','Brown','Taylor','Wilson','Davies','Evans']],
+    ['Włochy','Mediolan',['Rossi','Romano','Ferrari','Esposito','Conti','Ricci']],
+    ['Niemcy','Berlin',['Müller','Schneider','Fischer','Weber','Wagner','Becker']],
+    ['Chorwacja','Zagrzeb',['Horvat','Kovač','Babić','Jurić','Marić','Novak']],
+    ['Serbia','Belgrad',['Jovanović','Nikolić','Petrović','Marković','Đorđević','Stojanović']],
+    ['Nigeria','Lagos',['Okafor','Adeyemi','Eze','Obi','Musa','Ibrahim']],
+    ['USA','Miami',['Johnson','Williams','Brown','Davis','Miller','Wilson']],
+    ['Holandia','Amsterdam',['de Jong','van Dijk','de Boer','Jansen','Bakker','Visser']],
+    ['Belgia','Bruksela',['Peeters','Janssens','Maes','Jacobs','Willems','Claes']],
+    ['Szwecja','Sztokholm',['Andersson','Johansson','Karlsson','Nilsson','Eriksson','Larsson']],
+    ['Norwegia','Oslo',['Hansen','Johansen','Olsen','Larsen','Andersen','Berg']],
+    ['Japonia','Tokio',['Sato','Suzuki','Takahashi','Tanaka','Watanabe','Ito']]
   ];
-  const male=['Noah','Liam','Mateo','Lucas','Leon','Theo','Marco','Luka','Adam','Milan','Daniel','Gabriel'];
-  const female=['Lia','Sofia','Emma','Mia','Clara','Elena','Giulia','Nina','Sara','Maja','Lena','Amelia'];
-  const positions=['Bramkarz','Środkowy obrońca','Boczny obrońca','Pomocnik','Skrzydłowy','Napastnik'];
+  const male=[
+    'Noah','Liam','Mateo','Lucas','Leon','Theo','Marco','Luka','Adam','Milan','Daniel','Gabriel',
+    'Alex','Oliver','Julian','Maks','Kacper','Antoni','Jakub','Filip','Jan','Szymon','Igor','Oskar'
+  ];
+  const female=[
+    'Lia','Sofia','Emma','Mia','Clara','Elena','Giulia','Nina','Sara','Maja','Lena','Amelia',
+    'Julia','Zofia','Oliwia','Laura','Hanna','Pola','Natalia','Wiktoria','Alicja','Nadia'
+  ];
+  const positions=[
+    'Bramkarz','Środkowy obrońca','Boczny obrońca','Defensywny pomocnik',
+    'Środkowy pomocnik','Ofensywny pomocnik','Skrzydłowy','Napastnik'
+  ];
+  const living=[
+    {id:'both',label:'Z obojgiem rodziców',desc:'Mieszkasz razem z mamą i tatą.'},
+    {id:'mother',label:'Tylko z mamą',desc:'Mieszkasz z mamą, tata mieszka osobno.'},
+    {id:'father',label:'Tylko z tatą',desc:'Mieszkasz z tatą, mama mieszka osobno.'},
+    {id:'oneparentpartner',label:'Z jednym rodzicem i jego partnerem/partnerką',desc:'Drugi rodzic mieszka osobno.'},
+    {id:'grandparents',label:'Z dziadkami / rodziną',desc:'Rodzice nie są Twoim głównym gospodarstwem domowym.'},
+    {id:'other',label:'Inne ustalenia rodzinne',desc:'Indywidualna sytuacja opiekuńcza.'}
+  ];
+  const familySituations=[
+    ['Stabilna rodzina','Rodzice są razem i wspólnie wspierają Twoją karierę.'],
+    ['Rodzice po rozwodzie','Rodzice mieszkają osobno, ale oboje utrzymują z Tobą kontakt.'],
+    ['Rodzice w separacji','Rodzina przechodzi trudniejszy okres i sytuacja może się zmieniać.'],
+    ['Samotny rodzic','Wychowuje Cię głównie jeden rodzic.'],
+    ['Duża rodzina','Masz rodzeństwo i dom jest pełen ludzi oraz obowiązków.'],
+    ['Rodzina patchworkowa','W domu pojawiają się przyrodnie relacje i nowe zasady.'],
+    ['Rodzice często pracują','Masz dużo samodzielności, bo rodzice są często poza domem.'],
+    ['Opieka dalszej rodziny','Dużą rolę w Twoim wychowaniu odgrywa dziadek, babcia lub inny krewny.']
+  ];
+  const siblings=[
+    'brak rodzeństwa','jedno starsze rodzeństwo','jedno młodsze rodzeństwo',
+    'starszy brat i młodsza siostra','dwie siostry','dwóch braci',
+    'starsza siostra i młodszy brat','troje rodzeństwa'
+  ];
   const questions=[
     ['CHARAKTER','Co najbardziej napędza Twoją karierę?',['Rodzina i bezpieczeństwo','Marzenie o wielkiej piłce','Sława i rozpoznawalność','Wolność i własna droga']],
     ['PRESJA','Jak reagujesz, gdy zaczyna robić się trudno?',['Pracuję jeszcze ciężej','Szukam wsparcia u bliskich','Ryzykuję i zmieniam plan','Zachowuję spokój']],
@@ -1875,14 +1917,37 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
     ['LUDZIE','Komu najłatwiej zaufasz?',['Rodzinie','Jednej bliskiej osobie','Trenerowi lub mentorowi','Nikomu od razu']],
     ['DROGA','Pojawia się wielka oferta. Co robisz?',['Biorę ją od razu','Rozmawiam z rodziną','Wybieram rozwój','Wybieram własną drogę']]
   ];
+
   let mode='new',step=0,w={};
 
   function toast(t){if(typeof window.toast==='function')window.toast(t);else console.warn(t)}
   function close(){if(typeof window.closeModal==='function')window.closeModal()}
-  function open(html){if(typeof window.openModal==='function'){window.openModal(html,true);return true} toast('Nie udało się otworzyć okna gry.');return false}
+  function open(html){if(typeof window.openModal==='function'){window.openModal(html,true);return true}toast('Nie udało się otworzyć okna gry.');return false}
   function hide(){if(root){root.classList.add('hidden');root.style.pointerEvents='none';root.style.display='none'}}
-  function country(n){return countries.find(x=>x[0]===n)||countries[0]}
-  function identity(){const c=country(w.country);w.first=w.gender==='K'?pick(female):pick(male);w.last=pick([c[2],c[3]]);w.city=w.city||c[1]}
+  function cdata(n){return countries.find(x=>x[0]===n)||countries[0]}
+  function randomIdentity(){
+    const c=cdata(w.country);
+    w.first=pick(w.gender==='K'?female:male);
+    w.last=pick(c[2]);
+    w.city=w.city||c[1];
+  }
+  function randomFamily(){
+    const c=cdata(w.country);
+    const fatherC=pick(countries),motherC=pick(countries);
+    w.familySituation=pick(familySituations);
+    w.siblings=pick(siblings);
+    w.fatherCountry=fatherC[0];
+    w.motherCountry=motherC[0];
+    w.fatherName=pick(male)+' '+pick(fatherC[2]);
+    w.motherName=pick(female)+' '+pick(motherC[2]);
+    w.living=pick(living).id;
+    if(w.living==='both' && w.familySituation[0]==='Rodzice po rozwodzie') w.living='mother';
+    if(w.living==='both' && w.familySituation[0]==='Samotny rodzic') w.living=pick(['mother','father']);
+  }
+  function livingLabel(id){return (living.find(x=>x.id===id)||living[0]).label}
+  function familySummary(){
+    return `${w.familySituation[0]} • ${w.siblings} • ${livingLabel(w.living)}`;
+  }
 
   function lastSave(){
     try{
@@ -1894,17 +1959,23 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
   function refresh(){
     const x=lastSave(),p=x?.player||{},set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
     set('flContinueDesc',x?(p.name||'Ostatnia kariera')+' • '+(p.club||'')+' — kontynuuj':'Brak zapisu — rozpocznij nową grę');
-    set('flLastCareer',x?(p.name||'Kariera'):'—');set('flLastClub',x?(p.club||'—'):'—');
-    set('flLastSeason',x?(p.age?'Wiek '+p.age:'Aktywna kariera'):'—');set('flLastProgress',x?'Zapis dostępny':'—');
   }
 
   window.flStartContinue=function(){
-    const data=lastSave();if(!data){toast('Brak zapisanej kariery. Wybierz „Nowa gra”.');return}
+    const data=lastSave();
+    if(!data){toast('Brak zapisanej kariery. Wybierz „Nowa gra”.');return}
     try{
       if(typeof setState==='function' && typeof clone==='function' && typeof initial!=='undefined'){
-        const loaded=deepMerge(clone(initial),data);setState(loaded);if(typeof migrateSave==='function')migrateSave(loaded);if(typeof save==='function')save();if(typeof setCurrent==='function')setCurrent('day');hide();if(typeof render==='function')render();toast('💾 Wczytano ostatnią karierę.');return
+        const loaded=deepMerge(clone(initial),data);
+        setState(loaded);
+        if(typeof migrateSave==='function')migrateSave(loaded);
+        if(typeof save==='function')save();
+        if(typeof setCurrent==='function')setCurrent('day');
+        hide();
+        if(typeof render==='function')render();
+        toast('💾 Wczytano ostatnią karierę.');
+        return;
       }
-      /* fallback: the game's normal state is exposed through its current save */
       if(typeof window.flLoadSlot==='function'){window.flLoadSlot(Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||1));hide();return}
       toast('Nie znaleziono mechanizmu wczytywania gry.')
     }catch(e){console.error(e);toast('Nie udało się wczytać kariery.')}
@@ -1912,8 +1983,17 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 
   function begin(which){
     mode=which;step=0;
-    w={gender:Math.random()<.5?'M':'K',country:pick(countries)[0],city:'',fatherCountry:'',motherCountry:'',
-       age:15+Math.floor(Math.random()*4),first:'',last:'',position:pick(positions),answers:[],manual:false};
+    w={
+      gender:Math.random()<.5?'M':'K',
+      country:pick(countries)[0],
+      city:'',
+      fatherCountry:'',motherCountry:'',
+      age:15+Math.floor(Math.random()*3), // 15–17, nigdy więcej
+      first:'',last:'',
+      position:pick(positions),
+      answers:[],manual:false,living:'both'
+    };
+    randomIdentity();randomFamily();
     draw();
   }
 
@@ -1921,16 +2001,29 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
     const title=mode==='plus'?'NOWA GRA+':'NOWA GRA';
     let html='';
     if(step===0){
-      html='<div class="modal-head"><div><div class="eyebrow">✨ '+title+'</div><h2>Stwórz swoją karierę</h2><div class="muted small">Wybierz sposób stworzenia zawodnika.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+      html='<div class="modal-head"><div><div class="eyebrow">✨ '+title+'</div><h2>Stwórz swoją karierę</h2><div class="muted small">Najpierw wybierz, ile decyzji chcesz zostawić losowi.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
       '<div class="modal-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">'+
-      '<button type="button" class="choice '+(!w.manual?'goldbtn':'')+'" id="fwAuto"><b>✨ AUTOMATYCZNIE</b><span>Gra dobierze pochodzenie, rodzinę, płeć, imię, wiek i pozycję.</span></button>'+
-      (mode==='plus'?'<button type="button" class="choice '+(w.manual?'goldbtn':'')+'" id="fwManual"><b>⚙ RĘCZNIE</b><span>Sam ustawisz dane zawodnika i rodziców.</span></button>':'')+
-      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      '<button type="button" class="choice '+(!w.manual?'goldbtn':'')+'" id="fwAuto"><b>✨ AUTOMATYCZNIE</b><span>Gra losuje pochodzenie, rodzinę, płeć, imię, wiek 15–17, dom i pozycję.</span></button>'+
+      '<button type="button" class="choice '+(w.manual?'goldbtn':'')+'" id="fwManual"><b>⚙ RĘCZNIE</b><span>Samodzielnie ustawiasz zawodnika, rodziców, miejsce zamieszkania i pozycję.</span></button>'+
+      '</div><div class="history-item" style="margin-top:12px"><b>Losowość rodziny jest prawdziwą częścią historii.</b><div class="muted small" style="margin-top:5px">Rodzice mogą być razem, po rozwodzie, mieszkać osobno, a zawodnik może mieszkać z obojgiem, jednym rodzicem, rodziną lub w innej sytuacji opiekuńczej.</div></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else if(step===1){
-      if(!w.manual){identity();html='<div class="modal-head"><div><div class="eyebrow">👤 '+title+'</div><h2>Twój zawodnik</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.first+' '+w.last)+'</b><span class="badge">'+(w.gender==='K'?'KOBIETA':'MĘŻCZYZNA')+'</span></div><div class="muted small">Wiek '+w.age+' • '+esc(w.country)+' • '+esc(w.city)+'</div></div><div class="modal-actions"><button type="button" class="btn" id="fwReroll">🎲 LOSUJ PONOWNIE</button><button type="button" class="btn goldbtn" id="fwNext">WYBIERAM →</button></div>'}
-      else html='<div class="modal-head"><div><div class="eyebrow">⚙ '+title+'</div><h2>Dane zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>PŁEĆ<select id="fwGender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></label><label>POCHODZENIE<select id="fwCountry">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>MIASTO<input id="fwCity" value=""></label><label>WIEK<input id="fwAge" type="number" min="12" max="35" value="'+w.age+'"></label><label>IMIĘ<input id="fwFirst" placeholder="auto jeśli puste"></label><label>NAZWISKO<input id="fwLast" placeholder="auto jeśli puste"></label></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      if(!w.manual){
+        randomIdentity();
+        html='<div class="modal-head"><div><div class="eyebrow">👤 '+title+'</div><h2>Twój zawodnik</h2><div class="muted small">Wiek jest ograniczony do 15–17 lat.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+        '<div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.first+' '+w.last)+'</b><span class="badge">'+(w.gender==='K'?'KOBIETA':'MĘŻCZYZNA')+'</span></div><div class="muted small" style="margin-top:6px">Wiek '+w.age+' • '+esc(w.country)+' • '+esc(w.city)+'</div><div class="muted small" style="margin-top:5px">Pozycja: <b>'+esc(w.position)+'</b></div></div>'+
+        '<div class="modal-actions"><button type="button" class="btn" id="fwReroll">🎲 LOSUJ INNEGO ZAWODNIKA</button><button type="button" class="btn goldbtn" id="fwNext">WYBIERAM →</button></div>';
+      }else{
+        html='<div class="modal-head"><div><div class="eyebrow">⚙ '+title+'</div><h2>Dane zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>PŁEĆ<select id="fwGender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></label><label>POCHODZENIE<select id="fwCountry">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>MIASTO<input id="fwCity" value="'+esc(w.city)+'"></label><label>WIEK<select id="fwAge"><option>15</option><option>16</option><option>17</option></select></label><label>IMIĘ<input id="fwFirst" placeholder="auto jeśli puste"></label><label>NAZWISKO<input id="fwLast" placeholder="auto jeśli puste"></label></div>'+
+        '<div class="history-item" style="margin-top:12px"><b>Wiek startowy: tylko 15, 16 albo 17 lat.</b></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      }
     }else if(step===2){
-      html='<div class="modal-head"><div><div class="eyebrow">👨‍👩‍👧 '+title+'</div><h2>Rodzice i korzenie</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>POCHODZENIE OJCA<select id="fwFather">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>POCHODZENIE MATKI<select id="fwMother">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label></div><div class="history-item" style="margin-top:14px"><b>Rodzina zostanie wygenerowana razem z zapisem.</b></div><div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      html='<div class="modal-head"><div><div class="eyebrow">👨‍👩‍👧 RODZINA</div><h2>Rodzice i sytuacja domowa</h2><div class="muted small">To wpływa na codzienne życie niepełnoletniego zawodnika.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+      '<div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.familySituation[0])+'</b><span class="badge">LOSOWO</span></div><div class="muted small" style="margin-top:5px">'+esc(w.familySituation[1])+'</div><div class="muted small" style="margin-top:5px">Rodzeństwo: '+esc(w.siblings)+'</div></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><label>POCHODZENIE OJCA<select id="fwFather">'+countries.map(x=>'<option '+(x[0]===w.fatherCountry?'selected':'')+'>'+esc(x[0])+'</option>').join('')+'</select></label><label>POCHODZENIE MATKI<select id="fwMother">'+countries.map(x=>'<option '+(x[0]===w.motherCountry?'selected':'')+'>'+esc(x[0])+'</option>').join('')+'</select></label></div>'+
+      '<div class="history-item" style="margin-top:12px"><b>🏠 Gdzie mieszkasz?</b><div class="muted small" style="margin-top:5px">'+esc(livingLabel(w.living))+'</div><div class="muted small" style="margin-top:3px">'+esc((living.find(x=>x.id===w.living)||living[0]).desc)+'</div></div>'+
+      '<div class="modal-actions">'+living.map(x=>'<button type="button" class="choice '+(w.living===x.id?'goldbtn':'')+'" data-live="'+x.id+'"><b>'+esc(x.label)+'</b><span>'+esc(x.desc)+'</span></button>').join('')+'</div>'+
+      '<div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else if(step===3){
       html='<div class="modal-head"><div><div class="eyebrow">⚽ POZYCJA</div><h2>Na jakiej pozycji grasz?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions" style="margin-top:14px">'+positions.map(x=>'<button type="button" class="choice '+(w.position===x?'goldbtn':'')+'" data-pos="'+esc(x)+'"><b>'+esc(x)+'</b></button>').join('')+'</div><div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else{
@@ -1940,8 +2033,9 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
     if(!open(html))return;
     document.getElementById('fwAuto')?.addEventListener('click',()=>{w.manual=false;draw()});
     document.getElementById('fwManual')?.addEventListener('click',()=>{w.manual=true;draw()});
-    document.getElementById('fwReroll')?.addEventListener('click',()=>{w.country=pick(countries)[0];w.gender=Math.random()<.5?'M':'K';w.age=15+Math.floor(Math.random()*4);w.city='';identity();draw()});
+    document.getElementById('fwReroll')?.addEventListener('click',()=>{w.country=pick(countries)[0];w.gender=Math.random()<.5?'M':'K';w.age=15+Math.floor(Math.random()*3);w.position=pick(positions);randomIdentity();randomFamily();draw()});
     document.getElementById('fwBack')?.addEventListener('click',()=>{step=Math.max(0,step-1);draw()});
+    document.querySelectorAll('[data-live]').forEach(e=>e.addEventListener('click',()=>{w.living=e.dataset.live;draw()}));
     document.querySelectorAll('[data-pos]').forEach(e=>e.addEventListener('click',()=>{w.position=e.dataset.pos;draw()}));
     document.querySelectorAll('[data-ans]').forEach(e=>e.addEventListener('click',()=>{w.answers[step-4]=Number(e.dataset.ans);draw()}));
     document.getElementById('fwNext')?.addEventListener('click',next);
@@ -1949,30 +2043,58 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 
   function next(){
     if(step===1&&w.manual){
-      w.gender=document.getElementById('fwGender').value;w.country=document.getElementById('fwCountry').value;
-      w.city=document.getElementById('fwCity').value||country(w.country)[1];w.age=Math.max(12,Math.min(35,Number(document.getElementById('fwAge').value)||15));
-      w.first=document.getElementById('fwFirst').value.trim();w.last=document.getElementById('fwLast').value.trim();if(!w.first||!w.last)identity();
+      w.gender=document.getElementById('fwGender').value;
+      w.country=document.getElementById('fwCountry').value;
+      w.city=document.getElementById('fwCity').value.trim()||cdata(w.country)[1];
+      w.age=Math.max(15,Math.min(17,Number(document.getElementById('fwAge').value)||15));
+      w.first=document.getElementById('fwFirst').value.trim();
+      w.last=document.getElementById('fwLast').value.trim();
+      if(!w.first||!w.last)randomIdentity();
+      randomFamily();
     }
-    if(step===2){w.fatherCountry=document.getElementById('fwFather').value;w.motherCountry=document.getElementById('fwMother').value}
+    if(step===2){
+      w.fatherCountry=document.getElementById('fwFather').value;
+      w.motherCountry=document.getElementById('fwMother').value;
+      const fc=cdata(w.fatherCountry),mc=cdata(w.motherCountry);
+      w.fatherName=w.fatherName?.split(' ')[0]+' '+pick(fc[2]);
+      w.motherName=w.motherName?.split(' ')[0]+' '+pick(mc[2]);
+    }
     if(step>=4&&w.answers[step-4]===undefined){toast('Wybierz odpowiedź.');return}
-    step++;if(step>8)finish();else draw()
+    step++;
+    if(step>8)finish();else draw();
   }
 
   function finish(){
     try{
       const base=(typeof initial!=='undefined'&&typeof clone==='function')?clone(initial):null;
       if(!base||typeof setState!=='function'){toast('Gra nie udostępniła mechanizmu tworzenia zapisu.');return}
-      identity();
-      const p=base.player,c=country(w.country);
-      p.name=w.first+' '+w.last;p.first=w.first;p.last=w.last;p.country=w.country;p.birthCountry=w.country;p.city=w.city;p.age=w.age;p.position=w.position;p.club='Akademia '+c[1];
+      randomIdentity();
+      if(!w.fatherName||!w.motherName)randomFamily();
+      const p=base.player,c=cdata(w.country);
+      p.name=w.first+' '+w.last;p.first=w.first;p.last=w.last;
+      p.country=w.country;p.birthCountry=w.country;p.city=w.city;
+      p.age=Math.max(15,Math.min(17,w.age));p.position=w.position;
+      p.club='Akademia '+c[1];
       base.gameMode=mode==='plus'?'plus':'auto';
-      base.family.father={...base.family.father,name:pick(male)+' '+country(w.fatherCountry||w.country)[2],country:w.fatherCountry||w.country,city:w.city,children:[p.name]};
-      base.family.mother={...base.family.mother,name:pick(female)+' '+country(w.motherCountry||w.country)[2],country:w.motherCountry||w.country,city:w.city,children:[p.name]};
+      base.family=base.family||{};
+      base.family.father={...(base.family.father||{}),name:w.fatherName,country:w.fatherCountry||w.country,city:w.city,children:[p.name]};
+      base.family.mother={...(base.family.mother||{}),name:w.motherName,country:w.motherCountry||w.country,city:w.city,children:[p.name]};
+      base.family.situation=w.familySituation?.[0]||'Stabilna rodzina';
+      base.family.situationDescription=w.familySituation?.[1]||'';
+      base.family.siblings=w.siblings||'brak rodzeństwa';
+      base.family.livingArrangement=w.living||'both';
+      base.family.livingLabel=livingLabel(w.living);
+      base.family.guardianshipMinor=true;
+      base.family.minorAge=p.age;
       base.family.roots=[{label:'Ojciec',country:w.fatherCountry||w.country,city:w.city},{label:'Matka',country:w.motherCountry||w.country,city:w.city}];
-      base.history=(base.history||[]).concat([{date:base.day?.date||'2026-09-01',type:'start',title:'Początek historii',text:p.name+' rozpoczyna drogę jako '+p.position+'.'}]);
+      base.history=(base.history||[]).concat([{date:base.day?.date||'2026-09-01',type:'start',title:'Początek historii',text:p.name+' rozpoczyna drogę jako '+p.position+'. '+familySummary()}]);
       base.meta={...(base.meta||{}),careerId:'career_'+Date.now(),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
-      setState(base);if(typeof migrateSave==='function')migrateSave(base);if(typeof save==='function')save();if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
-      close();hide();if(typeof render==='function')render();toast('⚽ Kariera utworzona i zapisana w slocie 1.')
+      setState(base);
+      if(typeof migrateSave==='function')migrateSave(base);
+      if(typeof save==='function')save();
+      if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
+      close();hide();if(typeof render==='function')render();
+      toast('⚽ Kariera utworzona — '+p.name+', '+p.age+' lat — zapisana w slocie 1.');
     }catch(e){console.error(e);toast('Nie udało się utworzyć kariery.')}
   }
 
