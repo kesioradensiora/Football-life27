@@ -251,6 +251,49 @@
 .fl-lang-note{font-size:10px;opacity:.62;line-height:1.45}
 @media(max-width:1050px){.fl-lang-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}\n@media(max-width:700px){.fl-lang-grid{grid-template-columns:1fr}.fl-lang-actions{grid-template-columns:1fr}}
 </style>
+<style id="fl-life-residence-polish">
+.fl-residence-card{margin:14px 0;padding:16px 18px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.fl-residence-card .fl-residence-kicker{font-size:9px;letter-spacing:.13em;opacity:.6;margin-bottom:6px}
+.fl-residence-card .fl-residence-place{font-size:19px;font-weight:850;letter-spacing:-.025em}
+.fl-residence-card .fl-residence-sub{font-size:11px;opacity:.68;margin-top:5px}
+</style><style id="fl-life-mode-ui">
+.fl-auto-only{display:none}.fl-plus-only{display:block}
+.fl-mode-note{margin:10px 0;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);font-size:10px;line-height:1.45;opacity:.78}
+</style>
+<style id="fl-life-generator-polish">
+.fl-gen-card,.fl-gen-field,.fl-gen-option{background:rgba(15,20,28,.78)!important;border:1px solid rgba(255,255,255,.09)!important;color:inherit!important;box-shadow:0 8px 28px rgba(0,0,0,.14)}
+.fl-gen-field input,.fl-gen-field select,.fl-gen-card input,.fl-gen-card select{background:rgba(255,255,255,.045)!important;color:inherit!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:12px!important}
+.fl-random-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.fl-random-btn{min-height:44px;border-radius:12px!important;border:1px solid rgba(255,255,255,.12)!important;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.035))!important;color:inherit!important;cursor:pointer;font-weight:800}
+.fl-random-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.fl-generated-value{padding:13px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);font-weight:750}
+.fl-consistency-note{margin-top:12px;padding:11px 13px;border-radius:12px;background:rgba(242,198,109,.06);border:1px solid rgba(242,198,109,.15);font-size:10px;line-height:1.45}
+@media(max-width:700px){.fl-random-row{grid-template-columns:1fr}}
+</style>
+
+<style id="fl-life-save-slots-ui">
+.fl-save-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}
+.fl-save-slot{min-height:150px;padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));display:flex;flex-direction:column;justify-content:space-between}
+.fl-save-slot.empty{opacity:.62}.fl-save-slot-num{font-size:9px;letter-spacing:.12em;opacity:.55}
+.fl-save-slot-name{font-weight:850;font-size:13px;margin-top:6px}.fl-save-meta{font-size:10px;line-height:1.45;opacity:.65;margin-top:4px}
+.fl-save-actions{display:flex;gap:6px;margin-top:10px}.fl-save-actions button{flex:1;min-height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;font-size:10px;font-weight:750}
+.fl-save-actions button:hover{filter:brightness(1.12)}
+.fl-save-actions .danger{border-color:rgba(220,90,90,.25)}
+@media(max-width:1050px){.fl-save-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.fl-save-slots{grid-template-columns:1fr 1fr}}
+</style>
+
+<style id="fl-life-settings-ui">
+.fl-settings-section{margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.025)}
+.fl-settings-title{font-size:11px;font-weight:850;letter-spacing:.08em;margin-bottom:10px}
+.fl-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.fl-setting{padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+.fl-setting label{display:block;font-size:9px;opacity:.6;letter-spacing:.07em;margin-bottom:6px}
+.fl-setting select,.fl-setting input{width:100%;background:rgba(0,0,0,.22);color:inherit;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:9px}
+.fl-setting-toggle{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fl-setting-toggle input{width:auto}
+@media(max-width:700px){.fl-settings-grid{grid-template-columns:1fr}}
+</style>
 </head><body>
 <div id="flStartScreen" class="fl-start-screen">
   <div class="fl-start-bg"></div>
@@ -447,7 +490,7 @@
   function add(map,name,score,reason){if(!name)return;const old=map[name];map[name]=old?{...old,score:Math.max(old.score,score),reasons:[...new Set(old.reasons.concat(reason||[]))]}:{score,reasons:reason||[]}}
   function derive(profile){
     const out={}; const roots=profile?.roots||profile?.family?.roots||[];
-    const birth=profile?.birthCountry||profile?.country; const residence=profile?.country||profile?.cityCountry;
+    const birth=profile?.birthCountry||profile?.country; const residence=profile?.residenceCountry||profile?.country||profile?.cityCountry;
     (FL_LANG_RULES[birth]||[]).forEach(x=>add(out,x,100,['język związany z miejscem urodzenia/wychowania']));
     // Family roots: a parent's country can create a home language even if the player lives elsewhere.
     roots.forEach(r=>{
@@ -468,6 +511,106 @@
   window.flLanguageOrigins=function(){
     try{return JSON.parse(localStorage.getItem('FL_LIFE_GENERATED_LANGUAGES')||'[]')}catch(e){return []}
   };
+})();
+</script>
+
+<script id="fl-life-generator-ui">
+(function(){
+  const wanted=['imię','nazwisko','wiek','pochodzenie','kraj','sytuacja rodzinna','z kim mieszkasz','zamieszkanie'];
+  function enhance(){
+    const root=document.querySelector('.modal,.modal-card,[role="dialog"]');if(!root)return;
+    root.querySelectorAll('label').forEach(l=>{
+      const t=(l.textContent||'').trim().toLowerCase();
+      const kind=t.includes('imię')?'first':t.includes('nazwisko')?'last':t.includes('wiek')?'age':t.includes('pochodzenie')||t.includes('kraj')?'country':t.includes('sytuacja')?'family':null;
+      if(!kind||l.dataset.flEnhanced)return;
+      const control=l.querySelector('input,select');if(!control)return;
+      l.dataset.flEnhanced='1';
+      const row=document.createElement('div');row.className='fl-random-row';
+      control.parentNode.insertBefore(row,control);row.appendChild(control);
+      const b=document.createElement('button');b.type='button';b.className='fl-random-btn';b.textContent='🎲 Losuj';
+      b.onclick=()=>window.flRandomizeField&&window.flRandomizeField(kind);row.appendChild(b);
+    });
+    const note=root.querySelector('.fl-consistency-note')||document.createElement('div');
+    if(!note.parentNode){
+      note.className='fl-consistency-note';
+      note.textContent='🔗 Sytuacja rodzinna i miejsce zamieszkania są ze sobą powiązane. Jeśli rodzina jest stabilna, generator nie pozwoli ustawić sprzecznej sytuacji mieszkaniowej.';
+      const head=root.querySelector('.modal-head');if(head)head.parentNode.insertBefore(note,head.nextSibling);
+    }
+  }
+  new MutationObserver(enhance).observe(document.body,{subtree:true,childList:true});
+  document.addEventListener('click',()=>setTimeout(enhance,0));
+  setTimeout(enhance,100);
+})();
+</script>
+
+<script id="fl-life-settings-system">
+(function(){
+  const KEY='FL_LIFE_27_SETTINGS_V1';
+  const defaults={
+    difficulty:'realistic',matchLength:'normal',injuries:true,transfers:true,
+    randomEvents:true,autosave:true,language:'pl',notifications:true
+  };
+  function get(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return {...defaults}}}
+  function set(k,v){const x=get();x[k]=v;localStorage.setItem(KEY,JSON.stringify(x));return x}
+  function render(){
+    const x=get();
+    return `<div class="modal-head"><div><div class="eyebrow">⚙️ SYSTEM</div><h2>Ustawienia</h2><div class="muted small">Ustawienia zapisują się automatycznie i dotyczą całej kariery.</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="fl-settings-section"><div class="fl-settings-title">🎮 ROZGRYWKA</div><div class="fl-settings-grid">
+      <div class="fl-setting"><label>POZIOM REALIZMU</label><select onchange="flSet('difficulty',this.value)"><option value="realistic" ${x.difficulty==='realistic'?'selected':''}>Realistyczny</option><option value="easy" ${x.difficulty==='easy'?'selected':''}>Łatwiejszy</option><option value="hard" ${x.difficulty==='hard'?'selected':''}>Trudny</option></select></div>
+      <div class="fl-setting"><label>DŁUGOŚĆ MECZU</label><select onchange="flSet('matchLength',this.value)"><option value="short" ${x.matchLength==='short'?'selected':''}>Krótki</option><option value="normal" ${x.matchLength==='normal'?'selected':''}>Normalny</option><option value="long" ${x.matchLength==='long'?'selected':''}>Długi</option></select></div>
+      <div class="fl-setting fl-setting-toggle"><span>🏥 Kontuzje</span><input type="checkbox" ${x.injuries?'checked':''} onchange="flSet('injuries',this.checked)"></div>
+      <div class="fl-setting fl-setting-toggle"><span>🔄 Transfery</span><input type="checkbox" ${x.transfers?'checked':''} onchange="flSet('transfers',this.checked)"></div>
+      <div class="fl-setting fl-setting-toggle"><span>🎲 Losowe wydarzenia</span><input type="checkbox" ${x.randomEvents?'checked':''} onchange="flSet('randomEvents',this.checked)"></div>
+      <div class="fl-setting fl-setting-toggle"><span>💾 Automatyczny zapis</span><input type="checkbox" ${x.autosave?'checked':''} onchange="flSet('autosave',this.checked)"></div>
+    </div></div>
+    <div class="fl-settings-section"><div class="fl-settings-title">🖥️ INTERFEJS</div><div class="fl-settings-grid">
+      <div class="fl-setting"><label>JĘZYK INTERFEJSU</label><select onchange="flSet('language',this.value)"><option value="pl" ${x.language==='pl'?'selected':''}>Polski</option><option value="en" ${x.language==='en'?'selected':''}>English</option></select></div>
+      <div class="fl-setting fl-setting-toggle"><span>🔔 Powiadomienia</span><input type="checkbox" ${x.notifications?'checked':''} onchange="flSet('notifications',this.checked)"></div>
+    </div></div>
+    <div class="modal-actions"><button class="btn goldbtn" onclick="closeModal()">ZAPISZ I ZAMKNIJ</button></div>`;
+  }
+  window.flOpenSettings=function(){if(typeof window.openModal==='function')window.openModal(render(),true)}
+  window.flSet=function(k,v){set(k,v)}
+  window.flGetSettings=get;
+})();
+</script>
+
+<script id="fl-life-continue-fix">
+(function(){
+  function getSaves(){try{return JSON.parse(localStorage.getItem('FL_LIFE_27_SAVE_SLOTS_V1')||'[]')}catch(e){return[]}}
+  function findSave(){
+    const a=getSaves();
+    return a.find(x=>x.slot===1)||a.find(x=>x&&x.player)||null;
+  }
+  function go(){
+    const save=findSave();
+    if(!save||!save.player){return false}
+    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(save.player));
+    window.FL_PLAYER_PROFILE=save.player;
+    if(typeof window.loadGameFromSave==='function'){window.loadGameFromSave(save.player);return true}
+    if(typeof window.startCareerFromSave==='function'){window.startCareerFromSave(save.player);return true}
+    // Existing game may expose a generic cockpit renderer; do not use it for Continue
+    // unless it explicitly accepts a saved player and changes the active view.
+    if(typeof window.startCareer==='function'){window.startCareer(save.player);return true}
+    // Last-resort: trigger the existing save-slot loader.
+    if(typeof window.flLoadSave==='function'){window.flLoadSave(save.slot);return true}
+    return false
+  }
+  window.flContinueCareer=go;
+  function patch(){
+    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
+      const t=(el.textContent||'').trim().toLowerCase();
+      if(t.includes('kontynuuj')&&!el.dataset.flContinuePatched){
+        el.dataset.flContinuePatched='1';
+        el.addEventListener('click',function(e){
+          e.preventDefault();e.stopImmediatePropagation();
+          if(!go()) alert('Nie znaleziono zapisanej kariery. Wybierz „Nowa gra”, aby utworzyć pierwszy zapis.');
+        },true);
+      }
+    });
+  }
+  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});
+  setTimeout(patch,100);patch();
 })();
 </script>
 </body><script id="core">const KEY='fl-life-27-etap6';
@@ -2050,13 +2193,69 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
   function open(html){if(typeof window.openModal==='function'){window.openModal(html,true);return true}toast('Nie udało się otworzyć okna gry.');return false}
   function hide(){if(root){root.classList.add('hidden');root.style.pointerEvents='none';root.style.display='none'}}
   function cdata(n){return countries.find(x=>x[0]===n)||countries[0]}
-  function randomIdentity(){
+  function countryLabel(c){return c||'Nieznany kraj'}
+  function flagForCountry(c){
+    const f={Polska:'🇵🇱',Anglia:'🏴',Hiszpania:'🇪🇸',Niemcy:'🇩🇪',Włochy:'🇮🇹',Francja:'🇫🇷',Portugalia:'🇵🇹',Holandia:'🇳🇱',Belgia:'🇧🇪',Chorwacja:'🇭🇷',Serbia:'🇷🇸',Brazylia:'🇧🇷',Argentyna:'🇦🇷',USA:'🇺🇸',Japonia:'🇯🇵',Szwecja:'🇸🇪',Norwegia:'🇳🇴',Nigeria:'🇳🇬'};return f[c]||'🌍'
+  }
+  
+const FL_FAMILY_RULES={
+  stable:[
+    {id:'both',label:'Mieszkasz z obojgiem rodziców',weight:72},
+    {id:'bothSibling',label:'Mieszkasz z obojgiem rodziców i rodzeństwem',weight:28}
+  ],
+  singleMother:[
+    {id:'mother',label:'Mieszkasz z mamą',weight:78},
+    {id:'motherSibling',label:'Mieszkasz z mamą i rodzeństwem',weight:22}
+  ],
+  singleFather:[
+    {id:'father',label:'Mieszkasz z tatą',weight:78},
+    {id:'fatherSibling',label:'Mieszkasz z tatą i rodzeństwem',weight:22}
+  ],
+  divorced:[
+    {id:'mother',label:'Mieszkasz z mamą, tata mieszka osobno',weight:45},
+    {id:'father',label:'Mieszkasz z tatą, mama mieszka osobno',weight:25},
+    {id:'shared',label:'Opieka naprzemienna — mieszkasz u obojga',weight:20},
+    {id:'parentPartner',label:'Mieszkasz z rodzicem i jego partnerem/partnerką',weight:10}
+  ],
+  separated:[
+    {id:'mother',label:'Mieszkasz z mamą, tata mieszka osobno',weight:50},
+    {id:'father',label:'Mieszkasz z tatą, mama mieszka osobno',weight:30},
+    {id:'shared',label:'Częściowo mieszkasz u obojga rodziców',weight:20}
+  ],
+  foster:[
+    {id:'guardian',label:'Mieszkasz z opiekunem prawnym / rodziną zastępczą',weight:70},
+    {id:'grandparents',label:'Mieszkasz z dziadkami',weight:30}
+  ],
+  grandparents:[
+    {id:'grandparents',label:'Mieszkasz z dziadkami',weight:100}
+  ],
+  patchwork:[
+    {id:'motherPartner',label:'Mieszkasz z mamą i jej partnerem',weight:45},
+    {id:'fatherPartner',label:'Mieszkasz z tatą i jego partnerką',weight:35},
+    {id:'shared',label:'Częściowo mieszkasz w obu domach',weight:20}
+  ]
+};
+function flPickWeighted(a){
+  const total=a.reduce((n,x)=>n+x.weight,0);let r=Math.random()*total;
+  for(const x of a){r-=x.weight;if(r<=0)return x}
+  return a[a.length-1];
+}
+function flFamilyLiving(situation){
+  return flPickWeighted(FL_FAMILY_RULES[situation]||FL_FAMILY_RULES.stable);
+}
+function flFamilySituationLabel(s){
+  const map={stable:'Stabilna rodzina',singleMother:'Samotna mama',singleFather:'Samotny tata',divorced:'Rodzice po rozwodzie',separated:'Rodzice w separacji',foster:'Rodzina zastępcza / opiekun',grandparents:'Wychowanie przez dziadków',patchwork:'Rodzina patchworkowa'};
+  return map[s]||'Stabilna rodzina';
+}
+function randomIdentity(){
     const c=cdata(w.country);
     const namesM=c[5]||male;
     const namesF=c[6]||female;
     w.first=pick(w.gender==='K'?namesF:namesM);
     w.last=pick(c[2]||['Nowak']);
-    w.city=w.city||c[1];
+    w.city=c[1];
+    w.residenceCountry=w.country;
+    w.residenceCity=c[1];
     w.localClubs=c[3]||[];
     w.academies=c[4]||[];
     w.localClub=pick(w.localClubs.length?w.localClubs:['Lokalny klub młodzieżowy']);
@@ -2195,15 +2394,62 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
     if(step>8)finish();else draw();
   }
 
-  function finish(){
-    try{
+  
+function flApplyModeUI(){
+  try{
+    const root=document.querySelector('.modal,.modal-card,[role="dialog"]')||document;
+    const auto=mode==='auto';
+    root.classList.toggle('fl-auto-mode',auto);
+    const advancedWords=['rodzic','rodzeń','sytuacja rodzinna','zamieszkanie','miejsce urodzenia','korzenie','opiekun','partner rodzica'];
+    root.querySelectorAll('label').forEach(l=>{
+      const t=(l.textContent||'').toLowerCase();
+      if(advancedWords.some(w=>t.includes(w))) l.style.display=auto?'none':'';
+    });
+    let note=root.querySelector('.fl-mode-note');
+    if(!note){
+      note=document.createElement('div');note.className='fl-mode-note';
+      const head=root.querySelector('.modal-head');
+      if(head)head.parentNode.insertBefore(note,head.nextSibling);
+    }
+    note.textContent=auto
+      ?'⚡ NOWA GRA — szybki start. Generator wybiera całą historię. Możesz zmienić tylko imię, nazwisko, pochodzenie i wiek.'
+      :'⚙️ NOWA GRA + — zaawansowane tworzenie. Możesz samodzielnie ustawić rodzinę, rodziców, miejsce zamieszkania, korzenie i pozostałe szczegóły.';
+  }catch(e){console.warn('Mode UI',e)}
+}
+function flNormalizeModeBeforeFinish(){
+    if(mode!=='auto')return;
+    w.fatherName=null;w.motherName=null;w.fatherCountry=null;w.motherCountry=null;
+    w.familySituation=null;w.siblings=null;w.living=null;
+  }
+  
+function flRandomizeField(kind){
+  try{
+    if(kind==='first'||kind==='last'||kind==='age'||kind==='country'){
+      randomIdentity();
+    }
+    if(kind==='family'){
+      const keys=Object.keys(FL_FAMILY_RULES);
+      w.familySituation=flPickWeighted(keys.map(k=>({id:k,weight:k==='stable'?42:8}))).id;
+      const l=flFamilyLiving(w.familySituation);w.living=l.id;w.livingLabel=l.label;
+    }
+    render();
+    if(typeof flApplyModeUI==='function')flApplyModeUI();
+  }catch(e){console.warn('Randomizer',e)}
+}
+function flEnsureFamilyConsistency(){
+  const sit=w.familySituation||'stable';
+  const l=flFamilyLiving(sit);
+  w.living=l.id;w.livingLabel=l.label;
+}
+function finish(){
+    try{flNormalizeModeBeforeFinish();flEnsureFamilyConsistency();
       const base=(typeof initial!=='undefined'&&typeof clone==='function')?clone(initial):null;
       if(!base||typeof setState!=='function'){toast('Gra nie udostępniła mechanizmu tworzenia zapisu.');return}
       randomIdentity();
       if(!w.fatherName||!w.motherName)randomFamily();
       const p=base.player,c=cdata(w.country);
       p.name=w.first+' '+w.last;p.first=w.first;p.last=w.last;
-      p.country=w.country;p.birthCountry=w.country;p.city=w.city;
+      p.country=w.country;p.residenceCountry=w.country;p.birthCountry=w.country;p.city=w.city;p.residenceCity=w.city;
       p.age=Math.max(15,Math.min(17,w.age));p.position=w.position;
       p.club=w.localClub||pick(c[3]||['Lokalny klub']);
       p.academy=w.academy||pick(c[4]||['Lokalna szkółka']);
@@ -2238,6 +2484,12 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
   };
   window.flRefreshStartScreen=refresh;
   refresh();
+})();
+</script>
+<script>
+(function(){
+  if(typeof window.finish!=='function'||window.__flFinishWrapped)return;
+  const old=window.finish;window.finish=function(){const r=old.apply(this,arguments);setTimeout(()=>{try{window.flAutoSaveCurrent&&window.flAutoSaveCurrent()}catch(e){}},50);return r};window.__flFinishWrapped=true;
 })();
 </script>
 <script id="fl-life-save-slots">(function(){
