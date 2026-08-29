@@ -678,6 +678,7 @@
     return p;
   }
   function persist(p){
+    if(window.S&&typeof window.S==='object'){window.S.player=p;window.S.profile=p;window.S.first=p.first;window.S.last=p.last;window.S.age=p.age;window.S.country=p.country;window.S.city=p.city;}
     localStorage.setItem(CURRENT,JSON.stringify(p));
     window.FL_PLAYER_PROFILE=p;
     const a=readSlots();
@@ -712,7 +713,7 @@
     if(!p.first||!p.last){alert('Najpierw wygeneruj zawodnika.');return false}
     const slot=(window.flSaveNewCareerToOwnedSlot?window.flSaveNewCareerToOwnedSlot(p):persist(p));
     p.saveSlot=slot; if(window.flSaveNewCareerToOwnedSlot) window.flSaveNewCareerToOwnedSlot(p); else persist(p);
-    if(enterCareer(p))return true;
+    if(window.flSyncMainPanel)window.flSyncMainPanel(); if(typeof window.renderCore==='function')window.renderCore(); if(enterCareer(p))return true;
     // Never report "save mechanism unavailable": the save has already been created.
     // If no legacy navigation hook exists, render a minimal in-place career state
     // using the game's existing root instead of returning to cockpit.
@@ -858,6 +859,32 @@
   }
   new MutationObserver(syncAutoChoices).observe(document.body,{subtree:true,childList:true});
   setTimeout(syncAutoChoices,50);
+})();
+</script>
+
+<script id="fl-life-single-state-sync">
+(function(){
+  function sync(){
+    try{
+      if(window.S){
+        window.FL_PLAYER_PROFILE=window.S.player||window.S.profile||window.S;
+        localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(window.FL_PLAYER_PROFILE));
+      }
+    }catch(e){}
+  }
+  window.flSyncMainPanel=sync;
+  document.addEventListener('fl:career-started',sync);
+  setTimeout(sync,50);
+})();
+</script>
+
+<script id="fl-life-main-panel-refresh">
+(function(){
+  const oldGo=window.go;
+  if(typeof oldGo==='function'&&!window.__flGoRefresh){
+    window.go=function(tab){const r=oldGo(tab);try{window.flSyncMainPanel&&window.flSyncMainPanel()}catch(e){}return r};
+    window.__flGoRefresh=true;
+  }
 })();
 </script>
 </body><script id="core">const KEY='fl-life-27-etap6';
@@ -1068,7 +1095,7 @@ function renderMenu(){
 }
 function go(tab){current=tab;renderCore();window.scrollTo({top:0,behavior:'smooth'})}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer; window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
 
 const activities=[
  {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2},fixed:true},
