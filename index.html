@@ -296,13 +296,7 @@
 </style>
 <meta id="fl-life-cumulative-version" name="fl-life-version" content="27-cumulative">\n<meta id="fl-life-build-final" name="fl-life-build" content="27-all-latest-fixes-combined">
 
-<style id="fl-life-strict-modes-ui">
-.fl-auto-mode .fl-plus-only{display:none!important}
-.fl-plus-mode .fl-auto-only{display:none!important}
-.fl-mode-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:9px;font-weight:850;letter-spacing:.06em}
-.fl-clean-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.08);min-height:50px}
-.fl-clean-choice + .fl-clean-choice{margin-top:8px}
-</style>
+
 
 <style id="fl-life-subpages-visual-system">
 :root{
@@ -335,67 +329,35 @@
 @media(max-width:700px){.v40-page{padding:12px 12px 30px}.v40-page-head{align-items:flex-start;flex-direction:column}.v40-page-title{font-size:24px}.v40-grid,.v40-grid2{grid-template-columns:1fr}.v40-card{border-radius:15px;padding:13px}}
 </style>
 
-<style id="fl-life-choice-visual-polish">
-/* Spójne kafle wyboru — bez białych prostokątów */
-.choice{
-  position:relative!important;
+
+
+<style id="fl-life-wizard-native-design">
+/* Native wizard design: the existing choice elements are styled directly. */
+#wizard .choice,.modal .choice{
+  box-sizing:border-box!important;
+  min-height:92px!important;
+  padding:16px 18px!important;
   display:flex!important;
   flex-direction:column!important;
   justify-content:center!important;
-  align-items:flex-start!important;
-  gap:7px!important;
-  min-height:104px!important;
-  padding:17px 18px!important;
-  border-radius:17px!important;
+  gap:6px!important;
+  border-radius:16px!important;
   border:1px solid rgba(255,255,255,.085)!important;
   background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018))!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.14)!important;
   color:inherit!important;
-  box-shadow:0 10px 28px rgba(0,0,0,.16)!important;
-  overflow:hidden!important;
-  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+  transition:transform .16s,border-color .16s,background .16s!important;
 }
-.choice:before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(circle at 100% 0,rgba(242,203,111,.10),transparent 48%);
-  opacity:0;transition:opacity .18s ease;
-}
-.choice:hover{
+#wizard .choice:hover,.modal .choice:hover{
   transform:translateY(-2px)!important;
-  border-color:rgba(242,203,111,.30)!important;
-  background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.025))!important;
-  box-shadow:0 14px 34px rgba(0,0,0,.23)!important;
+  border-color:rgba(242,203,111,.34)!important;
+  background:linear-gradient(145deg,rgba(242,203,111,.10),rgba(255,255,255,.025))!important;
 }
-.choice:hover:before{opacity:1}
-.choice.goldbtn,.choice.selected{
-  border-color:rgba(242,203,111,.42)!important;
-  background:linear-gradient(145deg,rgba(242,203,111,.14),rgba(255,255,255,.035))!important;
-}
-.choice b{position:relative;z-index:1;font-size:12px;letter-spacing:.045em}
-.choice span{position:relative;z-index:1;font-size:10px!important;line-height:1.45!important;opacity:.60!important;text-align:left!important}
-.choice:after{
-  content:"›";position:absolute;right:17px;top:50%;transform:translateY(-50%);
-  font-size:22px;opacity:.28;transition:opacity .18s ease,right .18s ease;
-}
-.choice:hover:after{right:13px;opacity:.72}
-
-/* Kafle wyborów pozycji, pochodzenia i innych wariantów */
-.option,.select-card,.pick-card,.choice-card{
-  border-radius:15px!important;
-  border:1px solid rgba(255,255,255,.075)!important;
-  background:rgba(255,255,255,.035)!important;
-  box-shadow:0 8px 22px rgba(0,0,0,.10)!important;
-  transition:.16s ease!important;
-}
-.option:hover,.select-card:hover,.pick-card:hover,.choice-card:hover{
-  transform:translateY(-1px)!important;
-  border-color:rgba(242,203,111,.25)!important;
-  background:rgba(255,255,255,.055)!important;
-}
-input,select,textarea{
-  background:rgba(255,255,255,.035)!important;
-  border:1px solid rgba(255,255,255,.09)!important;
-  color:inherit!important;
-  border-radius:11px!important;
+#wizard .choice b,.modal .choice b{font-size:12px!important}
+#wizard .choice span,.modal .choice span{font-size:10px!important;opacity:.62!important;line-height:1.4!important}
+#wizard .choice.selected,.modal .choice.selected{
+  border-color:rgba(242,203,111,.55)!important;
+  background:linear-gradient(145deg,rgba(242,203,111,.16),rgba(255,255,255,.035))!important;
 }
 </style>
 </head><body>
@@ -618,24 +580,7 @@ input,select,textarea{
 })();
 </script>
 
-<script id="fl-life-generator-ui">
-(function(){
-  const adv=['rodzic','rodzeń','sytuacja rodzinna','z kim mieszkasz','zamieszkanie','miejsce urodzenia','opiekun','partner rodzica','rodzeństwo','finanse rodziny','zawód rodzica','korzenie','języki'];
-  function apply(){
-    const root=document.querySelector('.modal,.modal-card,[role="dialog"]');if(!root)return;
-    const mode=(window.w?.mode||window.FL_NEW_GAME_STATE?.mode||root.dataset.mode||'').toLowerCase();
-    root.classList.toggle('fl-auto-mode',mode==='auto'||mode==='nowa gra');
-    root.classList.toggle('fl-plus-mode',mode==='plus'||mode==='newplus'||mode==='nowa gra+');
-    root.querySelectorAll('label').forEach(l=>{
-      const t=(l.textContent||'').toLowerCase();
-      if(adv.some(x=>t.includes(x))) l.classList.add('fl-plus-only');
-    });
-  }
-  window.flApplyStrictModes=apply;
-  new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
-  setTimeout(apply,80);apply();
-})();
-</script>
+
 
 <script id="fl-life-settings-system">
 (function(){
@@ -886,6 +831,33 @@ input,select,textarea{
   }
   new MutationObserver(()=>setTimeout(polish,0)).observe(document.body,{subtree:true,childList:true});
   setTimeout(polish,100);polish();
+})();
+</script>
+
+<script id="fl-life-wizard-native-behavior">
+(function(){
+  function syncAutoChoices(){
+    document.querySelectorAll('[data-reroll]').forEach(el=>{
+      if(el.dataset.flNativeBound)return;
+      el.dataset.flNativeBound='1';
+      el.addEventListener('click',function(e){
+        e.preventDefault();e.stopPropagation();
+        const k=this.dataset.reroll;
+        const w=window.w||window.FL_NEW_GAME_STATE;
+        if(!w)return;
+        const countries=window.countries||[];
+        const pick=a=>a&&a.length?a[Math.floor(Math.random()*a.length)]:null;
+        const c=countries.find(x=>x[0]===w.country)||pick(countries);
+        if(k==='first'){const a=w.gender==='K'?(c?.[6]||[]):(c?.[5]||[]);if(a.length)w.first=pick(a)}
+        if(k==='last'){const a=c?.[2]||[];if(a.length)w.last=pick(a)}
+        if(k==='age')w.age=15+Math.floor(Math.random()*3);
+        if(k==='country'&&c){w.country=c[0];w.city=c[1];w.residenceCountry=c[0];w.residenceCity=c[1]}
+        if(typeof window.draw==='function')window.draw();
+      });
+    });
+  }
+  new MutationObserver(syncAutoChoices).observe(document.body,{subtree:true,childList:true});
+  setTimeout(syncAutoChoices,50);
 })();
 </script>
 </body><script id="core">const KEY='fl-life-27-etap6';
