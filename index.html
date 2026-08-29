@@ -175,6 +175,18 @@
  #flStartScreen .fl-start-action{min-height:52px!important}
  #flStartScreen .fl-save-main{padding:6px 0!important}
 }
+
+@media (min-width:801px) and (max-height:700px){
+ #flStartScreen .fl-start-wrap{padding-top:9px!important;padding-bottom:8px!important}
+ #flStartScreen .fl-start-brand img{width:min(310px,31vw)!important;max-height:66px!important}
+ #flStartScreen .fl-start-grid{padding:5px 0!important;gap:10px!important}
+ #flStartScreen .fl-start-action{min-height:55px!important;max-height:62px!important;padding:5px 9px!important}
+ #flStartScreen .fl-action-icon{width:27px!important;height:27px!important;font-size:13px!important}
+ #flStartScreen .fl-action-copy strong{font-size:10px!important}
+ #flStartScreen .fl-action-copy b{font-size:7px!important}
+ #flStartScreen .fl-action-copy small{font-size:6px!important}
+ #flStartScreen .fl-save-card{padding:7px!important}
+}
 </style><style id="fl-life-start-responsive-final">
 #flStartScreen{font-family:inherit}
 @media(min-width:801px){
@@ -204,7 +216,7 @@
   .player-main strong{font-size:16px}.grid2,.grid3{grid-template-columns:1fr}.btn{min-height:42px}
 }
 </style><style id="fl-life-start-hit-area">
-#flStartScreen .fl-start-wrap button{position:relative!important;z-index:5!important;pointer-events:auto!important}
+#flStartScreen .fl-start-wrap button{position:relative!important;z-index:3!important;pointer-events:auto!important}
 #flStartScreen .fl-start-bg,#flStartScreen .fl-start-shade{pointer-events:none!important}
 </style></head><body>
 <div id="flStartScreen" class="fl-start-screen">
@@ -1842,119 +1854,81 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 (function(){
   const root=document.getElementById('flStartScreen');
 
-  function bridge(){
-    return window.__FL_START_BRIDGE;
-  }
-  function closeStart(){
-    if(typeof window.flCloseStart==='function') window.flCloseStart();
-    else root?.classList.add('hidden');
-  }
-  function renderGame(view){
-    const b=bridge(); if(!b)return false;
-    if(view) b.setCurrent(view);
-    closeStart();
-    b.render();
-    return true;
-  }
-
-  function readLast(){
-    try{
-      const last=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
-      if(last){
-        const raw=localStorage.getItem('FL_LIFE_27_SLOT_'+last);
-        if(raw)return {slot:last,data:JSON.parse(raw)};
-      }
-      const raw=localStorage.getItem(KEY);
-      if(raw)return {slot:0,data:JSON.parse(raw)};
-    }catch(e){}
-    return null;
-  }
-
-  function refreshStart(){
-    const info=readLast();
-    const d=document.getElementById('flContinueDesc');
-    const title=document.getElementById('flLastSaveTitle');
-    const career=document.getElementById('flLastCareer');
-    const club=document.getElementById('flLastClub');
-    const season=document.getElementById('flLastSeason');
-    const progress=document.getElementById('flLastProgress');
-    const bar=document.getElementById('flLastProgressBar');
-    const dot=document.getElementById('flSaveDot');
-
-    if(!info){
-      if(d)d.textContent='Brak zapisanej kariery — rozpocznij nową grę';
-      if(title)title.textContent='Brak zapisanej kariery';
-      if(career)career.textContent='—'; if(club)club.textContent='—'; if(season)season.textContent='—';
-      if(progress)progress.textContent='—'; if(bar)bar.style.width='0%'; if(dot)dot.classList.remove('active');
-      return;
-    }
-    const pl=info.data?.player||{};
-    const nm=pl.name||'Twoja kariera';
-    const cb=pl.club||'—';
-    if(d)d.textContent=nm+' • '+cb+' — ostatni zapis';
-    if(title)title.textContent='Gotowe do kontynuowania';
-    if(career)career.textContent=nm; if(club)club.textContent=cb;
-    if(season)season.textContent=pl.age?('Wiek '+pl.age):'Aktywna kariera';
-    if(progress)progress.textContent='Zapis dostępny';
-    if(bar)bar.style.width='24%';
-    if(dot)dot.classList.add('active');
-  }
-
-  window.flCloseStart=function(){
+  function B(){return window.__FL_START_BRIDGE}
+  function hide(){
     if(!root)return;
     root.classList.add('hidden');
     root.setAttribute('aria-hidden','true');
     root.style.pointerEvents='none';
-    setTimeout(()=>{root.style.display='none'},220);
-  };
+    root.style.display='none';
+  }
+  function showError(msg){try{B()?.toast(msg)}catch(e){console.error(e)}}
 
-  window.flStartContinue=function(){
-    const info=readLast();
-    if(!info){
-      bridge()?.toast('Nie masz jeszcze zapisanej kariery — wybierz „Nowa gra”.');
-      return;
-    }
+  function lastSave(){
     try{
-      const b=bridge();
-      if(info.slot && typeof window.flLoadSlot==='function'){
-        window.flLoadSlot(info.slot);
-        closeStart();
-        return;
+      const n=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
+      if(n){
+        const raw=localStorage.getItem('FL_LIFE_27_SLOT_'+n);
+        if(raw)return {slot:n,data:JSON.parse(raw)};
       }
-      const loaded=deepMerge(b.clone(b.getInitial()),info.data);
+      const raw=localStorage.getItem(KEY);
+      return raw?{slot:0,data:JSON.parse(raw)}:null;
+    }catch(e){return null}
+  }
+
+  function refresh(){
+    const info=lastSave();
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+    const bar=document.getElementById('flLastProgressBar'),dot=document.getElementById('flSaveDot');
+    if(!info){
+      set('flContinueDesc','Brak zapisanej kariery — rozpocznij nową grę');
+      set('flLastSaveTitle','Brak zapisanej kariery');set('flLastCareer','—');set('flLastClub','—');set('flLastSeason','—');set('flLastProgress','—');
+      if(bar)bar.style.width='0%';if(dot)dot.classList.remove('active');return;
+    }
+    const pl=info.data?.player||{};
+    set('flContinueDesc',(pl.name||'Twoja kariera')+' • '+(pl.club||'—')+' — ostatni zapis');
+    set('flLastSaveTitle','Gotowe do kontynuowania');set('flLastCareer',pl.name||'Twoja kariera');set('flLastClub',pl.club||'—');set('flLastSeason',pl.age?('Wiek '+pl.age):'Aktywna kariera');set('flLastProgress','Zapis dostępny');
+    if(bar)bar.style.width='25%';if(dot)dot.classList.add('active');
+  }
+
+  // Start -> existing game router. No second navigation system.
+  window.flStartContinue=function(){
+    const info=lastSave();
+    if(!info){showError('Brak zapisu. Wybierz „Nowa gra”.');return}
+    const b=B();
+    try{
+      const state=b.clone(b.getInitial());
+      const loaded=deepMerge(state,info.data);
       b.setState(loaded);
       b.migrateSave(loaded);
       b.save();
       b.setCurrent('day');
-      closeStart();
+      hide();
       b.render();
       b.toast('💾 Wczytano ostatnią karierę.');
-    }catch(e){
-      console.error(e);
-      bridge()?.toast('Nie udało się wczytać zapisu.');
-    }
+    }catch(e){console.error(e);showError('Nie udało się wczytać kariery.')}
   };
 
   window.flStartNewGame=function(){
-    const b=bridge(); if(!b)return;
+    const b=B();if(!b)return;
     b.openModal(`
       <div class="modal-head">
         <div><div class="eyebrow">✨ NOWA KARIERA</div><h2>Rozpocząć nową grę?</h2></div>
         <button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button>
       </div>
       <div class="history-item" style="margin-top:14px">
-        <b>Utworzymy nowy zapis.</b>
-        <div class="muted small" style="margin-top:6px">Twoje istniejące zapisy nie zostaną usunięte.</div>
+        <b>Nowy zapis, czysta kariera.</b>
+        <div class="muted small" style="margin-top:6px">Istniejące zapisy pozostają bez zmian.</div>
       </div>
       <div class="modal-actions">
         <button class="btn" onclick="window.__FL_START_BRIDGE.closeModal()">Anuluj</button>
-        <button class="btn goldbtn" onclick="window.flConfirmNewGame()">✨ Rozpocznij nową grę</button>
+        <button class="btn goldbtn" onclick="window.flConfirmNewGame()">⚽ Rozpocznij grę</button>
       </div>`,true);
   };
 
   window.flConfirmNewGame=function(){
+    const b=B();if(!b)return;
     try{
-      const b=bridge();
       const fresh=b.clone(b.getInitial());
       fresh.gameMode='auto';
       fresh.meta={...(fresh.meta||{}),careerId:'career_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
@@ -1963,32 +1937,25 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
       b.setCurrent('day');
       b.save();
       b.closeModal();
-      closeStart();
+      hide();
       b.render();
-      b.toast('✨ Nowa kariera rozpoczęta.');
-    }catch(e){
-      console.error(e);
-      bridge()?.toast('Nie udało się rozpocząć nowej gry.');
-    }
+      b.toast('⚽ Nowa kariera rozpoczęta.');
+    }catch(e){console.error(e);showError('Nie udało się rozpocząć gry.')}
   };
 
   window.flStartNewGamePlus=function(){
-    if(typeof window.startNewGamePlus==='function'){
-      window.startNewGamePlus();
-      closeStart();
-      return;
-    }
-    bridge()?.toast('Nowa Gra+ jest dostępna po ukończeniu kariery.');
+    if(typeof window.startNewGamePlus==='function'){window.startNewGamePlus();hide();return}
+    showError('Nowa Gra+ będzie dostępna po zapisaniu kariery.');
   };
 
   window.flStartSettings=function(){
-    renderGame('settings');
+    const b=B();if(!b)return;
+    b.setCurrent('settings');hide();b.render();
   };
 
-  // IMPORTANT: the save-slot module is the single owner of flOpenSlots.
-  // Do not redefine it here.
-  window.flRefreshStartScreen=refreshStart;
-  refreshStart();
+  // The existing slot module owns flOpenSlots. We only call it.
+  window.flRefreshStartScreen=refresh;
+  refresh();
 })();
 </script>
 <script id="fl-life-save-slots">(function(){
