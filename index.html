@@ -2578,22 +2578,29 @@ function randomIdentity(){
     const title=mode==='plus'?'NOWA GRA+':'NOWA GRA';
     let html='';
     if(step===0){
-      if(mode!=='plus')w.manual=false;
-      html='<div class="modal-head"><div><div class="eyebrow">✨ NOWA GRA</div><h2>Automatyczny start kariery</h2><div class="muted small">Całe życie zawodnika zostanie wygenerowane spójnie. Tutaj nie ma trybu ręcznego.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
-      '<div class="history-item" style="margin-top:14px"><b>🎲 Generator tworzy całość</b><div class="muted small" style="margin-top:7px">Kraj i miasto • rodzina • rodzice • sytuacja mieszkaniowa • finanse • szkoła • języki • klub/szkółka • pozycja • relacje i dalsze tło.</div></div>'+
-      '<div class="history-item" style="margin-top:10px"><b>✏️ Jedynie te 4 dane możesz zmieniać:</b><div class="muted small" style="margin-top:7px">Imię • nazwisko • pochodzenie • wiek 15–17</div></div>'+
-      '<div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">GENERUJ →</button></div>';
+      if(mode==='plus'){
+        w.manual=true;
+        step=1;
+        draw();
+        return;
+      }
+      w.manual=false;
+      html='<div class="modal-head"><div><div class="eyebrow">🎲 NOWA GRA</div><h2>Automatyczny start</h2><div class="muted small">Nie wybierasz tutaj sposobu tworzenia. Nowa Gra zawsze korzysta z automatycznego generatora.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+      '<div class="history-item" style="margin-top:14px"><b>🌍 Zostanie wygenerowane całe życie zawodnika</b><div class="muted small" style="margin-top:7px">Płeć, kraj i miasto, rodzina, rodzice, sytuacja mieszkaniowa, finanse, szkoła, języki, klub/szkółka, pozycja, relacje i dalsze tło.</div></div>'+
+      '<div class="history-item" style="margin-top:10px"><b>✏️ Po wygenerowaniu możesz zmienić tylko:</b><div class="muted small" style="margin-top:7px">imię • nazwisko • pochodzenie • wiek 15–17</div></div>'+
+      '<div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">GENERUJ ZAWODNIKA →</button></div>';
     }else if(step===1){
       if(!w.manual){
-        html='<div class="modal-head"><div><div class="eyebrow">👤 NOWA GRA</div><h2>Twój wygenerowany zawodnik</h2><div class="muted small">Możesz zmienić wyłącznie imię, nazwisko, pochodzenie albo wiek.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+        html='<div class="modal-head"><div><div class="eyebrow">🎲 NOWA GRA</div><h2>Automatycznie wygenerowany zawodnik</h2><div class="muted small">Całe tło postaci zostało wygenerowane. Możesz zmienić tylko cztery dane.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
         '<div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.first+' '+w.last)+'</b><span class="badge">'+(w.gender==='K'?'KOBIETA':'MĘŻCZYZNA')+'</span></div><div class="muted small" style="margin-top:6px">'+esc(w.age+' lat')+' • '+esc(w.country)+' • '+esc(w.city)+'</div><div class="muted small" style="margin-top:5px">Pozycja: <b>'+esc(w.position)+'</b></div></div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px">'+
+        '<div class="grid2" style="margin-top:12px">'+
         '<button type="button" class="choice" data-reroll="first"><b>🎲 Imię</b><span>'+esc(w.first)+'</span></button>'+
         '<button type="button" class="choice" data-reroll="last"><b>🎲 Nazwisko</b><span>'+esc(w.last)+'</span></button>'+
         '<button type="button" class="choice" data-reroll="country"><b>🎲 Pochodzenie</b><span>'+esc(w.country)+' · '+esc(w.city)+'</span></button>'+
         '<button type="button" class="choice" data-reroll="age"><b>🎲 Wiek</b><span>'+esc(w.age+' lat')+'</span></button>'+
         '</div>'+
-        '<div class="modal-actions"><button type="button" class="btn goldbtn" id="fwNext">WYBIERAM →</button></div>';
+        '<div class="muted small" style="margin-top:12px">Następny etap: 5 pytań, które nadadzą tej postaci unikatową historię.</div>'+
+        '<div class="modal-actions"><button type="button" class="btn goldbtn" id="fwNext">PRZEJDŹ DO HISTORII →</button></div>';
       }else{
         html='<div class="modal-head"><div><div class="eyebrow">⚙ '+title+'</div><h2>Dane zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>PŁEĆ<select id="fwGender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></label><label>POCHODZENIE<select id="fwCountry">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>MIASTO<input id="fwCity" value="'+esc(w.city)+'"></label><label>WIEK<select id="fwAge"><option>15</option><option>16</option><option>17</option></select></label><label>IMIĘ<input id="fwFirst" placeholder="auto jeśli puste"></label><label>NAZWISKO<input id="fwLast" placeholder="auto jeśli puste"></label></div>'+
@@ -2703,7 +2710,12 @@ function flEnsureFamilyConsistency(){
   const l=flFamilyLiving(sit);
   w.living=l.id;w.livingLabel=l.label;
 }
-function finish(){
+function flSyncAutoBeforeHistory(){
+      if(w.manual)return;
+      const f=document.querySelector('[data-reroll="first"] span'); if(f&&f.textContent)w.first=f.textContent.trim();
+      const l=document.querySelector('[data-reroll="last"] span'); if(l&&l.textContent)w.last=l.textContent.trim();
+    }
+    function finish(){
     try{flNormalizeModeBeforeFinish();flEnsureFamilyConsistency();
       const base=(typeof initial!=='undefined'&&typeof clone==='function')?clone(initial):null;
       if(!base){toast('Nie udało się przygotować nowej kariery.');return}
@@ -2740,7 +2752,7 @@ function finish(){
   }
 
   window.flStartNewGame=()=>begin('new');
-  window.flStartNewGamePlus=()=>{begin('plus');w.manual=true;draw()};
+  window.flStartNewGamePlus=()=>{mode='plus';w.manual=true;step=0;openWizard('plus')};
   window.flStartSettings=function(){
     open('<div class="modal-head"><div><div class="eyebrow">⚙ FL LIFE 27</div><h2>Ustawienia</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="history-item" style="margin-top:14px"><b>Ustawienia gry</b><div class="muted small" style="margin-top:6px">Pozostajesz w stylistyce istniejącego okna gry.</div></div><div class="modal-actions"><button type="button" class="btn goldbtn" onclick="closeModal()">GOTOWE</button></div>')
   };
