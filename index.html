@@ -295,6 +295,45 @@
 @media(max-width:700px){.fl-settings-grid{grid-template-columns:1fr}}
 </style>
 <meta id="fl-life-cumulative-version" name="fl-life-version" content="27-cumulative">\n<meta id="fl-life-build-final" name="fl-life-build" content="27-all-latest-fixes-combined">
+
+<style id="fl-life-strict-modes-ui">
+.fl-auto-mode .fl-plus-only{display:none!important}
+.fl-plus-mode .fl-auto-only{display:none!important}
+.fl-mode-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:9px;font-weight:850;letter-spacing:.06em}
+.fl-clean-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.08);min-height:50px}
+.fl-clean-choice + .fl-clean-choice{margin-top:8px}
+</style>
+
+<style id="fl-life-subpages-visual-system">
+:root{
+ --vbg:rgba(255,255,255,.035);--vbg2:rgba(255,255,255,.055);
+ --vborder:rgba(255,255,255,.085);--vmuted:rgba(255,255,255,.58);
+}
+.v40-page{max-width:1480px;margin:0 auto;padding:18px 20px 42px}
+.v40-page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:18px}
+.v40-page-kicker{font-size:9px;letter-spacing:.16em;color:var(--vmuted);font-weight:850;margin-bottom:5px}
+.v40-page-title{font-size:30px;line-height:1.05;letter-spacing:-.04em;margin:0}
+.v40-page-sub{font-size:11px;color:var(--vmuted);margin-top:7px;max-width:760px}
+.v40-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.v40-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.v40-card{background:linear-gradient(145deg,var(--vbg2),var(--vbg));border:1px solid var(--vborder);border-radius:18px;padding:16px;box-shadow:0 12px 32px rgba(0,0,0,.12);overflow:hidden}
+.v40-card:hover{border-color:rgba(255,255,255,.13)}
+.v40-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.v40-card-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.055);border:1px solid var(--vborder);font-size:19px}
+.v40-card-title{font-weight:850;font-size:13px}.v40-card-sub{font-size:9px;color:var(--vmuted);margin-top:2px}
+.v40-statrow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.055);font-size:10px}
+.v40-statrow:last-child{border-bottom:0}.v40-statrow b{font-size:11px}
+.v40-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid var(--vborder);background:rgba(255,255,255,.035);border-radius:999px;font-size:9px;font-weight:800}
+.v40-list{display:grid;gap:7px}.v40-list-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.055)}
+.v40-action{width:100%;text-align:left;padding:11px 12px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075);color:inherit;cursor:pointer;font-weight:750}
+.v40-action:hover{background:rgba(255,255,255,.07);transform:translateY(-1px)}
+.v40-muted{color:var(--vmuted);font-size:10px;line-height:1.5}
+.v40-progress{height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}.v40-progress>i{display:block;height:100%;background:linear-gradient(90deg,#e8c76b,#fff0b0);border-radius:inherit}
+.v40-empty{padding:24px;text-align:center;border:1px dashed rgba(255,255,255,.11);border-radius:16px;color:var(--vmuted)}
+.v40-section{margin-top:16px}.v40-section-title{font-size:10px;letter-spacing:.1em;font-weight:850;color:var(--vmuted);margin:0 0 9px}
+@media(max-width:1050px){.v40-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.v40-page{padding:12px 12px 30px}.v40-page-head{align-items:flex-start;flex-direction:column}.v40-page-title{font-size:24px}.v40-grid,.v40-grid2{grid-template-columns:1fr}.v40-card{border-radius:15px;padding:13px}}
+</style>
 </head><body>
 <div id="flStartScreen" class="fl-start-screen">
   <div class="fl-start-bg"></div>
@@ -517,59 +556,20 @@
 
 <script id="fl-life-generator-ui">
 (function(){
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function randomOf(a){return a&&a.length?a[Math.floor(Math.random()*a.length)]:''}
-  function reroll(kind){
-    try{
-      const w=window.w||window.FL_NEW_GAME_STATE||window.gameState;
-      window.countries=window.countries||[];
-      if(kind==='first'){
-        const gender=(document.getElementById('fwGender')||{}).value||w?.gender||'M';
-        const c=countries.find(x=>x[0]===(w?.country))||randomOf(countries);
-        const pool=gender==='K'?(c?.[6]||['Zofia','Julia','Maja']):(c?.[5]||['Jan','Jakub','Antoni']);
-        const v=randomOf(pool);
-        const el=document.getElementById('fwFirst');if(el){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
-        if(w)w.first=v;
-      }else if(kind==='last'){
-        const c=countries.find(x=>x[0]===(w?.country))||randomOf(countries);
-        const v=randomOf(c?.[2]||['Nowak']);
-        const el=document.getElementById('fwLast');if(el){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
-        if(w)w.last=v;
-      }else if(kind==='age'){
-        const v=15+Math.floor(Math.random()*3);
-        const el=document.getElementById('fwAge');if(el){el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}))}
-        if(w)w.age=v;
-      }else if(kind==='country'){
-        const c=randomOf(countries);if(!c)return;
-        if(w){w.country=c[0];w.city=c[1];w.residenceCountry=c[0];w.residenceCity=c[1]}
-        const ce=document.getElementById('fwCountry');if(ce){ce.value=c[0];ce.dispatchEvent(new Event('change',{bubbles:true}))}
-        const city=document.getElementById('fwCity');if(city){city.value=c[1];city.textContent=c[1]}
-      }
-      // Keep any existing render/update hook, but never navigate away.
-      if(typeof window.updateGeneratorPreview==='function')window.updateGeneratorPreview();
-      if(typeof window.renderWizard==='function')window.renderWizard();
-    }catch(e){console.warn('FL randomizer:',e)}
-  }
-  window.flRandomizeField=reroll;
-
-  function enhance(){
+  const adv=['rodzic','rodzeń','sytuacja rodzinna','z kim mieszkasz','zamieszkanie','miejsce urodzenia','opiekun','partner rodzica','rodzeństwo','finanse rodziny','zawód rodzica','korzenie','języki'];
+  function apply(){
     const root=document.querySelector('.modal,.modal-card,[role="dialog"]');if(!root)return;
+    const mode=(window.w?.mode||window.FL_NEW_GAME_STATE?.mode||root.dataset.mode||'').toLowerCase();
+    root.classList.toggle('fl-auto-mode',mode==='auto'||mode==='nowa gra');
+    root.classList.toggle('fl-plus-mode',mode==='plus'||mode==='newplus'||mode==='nowa gra+');
     root.querySelectorAll('label').forEach(l=>{
-      const t=(l.textContent||'').trim().toLowerCase();
-      const kind=t.includes('imię')?'first':t.includes('nazwisko')?'last':t.includes('wiek')?'age':(t.includes('pochodzenie')||t.includes('kraj'))?'country':null;
-      if(!kind||l.dataset.flEnhanced)return;
-      const control=l.querySelector('input,select');if(!control)return;
-      l.dataset.flEnhanced='1';
-      const row=document.createElement('div');row.className='fl-random-row';
-      control.parentNode.insertBefore(row,control);row.appendChild(control);
-      const b=document.createElement('button');b.type='button';b.className='fl-random-btn';b.textContent='🎲 Losuj';
-      b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();reroll(kind)},true);
-      row.appendChild(b);
+      const t=(l.textContent||'').toLowerCase();
+      if(adv.some(x=>t.includes(x))) l.classList.add('fl-plus-only');
     });
   }
-  new MutationObserver(enhance).observe(document.body,{subtree:true,childList:true});
-  document.addEventListener('click',()=>setTimeout(enhance,0));
-  setTimeout(enhance,100);enhance();
+  window.flApplyStrictModes=apply;
+  new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
+  setTimeout(apply,80);apply();
 })();
 </script>
 
@@ -701,8 +701,8 @@
   window.flCreateAndStartCareer=function(){
     const p=normalize();
     if(!p.first||!p.last){alert('Najpierw wygeneruj zawodnika.');return false}
-    const slot=p.saveSlot||persist(p);
-    p.saveSlot=slot;persist(p);
+    const slot=(window.flSaveNewCareerToOwnedSlot?window.flSaveNewCareerToOwnedSlot(p):persist(p));
+    p.saveSlot=slot; if(window.flSaveNewCareerToOwnedSlot) window.flSaveNewCareerToOwnedSlot(p); else persist(p);
     if(enterCareer(p))return true;
     // Never report "save mechanism unavailable": the save has already been created.
     // If no legacy navigation hook exists, render a minimal in-place career state
@@ -734,6 +734,94 @@
  }
  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});
  setTimeout(patch,100);patch();
+})();
+</script>
+
+<script id="fl-life-slot-ownership-fix">
+(function(){
+  const K='FL_LIFE_27_SAVE_SLOTS_V1', R='FL_LIFE_27_NEW_GAME_RESERVED_SLOT';
+  function slots(){try{return JSON.parse(localStorage.getItem(K)||'[]')}catch(e){return[]}}
+  function reserve(){
+    const a=slots(), used=a.map(x=>x&&x.slot);
+    const n=[1,2,3,4,5].find(x=>!used.includes(x))||1;
+    localStorage.setItem(R,String(n)); return n;
+  }
+  function reserved(){const n=Number(localStorage.getItem(R));return n>=1&&n<=5?n:null}
+  function saveCurrent(p){
+    const a=slots(), n=reserved()||[1,2,3,4,5].find(x=>!a.some(v=>v&&v.slot===x))||1;
+    const clean=JSON.parse(JSON.stringify(p));
+    const i=a.findIndex(x=>x&&x.slot===n);
+    const rec={slot:n,savedAt:new Date().toISOString(),player:clean};
+    if(i>=0)a[i]=rec;else a.push(rec);
+    localStorage.setItem(K,JSON.stringify(a.slice(0,5)));
+    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(clean));
+    localStorage.setItem('FL_LIFE_27_CURRENT_SLOT',String(n));
+    window.FL_PLAYER_PROFILE=clean;
+    localStorage.removeItem(R);
+    return n;
+  }
+  window.flReserveNewGameSlot=reserve;
+  window.flGetReservedSlot=reserved;
+  window.flSaveNewCareerToOwnedSlot=saveCurrent;
+})();
+</script>
+
+<script id="fl-life-reserve-on-new-game">
+(function(){
+  function patch(){
+    document.querySelectorAll('button,[role="button"],a').forEach(el=>{
+      if(el.dataset.flReservePatched)return;
+      const t=(el.textContent||'').trim().toLowerCase();
+      if(t==='nowa gra' || t.includes('nowa gra — szybki start')){
+        el.dataset.flReservePatched='1';
+        el.addEventListener('click',()=>{try{window.flReserveNewGame&&window.flReserveNewGame()}catch(e){}},true);
+      }
+    });
+  }
+  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});
+  patch();setTimeout(patch,100);
+})();
+</script>
+
+<script id="fl-life-capture-visible-generator-values">
+(function(){
+  function sync(){
+    const w=window.w||window.FL_NEW_GAME_STATE;
+    if(!w)return;
+    const first=document.querySelector('#fwFirst'),last=document.querySelector('#fwLast'),age=document.querySelector('#fwAge'),country=document.querySelector('#fwCountry'),city=document.querySelector('#fwCity');
+    if(first&&first.value)w.first=first.value;
+    if(last&&last.value)w.last=last.value;
+    if(age&&age.value)w.age=Math.max(15,Math.min(17,Number(age.value)));
+    if(country&&country.value)w.country=country.value;
+    if(city&&city.value)w.city=city.value;
+    w.residenceCountry=w.residenceCountry||w.country;
+    w.residenceCity=w.residenceCity||w.city;
+  }
+  document.addEventListener('input',sync,true);
+  document.addEventListener('change',sync,true);
+  window.flSyncVisibleGenerator=sync;
+})();
+</script>
+
+<script id="fl-life-subpages-polish">
+(function(){
+  function polish(){
+    const root=document.getElementById('app')||document.getElementById('game')||document.body;
+    if(!root)return;
+    root.querySelectorAll('.card:not(.v40-card),.panel:not(.v40-card),.section:not(.v40-card)').forEach(el=>{
+      if(el.closest('.modal'))return;
+      el.classList.add('v40-card');
+    });
+    root.querySelectorAll('h2,h3').forEach(h=>{
+      if(h.dataset.flPolished)return;
+      h.dataset.flPolished='1';
+      if(h.parentElement && !h.parentElement.classList.contains('v40-page-head')){
+        h.classList.add('v40-page-title');
+      }
+    });
+  }
+  new MutationObserver(()=>setTimeout(polish,0)).observe(document.body,{subtree:true,childList:true});
+  setTimeout(polish,100);polish();
 })();
 </script>
 </body><script id="core">const KEY='fl-life-27-etap6';
@@ -944,7 +1032,7 @@ function renderMenu(){
 }
 function go(tab){current=tab;renderCore();window.scrollTo({top:0,behavior:'smooth'})}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
 
 const activities=[
  {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2},fixed:true},
