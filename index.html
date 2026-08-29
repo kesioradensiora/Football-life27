@@ -235,7 +235,23 @@
   .modal-actions{grid-template-columns:1fr!important}
   .modal-actions .choice{width:100%}
 }
-</style></head><body>
+</style>
+<style id="fl-life-language-ui">
+.fl-lang-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.fl-lang-card{padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.fl-lang-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.fl-lang-name{font-weight:800;font-size:14px}.fl-lang-level{font-size:10px;letter-spacing:.08em;opacity:.72}
+.fl-lang-bar{height:7px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0}
+.fl-lang-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8fd3ff,#f2c66d)}
+.fl-lang-skills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.fl-lang-skill{font-size:9px;text-align:center;padding:7px 4px;border-radius:9px;background:rgba(255,255,255,.035);opacity:.82}
+.fl-lang-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.fl-lang-action{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);border-radius:12px;padding:11px;text-align:left;cursor:pointer;color:inherit}
+.fl-lang-action:hover{background:rgba(255,255,255,.075);transform:translateY(-1px)}
+.fl-lang-note{font-size:10px;opacity:.62;line-height:1.45}
+@media(max-width:1050px){.fl-lang-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}\n@media(max-width:700px){.fl-lang-grid{grid-template-columns:1fr}.fl-lang-actions{grid-template-columns:1fr}}
+</style>
+</head><body>
 <div id="flStartScreen" class="fl-start-screen">
   <div class="fl-start-bg"></div>
   <div class="fl-start-shade"></div>
@@ -343,6 +359,117 @@
 <div id="drawer" class="drawer"><div class="drawer-head"><b>FL LIFE 27</b><button onclick="closeDrawer()">×</button></div><div id="drawerMenu" class="menu-grid"></div></div>
 <div id="modal" class="modal"><div id="modalSheet" class="modal-sheet"></div></div>
 <div id="toast" class="toast"></div>
+
+<script id="fl-life-language-controller">
+(function(){
+  const langs=[
+    ['🇵🇱','Polski','C2',100],['🇬🇧','Angielski','B1',68],['🇪🇸','Hiszpański','A1',24],
+    ['🇩🇪','Niemiecki','A1',18],['🇫🇷','Francuski','A1',12],['🇮🇹','Włoski','A1',10],
+    ['🇵🇹','Portugalski','A1',8],['🇳🇱','Niderlandzki','A1',6],['🇷🇺','Rosyjski','A1',5],
+    ['🇺🇦','Ukraiński','A1',5],['🇨🇿','Czeski','A1',5],['🇸🇰','Słowacki','A1',4],
+    ['🇭🇺','Węgierski','A1',4],['🇷🇴','Rumuński','A1',3],['🇬🇷','Grecki','A1',3],
+    ['🇹🇷','Turecki','A1',3],['🇸🇪','Szwedzki','A1',2],['🇳🇴','Norweski','A1',2],
+    ['🇩🇰','Duński','A1',2],['🇫🇮','Fiński','A1',2],['🇭🇷','Chorwacki','A1',2],
+    ['🇷🇸','Serbski','A1',2],['🇧🇬','Bułgarski','A1',2],['🇸🇮','Słoweński','A1',2],
+    ['🇮🇱','Hebrajski','A1',1],['🇯🇵','Japoński','A1',1],['🇨🇳','Chiński mandaryński','A1',1],
+    ['🇰🇷','Koreański','A1',1],['🇮🇳','Hindi','A1',1],['🇦🇪','Arabski','A1',1]
+  ];
+  const names={A1:'Początkujący',A2:'Podstawowy',B1:'Komunikatywny',B2:'Zaawansowany',C1:'Biegły',C2:'Ojczysty'};
+  const state={list:langs.map(x=>({flag:x[0],name:x[1],level:x[2],score:x[3]}))};
+  const levelFromScore=n=>n>=95?'C2':n>=85?'C1':n>=70?'B2':n>=55?'B1':n>=35?'A2':'A1';
+  function save(){try{localStorage.setItem('FL_LIFE_LANGUAGES',JSON.stringify(state.list))}catch(e){}}
+  function load(){try{const x=JSON.parse(localStorage.getItem('FL_LIFE_LANGUAGES'));if(Array.isArray(x)&&x.length)state.list=x}catch(e){}}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function render(){
+    load();
+    try{
+      const generated=window.flLanguageOrigins&&window.flLanguageOrigins();
+      if(Array.isArray(generated)&&generated.length) state.list=generated.map(x=>({flag:(x.name||'').slice(0,2),name:(x.name||'').replace(/^..\s/,''),level:x.level,score:x.score}));
+    }catch(e){}
+    const cards=state.list.map((x,i)=>`
+      <div class="fl-lang-card">
+        <div class="fl-lang-top"><div class="fl-lang-name">${x.flag} ${esc(x.name)}</div><div class="fl-lang-level">${x.level} · ${names[x.level]||''}</div></div>
+        <div class="fl-lang-bar"><div class="fl-lang-fill" style="width:${Math.max(2,Math.min(100,x.score))}%"></div></div>
+        <div class="fl-lang-top"><div class="fl-lang-note">Ogólny poziom</div><b>${Math.round(x.score)}%</b></div>
+        <div class="fl-lang-skills">
+          <div class="fl-lang-skill">🗣 Mówienie</div><div class="fl-lang-skill">👂 Słuchanie</div><div class="fl-lang-skill">📖 Czytanie</div><div class="fl-lang-skill">✍️ Pisanie</div>
+        </div>
+      </div>`).join('');
+    return `<div class="modal-head"><div><div class="eyebrow">🌍 ROZWÓJ</div><h2>Języki</h2><div class="muted small">Twoje języki rozwijają się przez szkołę, rodzinę, kursy, podróże i codzienne życie.</div></div><button class="close" onclick="closeModal()">✕</button></div>
+      <div class="history-item" style="margin-top:14px"><b>Profil językowy</b><div class="fl-lang-note" style="margin-top:5px">Poziomy są oparte na skali A1–C2. Każdy język ma osobne umiejętności: mówienie, słuchanie, czytanie i pisanie.</div></div>
+      <div style="margin-top:14px">
+        <input id="flLangSearch" class="input" placeholder="🔎 Szukaj języka..." oninput="flFilterLanguages(this.value)" style="width:100%">
+      </div>
+      <div id="flLangGrid" class="fl-lang-grid">${cards}</div>
+      <div class="fl-lang-actions">
+        <button class="fl-lang-action" onclick="flLanguageLearn('kurs')"><b>📚 Kurs językowy</b><div class="fl-lang-note">regularna nauka za pieniądze i czas</div></button>
+        <button class="fl-lang-action" onclick="flLanguageLearn('sam')"><b>📱 Nauka samodzielna</b><div class="fl-lang-note">tańsza, ale wolniejsza</div></button>
+        <button class="fl-lang-action" onclick="flLanguageLearn('podroz')"><b>✈️ Ucz się w praktyce</b><div class="fl-lang-note">podróże, rodzina, szkoła i znajomi</div></button>
+      </div>
+      <div class="modal-actions"><button class="btn goldbtn" onclick="closeModal()">GOTOWE</button></div>`;
+  }
+  window.flOpenLanguages=function(){if(typeof window.openModal==='function')window.openModal(render(),true);else alert('Moduł języków jest gotowy.')}
+  window.flFilterLanguages=function(q){
+    const grid=document.getElementById('flLangGrid'); if(!grid)return;
+    q=(q||'').toLowerCase().trim();
+    const filtered=state.list.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.level||'').toLowerCase().includes(q));
+    grid.innerHTML=filtered.map(x=>{
+      const pct=Math.max(2,Math.min(100,x.score));
+      return `<div class="fl-lang-card"><div class="fl-lang-top"><div class="fl-lang-name">${x.flag} ${esc(x.name)}</div><div class="fl-lang-level">${x.level} · ${names[x.level]||''}</div></div><div class="fl-lang-bar"><div class="fl-lang-fill" style="width:${pct}%"></div></div><div class="fl-lang-top"><div class="fl-lang-note">Ogólny poziom</div><b>${Math.round(x.score)}%</b></div><div class="fl-lang-skills"><div class="fl-lang-skill">🗣 Mówienie</div><div class="fl-lang-skill">👂 Słuchanie</div><div class="fl-lang-skill">📖 Czytanie</div><div class="fl-lang-skill">✍️ Pisanie</div></div></div>`;
+    }).join('');
+  }
+  window.flLanguageLearn=function(type){
+    const gain=type==='kurs'?4:type==='sam'?2:3;
+    state.list=state.list.map((x,i)=>i===1?({...x,score:Math.min(100,x.score+gain),level:levelFromScore(Math.min(100,x.score+gain))}):x);
+    save();if(typeof window.openModal==='function')window.openModal(render(),true);
+  }
+  // Non-destructive: expose a hook for an existing cockpit button if present.
+  window.openLanguagePanel=window.flOpenLanguages;
+})();
+</script>
+
+<script id="fl-life-language-generator">
+(function(){
+  const FL_LANG_RULES={
+    "Polska":["🇵🇱 Polski"],"Niemcy":["🇩🇪 Niemiecki"],"Anglia":["🇬🇧 Angielski"],
+    "Hiszpania":["🇪🇸 Hiszpański"],"Francja":["🇫🇷 Francuski"],"Włochy":["🇮🇹 Włoski"],
+    "Portugalia":["🇵🇹 Portugalski"],"Holandia":["🇳🇱 Niderlandzki"],"Belgia":["🇳🇱 Niderlandzki","🇫🇷 Francuski"],
+    "Chorwacja":["🇭🇷 Chorwacki"],"Serbia":["🇷🇸 Serbski"],"Brazylia":["🇵🇹 Portugalski"],
+    "Argentyna":["🇪🇸 Hiszpański"],"USA":["🇬🇧 Angielski"],"Japonia":["🇯🇵 Japoński"],
+    "Szwecja":["🇸🇪 Szwedzki"],"Norwegia":["🇳🇴 Norweski"],"Nigeria":["🇬🇧 Angielski"],
+    "Czechy":["🇨🇿 Czeski"],"Słowacja":["🇸🇰 Słowacki"],"Węgry":["🇭🇺 Węgierski"],
+    "Rumunia":["🇷🇴 Rumuński"],"Grecja":["🇬🇷 Grecki"],"Turcja":["🇹🇷 Turecki"],
+    "Ukraina":["🇺🇦 Ukraiński"],"Izrael":["🇮🇱 Hebrajski"],"Chiny":["🇨🇳 Chiński mandaryński"],
+    "Korea Południowa":["🇰🇷 Koreański"],"Indie":["🇮🇳 Hindi"],"Maroko":["🇦🇪 Arabski"]
+  };
+  const CEFR=[['A1',1],['A2',20],['B1',40],['B2',60],['C1',80],['C2',95]];
+  function level(n){let x='A1';for(const q of CEFR)if(n>=q[1])x=q[0];return x}
+  function add(map,name,score,reason){if(!name)return;const old=map[name];map[name]=old?{...old,score:Math.max(old.score,score),reasons:[...new Set(old.reasons.concat(reason||[]))]}:{score,reasons:reason||[]}}
+  function derive(profile){
+    const out={}; const roots=profile?.roots||profile?.family?.roots||[];
+    const birth=profile?.birthCountry||profile?.country; const residence=profile?.country||profile?.cityCountry;
+    (FL_LANG_RULES[birth]||[]).forEach(x=>add(out,x,100,['język związany z miejscem urodzenia/wychowania']));
+    // Family roots: a parent's country can create a home language even if the player lives elsewhere.
+    roots.forEach(r=>{
+      const cc=r.country; (FL_LANG_RULES[cc]||[]).forEach(x=>add(out,x,Math.min(90,profile.age&&profile.age<8?85:65),['pochodzenie rodzinne']));
+    });
+    // Residence: a language can become strong through school and everyday exposure.
+    (FL_LANG_RULES[residence]||[]).forEach(x=>add(out,x,Math.min(75,profile.age&&profile.age<10?70:50),['język kraju zamieszkania','szkoła i codzienne życie']));
+    // English is common through school, but not automatically fluent.
+    if(profile.schoolLanguage||profile.school||profile.age>=7)add(out,'🇬🇧 Angielski',Math.max(out['🇬🇧 Angielski']?.score||0,35),['język szkolny']);
+    // If living in a country where another language is widely used, keep it as an exposure language.
+    return Object.entries(out).map(([name,v])=>({name,score:v.score,level:level(v.score),reasons:v.reasons}));
+  }
+  window.flGenerateLanguages=function(profile){
+    const list=derive(profile||window.FL_PLAYER_PROFILE||{});
+    try{localStorage.setItem('FL_LIFE_GENERATED_LANGUAGES',JSON.stringify(list))}catch(e){}
+    return list;
+  };
+  window.flLanguageOrigins=function(){
+    try{return JSON.parse(localStorage.getItem('FL_LIFE_GENERATED_LANGUAGES')||'[]')}catch(e){return []}
+  };
+})();
+</script>
 </body><script id="core">const KEY='fl-life-27-etap6';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const initial={
