@@ -1852,10 +1852,11 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
 
 <script id="fl-life-start-controller">
 (function(){
+  /* START SCREEN: one clean controller. It talks directly to the game's
+     existing modal functions — no second router and no overlay system. */
   const root=document.getElementById('flStartScreen');
-  const B=()=>window.__FL_START_BRIDGE;
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const countries=[
     ['Polska','Warszawa','Kowalski','Nowak'],['Brazylia','São Paulo','Silva','Santos'],
     ['Portugalia','Porto','Pereira','Costa'],['Hiszpania','Madryt','Garcia','Martinez'],
@@ -1869,35 +1870,43 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
   const positions=['Bramkarz','Środkowy obrońca','Boczny obrońca','Pomocnik','Skrzydłowy','Napastnik'];
   const questions=[
     ['CHARAKTER','Co najbardziej napędza Twoją karierę?',['Rodzina i bezpieczeństwo','Marzenie o wielkiej piłce','Sława i rozpoznawalność','Wolność i własna droga']],
-    ['PRESJA','Jak reagujesz, gdy robi się trudno?',['Pracuję jeszcze ciężej','Szukam wsparcia u bliskich','Ryzykuję i zmieniam plan','Zachowuję spokój']],
+    ['PRESJA','Jak reagujesz, gdy zaczyna robić się trudno?',['Pracuję jeszcze ciężej','Szukam wsparcia u bliskich','Ryzykuję i zmieniam plan','Zachowuję spokój']],
     ['POZA BOISKIEM','Co jest dla Ciebie ważne poza futbolem?',['Nauka','Przyjaciele i relacje','Media i popularność','Podróże i przygody']],
     ['LUDZIE','Komu najłatwiej zaufasz?',['Rodzinie','Jednej bliskiej osobie','Trenerowi lub mentorowi','Nikomu od razu']],
     ['DROGA','Pojawia się wielka oferta. Co robisz?',['Biorę ją od razu','Rozmawiam z rodziną','Wybieram rozwój','Wybieram własną drogę']]
   ];
   let mode='new',step=0,w={};
 
-  function toast(t){try{B()?.toast(t)}catch(e){console.error(e)}}
-  function hide(){if(!root)return;root.classList.add('hidden');root.setAttribute('aria-hidden','true');root.style.pointerEvents='none';root.style.display='none'}
+  function toast(t){if(typeof window.toast==='function')window.toast(t);else console.warn(t)}
+  function close(){if(typeof window.closeModal==='function')window.closeModal()}
+  function open(html){if(typeof window.openModal==='function'){window.openModal(html,true);return true} toast('Nie udało się otworzyć okna gry.');return false}
+  function hide(){if(root){root.classList.add('hidden');root.style.pointerEvents='none';root.style.display='none'}}
+  function country(n){return countries.find(x=>x[0]===n)||countries[0]}
+  function identity(){const c=country(w.country);w.first=w.gender==='K'?pick(female):pick(male);w.last=pick([c[2],c[3]]);w.city=w.city||c[1]}
+
   function lastSave(){
     try{
       const n=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
-      if(n){const raw=localStorage.getItem('FL_LIFE_27_SLOT_'+n);if(raw)return {slot:n,data:JSON.parse(raw)}}
-      const raw=localStorage.getItem(KEY);return raw?{slot:0,data:JSON.parse(raw)}:null
+      if(n){const r=localStorage.getItem('FL_LIFE_27_SLOT_'+n);if(r)return JSON.parse(r)}
+      const r=localStorage.getItem(KEY);return r?JSON.parse(r):null
     }catch(e){return null}
   }
   function refresh(){
-    const info=lastSave(),set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
-    const bar=document.getElementById('flLastProgressBar'),dot=document.getElementById('flSaveDot');
-    if(!info){set('flContinueDesc','Brak zapisanej kariery — rozpocznij nową grę');set('flLastSaveTitle','Brak zapisanej kariery');set('flLastCareer','—');set('flLastClub','—');set('flLastSeason','—');set('flLastProgress','—');if(bar)bar.style.width='0%';if(dot)dot.classList.remove('active');return}
-    const p=info.data?.player||{};set('flContinueDesc',(p.name||'Twoja kariera')+' • '+(p.club||'—')+' — ostatni zapis');set('flLastSaveTitle','Gotowe do kontynuowania');set('flLastCareer',p.name||'Twoja kariera');set('flLastClub',p.club||'—');set('flLastSeason',p.age?('Wiek '+p.age):'Aktywna kariera');set('flLastProgress','Zapis dostępny');if(bar)bar.style.width='25%';if(dot)dot.classList.add('active')
+    const x=lastSave(),p=x?.player||{},set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+    set('flContinueDesc',x?(p.name||'Ostatnia kariera')+' • '+(p.club||'')+' — kontynuuj':'Brak zapisu — rozpocznij nową grę');
+    set('flLastCareer',x?(p.name||'Kariera'):'—');set('flLastClub',x?(p.club||'—'):'—');
+    set('flLastSeason',x?(p.age?'Wiek '+p.age:'Aktywna kariera'):'—');set('flLastProgress',x?'Zapis dostępny':'—');
   }
 
   window.flStartContinue=function(){
-    const info=lastSave();
-    if(!info){toast('Brak zapisu. Wybierz „Nowa gra”.');return}
+    const data=lastSave();if(!data){toast('Brak zapisanej kariery. Wybierz „Nowa gra”.');return}
     try{
-      const b=B(),state=b.clone(b.getInitial()),loaded=deepMerge(state,info.data);
-      b.setState(loaded);b.migrateSave(loaded);b.save();b.setCurrent('day');hide();b.render();b.toast('💾 Wczytano ostatnią karierę.')
+      if(typeof setState==='function' && typeof clone==='function' && typeof initial!=='undefined'){
+        const loaded=deepMerge(clone(initial),data);setState(loaded);if(typeof migrateSave==='function')migrateSave(loaded);if(typeof save==='function')save();if(typeof setCurrent==='function')setCurrent('day');hide();if(typeof render==='function')render();toast('💾 Wczytano ostatnią karierę.');return
+      }
+      /* fallback: the game's normal state is exposed through its current save */
+      if(typeof window.flLoadSlot==='function'){window.flLoadSlot(Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||1));hide();return}
+      toast('Nie znaleziono mechanizmu wczytywania gry.')
     }catch(e){console.error(e);toast('Nie udało się wczytać kariery.')}
   };
 
@@ -1907,92 +1916,73 @@ function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar
        age:15+Math.floor(Math.random()*4),first:'',last:'',position:pick(positions),answers:[],manual:false};
     draw();
   }
-  function identity(){
-    const c=countries.find(x=>x[0]===w.country)||countries[0];
-    w.first=w.gender==='K'?pick(female):pick(male);w.last=pick([c[2],c[3]]);w.city=w.city||c[1]
-  }
-  function fieldGrid(){
-    return '<div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">'
-      +'<label>PŁEĆ<select id="fwGender"><option value="M" '+(w.gender==='M'?'selected':'')+'>Mężczyzna</option><option value="K" '+(w.gender==='K'?'selected':'')+'>Kobieta</option></select></label>'
-      +'<label>POCHODZENIE<select id="fwCountry">'+countries.map(x=>'<option '+(x[0]===w.country?'selected':'')+'>'+esc(x[0])+'</option>').join('')+'</select></label>'
-      +'<label>MIASTO<input id="fwCity" value="'+esc(w.city)+'"></label>'
-      +'<label>WIEK<input id="fwAge" type="number" min="12" max="35" value="'+w.age+'"></label>'
-      +'<label>IMIĘ<input id="fwFirst" value="'+esc(w.first)+'"></label>'
-      +'<label>NAZWISKO<input id="fwLast" value="'+esc(w.last)+'"></label></div>'
-  }
+
   function draw(){
-    const b=B();if(!b)return;
-    let html='',title=mode==='plus'?'NOWA GRA+':'NOWA GRA';
+    const title=mode==='plus'?'NOWA GRA+':'NOWA GRA';
+    let html='';
     if(step===0){
-      html='<div class="modal-head"><div><div class="eyebrow">✨ '+title+'</div><h2>Jak chcesz stworzyć karierę?</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+
-      '<div class="history-item" style="margin-top:14px"><b>'+ (mode==='plus'?'Wybierz automatyczne lub ręczne tworzenie.':'Gra automatycznie stworzy spójne życie zawodnika.') +'</b></div>'+
-      '<div class="modal-actions" style="display:flex;gap:10px;margin-top:14px"><button class="btn goldbtn" id="fwAuto">✨ AUTOMATYCZNIE</button>'+(mode==='plus'?'<button class="btn" id="fwManual">⚙ RĘCZNIE</button>':'')+'</div>'+
-      '<div class="modal-actions"><button class="btn" onclick="window.__FL_START_BRIDGE.closeModal()">ANULUJ</button><button class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      html='<div class="modal-head"><div><div class="eyebrow">✨ '+title+'</div><h2>Stwórz swoją karierę</h2><div class="muted small">Wybierz sposób stworzenia zawodnika.</div></div><button class="close" onclick="closeModal()">✕</button></div>'+
+      '<div class="modal-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">'+
+      '<button type="button" class="choice '+(!w.manual?'goldbtn':'')+'" id="fwAuto"><b>✨ AUTOMATYCZNIE</b><span>Gra dobierze pochodzenie, rodzinę, płeć, imię, wiek i pozycję.</span></button>'+
+      (mode==='plus'?'<button type="button" class="choice '+(w.manual?'goldbtn':'')+'" id="fwManual"><b>⚙ RĘCZNIE</b><span>Sam ustawisz dane zawodnika i rodziców.</span></button>':'')+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else if(step===1){
-      if(!w.manual){
-        identity();
-        html='<div class="modal-head"><div><div class="eyebrow">👤 '+title+'</div><h2>Twój zawodnik</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+
-        '<div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.first+' '+w.last)+'</b><span class="badge">'+(w.gender==='K'?'KOBIETA':'MĘŻCZYZNA')+'</span></div><div class="muted small">Wiek '+w.age+' • '+esc(w.country)+' • '+esc(w.city)+'</div></div>'+
-        '<div class="modal-actions"><button class="btn" id="fwReroll">🎲 LOSUJ PONOWNIE</button><button class="btn goldbtn" id="fwNext">WYBIERAM →</button></div>';
-      }else{
-        html='<div class="modal-head"><div><div class="eyebrow">⚙ '+title+'</div><h2>Dane zawodnika</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+fieldGrid()+
-        '<div class="modal-actions"><button class="btn" onclick="window.__FL_START_BRIDGE.closeModal()">ANULUJ</button><button class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
-      }
+      if(!w.manual){identity();html='<div class="modal-head"><div><div class="eyebrow">👤 '+title+'</div><h2>Twój zawodnik</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="history-item" style="margin-top:14px"><div class="row"><b>'+esc(w.first+' '+w.last)+'</b><span class="badge">'+(w.gender==='K'?'KOBIETA':'MĘŻCZYZNA')+'</span></div><div class="muted small">Wiek '+w.age+' • '+esc(w.country)+' • '+esc(w.city)+'</div></div><div class="modal-actions"><button type="button" class="btn" id="fwReroll">🎲 LOSUJ PONOWNIE</button><button type="button" class="btn goldbtn" id="fwNext">WYBIERAM →</button></div>'}
+      else html='<div class="modal-head"><div><div class="eyebrow">⚙ '+title+'</div><h2>Dane zawodnika</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>PŁEĆ<select id="fwGender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></label><label>POCHODZENIE<select id="fwCountry">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>MIASTO<input id="fwCity" value=""></label><label>WIEK<input id="fwAge" type="number" min="12" max="35" value="'+w.age+'"></label><label>IMIĘ<input id="fwFirst" placeholder="auto jeśli puste"></label><label>NAZWISKO<input id="fwLast" placeholder="auto jeśli puste"></label></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">ANULUJ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else if(step===2){
-      html='<div class="modal-head"><div><div class="eyebrow">👨‍👩‍👧 '+title+'</div><h2>Rodzice i korzenie</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+
-      '<div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">'+
-      '<label>POCHODZENIE OJCA<select id="fwFather">'+countries.map(x=>'<option '+(x[0]===(w.fatherCountry||w.country)?'selected':'')+'>'+esc(x[0])+'</option>').join('')+'</select></label>'+
-      '<label>POCHODZENIE MATKI<select id="fwMother">'+countries.map(x=>'<option '+(x[0]===(w.motherCountry||w.country)?'selected':'')+'>'+esc(x[0])+'</option>').join('')+'</select></label></div>'+
-      '<div class="history-item" style="margin-top:14px"><b>Rodzina zostanie dopasowana do historii.</b><div class="muted small" style="margin-top:6px">Rodzice, dom i sytuacja rodzinna zostaną zapisane razem z karierą.</div></div>'+
-      '<div class="modal-actions"><button class="btn" id="fwBack">‹ WSTECZ</button><button class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      html='<div class="modal-head"><div><div class="eyebrow">👨‍👩‍👧 '+title+'</div><h2>Rodzice i korzenie</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><label>POCHODZENIE OJCA<select id="fwFather">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label><label>POCHODZENIE MATKI<select id="fwMother">'+countries.map(x=>'<option>'+esc(x[0])+'</option>').join('')+'</select></label></div><div class="history-item" style="margin-top:14px"><b>Rodzina zostanie wygenerowana razem z zapisem.</b></div><div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else if(step===3){
-      html='<div class="modal-head"><div><div class="eyebrow">⚽ POZYCJA</div><h2>Na jakiej pozycji grasz?</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+
-      '<div class="list" style="margin-top:14px">'+positions.map(x=>'<button class="btn '+(w.position===x?'goldbtn':'')+'" data-fwpos="'+esc(x)+'" style="width:100%;margin-bottom:7px;text-align:left">'+esc(x)+'</button>').join('')+'</div>'+
-      '<div class="modal-actions"><button class="btn" id="fwBack">‹ WSTECZ</button><button class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
+      html='<div class="modal-head"><div><div class="eyebrow">⚽ POZYCJA</div><h2>Na jakiej pozycji grasz?</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions" style="margin-top:14px">'+positions.map(x=>'<button type="button" class="choice '+(w.position===x?'goldbtn':'')+'" data-pos="'+esc(x)+'"><b>'+esc(x)+'</b></button>').join('')+'</div><div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">DALEJ →</button></div>';
     }else{
       const q=questions[step-4],ans=w.answers[step-4];
-      html='<div class="modal-head"><div><div class="eyebrow">📖 HISTORIA • '+q[0]+' • '+(step-3)+'/5</div><h2>'+q[1]+'</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div>'+
-      '<div class="list" style="margin-top:14px">'+q[2].map((x,i)=>'<button class="btn '+(ans===i?'goldbtn':'')+'" data-fwans="'+i+'" style="width:100%;margin-bottom:7px;text-align:left">'+esc(x)+'</button>').join('')+'</div>'+
-      '<div class="modal-actions"><button class="btn" id="fwBack">‹ WSTECZ</button><button class="btn goldbtn" id="fwNext">'+(step===8?'⚽ STWÓRZ KARIERĘ':'DALEJ →')+'</button></div>';
+      html='<div class="modal-head"><div><div class="eyebrow">📖 HISTORIA • '+q[0]+' • '+(step-3)+'/5</div><h2>'+q[1]+'</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="modal-actions" style="margin-top:14px">'+q[2].map((x,i)=>'<button type="button" class="choice '+(ans===i?'goldbtn':'')+'" data-ans="'+i+'"><b>'+esc(x)+'</b></button>').join('')+'</div><div class="modal-actions"><button type="button" class="btn" id="fwBack">‹ WSTECZ</button><button type="button" class="btn goldbtn" id="fwNext">'+(step===8?'⚽ STWÓRZ KARIERĘ':'DALEJ →')+'</button></div>';
     }
-    b.openModal(html,true);
+    if(!open(html))return;
     document.getElementById('fwAuto')?.addEventListener('click',()=>{w.manual=false;draw()});
     document.getElementById('fwManual')?.addEventListener('click',()=>{w.manual=true;draw()});
     document.getElementById('fwReroll')?.addEventListener('click',()=>{w.country=pick(countries)[0];w.gender=Math.random()<.5?'M':'K';w.age=15+Math.floor(Math.random()*4);w.city='';identity();draw()});
     document.getElementById('fwBack')?.addEventListener('click',()=>{step=Math.max(0,step-1);draw()});
-    document.querySelectorAll('[data-fwpos]').forEach(x=>x.addEventListener('click',()=>{w.position=x.dataset.fwpos;draw()}));
-    document.querySelectorAll('[data-fwans]').forEach(x=>x.addEventListener('click',()=>{w.answers[step-4]=+x.dataset.fwans;draw()}));
+    document.querySelectorAll('[data-pos]').forEach(e=>e.addEventListener('click',()=>{w.position=e.dataset.pos;draw()}));
+    document.querySelectorAll('[data-ans]').forEach(e=>e.addEventListener('click',()=>{w.answers[step-4]=Number(e.dataset.ans);draw()}));
     document.getElementById('fwNext')?.addEventListener('click',next);
   }
+
   function next(){
     if(step===1&&w.manual){
       w.gender=document.getElementById('fwGender').value;w.country=document.getElementById('fwCountry').value;
-      w.city=document.getElementById('fwCity').value||((countries.find(x=>x[0]===w.country)||countries[0])[1]);
-      w.age=Math.max(12,Math.min(35,Number(document.getElementById('fwAge').value)||15));
+      w.city=document.getElementById('fwCity').value||country(w.country)[1];w.age=Math.max(12,Math.min(35,Number(document.getElementById('fwAge').value)||15));
       w.first=document.getElementById('fwFirst').value.trim();w.last=document.getElementById('fwLast').value.trim();if(!w.first||!w.last)identity();
     }
     if(step===2){w.fatherCountry=document.getElementById('fwFather').value;w.motherCountry=document.getElementById('fwMother').value}
     if(step>=4&&w.answers[step-4]===undefined){toast('Wybierz odpowiedź.');return}
     step++;if(step>8)finish();else draw()
   }
+
   function finish(){
     try{
-      const b=B(),st=b.clone(b.getInitial());identity();const p=st.player,c=countries.find(x=>x[0]===w.country)||countries[0];
+      const base=(typeof initial!=='undefined'&&typeof clone==='function')?clone(initial):null;
+      if(!base||typeof setState!=='function'){toast('Gra nie udostępniła mechanizmu tworzenia zapisu.');return}
+      identity();
+      const p=base.player,c=country(w.country);
       p.name=w.first+' '+w.last;p.first=w.first;p.last=w.last;p.country=w.country;p.birthCountry=w.country;p.city=w.city;p.age=w.age;p.position=w.position;p.club='Akademia '+c[1];
-      st.gameMode=mode==='plus'?'plus':'auto';
-      st.family.father={...st.family.father,name:pick(male)+' '+(countries.find(x=>x[0]===(w.fatherCountry||w.country))||c)[2],country:w.fatherCountry||w.country,city:w.city,children:[p.name]};
-      st.family.mother={...st.family.mother,name:pick(female)+' '+(countries.find(x=>x[0]===(w.motherCountry||w.country))||c)[2],country:w.motherCountry||w.country,city:w.city,children:[p.name]};
-      st.family.roots=[{label:'Ojciec',country:w.fatherCountry||w.country,city:w.city},{label:'Matka',country:w.motherCountry||w.country,city:w.city}];
-      st.history=(st.history||[]).concat([{date:st.day?.date||'2026-09-01',type:'start',title:'Początek historii',text:p.name+' rozpoczyna drogę jako '+p.position+'.'}]);
-      st.meta={...(st.meta||{}),careerId:'career_'+Date.now(),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
-      b.migrateSave(st);b.setState(st);b.setCurrent('day');b.save();if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
-      b.closeModal();hide();b.render();b.toast('⚽ Kariera utworzona i zapisana w slocie 1.')
+      base.gameMode=mode==='plus'?'plus':'auto';
+      base.family.father={...base.family.father,name:pick(male)+' '+country(w.fatherCountry||w.country)[2],country:w.fatherCountry||w.country,city:w.city,children:[p.name]};
+      base.family.mother={...base.family.mother,name:pick(female)+' '+country(w.motherCountry||w.country)[2],country:w.motherCountry||w.country,city:w.city,children:[p.name]};
+      base.family.roots=[{label:'Ojciec',country:w.fatherCountry||w.country,city:w.city},{label:'Matka',country:w.motherCountry||w.country,city:w.city}];
+      base.history=(base.history||[]).concat([{date:base.day?.date||'2026-09-01',type:'start',title:'Początek historii',text:p.name+' rozpoczyna drogę jako '+p.position+'.'}]);
+      base.meta={...(base.meta||{}),careerId:'career_'+Date.now(),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
+      setState(base);if(typeof migrateSave==='function')migrateSave(base);if(typeof save==='function')save();if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
+      close();hide();if(typeof render==='function')render();toast('⚽ Kariera utworzona i zapisana w slocie 1.')
     }catch(e){console.error(e);toast('Nie udało się utworzyć kariery.')}
   }
+
   window.flStartNewGame=()=>begin('new');
   window.flStartNewGamePlus=()=>begin('plus');
-  window.flStartSettings=function(){const b=B();if(!b)return;b.openModal('<div class="modal-head"><div><div class="eyebrow">⚙ FL LIFE 27</div><h2>Ustawienia</h2></div><button class="close" onclick="window.__FL_START_BRIDGE.closeModal()">✕</button></div><div class="history-item" style="margin-top:14px"><b>Ustawienia gry</b><div class="muted small" style="margin-top:6px">Ustawienia pozostają w istniejącym oknie gry.</div></div><div class="modal-actions"><button class="btn goldbtn" onclick="window.__FL_START_BRIDGE.closeModal()">GOTOWE</button></div>',true)};
-  window.flRefreshStartScreen=refresh;refresh();
+  window.flStartSettings=function(){
+    open('<div class="modal-head"><div><div class="eyebrow">⚙ FL LIFE 27</div><h2>Ustawienia</h2></div><button class="close" onclick="closeModal()">✕</button></div><div class="history-item" style="margin-top:14px"><b>Ustawienia gry</b><div class="muted small" style="margin-top:6px">Pozostajesz w stylistyce istniejącego okna gry.</div></div><div class="modal-actions"><button type="button" class="btn goldbtn" onclick="closeModal()">GOTOWE</button></div>')
+  };
+  window.flRefreshStartScreen=refresh;
+  refresh();
 })();
 </script>
 <script id="fl-life-save-slots">(function(){
