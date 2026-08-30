@@ -617,20 +617,60 @@
 <script id="fl-life-continue-fix">
 (function(){
   const KEY='FL_LIFE_27_SAVE_SLOTS_V1';
-  function saves(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
-  function unwrap(x){if(!x)return null;if(x.player&&typeof x.player==='object')return x.player;if(x.profile&&typeof x.profile==='object')return x.profile;if(x.data&&typeof x.data==='object')return x.data;return typeof x==='object'?x:null}
-  function latest(){const a=saves();const one=a.find(x=>Number(x.slot)===1);if(one&&unwrap(one))return {slot:1,player:unwrap(one)};const v=a.filter(x=>unwrap(x));v.sort((x,y)=>String(y.savedAt||y.updatedAt||'').localeCompare(String(x.savedAt||x.updatedAt||'')));return v.length?{slot:Number(v[0].slot)||1,player:unwrap(v[0])}:null}
+  function read(){
+    try{
+      const a=JSON.parse(localStorage.getItem(KEY)||'[]');
+      if(!Array.isArray(a))return null;
+      // Slot 1 is the active/last career slot in this game.
+      const x=a.find(v=>Number(v.slot)===1)||a.find(v=>v&&v.player)||null;
+      if(!x)return null;
+      return x.player||x.profile||x.data||x;
+    }catch(e){return null}
+  }
   function load(){
-    const h=latest();if(!h)return false;const p=JSON.parse(JSON.stringify(h.player));
-    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(p));localStorage.setItem('FL_LIFE_27_CURRENT_SLOT',String(h.slot));window.FL_PLAYER_PROFILE=p;
-    const b=window.__FL_START_BRIDGE;if(!b)return false;
-    const base=b.getState()||{},n=JSON.parse(JSON.stringify(base));
-    n.player=p;n.profile=p;n.first=p.first||p.firstName||n.first;n.last=p.last||p.lastName||n.last;n.age=p.age||n.age;n.country=p.country||p.residenceCountry||n.country;n.city=p.city||p.residenceCity||n.city;n.residenceCountry=p.residenceCountry||p.country||n.residenceCountry;n.residenceCity=p.residenceCity||p.city||n.residenceCity;
-    b.setState(n);b.setCurrent('day');b.render();return true;
+    const p=read();
+    if(!p)return false;
+    const b=window.__FL_START_BRIDGE;
+    if(!b)return false;
+
+    // Hydrate the real game state, then render immediately.
+    const old=b.getState()||{};
+    const next=JSON.parse(JSON.stringify(old));
+    next.player=JSON.parse(JSON.stringify(p));
+    next.profile=next.player;
+    next.first=p.first||p.firstName||'';
+    next.last=p.last||p.lastName||'';
+    next.age=p.age||16;
+    next.gender=p.gender||next.gender;
+    next.country=p.country||p.residenceCountry||'';
+    next.city=p.city||p.residenceCity||'';
+    next.residenceCountry=p.residenceCountry||p.country||'';
+    next.residenceCity=p.residenceCity||p.city||'';
+    b.setState(next);
+    b.setCurrent('day');
+    b.save();
+    b.render();
+
+    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(next.player));
+    localStorage.setItem('FL_LIFE_27_CURRENT_SLOT','1');
+    return true;
   }
   window.flContinueCareer=load;
-  function patch(){document.querySelectorAll('button,a,[role="button"]').forEach(el=>{if(el.dataset.flContinueFixed)return;const t=(el.textContent||'').trim().toLowerCase();if(!t.includes('kontynuuj'))return;el.dataset.flContinueFixed='1';el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(!load())alert('Nie znaleziono zapisanej kariery. Wybierz „Nowa gra”, aby utworzyć pierwszy zapis.');},true)})}
-  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});setTimeout(patch,100);patch();
+
+  function bind(){
+    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
+      if(el.dataset.flContinueNative)return;
+      const t=(el.textContent||'').trim().toLowerCase();
+      if(!t.includes('kontynuuj'))return;
+      el.dataset.flContinueNative='1';
+      el.addEventListener('click',function(e){
+        e.preventDefault();e.stopImmediatePropagation();
+        if(!load())alert('Nie znaleziono zapisanej kariery.');
+      },true);
+    });
+  }
+  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
+  bind();
 })();
 </script>
 
@@ -660,50 +700,14 @@
   }
   function persist(p){
     if(window.__FL_START_BRIDGE){
-      const base=window.__FL_START_BRIDGE.getState();
-      const next=JSON.parse(JSON.stringify(base||{}));
-      next.player=p; next.profile=p; next.first=p.first; next.last=p.last; next.age=p.age; next.country=p.country; next.city=p.city;
-      window.__FL_START_BRIDGE.setState(next);
-    }
-    localStorage.setItem(CURRENT,JSON.stringify(p));
-    window.FL_PLAYER_PROFILE=p;
-    const a=readSlots();
-    let slot=a.find(x=>x&&x.slot===1);
-    if(!slot){
-      const used=a.map(x=>x.slot);
-      const n=[1,2,3,4,5].find(x=>!used.includes(x))||1;
-      slot={slot:n};a.push(slot);
-    }
-    slot.player=p;slot.savedAt=new Date().toISOString();
-    writeSlots(a);
-    return slot.slot;
-  }
-  function enterCareer(p){
-    // Use an explicitly available career entry point if the existing game has one.
-    const fns=['loadGameFromSave','startCareerFromSave','startCareer','openCareer','goToCareer'];
-    for(const n of fns){
-      if(typeof window[n]==='function'){
-        try{window[n](p);return true}catch(e){console.warn('career hook failed',n,e)}
-      }
-    }
-    // If the game exposes a view switch, use it.
-    for(const n of ['showScreen','navigate','setView']){
-      if(typeof window[n]==='function'){
-        try{window[n]('career');return true}catch(e){}
-      }
-    }
-    return false;
-  }
-  window.flCreateAndStartCareer=function(){
-    const p=normalize();
-    if(!p.first||!p.last){alert('Najpierw wygeneruj zawodnika.');return false}
-    const slot=(window.flSaveNewCareerToOwnedSlot?window.flSaveNewCareerToOwnedSlot(p):persist(p));
-    p.saveSlot=slot; if(window.flSaveNewCareerToOwnedSlot) window.flSaveNewCareerToOwnedSlot(p); else persist(p);
-    if(window.__FL_START_BRIDGE){
-      const base=window.__FL_START_BRIDGE.getState()||{};
-      const next=JSON.parse(JSON.stringify(base));
-      next.player=p; next.profile=p; next.first=p.first; next.last=p.last; next.age=p.age; next.country=p.country; next.city=p.city;
-      next.residenceCountry=p.residenceCountry||p.country; next.residenceCity=p.residenceCity||p.city;
+      const old=window.__FL_START_BRIDGE.getState()||{};
+      const next=JSON.parse(JSON.stringify(old));
+      next.player=JSON.parse(JSON.stringify(p)); next.profile=next.player;
+      next.first=p.first||p.firstName||''; next.last=p.last||p.lastName||''; next.age=p.age||16;
+      next.gender=p.gender||next.gender; next.country=p.country||p.residenceCountry||'';
+      next.city=p.city||p.residenceCity||'';
+      next.residenceCountry=p.residenceCountry||p.country||'';
+      next.residenceCity=p.residenceCity||p.city||'';
       window.__FL_START_BRIDGE.setState(next);
       window.__FL_START_BRIDGE.setCurrent('day');
       window.__FL_START_BRIDGE.save();
