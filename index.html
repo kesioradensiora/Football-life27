@@ -616,40 +616,21 @@
 
 <script id="fl-life-continue-fix">
 (function(){
-  function getSaves(){try{return JSON.parse(localStorage.getItem('FL_LIFE_27_SAVE_SLOTS_V1')||'[]')}catch(e){return[]}}
-  function findSave(){
-    const a=getSaves();
-    return a.find(x=>x.slot===1)||a.find(x=>x&&x.player)||null;
+  const KEY='FL_LIFE_27_SAVE_SLOTS_V1';
+  function saves(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+  function unwrap(x){if(!x)return null;if(x.player&&typeof x.player==='object')return x.player;if(x.profile&&typeof x.profile==='object')return x.profile;if(x.data&&typeof x.data==='object')return x.data;return typeof x==='object'?x:null}
+  function latest(){const a=saves();const one=a.find(x=>Number(x.slot)===1);if(one&&unwrap(one))return {slot:1,player:unwrap(one)};const v=a.filter(x=>unwrap(x));v.sort((x,y)=>String(y.savedAt||y.updatedAt||'').localeCompare(String(x.savedAt||x.updatedAt||'')));return v.length?{slot:Number(v[0].slot)||1,player:unwrap(v[0])}:null}
+  function load(){
+    const h=latest();if(!h)return false;const p=JSON.parse(JSON.stringify(h.player));
+    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(p));localStorage.setItem('FL_LIFE_27_CURRENT_SLOT',String(h.slot));window.FL_PLAYER_PROFILE=p;
+    const b=window.__FL_START_BRIDGE;if(!b)return false;
+    const base=b.getState()||{},n=JSON.parse(JSON.stringify(base));
+    n.player=p;n.profile=p;n.first=p.first||p.firstName||n.first;n.last=p.last||p.lastName||n.last;n.age=p.age||n.age;n.country=p.country||p.residenceCountry||n.country;n.city=p.city||p.residenceCity||n.city;n.residenceCountry=p.residenceCountry||p.country||n.residenceCountry;n.residenceCity=p.residenceCity||p.city||n.residenceCity;
+    b.setState(n);b.setCurrent('day');b.render();return true;
   }
-  function go(){
-    const save=findSave();
-    if(!save||!save.player){return false}
-    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(save.player));
-    window.FL_PLAYER_PROFILE=save.player;
-    if(typeof window.loadGameFromSave==='function'){window.loadGameFromSave(save.player);return true}
-    if(typeof window.startCareerFromSave==='function'){window.startCareerFromSave(save.player);return true}
-    // Existing game may expose a generic cockpit renderer; do not use it for Continue
-    // unless it explicitly accepts a saved player and changes the active view.
-    if(typeof window.startCareer==='function'){window.startCareer(save.player);return true}
-    // Last-resort: trigger the existing save-slot loader.
-    if(typeof window.flLoadSave==='function'){window.flLoadSave(save.slot);return true}
-    return false
-  }
-  window.flContinueCareer=go;
-  function patch(){
-    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
-      const t=(el.textContent||'').trim().toLowerCase();
-      if(t.includes('kontynuuj')&&!el.dataset.flContinuePatched){
-        el.dataset.flContinuePatched='1';
-        el.addEventListener('click',function(e){
-          e.preventDefault();e.stopImmediatePropagation();
-          if(!go()) alert('Nie znaleziono zapisanej kariery. Wybierz „Nowa gra”, aby utworzyć pierwszy zapis.');
-        },true);
-      }
-    });
-  }
-  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});
-  setTimeout(patch,100);patch();
+  window.flContinueCareer=load;
+  function patch(){document.querySelectorAll('button,a,[role="button"]').forEach(el=>{if(el.dataset.flContinueFixed)return;const t=(el.textContent||'').trim().toLowerCase();if(!t.includes('kontynuuj'))return;el.dataset.flContinueFixed='1';el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(!load())alert('Nie znaleziono zapisanej kariery. Wybierz „Nowa gra”, aby utworzyć pierwszy zapis.');},true)})}
+  new MutationObserver(patch).observe(document.body,{subtree:true,childList:true});setTimeout(patch,100);patch();
 })();
 </script>
 
@@ -678,7 +659,12 @@
     return p;
   }
   function persist(p){
-    if(window.S&&typeof window.S==='object'){window.S.player=p;window.S.profile=p;window.S.first=p.first;window.S.last=p.last;window.S.age=p.age;window.S.country=p.country;window.S.city=p.city;}
+    if(window.__FL_START_BRIDGE){
+      const base=window.__FL_START_BRIDGE.getState();
+      const next=JSON.parse(JSON.stringify(base||{}));
+      next.player=p; next.profile=p; next.first=p.first; next.last=p.last; next.age=p.age; next.country=p.country; next.city=p.city;
+      window.__FL_START_BRIDGE.setState(next);
+    }
     localStorage.setItem(CURRENT,JSON.stringify(p));
     window.FL_PLAYER_PROFILE=p;
     const a=readSlots();
@@ -713,7 +699,18 @@
     if(!p.first||!p.last){alert('Najpierw wygeneruj zawodnika.');return false}
     const slot=(window.flSaveNewCareerToOwnedSlot?window.flSaveNewCareerToOwnedSlot(p):persist(p));
     p.saveSlot=slot; if(window.flSaveNewCareerToOwnedSlot) window.flSaveNewCareerToOwnedSlot(p); else persist(p);
-    if(window.flSyncMainPanel)window.flSyncMainPanel(); if(typeof window.renderCore==='function')window.renderCore(); if(enterCareer(p))return true;
+    if(window.__FL_START_BRIDGE){
+      const base=window.__FL_START_BRIDGE.getState()||{};
+      const next=JSON.parse(JSON.stringify(base));
+      next.player=p; next.profile=p; next.first=p.first; next.last=p.last; next.age=p.age; next.country=p.country; next.city=p.city;
+      next.residenceCountry=p.residenceCountry||p.country; next.residenceCity=p.residenceCity||p.city;
+      window.__FL_START_BRIDGE.setState(next);
+      window.__FL_START_BRIDGE.setCurrent('day');
+      window.__FL_START_BRIDGE.save();
+      window.__FL_START_BRIDGE.render();
+      return true;
+    }
+    if(enterCareer(p))return true;
     // Never report "save mechanism unavailable": the save has already been created.
     // If no legacy navigation hook exists, render a minimal in-place career state
     // using the game's existing root instead of returning to cockpit.
@@ -864,17 +861,16 @@
 
 <script id="fl-life-single-state-sync">
 (function(){
-  function sync(){
+  window.flSyncMainPanel=function(){
     try{
-      if(window.S){
-        window.FL_PLAYER_PROFILE=window.S.player||window.S.profile||window.S;
-        localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(window.FL_PLAYER_PROFILE));
+      if(window.__FL_START_BRIDGE){
+        const st=window.__FL_START_BRIDGE.getState();
+        window.FL_PLAYER_PROFILE=st.player||st.profile||st;
+        return st;
       }
     }catch(e){}
-  }
-  window.flSyncMainPanel=sync;
-  document.addEventListener('fl:career-started',sync);
-  setTimeout(sync,50);
+    return null;
+  };
 })();
 </script>
 
@@ -885,6 +881,30 @@
     window.go=function(tab){const r=oldGo(tab);try{window.flSyncMainPanel&&window.flSyncMainPanel()}catch(e){}return r};
     window.__flGoRefresh=true;
   }
+})();
+</script>
+
+<script id="fl-life-cockpit-official-navigation">
+(function(){
+  const names={day:'Dzień',career:'Kariera',family:'Rodzina',city:'Miasto',licenses:'Licencje',specialists:'Specjaliści',secondary:'Kariera poboczna',calendar:'Kalendarz',settings:'Ustawienia',code:'Kodeks'};
+  function bind(){
+    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
+      if(el.dataset.flOfficialNav)return;
+      const t=(el.textContent||'').trim().toLowerCase();
+      let tab=null;
+      for(const k in names)if(t===names[k].toLowerCase()||t.includes(names[k].toLowerCase())){tab=k;break}
+      if(!tab)return;
+      el.dataset.flOfficialNav='1';
+      el.addEventListener('click',e=>{
+        if(!window.__FL_START_BRIDGE)return;
+        e.preventDefault();e.stopImmediatePropagation();
+        window.__FL_START_BRIDGE.setCurrent(tab);
+        window.__FL_START_BRIDGE.render();
+        window.scrollTo({top:0,behavior:'smooth'});
+      },true);
+    });
+  }
+  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});bind();
 })();
 </script>
 </body><script id="core">const KEY='fl-life-27-etap6';
@@ -1095,7 +1115,7 @@ function renderMenu(){
 }
 function go(tab){current=tab;renderCore();window.scrollTo({top:0,behavior:'smooth'})}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer; window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
 
 const activities=[
  {id:'club',ic:'⚽',name:'Trening klubowy',time:120,cost:0,desc:'Trening zespołowy i rozwój boiskowy',effects:{energy:-15,health:-1,form:5,ovr:.2},fixed:true},
