@@ -616,61 +616,23 @@
 
 <script id="fl-life-continue-fix">
 (function(){
-  const KEY='FL_LIFE_27_SAVE_SLOTS_V1';
-  function read(){
-    try{
-      const a=JSON.parse(localStorage.getItem(KEY)||'[]');
-      if(!Array.isArray(a))return null;
-      // Slot 1 is the active/last career slot in this game.
-      const x=a.find(v=>Number(v.slot)===1)||a.find(v=>v&&v.player)||null;
-      if(!x)return null;
-      return x.player||x.profile||x.data||x;
-    }catch(e){return null}
-  }
   function load(){
-    const p=read();
-    if(!p)return false;
-    const b=window.__FL_START_BRIDGE;
-    if(!b)return false;
-
-    // Hydrate the real game state, then render immediately.
-    const old=b.getState()||{};
-    const next=JSON.parse(JSON.stringify(old));
-    next.player=JSON.parse(JSON.stringify(p));
-    next.profile=next.player;
-    next.first=p.first||p.firstName||'';
-    next.last=p.last||p.lastName||'';
-    next.age=p.age||16;
-    next.gender=p.gender||next.gender;
-    next.country=p.country||p.residenceCountry||'';
-    next.city=p.city||p.residenceCity||'';
-    next.residenceCountry=p.residenceCountry||p.country||'';
-    next.residenceCity=p.residenceCity||p.city||'';
-    b.setState(next);
-    b.setCurrent('day');
-    b.save();
-    b.render();
-
-    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(next.player));
-    localStorage.setItem('FL_LIFE_27_CURRENT_SLOT','1');
-    return true;
+    const n=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||1);
+    const slots=window.flGetSaveSlots?.()||[];
+    const hit=slots.find(x=>x.slot===n&&x.data)||slots.find(x=>x.slot===1&&x.data)||slots.find(x=>x.data);
+    if(!hit)return false;
+    return window.flLoadSlot(hit.slot);
   }
   window.flContinueCareer=load;
-
   function bind(){
     document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
       if(el.dataset.flContinueNative)return;
-      const t=(el.textContent||'').trim().toLowerCase();
-      if(!t.includes('kontynuuj'))return;
+      if(!(el.textContent||'').trim().toLowerCase().includes('kontynuuj'))return;
       el.dataset.flContinueNative='1';
-      el.addEventListener('click',function(e){
-        e.preventDefault();e.stopImmediatePropagation();
-        if(!load())alert('Nie znaleziono zapisanej kariery.');
-      },true);
+      el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(!load())alert('Nie znaleziono zapisanej kariery.');},true);
     });
   }
-  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
-  bind();
+  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});bind();
 })();
 </script>
 
@@ -863,54 +825,13 @@
 })();
 </script>
 
-<script id="fl-life-single-state-sync">
-(function(){
-  window.flSyncMainPanel=function(){
-    try{
-      if(window.__FL_START_BRIDGE){
-        const st=window.__FL_START_BRIDGE.getState();
-        window.FL_PLAYER_PROFILE=st.player||st.profile||st;
-        return st;
-      }
-    }catch(e){}
-    return null;
-  };
-})();
-</script>
 
-<script id="fl-life-main-panel-refresh">
-(function(){
-  const oldGo=window.go;
-  if(typeof oldGo==='function'&&!window.__flGoRefresh){
-    window.go=function(tab){const r=oldGo(tab);try{window.flSyncMainPanel&&window.flSyncMainPanel()}catch(e){}return r};
-    window.__flGoRefresh=true;
-  }
-})();
-</script>
 
-<script id="fl-life-cockpit-official-navigation">
-(function(){
-  const names={day:'Dzień',career:'Kariera',family:'Rodzina',city:'Miasto',licenses:'Licencje',specialists:'Specjaliści',secondary:'Kariera poboczna',calendar:'Kalendarz',settings:'Ustawienia',code:'Kodeks'};
-  function bind(){
-    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
-      if(el.dataset.flOfficialNav)return;
-      const t=(el.textContent||'').trim().toLowerCase();
-      let tab=null;
-      for(const k in names)if(t===names[k].toLowerCase()||t.includes(names[k].toLowerCase())){tab=k;break}
-      if(!tab)return;
-      el.dataset.flOfficialNav='1';
-      el.addEventListener('click',e=>{
-        if(!window.__FL_START_BRIDGE)return;
-        e.preventDefault();e.stopImmediatePropagation();
-        window.__FL_START_BRIDGE.setCurrent(tab);
-        window.__FL_START_BRIDGE.render();
-        window.scrollTo({top:0,behavior:'smooth'});
-      },true);
-    });
-  }
-  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});bind();
-})();
-</script>
+
+
+
+
+
 </body><script id="core">const KEY='fl-life-27-etap6';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const initial={
@@ -1117,7 +1038,12 @@ function setTabs(){
 function renderMenu(){
   document.getElementById('menuGrid').innerHTML=menu.map(([id,ic,n,d])=>`<button class="menu-item" onclick="go('${id}');closeDrawer()"><div class="ico">${ic}</div><b>${n}</b><span>${d}</span></button>`).join('');
 }
-function go(tab){current=tab;renderCore();window.scrollTo({top:0,behavior:'smooth'})}
+function go(tab){
+  const valid=['day','career','stats','life','family','relations','history','flgram','finance','city','education','licenses','specialists','secondary','calendar','settings','code'];
+  current=valid.includes(tab)?tab:'day';
+  renderCore();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function openDrawer(){document.getElementById('drawer').classList.add('open')}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open')} window.go=go;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.cityDetail=cityDetail;window.renderCore=renderCore;window.renderMenu=renderMenu;window.setTabs=setTabs;window.openWorldCatalog=openWorldCatalog;window.cityOpen=cityOpen;window.cityCloseDetail=cityCloseDetail;
 
@@ -1365,13 +1291,20 @@ function doActivity(id){
   const total=duration+travel.minutes;
   if(S.day.time+total>24*60){toast('Nie zmieścisz już tej aktywności wraz z dojazdem.');return}
 
+  // Transaction: never allow a paid action to create negative cash.
+  const cost=Math.max(0,Number(a.cost)||0);
+  const cash=Math.max(0,Number(S.player.money)||0);
+  if(cost>cash){
+    toast(`💰 Brakuje pieniędzy. Potrzebujesz €${cost}, masz €${Math.floor(cash)}.`);
+    return;
+  }
+
   const old={...S.player};
-  S.player.money-=a.cost;
+  S.player.money=cash-cost;
   S.day.lastTravel={action:a.name,mode:travel.mode,minutes:travel.minutes,date:S.day.date};
   S.day.lastActivityDuration=duration;
-
-  // Dojazd jest częścią planu, ale może wywołać wydarzenie po drodze.
   S.day.time+=travel.minutes;
+
   if(Math.random()<0.10){
     triggerEvent({
       title:'🚦 Coś wydarzyło się po drodze',
@@ -1384,34 +1317,29 @@ function doActivity(id){
     });
   }
 
-  S.day.time+=duration;
-  if(S.day.time>24*60)S.day.time=24*60;
-
-  for(const [k,v] of Object.entries(a.effects)){
-    if(k==='popularity') S.player.popularity=clamp(S.player.popularity+v,0,100);
-    else if(k==='ovr') S.player.ovr=clamp(S.player.ovr+v,1,99);
+  S.day.time=Math.min(24*60,S.day.time+duration);
+  for(const [k,v] of Object.entries(a.effects||{})){
+    if(k==='popularity')S.player.popularity=clamp(S.player.popularity+v,0,100);
+    else if(k==='ovr')S.player.ovr=clamp(S.player.ovr+v,1,99);
     else S.player[k]=clamp((S.player[k]||0)+v,0,100);
   }
-  if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis'){
-    S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99)
-  }
-  if(id==='school') attendSchool();
-  if(id==='music') secondaryWork('music',false);
-  if(id==='film') secondaryWork('film',false);
-  if(id==='flgram') flgramAction();
-  if(['club','tech','speed','strength'].includes(id)) applyBootWear(2);
+  if(id==='club'||id==='tech'||id==='speed'||id==='strength'||id==='analysis')
+    S.player.ovr=clamp(S.player.ovr+(a.effects.ovr||0),1,99);
+  if(id==='school')attendSchool();
+  if(id==='music')secondaryWork('music',false);
+  if(id==='film')secondaryWork('film',false);
+  if(id==='flgram')flgramAction();
+  if(['club','tech','speed','strength'].includes(id))applyBootWear(2);
 
+  // Record the exact money change as part of the event history.
   addHistory(`Aktywność: ${a.name}`,
-    `Wykonano ${a.name}. Czas aktywności: ${duration===150?'2,5 h':duration===90?'1,5 h':'1 h'} • dojazd: ${travel.mode} ${travel.minutes} min.`,
-    effectsDiff(old,S.player));
+    `Wykonano ${a.name}. Czas aktywności: ${duration===150?'2,5 h':duration===90?'1,5 h':'1 h'} • dojazd: ${travel.mode} ${travel.minutes} min • koszt: €${cost}.`,
+    `${effectsDiff(old,S.player)}${cost?` • pieniądze -€${cost}`:''}`);
 
-  // Szansa na wydarzenie po wykonaniu aktywności; osobno od wydarzenia w dojeździe.
   maybeEvent(id);
-
-  // Poznawanie nowych osób może nastąpić w wielu miejscach.
-  if(Math.random()<0.10 && !['school','sleep'].includes(id)) createEncounterEvent(a.name);
-
-  S.tutorial.steps[0]=true; S.tutorial.steps[1]=true;
+  if(Math.random()<0.10&&!['school','sleep'].includes(id))createEncounterEvent(a.name);
+  S.tutorial.steps[0]=true;S.tutorial.steps[1]=true;
+  S.player.money=Math.max(0,Number(S.player.money)||0);
   save();renderCore();window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -2429,11 +2357,19 @@ window.__FL_START_BRIDGE={
 };
 
 </script>
-<script id="responsive-fl-life-js">function toggleSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.toggle('open');if(b)b.classList.toggle('open')}
+<script id="responsive-fl-life-js">
+function toggleSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.toggle('open');if(b)b.classList.toggle('open')}
 function closeSideMenu(){const m=document.getElementById('sideMenu'),b=document.getElementById('mobileMenuBackdrop');if(m)m.classList.remove('open');if(b)b.classList.remove('open')}
 function toggleZone(btn){const z=btn.closest('.side-zone');if(z)z.classList.toggle('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSideMenu()})
-function navigateTo(k){closeSideMenu();const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',matches:'matches',scouts:'scouts',transfers:'transfers',attributes:'attributes',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finances',shop:'city',city:'city',property:'property',cars:'cars',flgram:'flgram',messages:'messages',history:'history',settings:'settings',code:'code'};const key=map[k]||k;if(typeof showPage==='function')return showPage(key);if(typeof renderPage==='function')return renderPage(key);if(typeof navigate==='function')return navigate(key);const el=document.querySelector('[data-page="'+key+'"],[data-target="'+key+'"]');if(el){el.click();return true}return false}</script>
+function navigateTo(k){
+  closeSideMenu();
+  const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',attributes:'stats',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finance',shop:'city',city:'city',flgram:'flgram',history:'history',settings:'settings',code:'code'};
+  const key=map[k]||k;
+  if(typeof window.go==='function'){window.go(key);return true}
+  return false;
+}
+</script>
 
 <script id="fl-life-start-controller">
 (function(){
@@ -2795,8 +2731,13 @@ function flSyncAutoBeforeHistory(){
       base.meta={...(base.meta||{}),careerId:'career_'+Date.now(),createdAt:new Date().toISOString(),lastPlayedAt:new Date().toISOString()};
       S=base;
       if(typeof migrateSave==='function')migrateSave(S);
-      if(typeof save==='function')save();
-      if(typeof flSaveCurrentToSlot==='function')flSaveCurrentToSlot(1);
+      if(window.__FL_START_BRIDGE){
+        window.__FL_START_BRIDGE.setState(S);
+        window.__FL_START_BRIDGE.setCurrent('day');
+        window.__FL_START_BRIDGE.save();
+        if(typeof window.flSaveCurrentToSlot==='function')window.flSaveCurrentToSlot(1);
+        window.__FL_START_BRIDGE.render();
+      }else if(typeof save==='function')save();
       close();hide();if(typeof render==='function')render();
       toast('⚽ Kariera utworzona — '+p.name+', '+p.age+' lat — '+p.city+' — '+p.club);
     }catch(e){console.error(e);toast('Nie udało się utworzyć kariery.')}
@@ -2817,51 +2758,52 @@ function flSyncAutoBeforeHistory(){
   const old=window.finish;window.finish=function(){const r=old.apply(this,arguments);setTimeout(()=>{try{window.flAutoSaveCurrent&&window.flAutoSaveCurrent()}catch(e){}},50);return r};window.__flFinishWrapped=true;
 })();
 </script>
-<script id="fl-life-save-slots">(function(){
-  const SLOT_PREFIX='FL_LIFE_27_SLOT_';
-  const META_KEY='FL_LIFE_27_SLOT_META';
-  const MAX_SLOTS=5;
-  function slotMeta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'[]')}catch(e){return[]}}
+<script id="fl-life-save-slots">
+(function(){
+  const SLOT_PREFIX='FL_LIFE_27_SLOT_',META_KEY='FL_LIFE_27_SLOT_META',MAX_SLOTS=5;
+  function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'[]')}catch(e){return[]}}
   function setMeta(a){localStorage.setItem(META_KEY,JSON.stringify(a))}
-  function slotKey(n){return SLOT_PREFIX+n}
+  function key(n){return SLOT_PREFIX+n}
+  function get(n){try{const x=localStorage.getItem(key(n));return x?JSON.parse(x):null}catch(e){return null}}
+  function state(){return window.__FL_START_BRIDGE?.getState?.()||null}
+  function clone(x){return JSON.parse(JSON.stringify(x))}
   function saveSlot(n,data){
-    localStorage.setItem(slotKey(n),JSON.stringify(data));
-    const a=slotMeta().filter(x=>x.slot!==n);
-    a.push({slot:n,name:data?.player?.name||`Kariera ${n}`,city:data?.player?.city||'',age:data?.player?.age||'',updated:new Date().toLocaleString('pl-PL')});
-    setMeta(a);
-    localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));
+    if(!data||!data.player)return false;
+    const d=clone(data); localStorage.setItem(key(n),JSON.stringify(d));
+    const a=meta().filter(x=>x.slot!==n);
+    a.push({slot:n,name:d.player.name||'Kariera',city:d.player.city||'',age:d.player.age||'',updated:new Date().toLocaleString('pl-PL')});
+    setMeta(a);localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));return true;
   }
-  function getSlot(n){try{const s=localStorage.getItem(slotKey(n));return s?JSON.parse(s):null}catch(e){return null}}
-  window.flGetSaveSlots=function(){return Array.from({length:MAX_SLOTS},(_,i)=>({slot:i+1,data:getSlot(i+1),meta:slotMeta().find(x=>x.slot===i+1)||null}))};
+  window.flGetSaveSlots=()=>Array.from({length:MAX_SLOTS},(_,i)=>({slot:i+1,data:get(i+1),meta:meta().find(x=>x.slot===i+1)||null}));
   window.flSaveCurrentToSlot=function(n){
-    if(!S?.player)return;
-    saveSlot(n,S);
-    if(typeof toast==='function')toast(`💾 Zapisano karierę w slocie ${n}.`);
+    const d=state();if(!d||!d.player)return false;
+    return saveSlot(n,d);
   };
   window.flLoadSlot=function(n){
-    const d=getSlot(n);if(!d){if(typeof toast==='function')toast('Ten slot jest pusty.');return;}
-    localStorage.setItem(KEY,JSON.stringify(d));
+    const d=get(n);if(!d||!d.player){if(window.__FL_START_BRIDGE?.toast)window.__FL_START_BRIDGE.toast('Ten slot jest pusty.');return false}
+    const b=window.__FL_START_BRIDGE;if(!b)return false;
+    const next=clone(d);
+    b.setState(next);b.setCurrent('day');b.save();b.render();
     localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));
-    location.reload();
+    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(next.player));
+    return true;
   };
   window.flDeleteSlot=function(n){
-    localStorage.removeItem(slotKey(n));
-    setMeta(slotMeta().filter(x=>x.slot!==n));
-    if(typeof toast==='function')toast(`Usunięto zapis z slotu ${n}.`);
-    if(typeof flOpenLoad==='function')flOpenLoad();
+    localStorage.removeItem(key(n));setMeta(meta().filter(x=>x.slot!==n));
+    if(window.__FL_START_BRIDGE?.toast)window.__FL_START_BRIDGE.toast('Usunięto zapis z slotu '+n+'.');
+    if(typeof window.flOpenSlots==='function')window.flOpenSlots();
   };
   window.flSaveAs=function(){
-    const slots=flGetSaveSlots();
-    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISZ KARIERĘ</div><h2>Wybierz slot</h2><div class="muted">5 niezależnych karier</div></div><button class="close" onclick="closeModal()">✕</button></div>
-    <div class="list">${slots.map(s=>`<div class="history-item"><div class="row"><b>Slot ${s.slot}</b><span class="badge">${s.data?'ZAJĘTY':'PUSTY'}</span></div>${s.data?`<div class="muted small">${esc(s.meta?.name||s.data.player?.name||'Kariera')} • ${esc(s.meta?.city||s.data.player?.city||'')} • ${s.meta?.updated||''}</div>`:'<div class="muted small">Brak zapisanej kariery</div>'}<button class="btn goldbtn" style="margin-top:9px" onclick="flSaveCurrentToSlot(${s.slot});closeModal()">💾 Zapisz tutaj</button></div>`).join('')}</div>`,true);
+    const slots=window.flGetSaveSlots();
+    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISZ KARIERĘ</div><h2>Wybierz slot</h2><div class="muted">5 niezależnych karier</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="list">${slots.map(x=>`<div class="history-item"><div class="row"><b>Slot ${x.slot}</b><span class="badge">${x.data?'ZAJĘTY':'PUSTY'}</span></div><div class="muted small" style="margin-top:6px">${x.data?esc(x.meta?.name||x.data.player?.name||'Kariera')+' • '+esc(x.meta?.city||x.data.player?.city||''):'Brak zapisanej kariery'}</div><button class="btn goldbtn" style="margin-top:9px" onclick="flSaveCurrentToSlot(${x.slot});closeModal()">💾 Zapisz tutaj</button></div>`).join('')}</div>`,true);
   };
   window.flOpenSlots=function(){
-    const slots=flGetSaveSlots();
-    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 WCZYTAJ GRĘ</div><h2>Twoje kariery</h2><div class="muted">Możesz mieć maksymalnie 5 różnych zapisów.</div></div><button class="close" onclick="closeModal()">✕</button></div>
-    <div class="list">${slots.map(s=>`<div class="history-item"><div class="row"><b>Slot ${s.slot}</b><span class="badge">${s.data?'ZAJĘTY':'PUSTY'}</span></div>${s.data?`<div style="margin-top:6px"><b>${esc(s.meta?.name||s.data.player?.name||'Kariera')}</b><div class="muted small">${esc(s.meta?.city||s.data.player?.city||'')} • wiek ${s.meta?.age||s.data.player?.age||'?'} • ${s.meta?.updated||''}</div></div><div style="display:flex;gap:7px;margin-top:9px"><button class="btn goldbtn" onclick="flLoadSlot(${s.slot})">▶️ Wczytaj</button><button class="btn" onclick="flDeleteSlot(${s.slot})">🗑️ Usuń</button></div>`:'<div class="muted small" style="margin-top:6px">Ten slot jest wolny.</div>'}</div>`).join('')}</div>`,true);
+    const slots=window.flGetSaveSlots();
+    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 WCZYTAJ GRĘ</div><h2>Twoje kariery</h2><div class="muted">Maksymalnie 5 zapisów</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="list">${slots.map(x=>`<div class="history-item"><div class="row"><b>Slot ${x.slot}</b><span class="badge">${x.data?'ZAJĘTY':'PUSTY'}</span></div>${x.data?`<div class="muted small">${esc(x.meta?.name||x.data.player?.name||'Kariera')} • ${esc(x.meta?.city||x.data.player?.city||'')} • ${x.meta?.updated||''}</div><div style="display:flex;gap:7px;margin-top:9px"><button class="btn goldbtn" onclick="flLoadSlot(${x.slot})">▶️ Wczytaj</button><button class="btn" onclick="flDeleteSlot(${x.slot})">🗑️ Usuń</button></div>`:'<div class="muted small">Slot wolny</div>'}</div>`).join('')}</div>`,true);
   };
-  window.flLastPlayedSlot=function(){return Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0)};
-})();</script>
+  window.flLastPlayedSlot=()=>Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
+})();
+</script>
 <script id="fl-life-persistence-v20">(function(){
   if(window.__flPersistenceV20)return;
   window.__flPersistenceV20=true;
