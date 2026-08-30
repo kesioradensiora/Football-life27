@@ -614,80 +614,9 @@
 })();
 </script>
 
-<script id="fl-life-continue-fix">
-(function(){
-  function load(){
-    const n=Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||1);
-    const slots=window.flGetSaveSlots?.()||[];
-    const hit=slots.find(x=>x.slot===n&&x.data)||slots.find(x=>x.slot===1&&x.data)||slots.find(x=>x.data);
-    if(!hit)return false;
-    return window.flLoadSlot(hit.slot);
-  }
-  window.flContinueCareer=load;
-  function bind(){
-    document.querySelectorAll('button,a,[role="button"]').forEach(el=>{
-      if(el.dataset.flContinueNative)return;
-      if(!(el.textContent||'').trim().toLowerCase().includes('kontynuuj'))return;
-      el.dataset.flContinueNative='1';
-      el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(!load())alert('Nie znaleziono zapisanej kariery.');},true);
-    });
-  }
-  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});bind();
-})();
-</script>
 
-<script id="fl-life-start-save-bridge">
-(function(){
-  const SLOT_KEY='FL_LIFE_27_SAVE_SLOTS_V1', CURRENT='FL_LIFE_27_CURRENT_PLAYER';
-  function readSlots(){try{return JSON.parse(localStorage.getItem(SLOT_KEY)||'[]')}catch(e){return[]}}
-  function writeSlots(a){localStorage.setItem(SLOT_KEY,JSON.stringify(a.slice(0,5)))}
-  function normalize(){
-    const candidates=[window.FL_PLAYER_PROFILE,window.w,window.FL_NEW_GAME_STATE,window.gameState,window.player];
-    let p=candidates.find(x=>x&&typeof x==='object');
-    if(!p){
-      p={first:document.querySelector('#fwFirst')?.value||'',last:document.querySelector('#fwLast')?.value||'',
-         age:Number(document.querySelector('#fwAge')?.value)||16,country:document.querySelector('#fwCountry')?.value||'',
-         city:document.querySelector('#fwCity')?.value||''};
-    }
-    p=JSON.parse(JSON.stringify(p));
-    p.first=p.first||p.firstName||'';
-    p.last=p.last||p.lastName||'';
-    p.age=Math.max(15,Math.min(17,Number(p.age)||16));
-    p.residenceCountry=p.residenceCountry||p.country||'';
-    p.residenceCity=p.residenceCity||p.city||'';
-    p.country=p.country||p.residenceCountry;
-    p.city=p.city||p.residenceCity;
-    p.createdAt=p.createdAt||new Date().toISOString();
-    return p;
-  }
-  function persist(p){
-    if(window.__FL_START_BRIDGE){
-      const old=window.__FL_START_BRIDGE.getState()||{};
-      const next=JSON.parse(JSON.stringify(old));
-      next.player=JSON.parse(JSON.stringify(p)); next.profile=next.player;
-      next.first=p.first||p.firstName||''; next.last=p.last||p.lastName||''; next.age=p.age||16;
-      next.gender=p.gender||next.gender; next.country=p.country||p.residenceCountry||'';
-      next.city=p.city||p.residenceCity||'';
-      next.residenceCountry=p.residenceCountry||p.country||'';
-      next.residenceCity=p.residenceCity||p.city||'';
-      window.__FL_START_BRIDGE.setState(next);
-      window.__FL_START_BRIDGE.setCurrent('day');
-      window.__FL_START_BRIDGE.save();
-      window.__FL_START_BRIDGE.render();
-      return true;
-    }
-    if(enterCareer(p))return true;
-    // Never report "save mechanism unavailable": the save has already been created.
-    // If no legacy navigation hook exists, render a minimal in-place career state
-    // using the game's existing root instead of returning to cockpit.
-    const root=document.querySelector('#app,#game,.app,.game,.screen')||document.body;
-    root.dataset.flActiveCareer='1';
-    document.dispatchEvent(new CustomEvent('fl:career-started',{detail:p}));
-    return true;
-  };
-  window.flHasCareerSave=function(){return readSlots().some(x=>x&&x.player)}
-})();
-</script>
+
+
 
 <script id="fl-life-start-button-fix">
 (function(){
@@ -2366,7 +2295,7 @@ function navigateTo(k){
   closeSideMenu();
   const map={today:'day',calendar:'calendar',family:'family',relations:'relations',career:'career',attributes:'stats',education:'education',licenses:'licenses',sidecareer:'secondary',finances:'finance',shop:'city',city:'city',flgram:'flgram',history:'history',settings:'settings',code:'code'};
   const key=map[k]||k;
-  if(typeof window.go==='function'){window.go(key);return true}
+  if(typeof window.go==='function')return window.go(key);
   return false;
 }
 </script>
@@ -2758,52 +2687,7 @@ function flSyncAutoBeforeHistory(){
   const old=window.finish;window.finish=function(){const r=old.apply(this,arguments);setTimeout(()=>{try{window.flAutoSaveCurrent&&window.flAutoSaveCurrent()}catch(e){}},50);return r};window.__flFinishWrapped=true;
 })();
 </script>
-<script id="fl-life-save-slots">
-(function(){
-  const SLOT_PREFIX='FL_LIFE_27_SLOT_',META_KEY='FL_LIFE_27_SLOT_META',MAX_SLOTS=5;
-  function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'[]')}catch(e){return[]}}
-  function setMeta(a){localStorage.setItem(META_KEY,JSON.stringify(a))}
-  function key(n){return SLOT_PREFIX+n}
-  function get(n){try{const x=localStorage.getItem(key(n));return x?JSON.parse(x):null}catch(e){return null}}
-  function state(){return window.__FL_START_BRIDGE?.getState?.()||null}
-  function clone(x){return JSON.parse(JSON.stringify(x))}
-  function saveSlot(n,data){
-    if(!data||!data.player)return false;
-    const d=clone(data); localStorage.setItem(key(n),JSON.stringify(d));
-    const a=meta().filter(x=>x.slot!==n);
-    a.push({slot:n,name:d.player.name||'Kariera',city:d.player.city||'',age:d.player.age||'',updated:new Date().toLocaleString('pl-PL')});
-    setMeta(a);localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));return true;
-  }
-  window.flGetSaveSlots=()=>Array.from({length:MAX_SLOTS},(_,i)=>({slot:i+1,data:get(i+1),meta:meta().find(x=>x.slot===i+1)||null}));
-  window.flSaveCurrentToSlot=function(n){
-    const d=state();if(!d||!d.player)return false;
-    return saveSlot(n,d);
-  };
-  window.flLoadSlot=function(n){
-    const d=get(n);if(!d||!d.player){if(window.__FL_START_BRIDGE?.toast)window.__FL_START_BRIDGE.toast('Ten slot jest pusty.');return false}
-    const b=window.__FL_START_BRIDGE;if(!b)return false;
-    const next=clone(d);
-    b.setState(next);b.setCurrent('day');b.save();b.render();
-    localStorage.setItem('FL_LIFE_27_LAST_SLOT',String(n));
-    localStorage.setItem('FL_LIFE_27_CURRENT_PLAYER',JSON.stringify(next.player));
-    return true;
-  };
-  window.flDeleteSlot=function(n){
-    localStorage.removeItem(key(n));setMeta(meta().filter(x=>x.slot!==n));
-    if(window.__FL_START_BRIDGE?.toast)window.__FL_START_BRIDGE.toast('Usunięto zapis z slotu '+n+'.');
-    if(typeof window.flOpenSlots==='function')window.flOpenSlots();
-  };
-  window.flSaveAs=function(){
-    const slots=window.flGetSaveSlots();
-    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 ZAPISZ KARIERĘ</div><h2>Wybierz slot</h2><div class="muted">5 niezależnych karier</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="list">${slots.map(x=>`<div class="history-item"><div class="row"><b>Slot ${x.slot}</b><span class="badge">${x.data?'ZAJĘTY':'PUSTY'}</span></div><div class="muted small" style="margin-top:6px">${x.data?esc(x.meta?.name||x.data.player?.name||'Kariera')+' • '+esc(x.meta?.city||x.data.player?.city||''):'Brak zapisanej kariery'}</div><button class="btn goldbtn" style="margin-top:9px" onclick="flSaveCurrentToSlot(${x.slot});closeModal()">💾 Zapisz tutaj</button></div>`).join('')}</div>`,true);
-  };
-  window.flOpenSlots=function(){
-    const slots=window.flGetSaveSlots();
-    openModal(`<div class="modal-head"><div><div class="eyebrow">💾 WCZYTAJ GRĘ</div><h2>Twoje kariery</h2><div class="muted">Maksymalnie 5 zapisów</div></div><button class="close" onclick="closeModal()">✕</button></div><div class="list">${slots.map(x=>`<div class="history-item"><div class="row"><b>Slot ${x.slot}</b><span class="badge">${x.data?'ZAJĘTY':'PUSTY'}</span></div>${x.data?`<div class="muted small">${esc(x.meta?.name||x.data.player?.name||'Kariera')} • ${esc(x.meta?.city||x.data.player?.city||'')} • ${x.meta?.updated||''}</div><div style="display:flex;gap:7px;margin-top:9px"><button class="btn goldbtn" onclick="flLoadSlot(${x.slot})">▶️ Wczytaj</button><button class="btn" onclick="flDeleteSlot(${x.slot})">🗑️ Usuń</button></div>`:'<div class="muted small">Slot wolny</div>'}</div>`).join('')}</div>`,true);
-  };
-  window.flLastPlayedSlot=()=>Number(localStorage.getItem('FL_LIFE_27_LAST_SLOT')||0);
-})();
-</script>
+
 <script id="fl-life-persistence-v20">(function(){
   if(window.__flPersistenceV20)return;
   window.__flPersistenceV20=true;
